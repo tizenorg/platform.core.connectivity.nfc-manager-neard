@@ -1,7 +1,7 @@
 Name:       nfc-manager
 Summary:    NFC framework manager
 Version:    0.0.37
-Release:    0
+Release:    1
 Group:      libs
 License:    Flora Software License
 Source0:    %{name}-%{version}.tar.gz
