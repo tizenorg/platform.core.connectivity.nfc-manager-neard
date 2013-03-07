@@ -222,7 +222,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_duplicate_target_info(net_nfc_target_
 		}
 	}
 
-	if (handle->raw_data.length > 0)
+	if (handle->raw_data.buffer != NULL && handle->raw_data.length > 0)
 	{
 		net_nfc_util_alloc_data(&temp->raw_data, handle->raw_data.length);
 		memcpy(temp->raw_data.buffer, handle->raw_data.buffer, temp->raw_data.length);
