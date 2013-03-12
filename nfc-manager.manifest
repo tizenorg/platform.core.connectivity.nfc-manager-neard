@@ -1,0 +1,16 @@
+<manifest>
+	<define>
+		<domain name="nfc-manager" />
+	</define>
+	<assign>
+		<filesystem path="/usr/bin/nfc-manager-daemon" exec_label="nfc-manager" />
+		<filesystem path="/usr/bin/ndef-tool" exec_label="nfc-manager" />
+		<filesystem path="/usr/lib/libnfc.so.1" label="_" />
+		<filesystem path="/usr/lib/libnfc.so.1.0.0" label="_" />
+		<filesystem path="/etc/init.d/libnfc-manager-0" label="_" exec_label="none"/>
+	</assign>
+	<request>
+		<domain name="nfc-manager" />
+	</request>
+</manifest>
+
