@@ -21,6 +21,7 @@
 #include "net_nfc_typedef.h"
 #include "net_nfc_typedef_private.h"
 
+/* common api */
 void* net_nfc_controller_onload(void);
 bool net_nfc_controller_unload(void* handle);
 bool net_nfc_controller_init (net_nfc_error_e* result);
@@ -32,8 +33,6 @@ bool net_nfc_controller_check_firmware_version(net_nfc_error_e* result);
 bool net_nfc_controller_update_firmware(net_nfc_error_e* result);
 bool net_nfc_controller_get_stack_information(net_nfc_stack_information_s* stack_info, net_nfc_error_e* result);
 bool net_nfc_controller_confiure_discovery (net_nfc_discovery_mode_e mode, net_nfc_event_filter_e config, net_nfc_error_e* result);
-bool net_nfc_controller_get_secure_element_list(net_nfc_secure_element_info_s* list, int* count, net_nfc_error_e* result);
-bool net_nfc_controller_set_secure_element_mode(net_nfc_secure_element_type_e element_type, net_nfc_secure_element_mode_e mode, net_nfc_error_e* result);
 bool net_nfc_controller_check_target_presence(net_nfc_target_handle_s* handle, net_nfc_error_e* result);
 bool net_nfc_controller_connect(net_nfc_target_handle_s* handle, net_nfc_error_e* result);
 bool net_nfc_controller_disconnect(net_nfc_target_handle_s* handle, net_nfc_error_e* result);
@@ -46,8 +45,7 @@ bool net_nfc_controller_transceive (net_nfc_target_handle_s* handle, net_nfc_tra
 bool net_nfc_controller_exception_handler(void);
 bool net_nfc_controller_is_ready(net_nfc_error_e* result);
 
-// LLCP API DEFINE
-
+/* llcp api */
 bool net_nfc_controller_llcp_config(net_nfc_llcp_config_info_s * config, net_nfc_error_e * result);
 bool net_nfc_controller_llcp_check_llcp(net_nfc_target_handle_s* handle, net_nfc_error_e* result);
 bool net_nfc_controller_llcp_activate_llcp(net_nfc_target_handle_s * handle, net_nfc_error_e* result);
@@ -67,10 +65,15 @@ bool net_nfc_controller_llcp_reject(net_nfc_target_handle_s* handle, net_nfc_llc
 bool net_nfc_controller_llcp_get_remote_config (net_nfc_target_handle_s* handle, net_nfc_llcp_config_info_s *config, net_nfc_error_e* result);
 bool net_nfc_controller_llcp_get_remote_socket_info (net_nfc_target_handle_s* handle, net_nfc_llcp_socket_t socket, net_nfc_llcp_socket_option_s * option, net_nfc_error_e* result);
 
+/* secure element api */
+bool net_nfc_controller_secure_element_open(net_nfc_secure_element_type_e element_type, net_nfc_target_handle_s **handle, net_nfc_error_e *result);
+bool net_nfc_controller_secure_element_get_atr(net_nfc_target_handle_s *handle, data_s **atr, net_nfc_error_e *result);
+bool net_nfc_controller_secure_element_send_apdu(net_nfc_target_handle_s *handle, data_s *command, data_s **response, net_nfc_error_e *result);
+bool net_nfc_controller_secure_element_close(net_nfc_target_handle_s *handle, net_nfc_error_e *result);
+bool net_nfc_controller_get_secure_element_list(net_nfc_secure_element_info_s* list, int* count, net_nfc_error_e* result);
+bool net_nfc_controller_set_secure_element_mode(net_nfc_secure_element_type_e element_type, net_nfc_secure_element_mode_e mode, net_nfc_error_e* result);
 
-
-// LLCP API DEFINE
-
+/* test api */
 bool net_nfc_controller_sim_test(net_nfc_error_e* result);
 bool net_nfc_controller_prbs_test(net_nfc_error_e* result , uint32_t tech , uint32_t rate);
 

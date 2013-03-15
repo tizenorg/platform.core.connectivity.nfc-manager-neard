@@ -17,6 +17,8 @@
 #include <pthread.h>
 #include <malloc.h>
 
+#include "vconf.h"
+
 #include "net_nfc_controller_private.h"
 #include "net_nfc_util_private.h"
 #include "net_nfc_typedef.h"
@@ -32,6 +34,7 @@
 #include "net_nfc_util_ndef_message.h"
 #include "net_nfc_util_ndef_record.h"
 #include "net_nfc_util_access_control_private.h"
+#include "net_nfc_server_context_private.h"
 
 /* static variable */
 
@@ -180,7 +183,7 @@ static bool _is_isp_dep_ndef_formatable(net_nfc_target_handle_s *handle, int dev
 	}
 	else
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_transceive is failed, [%d]", result);
+		DEBUG_ERR_MSG("net_nfc_controller_transceive is failed, [%d]", error);
 	}
 
 	return result;
@@ -517,4 +520,334 @@ static void _net_nfc_service_show_exception_msg(char* msg)
 	net_nfc_app_util_aul_launch_app("com.samsung.nfc-app", kb); /* empty_tag */
 
 	bundle_free(kb);
+}
+
+void net_nfc_service_is_tag_connected(net_nfc_request_msg_t *msg)
+{
+	net_nfc_request_is_tag_connected_t *detail = (net_nfc_request_is_tag_connected_t *)msg;
+	net_nfc_current_target_info_s *target_info;
+
+	target_info = net_nfc_server_get_tag_info();
+	if (net_nfc_server_check_client_is_running(msg->client_fd))
+	{
+		net_nfc_response_is_tag_connected_t resp = { 0, };
+
+		resp.length = sizeof(net_nfc_response_is_tag_connected_t);
+		resp.flags = detail->flags;
+		resp.trans_param = detail->trans_param;
+
+		if (target_info != NULL)
+		{
+			resp.result = NET_NFC_OK;
+			resp.devType = target_info->devType;
+		}
+		else
+		{
+			resp.result = NET_NFC_NOT_CONNECTED;
+			resp.devType = NET_NFC_UNKNOWN_TARGET;
+		}
+
+		net_nfc_send_response_msg(msg->client_fd, msg->request_type,
+			(void *)&resp, sizeof(net_nfc_response_is_tag_connected_t), NULL);
+	}
+}
+
+void net_nfc_service_get_current_tag_info(net_nfc_request_msg_t *msg)
+{
+	net_nfc_response_get_current_tag_info_t resp = { 0, };
+	net_nfc_request_get_current_tag_info_t *detail = (net_nfc_request_get_current_tag_info_t *)msg;
+	net_nfc_current_target_info_s *target_info = NULL;
+	net_nfc_error_e result = NET_NFC_OK;
+
+	resp.length = sizeof(net_nfc_response_get_current_tag_info_t);
+	resp.flags = detail->flags;
+	resp.trans_param = detail->trans_param;
+
+	target_info = net_nfc_server_get_tag_info();
+	if (target_info != NULL)
+	{
+		bool success = true;
+		data_s *recv_data = NULL;
+
+		if (target_info->devType != NET_NFC_NFCIP1_TARGET && target_info->devType != NET_NFC_NFCIP1_INITIATOR)
+		{
+#ifdef BROADCAST_MESSAGE
+			net_nfc_server_set_server_state(NET_NFC_TAG_CONNECTED);
+#endif
+			DEBUG_SERVER_MSG("tag is connected");
+
+			uint8_t ndef_card_state = 0;
+			int max_data_size = 0;
+			int real_data_size = 0;
+
+			if (net_nfc_controller_check_ndef(target_info->handle,
+				&ndef_card_state, &max_data_size, &real_data_size, &result) == true)
+			{
+				resp.ndefCardState = ndef_card_state;
+				resp.maxDataSize = max_data_size;
+				resp.actualDataSize = real_data_size;
+				resp.is_ndef_supported = 1;
+			}
+
+			resp.devType = target_info->devType;
+			resp.handle = target_info->handle;
+			resp.number_of_keys = target_info->number_of_keys;
+
+			net_nfc_util_duplicate_data(&resp.target_info_values, &target_info->target_info_values);
+
+			if (resp.is_ndef_supported)
+			{
+				if (net_nfc_controller_read_ndef(target_info->handle, &recv_data, &(resp.result)) == true)
+				{
+					DEBUG_SERVER_MSG("net_nfc_controller_read_ndef is success");
+
+					resp.raw_data.length = recv_data->length;
+
+					success = net_nfc_send_response_msg(msg->client_fd, msg->request_type, (void *)&resp, sizeof(net_nfc_response_get_current_tag_info_t),
+							(void *)(resp.target_info_values.buffer), resp.target_info_values.length,
+							(void *)(recv_data->buffer), recv_data->length, NULL);
+				}
+				else
+				{
+					DEBUG_SERVER_MSG("net_nfc_controller_read_ndef is fail");
+
+					resp.raw_data.length = 0;
+
+					success = net_nfc_send_response_msg(msg->client_fd, msg->request_type, (void *)&resp, sizeof(net_nfc_response_get_current_tag_info_t),
+						(void *)(resp.target_info_values.buffer), resp.target_info_values.length, NULL);
+				}
+			}
+			else
+			{
+				resp.raw_data.length = 0;
+
+				success = net_nfc_send_response_msg(msg->client_fd, msg->request_type, (void *)&resp, sizeof(net_nfc_response_get_current_tag_info_t),
+					(void *)(resp.target_info_values.buffer), resp.target_info_values.length, NULL);
+			}
+
+			net_nfc_util_free_data(&resp.target_info_values);
+		}
+		else
+		{
+			/* LLCP */
+			resp.result = NET_NFC_NOT_CONNECTED;
+			net_nfc_send_response_msg(msg->client_fd, msg->request_type,
+				(void *)&resp, sizeof(net_nfc_response_get_current_tag_info_t), NULL);
+		}
+	}
+	else
+	{
+		resp.result = NET_NFC_NOT_CONNECTED;
+		net_nfc_send_response_msg(msg->client_fd, msg->request_type,
+			(void *)&resp, sizeof(net_nfc_response_get_current_tag_info_t), NULL);
+	}
+}
+
+void net_nfc_service_get_current_target_handle(net_nfc_request_msg_t *msg)
+{
+	net_nfc_request_get_current_target_handle_t *detail = (net_nfc_request_get_current_target_handle_t *)msg;
+	net_nfc_current_target_info_s *target_info = NULL;
+
+	target_info = net_nfc_server_get_tag_info();
+	if (net_nfc_server_check_client_is_running(msg->client_fd))
+	{
+		net_nfc_response_get_current_target_handle_t resp = { 0, };
+
+		resp.length = sizeof(net_nfc_response_get_current_target_handle_t);
+		resp.flags = detail->flags;
+		resp.trans_param = detail->trans_param;
+
+		if (target_info != NULL)
+		{
+			resp.handle = target_info->handle;
+			resp.devType = target_info->devType;
+			resp.result = NET_NFC_OK;
+		}
+		else
+		{
+			resp.result = NET_NFC_NOT_CONNECTED;
+		}
+
+		net_nfc_send_response_msg(msg->client_fd, msg->request_type,
+			(void *)&resp, sizeof(net_nfc_response_get_current_target_handle_t), NULL);
+	}
+}
+
+void net_nfc_service_deinit(net_nfc_request_msg_t *msg)
+{
+	net_nfc_error_e result;
+
+	result = net_nfc_service_se_change_se(SECURE_ELEMENT_TYPE_INVALID);
+
+	/* release access control instance */
+	net_nfc_util_access_control_release();
+
+	net_nfc_server_free_current_tag_info();
+
+	if (net_nfc_controller_deinit() == TRUE)
+	{
+		DEBUG_SERVER_MSG("net_nfc_controller_deinit success [%d]", result);
+
+		/*vconf off*/
+		if (vconf_set_bool(VCONFKEY_NFC_STATE, FALSE) != 0)
+		{
+			DEBUG_ERR_MSG("vconf_set_bool failed");
+		}
+
+		net_nfc_response_test_t resp = { 0, };
+
+		resp.length = sizeof(net_nfc_response_test_t);
+		resp.flags = msg->flags;
+		resp.result = NET_NFC_OK;
+		resp.trans_param = (void *)msg->user_param;
+
+		net_nfc_broadcast_response_msg(msg->request_type, (void *)&resp,
+			sizeof(net_nfc_response_test_t), NULL);
+	}
+	else
+	{
+		DEBUG_SERVER_MSG("net_nfc_controller_deinit failed");
+
+		if (net_nfc_server_check_client_is_running(msg->client_fd))
+		{
+			net_nfc_response_test_t resp = { 0, };
+
+			resp.length = sizeof(net_nfc_response_test_t);
+			resp.flags = msg->flags;
+			resp.result = NET_NFC_UNKNOWN_ERROR;
+			resp.trans_param = (void *)msg->user_param;
+
+			net_nfc_send_response_msg(msg->client_fd, msg->request_type,
+				(void *)&resp, sizeof(net_nfc_response_test_t), NULL);
+		}
+	}
+}
+
+void net_nfc_service_init(net_nfc_request_msg_t *msg)
+{
+	net_nfc_error_e result;
+
+	if (net_nfc_controller_init(&result) == true)
+	{
+		net_nfc_llcp_config_info_s config = { 128, 1, 100, 0 };
+
+		if (net_nfc_controller_register_listener(net_nfc_service_target_detected_cb,
+			net_nfc_service_se_transaction_cb, net_nfc_service_llcp_event_cb, &result) == true)
+		{
+			DEBUG_SERVER_MSG("net_nfc_controller_register_listener Success!!");
+		}
+		else
+		{
+			DEBUG_ERR_MSG("net_nfc_controller_register_listener failed [%d]", result);
+		}
+
+		if (net_nfc_controller_llcp_config(&config, &result) == true)
+		{
+			/*We need to check the stack that supports the llcp or not.*/
+			DEBUG_SERVER_MSG("llcp is enabled");
+		}
+		else
+		{
+			DEBUG_ERR_MSG("net_nfc_controller_llcp_config failed [%d]", result);
+		}
+
+		result = net_nfc_service_se_change_se(SECURE_ELEMENT_TYPE_UICC);
+
+		if (net_nfc_controller_confiure_discovery(NET_NFC_DISCOVERY_MODE_CONFIG,
+			NET_NFC_ALL_ENABLE, &result) == true)
+		{
+			DEBUG_SERVER_MSG("now, nfc is ready");
+		}
+		else
+		{
+			DEBUG_ERR_MSG("net_nfc_controller_confiure_discovery failed [%d]", result);
+		}
+
+		/* initialize access control instance */
+		net_nfc_util_access_control_initialize();
+
+		/*Send the Init Success Response Msg*/
+		{
+			net_nfc_response_test_t resp = { 0, };
+
+			DEBUG_SERVER_MSG("net_nfc_controller_init success [%d]", result);
+
+			resp.length = sizeof(net_nfc_response_test_t);
+			resp.flags = msg->flags;
+			resp.result = NET_NFC_OK;
+			resp.trans_param = (void *)msg->user_param;
+
+			/*vconf on*/
+			if (vconf_set_bool(VCONFKEY_NFC_STATE, TRUE) != 0)
+			{
+				DEBUG_ERR_MSG("vconf_set_bool failed");
+			}
+
+			net_nfc_broadcast_response_msg(msg->request_type,
+				(void *)&resp, sizeof(net_nfc_response_test_t), NULL);
+		}
+	}
+	else
+	{
+		DEBUG_ERR_MSG("net_nfc_controller_init failed [%d]", result);
+
+		if (net_nfc_server_check_client_is_running(msg->client_fd))
+		{
+			net_nfc_response_test_t resp = { 0, };
+
+			resp.length = sizeof(net_nfc_response_test_t);
+			resp.flags = msg->flags;
+			resp.result = result;
+			resp.trans_param = (void *)msg->user_param;
+
+			net_nfc_send_response_msg(msg->client_fd, msg->request_type,
+				(void *)&resp, sizeof(net_nfc_response_test_t), NULL);
+		}
+	}
+}
+
+void net_nfc_service_restart_polling(net_nfc_request_msg_t *msg)
+{
+	net_nfc_request_msg_t *discovery_req = (net_nfc_request_msg_t *)msg;
+	net_nfc_error_e result = NET_NFC_OK;
+	int pm_state = 0;
+	int set_config = 0;
+
+	pm_state = discovery_req->user_param;
+
+	DEBUG_SERVER_MSG("NET_NFC_MESSAGE_SERVICE_RESTART_POLLING_LOOP PM State = [%d]", pm_state);
+
+	if (pm_state == 1)
+	{
+		set_config = NET_NFC_ALL_ENABLE;
+	}
+	else if (pm_state == 3)
+	{
+		set_config = NET_NFC_ALL_DISABLE;
+	}
+	else
+	{
+		DEBUG_SERVER_MSG("Do not anything!!");
+	}
+
+	if (net_nfc_controller_confiure_discovery(NET_NFC_DISCOVERY_MODE_CONFIG, set_config, &result) == true)
+	{
+		DEBUG_SERVER_MSG("now, nfc polling loop is running again");
+	}
+}
+
+void net_nfc_service_get_server_state(net_nfc_request_msg_t *msg)
+{
+	if (net_nfc_server_check_client_is_running(msg->client_fd))
+	{
+		net_nfc_response_get_server_state_t resp = { 0, };
+
+		resp.length = sizeof(net_nfc_response_get_server_state_t);
+		resp.flags = msg->flags;
+		resp.state = net_nfc_server_get_server_state();
+		resp.result = NET_NFC_OK;
+
+		net_nfc_send_response_msg(msg->client_fd, msg->request_type,
+			(void *)&resp, sizeof(net_nfc_response_get_server_state_t), NULL);
+	}
 }

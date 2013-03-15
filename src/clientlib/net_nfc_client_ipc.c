@@ -44,6 +44,7 @@ static pthread_mutex_t g_client_ipc_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t g_client_ipc_cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t cb_lock = PTHREAD_MUTEX_INITIALIZER;
 static net_nfc_response_cb client_cb = NULL;
+static net_nfc_error_e sync_result;
 
 #ifdef G_MAIN_LOOP
 static GIOChannel *g_client_channel = NULL;
@@ -90,10 +91,17 @@ static void net_nfc_client_prepare_sync_call(net_nfc_request_msg_t *msg)
 static net_nfc_error_e net_nfc_client_wait_sync_call(int timeout)
 {
 	net_nfc_error_e result = NET_NFC_OPERATION_FAIL;
+	struct timeval now;
+	struct timespec ts;
 
-	if (pthread_cond_wait(&g_client_ipc_cond, &g_client_ipc_mutex) == 0)
+	gettimeofday(&now, NULL);
+	ts.tv_sec = now.tv_sec + timeout;
+	ts.tv_nsec = now.tv_usec * 1000;
+
+	if (pthread_cond_timedwait(&g_client_ipc_cond, &g_client_ipc_mutex,
+		&ts) == 0)
 	{
-		result = NET_NFC_OK;
+		result = sync_result;
 	}
 
 	return result;
@@ -109,8 +117,10 @@ static void net_nfc_client_recv_sync_call()
 	net_nfc_client_ipc_lock();
 }
 
-static void net_nfc_client_notify_sync_call()
+static void net_nfc_client_notify_sync_call(net_nfc_error_e result)
 {
+	sync_result = result;
+
 	pthread_cond_signal(&g_client_ipc_cond);
 	net_nfc_client_ipc_unlock();
 }
@@ -429,20 +439,22 @@ static void *net_nfc_client_ipc_thread(void *data)
 			msg = net_nfc_client_read_response_msg(&result);
 
 			pthread_mutex_lock(&cb_lock);
-			if (msg != NULL)
+			if (msg != NULL && msg->detail_message != NULL)
 			{
 				/* TODO : need to remove */
 				net_nfc_response_msg_t *temp = (net_nfc_response_msg_t *)(msg->detail_message);
 ;
 				if (NET_NFC_FLAGS_IS_SYNC_CALL(temp->flags))
 				{
+					net_nfc_error_e result;
+
 					net_nfc_client_recv_sync_call();
 
 					/* call a callback in IPC thread */
-					net_nfc_client_dispatch_sync_response(msg);
+					result = net_nfc_client_dispatch_sync_response(msg);
 
 					/* unset sync call flag */
-					net_nfc_client_notify_sync_call();
+					net_nfc_client_notify_sync_call(result);
 				}
 				else
 				{
@@ -1645,7 +1657,7 @@ static net_nfc_error_e _send_request(net_nfc_request_msg_t *msg, va_list list)
 	}
 }
 
-net_nfc_error_e net_nfc_client_send_reqeust(net_nfc_request_msg_t *msg, ...)
+net_nfc_error_e net_nfc_client_send_request(net_nfc_request_msg_t *msg, ...)
 {
 	va_list list;
 	net_nfc_error_e result = NET_NFC_OK;
@@ -1663,7 +1675,7 @@ net_nfc_error_e net_nfc_client_send_reqeust(net_nfc_request_msg_t *msg, ...)
 	return result;
 }
 
-net_nfc_error_e net_nfc_client_send_reqeust_sync(net_nfc_request_msg_t *msg, ...)
+net_nfc_error_e net_nfc_client_send_request_sync(net_nfc_request_msg_t *msg, ...)
 {
 	va_list list;
 	net_nfc_error_e result = NET_NFC_OK;
@@ -1678,7 +1690,7 @@ net_nfc_error_e net_nfc_client_send_reqeust_sync(net_nfc_request_msg_t *msg, ...
 
 	if (result == NET_NFC_OK)
 	{
-		result = net_nfc_client_wait_sync_call(0);
+		result = net_nfc_client_wait_sync_call(3);
 	}
 	net_nfc_client_post_sync_call();
 
@@ -1712,4 +1724,3 @@ net_nfc_error_e _net_nfc_client_unregister_cb(void)
 
 	return NET_NFC_OK;
 }
-

@@ -4,7 +4,7 @@
  * Licensed under the Flora License, Version 1.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
-
+ *
  *     http://floralicense.org/license/
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -308,7 +308,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_set_launch_popup_state(int enable)
 	request.request_type = NET_NFC_MESSAGE_SERVICE_SET_LAUNCH_STATE;
 	request.set_launch_popup = enable;
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
 	return ret;
 }
@@ -415,7 +415,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_state_activate(void)
 	request.request_type = NET_NFC_MESSAGE_SERVICE_CHANGE_CLIENT_STATE;
 	request.client_state = NET_NFC_CLIENT_ACTIVE_STATE;
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
 	return ret;
 }
@@ -429,7 +429,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_state_deactivate(void)
 	request.request_type = NET_NFC_MESSAGE_SERVICE_CHANGE_CLIENT_STATE;
 	request.client_state = NET_NFC_CLIENT_INACTIVE_STATE;
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
 	return ret;
 }
@@ -461,7 +461,7 @@ net_nfc_error_e net_nfc_send_init(void *context)
 	req_msg.request_type = NET_NFC_MESSAGE_SERVICE_INIT;
 	req_msg.user_param = (uint32_t)context;
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&req_msg, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&req_msg, NULL);
 
 	return ret;
 }
@@ -475,7 +475,7 @@ net_nfc_error_e net_nfc_send_deinit(void *context)
 	req_msg.request_type = NET_NFC_MESSAGE_SERVICE_DEINIT;
 	req_msg.user_param = (uint32_t)context;
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&req_msg, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&req_msg, NULL);
 
 	return ret;
 }

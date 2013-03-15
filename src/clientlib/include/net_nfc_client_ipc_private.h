@@ -25,8 +25,8 @@ net_nfc_error_e net_nfc_client_socket_initialize();
 void net_nfc_client_socket_finalize();
 bool net_nfc_client_is_connected();
 
-net_nfc_error_e net_nfc_client_send_reqeust(net_nfc_request_msg_t *msg, ...);
-net_nfc_error_e net_nfc_client_send_reqeust_sync(net_nfc_request_msg_t *msg, ...);
+net_nfc_error_e net_nfc_client_send_request(net_nfc_request_msg_t *msg, ...);
+net_nfc_error_e net_nfc_client_send_request_sync(net_nfc_request_msg_t *msg, ...);
 
 void _net_nfc_client_set_cookies(const char * cookie, size_t size);
 void _net_nfc_client_free_cookies(void);

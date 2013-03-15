@@ -206,6 +206,7 @@ typedef enum
 	NET_NFC_MESSAGE_OPEN_INTERNAL_SE,
 	NET_NFC_MESSAGE_CLOSE_INTERNAL_SE,
 	NET_NFC_MESSAGE_SEND_APDU_SE,
+	NET_NFC_MESSAGE_GET_ATR_SE,
 	NET_NFC_GET_SERVER_STATE,
 
 	NET_NFC_MESSAGE_SIM_TEST,
@@ -367,23 +368,23 @@ typedef enum
 	NET_NFC_NPP,
 } llcp_app_protocol_e;
 
-typedef struct data_s *data_h;
+typedef struct _data_s *data_h;
 
-typedef struct ndef_record_s *ndef_record_h;
+typedef struct _ndef_record_s *ndef_record_h;
 
-typedef struct ndef_message_s *ndef_message_h;
+typedef struct _ndef_message_s *ndef_message_h;
 
-typedef struct net_nfc_target_info_s *net_nfc_target_info_h;
+typedef struct _net_nfc_target_info_s *net_nfc_target_info_h;
 
 typedef uint32_t net_nfc_traceive_cmd;
 
-typedef struct net_nfc_llcp_config_info_s *net_nfc_llcp_config_info_h;
+typedef struct _net_nfc_llcp_config_info_s *net_nfc_llcp_config_info_h;
 
-typedef struct net_nfc_llcp_socket_option_s *net_nfc_llcp_socket_option_h;
+typedef struct _net_nfc_llcp_socket_option_s *net_nfc_llcp_socket_option_h;
 
-typedef struct net_nfc_target_handle_s *net_nfc_target_handle_h;
+typedef struct _net_nfc_target_handle_s *net_nfc_target_handle_h;
 
-typedef struct net_nfc_connection_handover_info_s *net_nfc_connection_handover_info_h;
+typedef struct _net_nfc_connection_handover_info_s *net_nfc_connection_handover_info_h;
 
 typedef uint8_t sap_t;
 
@@ -413,7 +414,7 @@ typedef enum
 	NET_NFC_EXCHANGER_RAW,
 } net_nfc_exchanger_data_type_e;
 
-typedef struct net_nfc_exchanger_data_s *net_nfc_exchanger_data_h;
+typedef struct _net_nfc_exchanger_data_s *net_nfc_exchanger_data_h;
 
 typedef net_nfc_exchanger_data_h (*net_nfc_exchanger_cb)(net_nfc_exchanger_event_e event, void *user_param);
 
@@ -433,8 +434,8 @@ typedef enum
 	NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN_STATUS,
 } net_nfc_conn_handover_carrier_state_e;
 
-typedef struct net_nfc_conn_handover_carrier_info_s *net_nfc_conn_handover_carrier_info_h;
-typedef struct net_nfc_conn_handover_info_s *net_nfc_conn_handover_info_h;
+typedef struct _net_nfc_conn_handover_carrier_info_s *net_nfc_conn_handover_carrier_info_h;
+typedef struct _net_nfc_conn_handover_info_s *net_nfc_conn_handover_info_h;
 
 #define MIFARE_KEY_DEFAULT {(uint8_t)0xFF,(uint8_t)0xFF,(uint8_t)0xFF,(uint8_t)0xFF,(uint8_t)0xFF,(uint8_t)0xFF}
 #define MIFARE_KEY_APPLICATION_DIRECTORY {(uint8_t)0xA0,(uint8_t)0xA1,(uint8_t)0xA2,(uint8_t)0xA3,(uint8_t)0xA4,(uint8_t)0xA5}
@@ -487,8 +488,8 @@ typedef enum
 	NET_NFC_BT_ATTRIBUTE_ADDRESS = 0xF0, /* Bluetooth device Address */
 } net_nfc_handover_bt_attribute_e;
 
-typedef struct net_nfc_carrier_config_s *net_nfc_carrier_config_h;
-typedef struct net_nfc_carrier_property_s *net_nfc_property_group_h;
+typedef struct _net_nfc_carrier_config_s *net_nfc_carrier_config_h;
+typedef struct _net_nfc_carrier_property_s *net_nfc_property_group_h;
 
 typedef enum
 {

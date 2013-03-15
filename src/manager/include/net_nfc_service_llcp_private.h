@@ -1,19 +1,18 @@
 /*
-  * Copyright (c) 2012, 2013 Samsung Electronics Co., Ltd.
-  *
-  * Licensed under the Flora License, Version 1.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-
-  *     http://floralicense.org/license/
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  */
-
+ * Copyright (c) 2012, 2013 Samsung Electronics Co., Ltd.
+ *
+ * Licensed under the Flora License, Version 1.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://floralicense.org/license/
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #ifndef NET_NFC_SERVICE_LLCP_PRIVATE_H
 #define NET_NFC_SERVICE_LLCP_PRIVATE_H
@@ -24,36 +23,35 @@
 /* Service Name should be followed naming rule. */
 // service access name
 
-#define SDP_SAN					"urn:nfc:sn:sdp"
-#define IP_SAN					"urn:nfc:sn:ip"
-#define SNEP_SAN 				"urn:nfc:sn:snep"
-#define OBEX_SAN 				"urn:nfc:sn:obex"
+#define SDP_SAN			"urn:nfc:sn:sdp"
+#define IP_SAN			"urn:nfc:sn:ip"
+#define SNEP_SAN 		"urn:nfc:sn:snep"
+#define OBEX_SAN 		"urn:nfc:sn:obex"
 
 #define CONN_HANDOVER_SAN 	"urn:nfc:sn:handover"
 
-#define NPP_SAN                              "com.android.npp"
-#define NPP_SAP 0x10
+#define NPP_SAN			"com.android.npp"
+#define NPP_SAP			0x10
 
-#define SDP_SAP	1    /* service discovery protocol service access point */
-#define IP_SAP 2       /* Internet protocol service access point */
-#define OBEX_SAP 3  /* ojbect exchange service access point */
-#define SNEP_SAP 4  /* simple ndef exchange protocol service access point */
+#define SDP_SAP			1    /* service discovery protocol service access point */
+#define IP_SAP			2       /* Internet protocol service access point */
+#define OBEX_SAP		3  /* ojbect exchange service access point */
+#define SNEP_SAP		4  /* simple ndef exchange protocol service access point */
 
-#define CONN_HANDOVER_SAP 5 /* connection handover service access point */
+#define CONN_HANDOVER_SAP	5 /* connection handover service access point */
 
-#define SNEP_MAJOR_VER 1
-#define SNEP_MINOR_VER 0
+#define SNEP_MAJOR_VER		1
+#define SNEP_MINOR_VER		0
 
+#define NPP_MAJOR_VER		0
+#define NPP_MINOR_VER		1
 
-#define NPP_MAJOR_VER 0
-#define NPP_MINOR_VER 1
+#define NPP_NDEF_ENTRY		0x00000001
 
-#define NPP_NDEF_ENTRY 0x00000001
+#define NPP_ACTION_CODE		0x01
 
-#define NPP_ACTION_CODE 0x01
-
-#define SNEP_MAX_BUFFER 128 /* simple NDEF exchange protocol */
-#define CH_MAX_BUFFER 128     /* connection handover */
+#define SNEP_MAX_BUFFER		128 /* simple NDEF exchange protocol */
+#define CH_MAX_BUFFER		128     /* connection handover */
 
 typedef enum{
 	NPP_REQ_CONTINUE = 0x00,
@@ -150,12 +148,12 @@ typedef struct _net_nfc_llcp_npp_t{
 } __attribute__((packed))net_nfc_llcp_npp_t;
 
 #define NET_NFC_COMMON_HANDOVER_CONTEXT unsigned int step;\
-										net_nfc_llcp_state_t *llcp_state;\
-										void *user_data;\
-										net_nfc_error_e result;\
-										net_nfc_conn_handover_carrier_type_e request_type;\
-										void *data;\
-										bool is_requester;
+					net_nfc_llcp_state_t *llcp_state;\
+					void *user_data;\
+					net_nfc_error_e result;\
+					net_nfc_conn_handover_carrier_type_e request_type;\
+					void *data;\
+					bool is_requester;
 
 typedef struct _net_nfc_handover_context_t
 {

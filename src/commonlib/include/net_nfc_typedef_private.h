@@ -1,28 +1,24 @@
 /*
-  * Copyright (C) 2010 NXP Semiconductors
-  * Copyright (c) 2012, 2013 Samsung Electronics Co., Ltd.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *      http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  */
-
-
-
+ * Copyright (C) 2010 NXP Semiconductors
+ * Copyright (c) 2012, 2013 Samsung Electronics Co., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #ifndef __NET_NFC_INTERNAL_TYPEDEF_H__
 #define __NET_NFC_INTERNAL_TYPEDEF_H__
 
 #include "net_nfc_typedef.h"
-
 
 typedef enum
 {
@@ -57,6 +53,7 @@ typedef struct _net_nfc_target_handle_s
 {
 	uint32_t connection_id;
 	net_nfc_connection_type_e connection_type;
+	net_nfc_target_type_e target_type;
 	/*++npp++*/
 	llcp_app_protocol_e app_type;
 	/*--npp--*/
@@ -782,6 +779,13 @@ typedef struct _net_nfc_request_send_apdu_t
 	net_nfc_data_s data;
 } net_nfc_request_send_apdu_t;
 
+typedef struct _net_nfc_request_get_atr_t
+{
+	NET_NFC_REQUEST_MSG_HEADER
+
+	net_nfc_target_handle_s *handle;
+} net_nfc_request_get_atr_t;
+
 typedef struct _net_nfc_request_connection_handover_t
 {
 	NET_NFC_REQUEST_MSG_HEADER
@@ -1103,6 +1107,13 @@ typedef struct _net_nfc_response_send_apdu_t
 	data_s data;
 	void *trans_param;
 } net_nfc_response_send_apdu_t;
+
+typedef struct _net_nfc_response_get_atr_t
+{
+	NET_NFC_RESPONSE_MSG_HEADER
+
+	data_s data;
+} net_nfc_response_get_atr_t;
 
 typedef struct _net_nfc_response_get_server_state_t
 {

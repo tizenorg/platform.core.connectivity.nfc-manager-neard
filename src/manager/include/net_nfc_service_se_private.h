@@ -48,5 +48,12 @@ void net_nfc_service_tapi_deinit(void);
 bool net_nfc_service_transfer_apdu(int client_fd, data_s *apdu, void *trans_param);
 bool net_nfc_service_request_atr(int client_fd, void *trans_param);
 bool net_nfc_service_se_transaction_receive(net_nfc_request_msg_t* msg);
+void net_nfc_service_se_send_apdu(net_nfc_request_msg_t *msg);
+void net_nfc_service_se_get_atr(net_nfc_request_msg_t *msg);
+void net_nfc_service_se_close_se(net_nfc_request_msg_t *msg);
+void net_nfc_service_se_open_se(net_nfc_request_msg_t *msg);
+void net_nfc_service_se_set_se(net_nfc_request_msg_t *msg);
+void net_nfc_service_se_get_se(net_nfc_request_msg_t *msg);
+void net_nfc_service_se_cleanup();
 
 #endif

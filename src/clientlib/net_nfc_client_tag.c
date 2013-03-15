@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#include <string.h>
+#include <pthread.h>
+
 #include "net_nfc_tag.h"
 #include "net_nfc_typedef_private.h"
 #include "net_nfc_client_ipc_private.h"
@@ -21,9 +24,6 @@
 #include "net_nfc_util_private.h"
 #include "net_nfc_util_ndef_message.h"
 #include "net_nfc_client_nfc_private.h"
-
-#include <string.h>
-#include <pthread.h>
 
 #ifndef NET_NFC_EXPORT_API
 #define NET_NFC_EXPORT_API __attribute__((visibility("default")))
@@ -64,7 +64,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_format_ndef(net_nfc_target_handle_h h
 		memcpy(&request->key.buffer, struct_key->buffer, request->key.length);
 	}
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)request, NULL);
 
 	_net_nfc_util_free_mem(request);
 
@@ -214,7 +214,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_transceive(net_nfc_target_handle_h ha
 	request->trans_param = trans_param;
 	request->info.dev_type = (uint32_t)target_info->devType;
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)request, NULL);
 
 	_net_nfc_util_free_mem(request);
 
@@ -243,7 +243,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_read_tag(net_nfc_target_handle_h hand
 	request.handle = (net_nfc_target_handle_s *)handle;
 	request.trans_param = trans_param;
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
 	return ret;
 }
@@ -299,7 +299,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_write_ndef(net_nfc_target_handle_h ha
 		return result;
 	}
 
-	result = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)request, NULL);
+	result = net_nfc_client_send_request((net_nfc_request_msg_t *)request, NULL);
 
 	_net_nfc_util_free_mem(request);
 
@@ -315,7 +315,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_is_tag_connected(void *trans_param)
 	request.request_type = NET_NFC_MESSAGE_IS_TAG_CONNECTED;
 	request.trans_param = trans_param;
 
-	result = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+	result = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
 	return result;
 }
@@ -333,11 +333,10 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_is_tag_connected_sync(int *dev_type)
 	request.request_type = NET_NFC_MESSAGE_IS_TAG_CONNECTED;
 	request.trans_param = (void *)&context;
 
-	result = net_nfc_client_send_reqeust_sync((net_nfc_request_msg_t *)&request, NULL);
+	result = net_nfc_client_send_request_sync((net_nfc_request_msg_t *)&request, NULL);
 	if (result == NET_NFC_OK)
 	{
 		*dev_type = context.devType;
-		result = context.result;
 	}
 
 	return result;
@@ -365,7 +364,6 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_make_read_only_ndef_tag(net_nfc_targe
 	tmp_client_context = net_nfc_get_client_context();
 	if (tmp_client_context != NULL)
 	{
-
 		target_info = tmp_client_context->target_info;
 
 		if (target_info != NULL)
@@ -400,7 +398,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_make_read_only_ndef_tag(net_nfc_targe
 	request.handle = (net_nfc_target_handle_s *)handle;
 	request.trans_param = trans_param;
 
-	result = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+	result = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
 	return result;
 }
@@ -414,7 +412,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_current_tag_info(void *trans_para
 	request.request_type = NET_NFC_MESSAGE_GET_CURRENT_TAG_INFO;
 	request.trans_param = trans_param;
 
-	result = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+	result = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
 	return result;
 }
@@ -429,15 +427,11 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_current_tag_info_sync(net_nfc_tar
 	request.request_type = NET_NFC_MESSAGE_GET_CURRENT_TAG_INFO;
 	request.trans_param = (void *)&response;
 
-	result = net_nfc_client_send_reqeust_sync((net_nfc_request_msg_t *)&request, NULL);
+	result = net_nfc_client_send_request_sync((net_nfc_request_msg_t *)&request, NULL);
 	if (result == NET_NFC_OK)
 	{
-		result = response.result;
-		if (response.result == NET_NFC_OK)
-		{
-			/* already allocated memory */
-			*info = (net_nfc_target_info_h)response.trans_param;
-		}
+		/* already allocated memory */
+		*info = (net_nfc_target_info_h)response.trans_param;
 	}
 
 	return result;

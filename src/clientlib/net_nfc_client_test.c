@@ -83,7 +83,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_sim_test(void)
 	request.length = sizeof(net_nfc_request_test_t);
 	request.request_type = NET_NFC_MESSAGE_SIM_TEST;
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
 	return ret;
 }
@@ -98,7 +98,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_prbs_test(int tech, int rate)
 	request.rate = rate;
 	request.tech = tech;
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
 	return ret;
 }
@@ -111,7 +111,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_firmware_version(void)
 	request.length = sizeof(net_nfc_request_msg_t);
 	request.request_type = NET_NFC_MESSAGE_GET_FIRMWARE_VERSION;
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
 	return ret;
 }
@@ -140,7 +140,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_set_eedata_register(int mode, int reg
 	request->data.length = len;
 	memcpy(request->data.buffer, data, len);
 
-	result = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)request, NULL);
+	result = net_nfc_client_send_request((net_nfc_request_msg_t *)request, NULL);
 
 	_net_nfc_util_free_mem(request);
 

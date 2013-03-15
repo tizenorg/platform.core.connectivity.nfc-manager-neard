@@ -287,6 +287,70 @@ bool net_nfc_controller_set_secure_element_mode(net_nfc_secure_element_type_e el
 	}
 }
 
+bool net_nfc_controller_secure_element_open(net_nfc_secure_element_type_e element_type, net_nfc_target_handle_s **handle, net_nfc_error_e *result)
+{
+	int ret_val = 0;
+
+	ret_val = pm_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
+
+	if (g_interface.secure_element_open != NULL)
+	{
+		return g_interface.secure_element_open(element_type, handle, result);
+	}
+	else
+	{
+		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
+		DEBUG_SERVER_MSG("interface is null");
+		return false;
+	}
+}
+
+bool net_nfc_controller_secure_element_get_atr(net_nfc_target_handle_s *handle, data_s **atr, net_nfc_error_e *result)
+{
+	if (g_interface.secure_element_get_atr != NULL)
+	{
+		return g_interface.secure_element_get_atr(handle, atr, result);
+	}
+	else
+	{
+		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
+		DEBUG_SERVER_MSG("interface is null");
+		return false;
+	}
+}
+
+bool net_nfc_controller_secure_element_send_apdu(net_nfc_target_handle_s *handle, data_s *command, data_s **response, net_nfc_error_e *result)
+{
+	if (g_interface.secure_element_send_apdu != NULL)
+	{
+		return g_interface.secure_element_send_apdu(handle, command, response, result);
+	}
+	else
+	{
+		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
+		DEBUG_SERVER_MSG("interface is null");
+		return false;
+	}
+}
+
+bool net_nfc_controller_secure_element_close(net_nfc_target_handle_s *handle, net_nfc_error_e *result)
+{
+	int ret_val = 0;
+
+	ret_val = pm_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
+
+	if (g_interface.secure_element_close != NULL)
+	{
+		return g_interface.secure_element_close(handle, result);
+	}
+	else
+	{
+		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
+		DEBUG_SERVER_MSG("interface is null");
+		return false;
+	}
+}
+
 bool net_nfc_controller_check_target_presence(net_nfc_target_handle_s* handle, net_nfc_error_e* result)
 {
 	if (g_interface.check_presence != NULL)

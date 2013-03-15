@@ -30,7 +30,7 @@
 
 #include "vconf.h"
 #ifdef SECURITY_SERVER
-#include <security-server.h>
+#include "security-server.h"
 #endif
 
 #include "net_nfc_typedef_private.h"

@@ -1,18 +1,18 @@
 /*
-  * Copyright (c) 2012, 2013 Samsung Electronics Co., Ltd.
-  *
-  * Licensed under the Flora License, Version 1.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-
-  *     http://floralicense.org/license/
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  */
+ * Copyright (c) 2012, 2013 Samsung Electronics Co., Ltd.
+ *
+ * Licensed under the Flora License, Version 1.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://floralicense.org/license/
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 
 #include <stdio.h>
@@ -24,6 +24,7 @@
 #include <sys/time.h>
 
 #include "package-manager.h"
+#include "pkgmgr-info.h"
 #include "SEService.h"
 #include "Reader.h"
 #include "Session.h"
@@ -118,7 +119,7 @@ static gp_se_acl_h _get_acl(reader_h reader)
 		unsigned char aid[] = { 0xA0, 0x00, 0x00, 0x00, 0x63, 0x50, 0x4B, 0x43, 0x53, 0x2D, 0x31, 0x35 };
 		channel_h channel = NULL;
 
-		channel = session_open_basic_channel_sync(session, aid, sizeof(aid));
+		channel = session_open_logical_channel_sync(session, aid, sizeof(aid));
 		if (channel != NULL)
 		{
 			result = gp_se_acl_create_instance(channel);
@@ -213,8 +214,25 @@ bool net_nfc_util_access_control_is_authorized_package(const char *pkg_name, uin
 	net_nfc_util_access_control_initialize();
 	{
 		pkgmgr_certinfo_h cert_info = NULL;
+		pkgmgrinfo_appinfo_h handle;
+		char *pkgid = NULL;
 
-		cert_info = _get_cert_info(pkg_name);
+		if(pkgmgrinfo_appinfo_get_appinfo(pkg_name, &handle) != PMINFO_R_OK)
+		{
+			DEBUG_ERR_MSG("pkgmgrinfo_appinfo_get_appinfo fail");
+			return result;
+		}
+
+		if(pkgmgrinfo_appinfo_get_pkgid(handle, &pkgid) != PMINFO_R_OK)
+		{
+			pkgmgrinfo_appinfo_destroy_appinfo(handle);
+			DEBUG_ERR_MSG("pkgmgrinfo_appinfo_get_pkgid fail");
+			return result;
+		}
+		cert_info = _get_cert_info(pkgid);
+
+		pkgmgrinfo_appinfo_destroy_appinfo(handle);
+
 		if (cert_info != NULL)
 		{
 			int i;

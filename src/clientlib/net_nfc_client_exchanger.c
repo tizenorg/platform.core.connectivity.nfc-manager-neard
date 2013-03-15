@@ -135,7 +135,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_send_exchanger_data(net_nfc_exchanger
 
 	memcpy(&request->data.buffer, ex_data->binary_data.buffer, request->data.length);
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)request, NULL);
 
 	_net_nfc_util_free_mem(request);
 
@@ -166,7 +166,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_exchanger_request_connection_handover
 	request->handle = (net_nfc_target_handle_s *)target_handle;
 	request->type = type;
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)request, NULL);
 
 	_net_nfc_util_free_mem(request);
 

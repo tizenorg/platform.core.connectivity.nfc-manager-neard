@@ -233,6 +233,23 @@ static bool net_nfc_client_dispatch_response(client_dispatcher_param_t *param)
 		}
 		break;
 
+	case NET_NFC_MESSAGE_GET_ATR_SE :
+		{
+			data_s *atr = &(((net_nfc_response_get_atr_t *)msg->detail_message)->data);
+
+			if (atr->length > 0)
+			{
+				if (client_cb != NULL)
+					client_cb(msg->response_type, ((net_nfc_response_get_atr_t *)msg->detail_message)->result, atr, client_context->register_user_param, (void *)((net_nfc_response_get_atr_t *)(msg->detail_message))->user_param);
+			}
+			else
+			{
+				if (client_cb != NULL)
+					client_cb(msg->response_type, ((net_nfc_response_get_atr_t *)msg->detail_message)->result, NULL, client_context->register_user_param, (void *)((net_nfc_response_get_atr_t *)(msg->detail_message))->user_param);
+			}
+		}
+		break;
+
 	case NET_NFC_MESSAGE_NOTIFY :
 		{
 			if (client_cb != NULL)
@@ -247,7 +264,7 @@ static bool net_nfc_client_dispatch_response(client_dispatcher_param_t *param)
 			if (data->length > 0)
 			{
 				if (client_cb != NULL)
-					client_cb(msg->response_type, ((net_nfc_response_transceive_t *)msg->detail_message)->result, data, client_context->register_user_param, ((net_nfc_response_transceive_t *)(msg->detail_message))->trans_param);
+					client_cb(msg->response_type, ((net_nfc_response_transceive_t *)msg->detail_message)->result, (void *)data, client_context->register_user_param, ((net_nfc_response_transceive_t *)(msg->detail_message))->trans_param);
 			}
 			else
 			{
@@ -856,12 +873,10 @@ static bool net_nfc_client_dispatch_response(client_dispatcher_param_t *param)
 	return false;
 }
 
-bool net_nfc_client_dispatch_sync_response(net_nfc_response_msg_t *msg)
+net_nfc_error_e net_nfc_client_dispatch_sync_response(net_nfc_response_msg_t *msg)
 {
+	net_nfc_error_e result = NET_NFC_OK;
 //	client_context_t *client_context = NULL;
-
-	if (msg == NULL || msg->detail_message == NULL)
-		return false;
 
 	DEBUG_CLIENT_MSG("synchronous callback, message = [%d]", msg->response_type);
 
@@ -879,12 +894,58 @@ bool net_nfc_client_dispatch_sync_response(net_nfc_response_msg_t *msg)
 		break;
 
 	case NET_NFC_MESSAGE_OPEN_INTERNAL_SE :
+		{
+			net_nfc_response_open_internal_se_t *response = (net_nfc_response_open_internal_se_t *)msg->detail_message;
+			net_nfc_target_handle_h *handle = (net_nfc_target_handle_h *)response->user_param;
+
+			/* return */
+			result = response->result;
+
+			if (handle != NULL) {
+				*handle = (net_nfc_target_handle_h)response->handle;
+			}
+		}
 		break;
 
 	case NET_NFC_MESSAGE_CLOSE_INTERNAL_SE :
+		{
+			net_nfc_response_close_internal_se_t *response = (net_nfc_response_close_internal_se_t *)msg->detail_message;
+
+			/* return */
+			result = response->result;
+		}
 		break;
 
 	case NET_NFC_MESSAGE_SEND_APDU_SE :
+		{
+			net_nfc_response_send_apdu_t *response = (net_nfc_response_send_apdu_t *)msg->detail_message;
+			data_h *data = (data_h *)response->user_param;
+
+			/* return */
+			result = response->result;
+
+			if (data != NULL && response->data.buffer != NULL &&
+				response->data.length > 0) {
+				net_nfc_create_data(data, response->data.buffer,
+					response->data.length);
+			}
+		}
+		break;
+
+	case NET_NFC_MESSAGE_GET_ATR_SE :
+		{
+			net_nfc_response_get_atr_t *response = (net_nfc_response_get_atr_t *)msg->detail_message;
+			data_h *data = (data_h *)response->user_param;
+
+			/* return */
+			result = response->result;
+
+			if (data != NULL && response->data.buffer != NULL &&
+				response->data.length > 0) {
+				net_nfc_create_data(data, response->data.buffer,
+					response->data.length);
+			}
+		}
 		break;
 
 	case NET_NFC_MESSAGE_NOTIFY :
@@ -900,6 +961,9 @@ bool net_nfc_client_dispatch_sync_response(net_nfc_response_msg_t *msg)
 		{
 			net_nfc_response_is_tag_connected_t *response = (net_nfc_response_is_tag_connected_t *)msg->detail_message;
 			net_nfc_response_is_tag_connected_t *context = (net_nfc_response_is_tag_connected_t *)response->trans_param;
+
+			/* return */
+			result = response->result;
 
 			if (context != NULL)
 			{
@@ -937,6 +1001,9 @@ bool net_nfc_client_dispatch_sync_response(net_nfc_response_msg_t *msg)
 		{
 			net_nfc_response_get_current_tag_info_t *response = (net_nfc_response_get_current_tag_info_t *)msg->detail_message;
 			net_nfc_response_get_current_tag_info_t *context = (net_nfc_response_get_current_tag_info_t *)response->trans_param;
+
+			/* return */
+			result = response->result;
 
 			if (context != NULL)
 			{
@@ -979,6 +1046,9 @@ bool net_nfc_client_dispatch_sync_response(net_nfc_response_msg_t *msg)
 		{
 			net_nfc_response_get_current_target_handle_t *response = (net_nfc_response_get_current_target_handle_t *)msg->detail_message;
 			net_nfc_response_get_current_target_handle_t *context = (net_nfc_response_get_current_target_handle_t *)response->trans_param;
+
+			/* return */
+			result = response->result;
 
 			if (context != NULL)
 			{
@@ -1057,11 +1127,11 @@ bool net_nfc_client_dispatch_sync_response(net_nfc_response_msg_t *msg)
 		break;
 	}
 
-	/* client  callback must copy data to client area */
+	/* client callback must copy data to client area */
 	net_nfc_util_mem_free_detail_msg(NET_NFC_UTIL_MSG_TYPE_RESPONSE, msg->response_type, msg->detail_message);
 	_net_nfc_util_free_mem(msg);
 
-	return false;
+	return result;
 }
 
 static net_nfc_error_e net_nfc_get_tag_info_list(data_s *values, int number_of_keys, net_nfc_tag_info_s **list)

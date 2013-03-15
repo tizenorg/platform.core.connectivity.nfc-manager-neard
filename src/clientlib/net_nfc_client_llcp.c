@@ -356,7 +356,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_listen_llcp(net_nfc_llcp_socket_t soc
 	request->service_name.length = srv_name_count;
 	memcpy(&request->service_name.buffer, psocket_data->service_name, request->service_name.length);
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)request, NULL);
 
 	_net_nfc_util_free_mem(request);
 
@@ -388,7 +388,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_disconnect_llcp(net_nfc_llcp_socket_t
 	request.client_socket = psocket_data->client_socket;
 	request.trans_param = trans_param;
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
 	pthread_mutex_unlock(&llcp_lock);
 
@@ -425,7 +425,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_close_llcp_socket(net_nfc_llcp_socket
 	request.client_socket = psocket_data->client_socket;
 	request.trans_param = trans_param;
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
 	_remove_internal_socket(psocket_data);
 
@@ -477,7 +477,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_send_llcp(net_nfc_llcp_socket_t socke
 	request->data.length = data_private->length;
 	memcpy(&request->data.buffer, data_private->buffer, request->data.length);
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)request, NULL);
 
 	_net_nfc_util_free_mem(request);
 
@@ -511,7 +511,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_receive_llcp(net_nfc_llcp_socket_t so
 	request.trans_param = trans_param;
 	request.req_length = req_length;
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
 	pthread_mutex_unlock(&llcp_lock);
 
@@ -561,7 +561,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_send_to_llcp(net_nfc_llcp_socket_t so
 	request->data.length = data_private->length;
 	memcpy(&request->data.buffer, data_private->buffer, request->data.length);
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)request, NULL);
 
 	_net_nfc_util_free_mem(request);
 
@@ -595,7 +595,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_receive_from_llcp(net_nfc_llcp_socket
 	request.trans_param = trans_param;
 	request.req_length = req_length;
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
 	pthread_mutex_unlock(&llcp_lock);
 
@@ -629,7 +629,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_connect_llcp_with_sap(net_nfc_llcp_so
 	request.miu = psocket_data->miu;
 	request.rw = psocket_data->rw;
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
 	pthread_mutex_unlock(&llcp_lock);
 
@@ -678,7 +678,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_connect_llcp(net_nfc_llcp_socket_t so
 	request->service_name.length = svc_name_length;
 	memcpy(&request->service_name.buffer, service_name, request->service_name.length);
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)request, NULL);
 
 	_net_nfc_util_free_mem(request);
 
@@ -749,7 +749,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_set_llcp_local_configure(net_nfc_llcp
 	request.trans_param = trans_param;
 	memcpy(&(request.config), config, sizeof(net_nfc_llcp_config_info_s));
 
-	ret = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
 	return ret;
 }
@@ -1052,7 +1052,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_current_target_handle(void *trans
 	request.request_type = NET_NFC_MESSAGE_GET_CURRENT_TARGET_HANDLE;
 	request.trans_param = trans_param;
 
-	result = net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+	result = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
 	return result;
 }
@@ -1067,7 +1067,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_current_target_handle_sync(net_nf
 	request.request_type = NET_NFC_MESSAGE_GET_CURRENT_TARGET_HANDLE;
 	request.trans_param = (void *)&response;
 
-	result = net_nfc_client_send_reqeust_sync((net_nfc_request_msg_t *)&request, NULL);
+	result = net_nfc_client_send_request_sync((net_nfc_request_msg_t *)&request, NULL);
 	if (result == NET_NFC_OK)
 	{
 		*handle = (net_nfc_target_handle_h)response.handle;

@@ -28,7 +28,7 @@ void net_nfc_client_call_dispatcher_in_ecore_main_loop(net_nfc_response_cb clien
 #else
 void net_nfc_client_call_dispatcher_in_current_context(net_nfc_response_cb client_cb, net_nfc_response_msg_t* msg);
 #endif
-bool net_nfc_client_dispatch_sync_response(net_nfc_response_msg_t *msg);
+net_nfc_error_e net_nfc_client_dispatch_sync_response(net_nfc_response_msg_t *msg);
 
 #endif
 

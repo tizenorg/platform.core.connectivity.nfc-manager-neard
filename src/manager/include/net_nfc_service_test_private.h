@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef __NET_NFC_SERVER_DISPATCHER__
-#define __NET_NFC_SERVER_DISPATCHER__
+#ifndef NET_NFC_SERVICE_TEST_PRIVATE_H
+#define NET_NFC_SERVICE_TEST_PRIVATE_H
 
 #include "net_nfc_typedef_private.h"
 
-void net_nfc_dispatcher_queue_push(net_nfc_request_msg_t *req_msg);
-bool net_nfc_dispatcher_start_thread();
-void net_nfc_dispatcher_cleanup_queue(void);
-void net_nfc_dispatcher_put_cleaner(void);
+void net_nfc_service_test_sim_test(net_nfc_request_msg_t *msg);
+void net_nfc_service_test_get_firmware_version(net_nfc_request_msg_t *msg);
+void net_nfc_service_test_prbs_test(net_nfc_request_msg_t *msg);
+void net_nfc_service_test_set_eedata(net_nfc_request_msg_t *msg);
 
 #endif
-
