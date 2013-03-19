@@ -94,6 +94,7 @@ const char *net_nfc_get_log_tag();
 			time_t rawtime;   time (&rawtime);   strftime(timeBuf, sizeof(timeBuf), "%m-%d %H:%M:%S", localtime(&rawtime)); \
 			fprintf(nfc_log_file, "\n%s",timeBuf); \
 			fprintf(nfc_log_file, "[D][%s:%d] "format"",__func__, __LINE__,  ##args); \
+			fflush(nfc_log_file);\
 		}\
 	} while(0)
 
@@ -106,6 +107,7 @@ const char *net_nfc_get_log_tag();
 			time_t rawtime;   time (&rawtime);   strftime(timeBuf, sizeof(timeBuf), "%m-%d %H:%M:%S", localtime(&rawtime)); \
 			fprintf(nfc_log_file, "\n%s",timeBuf); \
 			fprintf(nfc_log_file, "[S][%s:%d] "format"",__func__, __LINE__,  ##args); \
+			fflush(nfc_log_file);\
 		} \
 	} while(0)
 
@@ -118,6 +120,7 @@ const char *net_nfc_get_log_tag();
 			time_t rawtime;   time (&rawtime);   strftime(timeBuf, sizeof(timeBuf), "%m-%d %H:%M:%S", localtime(&rawtime)); \
 			fprintf(nfc_log_file, "\n%s",timeBuf); \
 			fprintf(nfc_log_file, "[C][%s:%d] "format"",__func__, __LINE__,  ##args); \
+			fflush(nfc_log_file);\
 		}\
 	} while(0)
 
@@ -130,6 +133,7 @@ const char *net_nfc_get_log_tag();
 			time_t rawtime;   time (&rawtime);   strftime(timeBuf, sizeof(timeBuf), "%m-%d %H:%M:%S", localtime(&rawtime)); \
 			fprintf(nfc_log_file, "\n%s",timeBuf); \
 			fprintf(nfc_log_file, "[ERR][%s:%d] "format"",__func__, __LINE__,  ##args); \
+			fflush(nfc_log_file);\
 		} \
 	} while(0)
 

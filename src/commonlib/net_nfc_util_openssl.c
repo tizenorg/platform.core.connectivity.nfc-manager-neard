@@ -25,11 +25,6 @@
 #include "net_nfc_util_private.h"
 #include "net_nfc_util_openssl_private.h"
 
- /* nfc_log_to_file */
-#include <stdio.h>
-
-FILE* nfc_log_file;
-
 //static X509 *_load_certificate_from_file(const char *file)
 //{
 //	X509 *x509 = NULL;

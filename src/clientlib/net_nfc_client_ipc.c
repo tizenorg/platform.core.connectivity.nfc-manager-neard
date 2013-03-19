@@ -39,6 +39,7 @@
 #include "net_nfc_client_dispatcher_private.h"
 
 /* static variable */
+static pid_t g_client_pid;
 static int g_client_sock_fd = -1;
 static pthread_mutex_t g_client_ipc_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t g_client_ipc_cond = PTHREAD_COND_INITIALIZER;
@@ -216,6 +217,8 @@ net_nfc_error_e net_nfc_client_socket_initialize()
 		DEBUG_CLIENT_MSG("client is already initialized");
 		return NET_NFC_ALREADY_INITIALIZED;
 	}
+
+	g_client_pid = getpid();
 
 	pthread_mutexattr_t attr;
 
@@ -723,7 +726,7 @@ net_nfc_response_msg_t *net_nfc_client_read_response_msg(net_nfc_error_e *result
 	}
 
 //	DEBUG_MSG("<<<<< FROM SERVER <<<<< (msg [%d], length [%d])", resp_msg->response_type, length);
-	DEBUG_MSG("<<<<< FROM SERVER <<<<< (msg [%d])", resp_msg->response_type);
+	DEBUG_MSG("[%d] <<<<<<<<<<<<<<< (msg [%d])", g_client_pid, resp_msg->response_type);
 
 	switch (resp_msg->response_type)
 	{
@@ -1648,7 +1651,7 @@ static net_nfc_error_e _send_request(net_nfc_request_msg_t *msg, va_list list)
 
 	if (msg_result)
 	{
-		DEBUG_MSG(">>>>> TO SERVER >>>>> (msg [%d], length [%d])", msg->request_type, total_size);
+		DEBUG_MSG("[%d] >>>>>>>>>>>>>>> (msg [%d], length [%d])", g_client_pid, msg->request_type, total_size);
 		return NET_NFC_OK;
 	}
 	else

@@ -17,11 +17,14 @@
 #ifndef NET_NFC_SERVER_CONTEXT_H
 #define NET_NFC_SERVER_CONTEXT_H
 
+#include <unistd.h>
+
 #include "net_nfc_typedef_private.h"
 
 /* define */
 typedef struct _net_nfc_client_info_t
 {
+	pid_t pid;
 	int socket;
 	GIOChannel *channel;
 	uint32_t src_id;
@@ -34,7 +37,7 @@ typedef struct _net_nfc_client_info_t
 typedef void (*net_nfc_server_for_each_client_cb)(net_nfc_client_info_t *client, void *user_param);
 
 void net_nfc_server_deinit_client_context();
-void net_nfc_server_add_client_context(int socket, GIOChannel* channel, uint32_t src_id, client_state_e state);
+void net_nfc_server_add_client_context(pid_t pid, int socket, GIOChannel *channel, uint32_t src_id, client_state_e state);
 void net_nfc_server_cleanup_client_context(int socket);
 net_nfc_client_info_t *net_nfc_server_get_client_context(int socket);
 int net_nfc_server_get_client_count();

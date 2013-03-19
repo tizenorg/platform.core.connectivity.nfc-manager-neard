@@ -43,12 +43,12 @@ struct _Nfc_ServiceClass
 	GObjectClass parent;
 };
 
-#define NFC_SERVICE_TYPE				(nfc_service_get_type ())
-#define NFC_SERVICE(object)			(G_TYPE_CHECK_INSTANCE_CAST ((object), NFC_SERVICE_TYPE, Nfc_Service))
-#define NFC_SERVICE_CLASS(klass)		(G_TYPE_CHECK_CLASS_CAST ((klass), NFC_SERVICE_TYPE, Nfc_Service_Class))
-#define IS_NFC_SERVICE(object)			(G_TYPE_CHECK_INSTANCE_TYPE ((object), NFC_SERVICE_TYPE))
+#define NFC_SERVICE_TYPE		(nfc_service_get_type ())
+#define NFC_SERVICE(object)		(G_TYPE_CHECK_INSTANCE_CAST ((object), NFC_SERVICE_TYPE, Nfc_Service))
+#define NFC_SERVICE_CLASS(klass)	(G_TYPE_CHECK_CLASS_CAST ((klass), NFC_SERVICE_TYPE, Nfc_Service_Class))
+#define IS_NFC_SERVICE(object)		(G_TYPE_CHECK_INSTANCE_TYPE ((object), NFC_SERVICE_TYPE))
 #define IS_NFC_SERVICE_CLASS(klass)	(G_TYPE_CHECK_CLASS_TYPE ((klass), NFC_SERVICE_TYPE))
-#define NFC_SERVICE_GET_CLASS(obj)		(G_TYPE_INSTANCE_GET_CLASS ((obj), NFC_SERVICE_TYPE, Nfc_Service_Class))
+#define NFC_SERVICE_GET_CLASS(obj)	(G_TYPE_INSTANCE_GET_CLASS ((obj), NFC_SERVICE_TYPE, Nfc_Service_Class))
 
 typedef enum
 {
@@ -58,14 +58,10 @@ typedef enum
 GQuark nfc_service_error_quark(void);
 #define NFC_SERVICE_ERROR nfc_service_error_quark ()
 
-
-
 /**
  *     launch the nfc-manager
  */
-	gboolean nfc_service_launch (Nfc_Service *nfc_service, guint *result_val, GError **error);
-
-	gboolean nfc_service_terminate (Nfc_Service *nfc_service, guint *result_val, GError **error);
-
+gboolean nfc_service_launch (Nfc_Service *nfc_service, const pid_t pid, guint *result_val, GError **error);
+gboolean nfc_service_terminate (Nfc_Service *nfc_service, guint *result_val, GError **error);
 
 #endif /* MANAGERDBUS_H_ */

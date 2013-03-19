@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <unistd.h>
 #include <pthread.h>
 #include <glib.h>
 #include <dbus/dbus-glib.h>
@@ -68,7 +69,7 @@ static net_nfc_error_e _net_nfc_launch_daemon()
 		{
 			guint dbus_result = 0;
 
-			if (org_tizen_nfc_service_launch(proxy, &dbus_result, &error) == true)
+			if (org_tizen_nfc_service_launch(proxy, getpid(), &dbus_result, &error) == true)
 			{
 				DEBUG_CLIENT_MSG("org_tizen_nfc_service_launch success");
 				result = NET_NFC_OK;

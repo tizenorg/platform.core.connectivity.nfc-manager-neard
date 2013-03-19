@@ -50,6 +50,9 @@ typedef enum
 	CRC_B,
 } CRC_type_e;
 
+void net_nfc_manager_init_log();
+void net_nfc_manager_fini_log();
+
 /* Memory utils */
 /* allocation memory */
 void __net_nfc_util_alloc_mem(void **mem, int size, char *filename, unsigned int line);

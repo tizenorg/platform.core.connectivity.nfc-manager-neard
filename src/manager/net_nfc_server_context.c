@@ -112,7 +112,7 @@ net_nfc_client_info_t *net_nfc_server_get_client_context(int socket)
 	return result;
 }
 
-void net_nfc_server_add_client_context(int socket, GIOChannel* channel, uint32_t src_id, client_state_e state)
+void net_nfc_server_add_client_context(pid_t pid, int socket, GIOChannel *channel, uint32_t src_id, client_state_e state)
 {
 	DEBUG_SERVER_MSG("add client context");
 
@@ -125,6 +125,7 @@ void net_nfc_server_add_client_context(int socket, GIOChannel* channel, uint32_t
 		_net_nfc_util_alloc_mem(info, sizeof(net_nfc_client_info_t));
 		if (info != NULL)
 		{
+			info->pid = pid;
 			info->socket = socket;
 			info->channel = channel;
 			info->src_id = src_id;

@@ -358,9 +358,13 @@ bool net_nfc_server_process_client_connect_request()
 {
 	socklen_t addrlen = 0;
 	int client_sock_fd = 0;
-	GIOChannel* client_channel = NULL;
+	GIOChannel *client_channel = NULL;
 	uint32_t client_src_id;
-
+	pid_t client_pid = -1;
+#ifdef USE_UNIX_DOMAIN
+	struct ucred uc;
+	socklen_t uc_len = sizeof(uc);
+#endif
 	DEBUG_SERVER_MSG("client is trying to connect to server");
 
 	if (net_nfc_server_get_client_count() >= NET_NFC_CLIENT_MAX)
@@ -375,13 +379,21 @@ bool net_nfc_server_process_client_connect_request()
 		return false;
 	}
 
-	DEBUG_SERVER_MSG("client is accepted by server, socket[%d]", client_sock_fd);
+#ifdef USE_UNIX_DOMAIN
+	if (!getsockopt(client_sock_fd, SOL_SOCKET, SO_PEERCRED, &uc, &uc_len))
+	{
+		client_pid = uc.pid;
+	}
+#endif
+	DEBUG_SERVER_MSG("client [%d] is accepted by server, socket[%d]",
+		client_pid, client_sock_fd);
 
 	GIOCondition condition = (GIOCondition)(G_IO_ERR | G_IO_HUP | G_IO_IN);
 
 	if ((client_channel = g_io_channel_unix_new(client_sock_fd)) != NULL)
 	{
-		if ((client_src_id = g_io_add_watch(client_channel, condition, net_nfc_server_ipc_callback_func, NULL)) < 1)
+		if ((client_src_id = g_io_add_watch(client_channel, condition,
+			net_nfc_server_ipc_callback_func, NULL)) < 1)
 		{
 			DEBUG_ERR_MSG("add io callback is failed");
 			goto ERROR;
@@ -395,7 +407,8 @@ bool net_nfc_server_process_client_connect_request()
 
 	DEBUG_SERVER_MSG("client socket is bond with g_io_channel");
 
-	net_nfc_server_add_client_context(client_sock_fd, client_channel, client_src_id, NET_NFC_CLIENT_ACTIVE_STATE);
+	net_nfc_server_add_client_context(client_pid, client_sock_fd,
+		client_channel, client_src_id, NET_NFC_CLIENT_ACTIVE_STATE);
 
 	return true;
 
@@ -559,7 +572,15 @@ bool net_nfc_server_read_client_request(int client_sock_fd, net_nfc_error_e *res
 
 	_net_nfc_util_free_mem(buffer);
 
-	DEBUG_MSG("<<<<< FROM CLIENT [%d] <<<<< (msg [%d], length [%d])", client_sock_fd, req_msg->request_type, length);
+	pid_t client_pid = -1;
+
+	net_nfc_client_info_t *info;
+	info = net_nfc_server_get_client_context(client_sock_fd);
+	if (info != NULL)
+	{
+		client_pid = info->pid;
+	}
+	DEBUG_MSG(">>>>>>>>>>>>>>> [%d] >> SERVER (msg [%d], length [%d])", client_pid, req_msg->request_type, length);
 
 #ifdef BROADCAST_MESSAGE
 	/* set client socket descriptor */
@@ -684,7 +705,7 @@ static void _net_nfc_for_each_cb(net_nfc_client_info_t *client, void *user_param
 		if (net_nfc_server_send_message_to_client(client->socket, send_buffer, length) == true)
 		{
 //			DEBUG_MSG(">>>>> TO CLIENT [%d] >>>>> (msg [%d], length [%d])", client->socket, msg_type, length);
-			DEBUG_MSG(">>>>> TO CLIENT [%d] >>>>> (length [%d])", client->socket, length);
+			DEBUG_MSG("<<<<<<<<<<<<<<< [%d] << SERVER (length [%d])", client->pid, length);
 		}
 	}
 }
@@ -731,6 +752,7 @@ bool net_nfc_send_response_msg(int msg_type, ...)
 	int total_size = 0;
 	int written_size = 0;
 	uint8_t *send_buffer = NULL;
+	net_nfc_client_info_t *info;
 
 	va_start(list, msg_type);
 
@@ -750,15 +772,15 @@ bool net_nfc_send_response_msg(int msg_type, ...)
 
 	va_end(list);
 
-	if (net_nfc_server_get_client_context(socket) != NULL)
+	if ((info = net_nfc_server_get_client_context(socket)) != NULL)
 	{
 #ifdef BROADCAST_MESSAGE
 		if (net_nfc_server_send_message_to_client(socket, (void *)send_buffer, total_size) == true)
 #else
-			if (net_nfc_server_send_message_to_client((void *)send_buffer, total_size) == true)
+		if (net_nfc_server_send_message_to_client((void *)send_buffer, total_size) == true)
 #endif
 		{
-			DEBUG_MSG(">>>>> TO CLIENT [%d] >>>>> (msg [%d], length [%d])", socket, msg_type, total_size - sizeof(total_size));
+			DEBUG_MSG("<<<<<<<<<<<<<<< [%d] << SERVER (msg [%d], length [%d])", info->pid, msg_type, total_size - sizeof(total_size));
 		}
 	}
 	else

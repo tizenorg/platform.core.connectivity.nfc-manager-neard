@@ -45,7 +45,6 @@ static DBusGConnection *connection = NULL;
 static pid_t launch_by_client = 0;
 
 static void __net_nfc_discovery_polling_cb(keynode_t *node, void *user_data);
-static bool Check_Redwood();
 
 G_DEFINE_TYPE(Nfc_Service, nfc_service, G_TYPE_OBJECT)
 
@@ -79,12 +78,13 @@ static void nfc_service_class_init(Nfc_ServiceClass *nfc_service_class)
 	dbus_g_object_type_install_info(NFC_SERVICE_TYPE, &dbus_glib_nfc_service_object_info);
 }
 
-gboolean nfc_service_launch(Nfc_Service *nfc_service, guint *result_val, GError **error)
+gboolean nfc_service_launch(Nfc_Service *nfc_service, const pid_t pid, guint *result_val, GError **error)
 {
 	DEBUG_MSG("nfc_service_launch entered");
 
 	DEBUG_SERVER_MSG("nfc_service_launch NFC MANAGER PID=[%d]", getpid());
 	DEBUG_SERVER_MSG("nfc_service_launch NFC MANAGER TID=[%lx]", pthread_self());
+	DEBUG_SERVER_MSG("requested client pid [%d]", pid);
 
 	launch_by_client = getpid();
 
@@ -163,13 +163,14 @@ static void _net_nfc_intialize_dbus_connection()
 	}
 }
 
-#if 0
 static void _net_nfc_deintialize_dbus_connection()
 {
-	dbus_g_connection_unregister_g_object(connection, object);
-	g_object_unref(object);
+	if (connection != NULL && object != NULL)
+	{
+		dbus_g_connection_unregister_g_object(connection, object);
+		g_object_unref(object);
+	}
 }
-#endif
 
 int main(int check, char* argv[])
 {
@@ -177,25 +178,20 @@ int main(int check, char* argv[])
 	void *handle = NULL;
 	int state = 0;
 
-	DEBUG_SERVER_MSG("start nfc manager");
-	DEBUG_SERVER_MSG("argv0 = %s", argv[0]);
-	DEBUG_SERVER_MSG("argv1 = %s", argv[1]);
-
-	/* nfc_log_to_file */
-	nfc_log_file = fopen(NFC_DLOG_FILE, "w+");
-	if (nfc_log_file == NULL)
-	{
-		fprintf(stderr, "\n\nfopen error\n\n");
-	}
-
-	net_nfc_app_util_clean_storage(MESSAGE_STORAGE);
-
 	if (!g_thread_supported())
 	{
 		g_thread_init(NULL);
 	}
 
 	g_type_init();
+
+	net_nfc_manager_init_log();
+
+	DEBUG_SERVER_MSG("start nfc manager");
+	DEBUG_SERVER_MSG("argv0 = %s", argv[0]);
+	DEBUG_SERVER_MSG("argv1 = %s", argv[1]);
+
+	net_nfc_app_util_clean_storage(MESSAGE_STORAGE);
 
 	handle = net_nfc_controller_onload();
 	if (handle == NULL)
@@ -217,15 +213,14 @@ int main(int check, char* argv[])
 		vconf_set_bool(VCONFKEY_NFC_STATE, FALSE);
 
 		net_nfc_controller_unload(handle);
-
-		//return(0);
 	}
 
 	result = vconf_get_bool(VCONFKEY_NFC_STATE, &state);
 	if (result != 0)
 	{
 		DEBUG_MSG("VCONFKEY_NFC_STATE is not exist: %d ", result);
-		return false;
+
+		goto EXIT;
 	}
 
 	DEBUG_MSG("vconf state value [%d]", state);
@@ -235,7 +230,8 @@ int main(int check, char* argv[])
 		if (state == FALSE && !(strncmp(argv[1], "script", 6)))
 		{
 			DEBUG_ERR_MSG("Init Script execute nfc manager. But State is false.");
-			return (0);
+
+			goto EXIT;
 		}
 	}
 
@@ -243,9 +239,7 @@ int main(int check, char* argv[])
 	{
 		DEBUG_ERR_MSG("nfc server ipc initialization is failed");
 
-		net_nfc_controller_unload(handle);
-
-		return 0;
+		goto EXIT;
 	}
 
 	DEBUG_SERVER_MSG("nfc server ipc init is ok");
@@ -280,9 +274,13 @@ int main(int check, char* argv[])
 	loop = g_main_new(TRUE);
 	g_main_loop_run(loop);
 
+EXIT :
+	_net_nfc_deintialize_dbus_connection();
 	net_nfc_service_vconf_unregister_notify_listener();
 	net_nfc_server_ipc_finalize();
 	net_nfc_controller_unload(handle);
+
+	net_nfc_manager_fini_log();
 
 	return 0;
 }
@@ -353,26 +351,3 @@ static void __net_nfc_discovery_polling_cb(keynode_t *node, void *user_data)
 	DEBUG_MSG("__net_nfc_discovery_polling_cb[Out]");
 }
 
-static bool Check_Redwood()
-{
-	struct utsname hwinfo;
-
-	int ret = uname(&hwinfo);
-	DEBUG_MSG("uname returned %d", ret);
-	DEBUG_MSG("sysname::%s", hwinfo.sysname);
-	DEBUG_MSG("release::%s", hwinfo.release);
-	DEBUG_MSG("version::%s", hwinfo.version);
-	DEBUG_MSG("machine::%s", hwinfo.machine);
-	DEBUG_MSG("nodename::%s", hwinfo.nodename);
-
-	if (strstr(hwinfo.nodename, "REDWOOD"))
-	{
-		DEBUG_MSG("REDWOOD hardware");
-		return true;
-	}
-	else
-	{
-		DEBUG_MSG("except REDWOOD");
-		return false;
-	}
-}
