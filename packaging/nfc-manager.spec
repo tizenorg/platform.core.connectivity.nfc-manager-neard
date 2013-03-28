@@ -75,10 +75,10 @@ NFC common library (devel)
 
 
 %build
-export LDFLAGS+="-Wl,--rpath=%{_prefix}/lib -Wl,--as-needed"
+export LDFLAGS+="-Wl,--rpath=%{_libdir} -Wl,--as-needed"
 mkdir cmake_tmp
 cd cmake_tmp
-LDFLAGS="$LDFLAGS" cmake .. -DCMAKE_INSTALL_PREFIX=%{_prefix}
+LDFLAGS="$LDFLAGS" %cmake ..
 
 make
 
