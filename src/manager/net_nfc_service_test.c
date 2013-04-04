@@ -73,10 +73,11 @@ void net_nfc_service_test_get_firmware_version(net_nfc_request_msg_t *msg)
 		resp.length = sizeof(net_nfc_response_firmware_version_t);
 		resp.flags = msg->flags;
 		resp.result = result;
-		resp.data.length = data->length;
 
 		if (data != NULL)
 		{
+			resp.data.length = data->length;
+
 			net_nfc_send_response_msg(msg->client_fd, msg->request_type,
 				(void *)&resp, sizeof(net_nfc_response_firmware_version_t),
 				(void *)data->buffer, resp.data.length, NULL);
