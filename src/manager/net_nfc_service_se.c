@@ -549,26 +549,8 @@ void net_nfc_service_se_get_atr(net_nfc_request_msg_t *msg)
 	}
 	else if (detail->handle == net_nfc_service_se_get_current_ese_handle())
 	{
-		data_s *data = NULL;
 		net_nfc_error_e result = NET_NFC_UNKNOWN_ERROR;
 
-		/* TODO : get atr */
-#if 0
-		net_nfc_transceive_info_s info;
-
-		info.dev_type = NET_NFC_ISO14443_A_PICC;
-		if (net_nfc_controller_transceive(detail->handle, &info, &data, &result) == true)
-		{
-			if (data != NULL)
-			{
-				DEBUG_SERVER_MSG("transceive data received [%d]", data->length);
-			}
-		}
-		else
-		{
-			DEBUG_SERVER_MSG("transceive is failed = [%d]", result);
-		}
-#endif
 		if (net_nfc_server_check_client_is_running(msg->client_fd))
 		{
 			net_nfc_response_get_atr_t resp = { 0, };
@@ -578,20 +560,9 @@ void net_nfc_service_se_get_atr(net_nfc_request_msg_t *msg)
 			resp.user_param = detail->user_param;
 			resp.result = result;
 
-			if (data != NULL)
-			{
-				DEBUG_SERVER_MSG("send response send apdu msg");
-				resp.data.length = data->length;
-				net_nfc_send_response_msg(msg->client_fd, msg->request_type,
-					(void *)&resp, sizeof(net_nfc_response_get_atr_t),
-						data->buffer, data->length, NULL);
-			}
-			else
-			{
-				DEBUG_SERVER_MSG("send response send apdu msg");
-				net_nfc_send_response_msg(msg->client_fd, msg->request_type,
-					(void *)&resp, sizeof(net_nfc_response_get_atr_t), NULL);
-			}
+			DEBUG_SERVER_MSG("send response send apdu msg");
+			net_nfc_send_response_msg(msg->client_fd, msg->request_type,
+				(void *)&resp, sizeof(net_nfc_response_get_atr_t), NULL);
 		}
 	}
 	else
