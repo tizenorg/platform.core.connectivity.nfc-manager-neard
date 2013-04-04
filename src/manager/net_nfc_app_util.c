@@ -45,6 +45,10 @@
 #include "net_nfc_app_util_private.h"
 //#include "syspopup_caller.h"
 
+#define OSP_K_COND			"__OSP_COND_NAME__"
+#define OSP_K_COND_TYPE			"nfc"
+#define OSP_K_LAUNCH_TYPE		"__OSP_LAUNCH_TYPE__"
+
 static bool _net_nfc_app_util_get_operation_from_record(ndef_record_s *record, char *operation, size_t length);
 static bool _net_nfc_app_util_get_mime_from_record(ndef_record_s *record, char *mime, size_t length);
 #ifdef USE_FULL_URI
@@ -64,6 +68,8 @@ static const char *sbeam_mime_type[] =
 	"text/DirectShareError",
 	NULL
 };
+
+static const char osp_launch_type_condition[] = "condition";
 
 net_nfc_error_e net_nfc_app_util_process_ndef(data_s *data)
 {
@@ -733,6 +739,9 @@ int net_nfc_app_util_appsvc_launch(const char *operation, const char *uri, const
 		DEBUG_SERVER_MSG("data : %s", data);
 		appsvc_add_data(bd, "data", data);
 	}
+
+	bundle_add(bd, OSP_K_COND, OSP_K_COND_TYPE);
+	bundle_add(bd, OSP_K_LAUNCH_TYPE, osp_launch_type_condition);
 
 	result = appsvc_run_service(bd, 0, NULL, NULL);
 
