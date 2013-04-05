@@ -35,5 +35,6 @@ int net_nfc_app_util_appsvc_launch(const char *operation, const char *uri, const
 int net_nfc_app_util_launch_se_transaction_app(uint8_t *aid, uint32_t aid_len, uint8_t *param, uint32_t param_len);
 int net_nfc_app_util_encode_base64(uint8_t *buffer, uint32_t buf_len, char *result, uint32_t max_result);
 int net_nfc_app_util_decode_base64(const char *buffer, uint32_t buf_len, uint8_t *result, uint32_t *res_len);
+bool net_nfc_app_util_check_launch_state();
 
 #endif

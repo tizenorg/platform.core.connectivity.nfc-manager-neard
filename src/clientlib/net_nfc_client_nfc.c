@@ -307,7 +307,16 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_set_launch_popup_state(int enable)
 
 	request.length = sizeof(net_nfc_request_set_launch_state_t);
 	request.request_type = NET_NFC_MESSAGE_SERVICE_SET_LAUNCH_STATE;
-	request.set_launch_popup = enable;
+
+	pthread_mutex_lock(&g_client_context.g_client_lock);
+	g_client_context.set_launch_popup = enable;
+
+	if(enable)
+		request.set_launch_popup = NET_NFC_LAUNCH_APP_SELECT;
+	else
+		request.set_launch_popup = NET_NFC_NO_LAUNCH_APP_SELECT;
+
+	pthread_mutex_unlock(&g_client_context.g_client_lock);
 
 	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
 
@@ -321,11 +330,9 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_launch_popup_state(int *state)
 	if (state == NULL)
 		return NET_NFC_NULL_PARAMETER;
 
-	/* check state of launch popup */
-	if (vconf_get_bool(NET_NFC_DISABLE_LAUNCH_POPUP_KEY, state) != 0)
-	{
-		result = NET_NFC_OPERATION_FAIL;
-	}
+	pthread_mutex_lock(&g_client_context.g_client_lock);
+	*state = g_client_context.set_launch_popup;
+	pthread_mutex_unlock(&g_client_context.g_client_lock);
 
 	return result;
 }

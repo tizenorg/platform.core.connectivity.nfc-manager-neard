@@ -30,7 +30,7 @@ typedef struct _net_nfc_client_info_t
 	uint32_t src_id;
 	client_state_e state;
 	//client_type_e client_type;
-	bool is_set_launch_popup;
+	net_nfc_launch_popup_state_e launch_popup_state;
 	net_nfc_target_handle_s *target_handle;
 } net_nfc_client_info_t;
 
@@ -46,7 +46,7 @@ void net_nfc_server_for_each_client_context(net_nfc_server_for_each_client_cb cb
 bool net_nfc_server_check_client_is_running(int socket);
 client_state_e net_nfc_server_get_client_state(int socket);
 void net_nfc_server_set_client_state(int socket, client_state_e state);
-bool net_nfc_server_is_set_launch_state();
-void net_nfc_server_set_launch_state(int socket, bool enable);
+void net_nfc_server_set_launch_state(int socket, net_nfc_launch_popup_state_e popup_state);
+net_nfc_launch_popup_state_e net_nfc_server_get_client_popup_state(pid_t pid);
 
 #endif /* NET_NFC_SERVER_CONTEXT_H */

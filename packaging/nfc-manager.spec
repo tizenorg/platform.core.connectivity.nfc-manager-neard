@@ -1,7 +1,7 @@
 Name:       nfc-manager
 Summary:    NFC framework manager
-Version:    0.0.38
-Release:    1
+Version:    0.0.42
+Release:    0
 Group:      libs
 License:    Flora Software License
 Source0:    %{name}-%{version}.tar.gz
@@ -29,6 +29,8 @@ BuildRequires: pkgconfig(libssl)
 BuildRequires: pkgconfig(pmapi)
 BuildRequires: pkgconfig(pkgmgr)
 BuildRequires: pkgconfig(pkgmgr-info)
+BuildRequires: pkgconfig(ecore-x)
+BuildRequires: pkgconfig(capi-appfw-app-manager)
 BuildRequires: cmake
 BuildRequires: gettext-tools
 Requires(post):   /sbin/ldconfig
@@ -106,7 +108,6 @@ vconftool set -t bool db/nfc/sbeam 0 -u 5000 -f
 vconftool set -t int db/nfc/se_type 0 -u 5000 -f
 vconftool set -t bool db/nfc/predefined_item_state 0 -u 5000 -f
 vconftool set -t string db/nfc/predefined_item "None" -u 5000 -f
-vconftool set -t bool memory/private/nfc-manager/popup_disabled 0 -u 5000 -f
 
 ln -s /etc/init.d/libnfc-manager-0 /etc/rc.d/rc3.d/S81libnfc-manager-0 -f
 ln -s /etc/init.d/libnfc-manager-0 /etc/rc.d/rc5.d/S81libnfc-manager-0 -f

@@ -27,14 +27,27 @@
 static GList *g_client_contexts = NULL;
 static pthread_mutex_t g_client_context_lock = PTHREAD_MUTEX_INITIALIZER;
 
-static gint _client_context_compare_func(gconstpointer a, gconstpointer b)
+static gint _client_context_compare_by_socket(gconstpointer a, gconstpointer b)
 {
 	gint result = -1;
 	net_nfc_client_info_t *info = (net_nfc_client_info_t *)a;
 
 	if (info->socket == (int)b)
 		result = 0;
-	else if (info->socket > (int)b)
+	else
+		result = 1;
+
+	return result;
+}
+
+static gint _client_context_compare_by_pid(gconstpointer a, gconstpointer b)
+{
+	gint result = -1;
+	net_nfc_client_info_t *info = (net_nfc_client_info_t *)a;
+
+	if (info->pid == (int)b)
+		result = 0;
+	else
 		result = 1;
 
 	return result;
@@ -62,9 +75,6 @@ static void _cleanup_client_context(gpointer data)
 			shutdown(info->socket, SHUT_RDWR);
 			close(info->socket);
 		}
-
-		if (vconf_set_bool(NET_NFC_DISABLE_LAUNCH_POPUP_KEY, net_nfc_server_is_set_launch_state()) != 0)
-			DEBUG_ERR_MSG("SERVER :set launch vconf fail");
 
 		DEBUG_SERVER_MSG("cleanup success : client [%d]", info->socket);
 
@@ -101,7 +111,7 @@ net_nfc_client_info_t *net_nfc_server_get_client_context(int socket)
 
 	pthread_mutex_lock(&g_client_context_lock);
 
-	item = g_list_find_custom(g_client_contexts, (gconstpointer)socket, _client_context_compare_func);
+	item = g_list_find_custom(g_client_contexts, (gconstpointer)socket, _client_context_compare_by_socket);
 	if (item != NULL)
 	{
 		result = item->data;
@@ -130,7 +140,7 @@ void net_nfc_server_add_client_context(pid_t pid, int socket, GIOChannel *channe
 			info->channel = channel;
 			info->src_id = src_id;
 			info->state = state;
-			info->is_set_launch_popup = TRUE;
+			info->launch_popup_state = NET_NFC_LAUNCH_APP_SELECT;
 
 			g_client_contexts = g_list_append(g_client_contexts, info);
 		}
@@ -157,7 +167,7 @@ void net_nfc_server_cleanup_client_context(int socket)
 
 	pthread_mutex_lock(&g_client_context_lock);
 
-	item = g_list_find_custom(g_client_contexts, (gconstpointer)socket, _client_context_compare_func);
+	item = g_list_find_custom(g_client_contexts, (gconstpointer)socket, _client_context_compare_by_socket);
 	if (item != NULL)
 	{
 		_cleanup_client_context(item->data);
@@ -252,7 +262,7 @@ client_state_e net_nfc_server_get_client_state(int socket)
 
 	pthread_mutex_lock(&g_client_context_lock);
 
-	item = g_list_find_custom(g_client_contexts, (gconstpointer)socket, _client_context_compare_func);
+	item = g_list_find_custom(g_client_contexts, (gconstpointer)socket, _client_context_compare_by_socket);
 	if (item != NULL)
 	{
 		state = ((net_nfc_client_info_t *)item->data)->state;
@@ -269,7 +279,7 @@ void net_nfc_server_set_client_state(int socket, client_state_e state)
 
 	pthread_mutex_lock(&g_client_context_lock);
 
-	item = g_list_find_custom(g_client_contexts, (gconstpointer)socket, _client_context_compare_func);
+	item = g_list_find_custom(g_client_contexts, (gconstpointer)socket, _client_context_compare_by_socket);
 	if (item != NULL)
 	{
 		((net_nfc_client_info_t *)item->data)->state = state;
@@ -278,62 +288,31 @@ void net_nfc_server_set_client_state(int socket, client_state_e state)
 	pthread_mutex_unlock(&g_client_context_lock);
 }
 
-static void _enable_launch_state(gpointer data, gpointer user_data)
+void net_nfc_server_set_launch_state(int socket, net_nfc_launch_popup_state_e popup_state)
 {
-	net_nfc_client_info_t *info = (net_nfc_client_info_t *)data;
-
-	if (info != NULL)
+	net_nfc_client_info_t *context = net_nfc_server_get_client_context(socket);
+	pthread_mutex_lock(&g_client_context_lock);
+	if (context != NULL)
 	{
-		info->state = (bool)user_data;
+		context->launch_popup_state = popup_state;
 	}
+	pthread_mutex_unlock(&g_client_context_lock);
 }
 
-static gint _check_launch_state(gconstpointer a, gconstpointer b)
+net_nfc_launch_popup_state_e net_nfc_server_get_client_popup_state(pid_t pid)
 {
-	gint result = 1;
-	net_nfc_client_info_t *info = (net_nfc_client_info_t *)a;
-
-	if (info->is_set_launch_popup == false)
-		result = 0;
-
-	return result;
-}
-
-void net_nfc_server_set_launch_state(int socket, bool enable)
-{
-	if (vconf_set_bool(NET_NFC_DISABLE_LAUNCH_POPUP_KEY, enable) != 0)
-	{
-		DEBUG_ERR_MSG("SERVER : launch state set vconf fail");
-	}
-
-	if (enable == true)
-	{
-		pthread_mutex_lock(&g_client_context_lock);
-		g_list_foreach(g_client_contexts, _enable_launch_state, (gpointer)true);
-		pthread_mutex_unlock(&g_client_context_lock);
-	}
-	else
-	{
-		net_nfc_client_info_t *context = net_nfc_server_get_client_context(socket);
-		pthread_mutex_lock(&g_client_context_lock);
-		if (context != NULL)
-		{
-			context->state = enable;
-		}
-		pthread_mutex_unlock(&g_client_context_lock);
-	}
-}
-
-bool net_nfc_server_is_set_launch_state()
-{
-	bool result = true;
 	GList *item = NULL;
+	net_nfc_launch_popup_state_e state;
 
-	item = g_list_find_custom(g_client_contexts, NULL, _check_launch_state);
+	pthread_mutex_lock(&g_client_context_lock);
+
+	item = g_list_find_custom(g_client_contexts, (gconstpointer)pid, _client_context_compare_by_pid);
 	if (item != NULL)
 	{
-		result = false;
+		state = ((net_nfc_client_info_t *)item->data)->launch_popup_state;
 	}
 
-	return result;
+	pthread_mutex_unlock(&g_client_context_lock);
+
+	return state;
 }

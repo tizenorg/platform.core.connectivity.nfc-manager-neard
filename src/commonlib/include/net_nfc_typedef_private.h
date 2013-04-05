@@ -375,6 +375,12 @@ typedef enum _client_state_e
 	NET_NFC_CLIENT_ACTIVE_STATE,
 } client_state_e;
 
+typedef enum _net_nfc_launch_popup_state_e
+{
+	NET_NFC_LAUNCH_APP_SELECT = 0x00,
+	NET_NFC_NO_LAUNCH_APP_SELECT,
+} net_nfc_launch_popup_state_e;
+
 /* server state */
 #define NET_NFC_SERVER_IDLE				0
 #define NET_NFC_SERVER_DISCOVERY			(1 << 1)
@@ -410,7 +416,7 @@ typedef struct _net_nfc_request_change_client_state_t
 typedef struct _net_nfc_request_set_launch_state_t
 {
 	NET_NFC_REQUEST_MSG_HEADER
-	bool set_launch_popup;
+	net_nfc_launch_popup_state_e set_launch_popup;
 }net_nfc_request_set_launch_state_t;
 
 typedef struct _net_nfc_request_transceive_t
@@ -1150,6 +1156,7 @@ typedef struct _client_context
 	net_nfc_target_info_s *target_info;
 #endif
 	bool initialized;
+	int set_launch_popup;
 } client_context_t;
 
 // data exchanger
