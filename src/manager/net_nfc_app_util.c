@@ -34,7 +34,6 @@
 #include "aul.h"
 #include "vconf.h"
 #include "Ecore_X.h"
-#include "app_manager.h"
 
 #include "net_nfc_typedef.h"
 #include "net_nfc_typedef_private.h"
@@ -910,24 +909,6 @@ int net_nfc_app_util_decode_base64(const char *buffer, uint32_t buf_len, uint8_t
 	return ret;
 }
 
-static pid_t _net_nfc_app_util_get_current_app_pid()
-{
-	char *app_id = NULL;
-	app_context_h context = NULL;
-	pid_t pid, pgid;
-
-	pid = getpid();
-	app_manager_get_app_id(pid, &app_id);
-	app_manager_get_app_context(app_id, &context);
-
-	app_context_get_pid(context, &pgid);
-
-	free(app_id);
-	app_context_destroy(context);
-
-	return pgid;
-}
-
 static pid_t _net_nfc_app_util_get_focus_app_pid()
 {
 	Ecore_X_Window focus;
@@ -944,16 +925,15 @@ static pid_t _net_nfc_app_util_get_focus_app_pid()
 
 bool net_nfc_app_util_check_launch_state()
 {
-	pid_t focus_app_pid, current_app_pid;
+	pid_t focus_app_pid;
 	net_nfc_launch_popup_state_e popup_state;
 	bool result = false;
 
-	current_app_pid = _net_nfc_app_util_get_current_app_pid();
 	focus_app_pid = _net_nfc_app_util_get_focus_app_pid();
 
-	popup_state = net_nfc_server_get_client_popup_state(current_app_pid);
+	popup_state = net_nfc_server_get_client_popup_state(focus_app_pid);
 
-	if(popup_state == NET_NFC_NO_LAUNCH_APP_SELECT && current_app_pid == focus_app_pid)
+	if(popup_state == NET_NFC_NO_LAUNCH_APP_SELECT)
 		result = true;
 
 	return result;

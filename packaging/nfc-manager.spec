@@ -1,6 +1,6 @@
 Name:       nfc-manager
 Summary:    NFC framework manager
-Version:    0.0.42
+Version:    0.0.43
 Release:    0
 Group:      libs
 License:    Flora Software License
@@ -30,7 +30,6 @@ BuildRequires: pkgconfig(pmapi)
 BuildRequires: pkgconfig(pkgmgr)
 BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(ecore-x)
-BuildRequires: pkgconfig(capi-appfw-app-manager)
 BuildRequires: cmake
 BuildRequires: gettext-tools
 Requires(post):   /sbin/ldconfig
