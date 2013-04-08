@@ -37,7 +37,6 @@
 #include "net_nfc_service_se_private.h"
 #include "net_nfc_service_test_private.h"
 #include "net_nfc_manager_util_private.h"
-#include "net_nfc_util_access_control_private.h"
 #include "net_nfc_server_context_private.h"
 
 static GQueue *g_dispatcher_queue;

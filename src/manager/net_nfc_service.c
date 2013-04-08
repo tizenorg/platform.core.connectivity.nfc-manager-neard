@@ -33,7 +33,6 @@
 #include "net_nfc_service_llcp_private.h"
 #include "net_nfc_util_ndef_message.h"
 #include "net_nfc_util_ndef_record.h"
-#include "net_nfc_util_access_control_private.h"
 #include "net_nfc_server_context_private.h"
 
 /* static variable */
@@ -679,9 +678,6 @@ void net_nfc_service_deinit(net_nfc_request_msg_t *msg)
 
 	result = net_nfc_service_se_change_se(SECURE_ELEMENT_TYPE_INVALID);
 
-	/* release access control instance */
-	net_nfc_util_access_control_release();
-
 	net_nfc_server_free_current_tag_info();
 
 	if (net_nfc_controller_deinit() == TRUE)
@@ -762,9 +758,6 @@ void net_nfc_service_init(net_nfc_request_msg_t *msg)
 		{
 			DEBUG_ERR_MSG("net_nfc_controller_confiure_discovery failed [%d]", result);
 		}
-
-		/* initialize access control instance */
-		net_nfc_util_access_control_initialize();
 
 		/*Send the Init Success Response Msg*/
 		{

@@ -43,7 +43,6 @@
 #include "net_nfc_util_ndef_record.h"
 #include "net_nfc_manager_util_private.h"
 #include "net_nfc_app_util_private.h"
-#include "net_nfc_util_access_control_private.h"
 //#include "syspopup_caller.h"
 
 static bool _net_nfc_app_util_get_operation_from_record(ndef_record_s *record, char *operation, size_t length);
@@ -792,60 +791,10 @@ void _string_to_binary(const char *input, uint8_t *output, uint32_t *length)
 	*length = current / 2;
 }
 
-static int _pkglist_iter_fn(const char* pkg_name, void *data)
-{
-	int result = 0;
-	const char *aid_string = NULL;
-	uint8_t aid[1024] = { 0, };
-	uint32_t length = sizeof(aid);
-
-	aid_string = appsvc_get_uri((bundle *)data);
-	DEBUG_SERVER_MSG("package name : %s, aid_string : %s", pkg_name, aid_string);
-
-	/* convert aid string to aid */
-	_string_to_binary(aid_string, aid, &length);
-
-	if (net_nfc_util_access_control_is_authorized_package(pkg_name, aid, length) == true)
-	{
-		DEBUG_SERVER_MSG("allowed package : %s", pkg_name);
-
-		/* launch */
-		aul_launch_app(pkg_name, NULL);
-
-		result = 1; /* break iterator */
-	}
-	else
-	{
-		DEBUG_SERVER_MSG("not allowed package : %s", pkg_name);
-	}
-
- 	return result;
-}
-
-gboolean _invoke_get_list(gpointer data)
-{
-	bundle *bd = (bundle *)data;
-
-	appsvc_get_list(bd, _pkglist_iter_fn, (bundle *)bd);
-
-	bundle_free(bd);
-
-	return 0;
-}
-
 int net_nfc_app_util_launch_se_transaction_app(uint8_t *aid, uint32_t aid_len, uint8_t *param, uint32_t param_len)
 {
+	int result;
 	bundle *bd = NULL;
-
-#if 0
-	/* initialize and make list */
-	if (net_nfc_util_access_control_is_initialized() == false)
-	{
-		net_nfc_util_access_control_initialize();
-	}
-#endif
-
-	net_nfc_util_access_control_update_list();
 
 	/* launch */
 	bd = bundle_create();
@@ -873,11 +822,11 @@ int net_nfc_app_util_launch_se_transaction_app(uint8_t *aid, uint32_t aid_len, u
 		appsvc_add_data(bd, "data", param_string);
 	}
 
-	appsvc_get_list(bd, _pkglist_iter_fn, (bundle *)bd);
+	result = appsvc_run_service(bd, 0, NULL, NULL);
 
 	bundle_free(bd);
 
-	return 0;
+	return result;
 }
 
 int net_nfc_app_util_encode_base64(uint8_t *buffer, uint32_t buf_len, char *result, uint32_t max_result)
