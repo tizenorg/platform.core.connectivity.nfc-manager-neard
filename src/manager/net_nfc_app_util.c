@@ -810,7 +810,7 @@ int net_nfc_app_util_launch_se_transaction_app(uint8_t *aid, uint32_t aid_len, u
 	/* launch */
 	bd = bundle_create();
 
-	appsvc_set_operation(bd, "http://tizen.org/appcontrol/operation/nfc_se_transaction");
+	appsvc_set_operation(bd, "http://tizen.org/appcontrol/operation/nfc/transaction");
 
 	/* convert aid to aid string */
 	if (aid != NULL && aid_len > 0)
