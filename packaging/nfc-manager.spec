@@ -148,7 +148,7 @@ systemctl daemon-reload
 %{_prefix}/bin/nfc-manager-daemon
 %{_prefix}/bin/ndef-tool
 /etc/init.d/libnfc-manager-0
-/usr/share/dbus-1/services/nfc-manager.service
+%{_datadir}/dbus-1/services/org.tizen.nfc_service.service
 /usr/share/license/nfc-manager
 /usr/lib/systemd/system/nfc-manager.service
 /usr/lib/systemd/system/multi-user.target.wants/nfc-manager.service

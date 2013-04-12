@@ -71,7 +71,7 @@ ADD_EXECUTABLE(${NFC_MANAGER_DAEMON} ${MANAGER_SRCS})
 
 TARGET_LINK_LIBRARIES(${NFC_MANAGER_DAEMON} ${manager_pkges_LDFLAGS} "-lpthread -lrt -pie -ldl -L${CMAKE_CURRENT_SOURCE_DIR}/../../cmake_tmp/src/commonlib/ -lnfc-common-lib -L${CMAKE_CURRENT_SOURCE_DIR}/../../cmake_tmp/src/clientlib/ -lnfc")
 
-INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/nfc-manager.service DESTINATION share/dbus-1/services)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/org.tizen.nfc_service.service DESTINATION share/dbus-1/services)
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sounds DESTINATION /usr/share/nfc-manager-daemon)
 INSTALL(TARGETS ${NFC_MANAGER_DAEMON} DESTINATION bin)
 
