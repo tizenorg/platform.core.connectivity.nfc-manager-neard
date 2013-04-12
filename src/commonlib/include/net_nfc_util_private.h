@@ -82,5 +82,6 @@ bool net_nfc_util_strip_string(char *buffer, int buffer_length);
 void net_nfc_util_compute_CRC(CRC_type_e CRC_type, uint8_t *buffer, uint32_t length);
 
 const char *net_nfc_util_get_schema_string(int index);
+pid_t net_nfc_util_get_current_app_pgid(pid_t pid);
 
 #endif

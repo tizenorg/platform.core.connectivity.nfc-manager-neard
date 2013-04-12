@@ -40,12 +40,12 @@ static gint _client_context_compare_by_socket(gconstpointer a, gconstpointer b)
 	return result;
 }
 
-static gint _client_context_compare_by_pid(gconstpointer a, gconstpointer b)
+static gint _client_context_compare_by_pgid(gconstpointer a, gconstpointer b)
 {
 	gint result = -1;
 	net_nfc_client_info_t *info = (net_nfc_client_info_t *)a;
 
-	if (info->pid == (int)b)
+	if (info->pgid == (pid_t)b)
 		result = 0;
 	else
 		result = 1;
@@ -136,6 +136,7 @@ void net_nfc_server_add_client_context(pid_t pid, int socket, GIOChannel *channe
 		if (info != NULL)
 		{
 			info->pid = pid;
+			info->pgid = net_nfc_util_get_current_app_pgid(pid);
 			info->socket = socket;
 			info->channel = channel;
 			info->src_id = src_id;
@@ -306,7 +307,7 @@ net_nfc_launch_popup_state_e net_nfc_server_get_client_popup_state(pid_t pid)
 
 	pthread_mutex_lock(&g_client_context_lock);
 
-	item = g_list_find_custom(g_client_contexts, (gconstpointer)pid, _client_context_compare_by_pid);
+	item = g_list_find_custom(g_client_contexts, (gconstpointer)pid, _client_context_compare_by_pgid);
 	if (item != NULL)
 	{
 		state = ((net_nfc_client_info_t *)item->data)->launch_popup_state;

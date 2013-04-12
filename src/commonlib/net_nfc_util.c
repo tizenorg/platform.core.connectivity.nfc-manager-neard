@@ -23,6 +23,7 @@
 // platform header
 #include <bluetooth-api.h>
 #include <vconf.h>
+#include <app_manager.h>
 
 // nfc-manager header
 #include "net_nfc_util_private.h"
@@ -504,3 +505,21 @@ const char *net_nfc_util_get_schema_string(int index)
 	else
 		return schema[index];
 }
+
+pid_t net_nfc_util_get_current_app_pgid(pid_t pid)
+{
+	char *app_id = NULL;
+	app_context_h context = NULL;
+	pid_t pgid = NULL;
+
+	app_manager_get_app_id(pid, &app_id);
+	app_manager_get_app_context(app_id, &context);
+
+	app_context_get_pid(context, &pgid);
+
+	free(app_id);
+	app_context_destroy(context);
+
+	return pgid;
+}
+

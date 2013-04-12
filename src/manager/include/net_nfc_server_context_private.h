@@ -25,6 +25,7 @@
 typedef struct _net_nfc_client_info_t
 {
 	pid_t pid;
+	pid_t pgid;
 	int socket;
 	GIOChannel *channel;
 	uint32_t src_id;
