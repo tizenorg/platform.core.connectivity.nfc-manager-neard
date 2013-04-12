@@ -914,7 +914,7 @@ static pid_t _net_nfc_app_util_get_focus_app_pid()
 	Ecore_X_Window focus;
 	pid_t pid;
 
-	ecore_x_init(NULL);
+	ecore_x_init(":0");
 
 	focus = ecore_x_window_focus_get();
 	if (ecore_x_netwm_pid_get(focus, &pid))

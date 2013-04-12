@@ -302,7 +302,7 @@ void net_nfc_server_set_launch_state(int socket, net_nfc_launch_popup_state_e po
 net_nfc_launch_popup_state_e net_nfc_server_get_client_popup_state(pid_t pid)
 {
 	GList *item = NULL;
-	net_nfc_launch_popup_state_e state;
+	net_nfc_launch_popup_state_e state = NET_NFC_LAUNCH_APP_SELECT;
 
 	pthread_mutex_lock(&g_client_context_lock);
 
