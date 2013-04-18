@@ -441,7 +441,6 @@ static void *net_nfc_client_ipc_thread(void *data)
 
 			msg = net_nfc_client_read_response_msg(&result);
 
-			pthread_mutex_lock(&cb_lock);
 			if (msg != NULL && msg->detail_message != NULL)
 			{
 				/* TODO : need to remove */
@@ -461,6 +460,7 @@ static void *net_nfc_client_ipc_thread(void *data)
 				}
 				else
 				{
+					pthread_mutex_lock(&cb_lock);
 #ifdef USE_GLIB_MAIN_LOOP
 					net_nfc_client_call_dispatcher_in_g_main_loop(client_cb, msg);
 #elif USE_ECORE_MAIN_LOOP
@@ -468,6 +468,7 @@ static void *net_nfc_client_ipc_thread(void *data)
 #else
 					net_nfc_client_call_dispatcher_in_current_context(client_cb, msg);
 #endif
+					pthread_mutex_unlock(&cb_lock);
 				}
 			}
 			else
@@ -482,7 +483,6 @@ static void *net_nfc_client_ipc_thread(void *data)
 				}
 				DEBUG_ERR_MSG("cannot read response msg");
 			}
-			pthread_mutex_unlock(&cb_lock);
 		}
 	}
 
