@@ -203,14 +203,24 @@ int main(int check, char* argv[])
 	if (net_nfc_controller_support_nfc(&result) == true)
 	{
 		DEBUG_SERVER_MSG("NFC Support");
-		vconf_set_bool(VCONFKEY_NFC_FEATURE, VCONFKEY_NFC_FEATURE_ON);
+		if (vconf_set_bool(VCONFKEY_NFC_FEATURE, VCONFKEY_NFC_FEATURE_ON) != 0)
+		{
+			DEBUG_SERVER_MSG("VCONFKEY_NFC_FEATURE ON failed");
+		}
 	}
 	else
 	{
 		DEBUG_ERR_MSG("NFC doesn't support");
 
-		vconf_set_bool(VCONFKEY_NFC_FEATURE, VCONFKEY_NFC_FEATURE_OFF);
-		vconf_set_bool(VCONFKEY_NFC_STATE, FALSE);
+		if (vconf_set_bool(VCONFKEY_NFC_FEATURE, VCONFKEY_NFC_FEATURE_OFF) != 0)
+		{
+			DEBUG_SERVER_MSG("VCONFKEY_NFC_FEATURE OFF failed");
+		}
+
+		if (vconf_set_bool(VCONFKEY_NFC_STATE, FALSE) != 0)
+		{
+			DEBUG_SERVER_MSG("VCONFKEY_NFC_STATE failed");
+		}
 
 		net_nfc_controller_unload(handle);
 	}

@@ -359,7 +359,7 @@ bool net_nfc_server_process_client_connect_request()
 	socklen_t addrlen = 0;
 	int client_sock_fd = 0;
 	GIOChannel *client_channel = NULL;
-	uint32_t client_src_id;
+	uint32_t client_src_id = 0;
 	pid_t client_pid = -1;
 #ifdef USE_UNIX_DOMAIN
 	struct ucred uc;
@@ -413,12 +413,6 @@ bool net_nfc_server_process_client_connect_request()
 	return true;
 
 ERROR :
-	if (client_src_id > 0)
-	{
-		g_source_remove(client_src_id);
-		client_src_id = 0;
-	}
-
 	if (client_channel != NULL)
 	{
 		g_io_channel_unref(client_channel);
