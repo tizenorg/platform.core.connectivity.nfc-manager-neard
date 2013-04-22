@@ -88,12 +88,13 @@ make
 %install
 cd cmake_tmp
 %make_install
+cd ..
 %__mkdir -p  %{buildroot}/etc/init.d/
 %__cp -af %SOURCE1  %{buildroot}/etc/init.d/libnfc-manager-0
 chmod 755 %{buildroot}/etc/init.d/libnfc-manager-0
 mkdir -p %{buildroot}/usr/share/license
-cp -af %{_builddir}/%{name}-%{version}/packaging/nfc-common-lib %{buildroot}/usr/share/license/
-cp -af %{_builddir}/%{name}-%{version}/packaging/nfc-manager %{buildroot}/usr/share/license/
+cp -af LICENSE.Flora %{buildroot}/usr/share/license/nfc-common-lib
+cp -af LICENSE.Flora %{buildroot}/usr/share/license/nfc-manager
 
 mkdir -p %{buildroot}/usr/lib/systemd/system/multi-user.target.wants
 cp -af %{SOURCE2} %{buildroot}/usr/lib/systemd/system/
