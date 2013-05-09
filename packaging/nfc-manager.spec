@@ -31,6 +31,7 @@ BuildRequires: pkgconfig(pkgmgr)
 BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(ecore-x)
 BuildRequires: pkgconfig(capi-appfw-app-manager)
+BuildRequires: pkgconfig(neardal)
 BuildRequires: cmake
 BuildRequires: gettext-tools
 Requires(post):   /sbin/ldconfig

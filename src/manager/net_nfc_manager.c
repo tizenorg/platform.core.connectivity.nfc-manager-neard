@@ -38,6 +38,7 @@
 #include "net_nfc_server_context_private.h"
 #include "net_nfc_manager_dbus.h"
 #include "nfc-service-binding.h"
+#include "neardal.h"
 
 static GMainLoop *loop = NULL;
 static GObject *object = NULL;
@@ -172,10 +173,30 @@ static void _net_nfc_deintialize_dbus_connection()
 	}
 }
 
+static bool net_nfc_neard_support_nfc(void)
+{
+	char **adapters = NULL;
+	int len;
+	errorCode_t err;
+
+	DEBUG_SERVER_MSG("checking nfc support");
+	err = neardal_get_adapters(&adapters, &len);
+	if (err != NEARDAL_SUCCESS)
+		return false;
+
+	if (!(len > 0 && adapters != NULL))
+		return false;
+
+	neardal_free_array(&adapters);
+	adapters = NULL;
+	neardal_destroy();
+
+	return true;
+}
+
 int main(int check, char* argv[])
 {
 	int result = 0;
-	void *handle = NULL;
 	int state = 0;
 
 	if (!g_thread_supported())
@@ -193,14 +214,7 @@ int main(int check, char* argv[])
 
 	net_nfc_app_util_clean_storage(MESSAGE_STORAGE);
 
-	handle = net_nfc_controller_onload();
-	if (handle == NULL)
-	{
-		DEBUG_ERR_MSG("load plugin library is failed");
-		return 0;
-	}
-
-	if (net_nfc_controller_support_nfc(&result) == true)
+	if (net_nfc_neard_support_nfc() == true)
 	{
 		DEBUG_SERVER_MSG("NFC Support");
 		if (vconf_set_bool(VCONFKEY_NFC_FEATURE, VCONFKEY_NFC_FEATURE_ON) != 0)
@@ -221,8 +235,6 @@ int main(int check, char* argv[])
 		{
 			DEBUG_SERVER_MSG("VCONFKEY_NFC_STATE failed");
 		}
-
-		net_nfc_controller_unload(handle);
 	}
 
 	result = vconf_get_bool(VCONFKEY_NFC_STATE, &state);
@@ -245,14 +257,8 @@ int main(int check, char* argv[])
 		}
 	}
 
-	if (net_nfc_server_ipc_initialize() != true)
-	{
-		DEBUG_ERR_MSG("nfc server ipc initialization is failed");
-
-		goto EXIT;
-	}
-
-	DEBUG_SERVER_MSG("nfc server ipc init is ok");
+	if (vconf_set_bool(NET_NFC_DISABLE_LAUNCH_POPUP_KEY, FALSE) != 0)
+		DEBUG_ERR_MSG("SERVER : launch state set vconf fail");
 
 	_net_nfc_intialize_dbus_connection();
 
@@ -287,8 +293,6 @@ int main(int check, char* argv[])
 EXIT :
 	_net_nfc_deintialize_dbus_connection();
 	net_nfc_service_vconf_unregister_notify_listener();
-	net_nfc_server_ipc_finalize();
-	net_nfc_controller_unload(handle);
 
 	net_nfc_manager_fini_log();
 
