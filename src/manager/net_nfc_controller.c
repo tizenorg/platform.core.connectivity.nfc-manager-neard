@@ -27,7 +27,7 @@
 #include "net_nfc_server_ipc_private.h"
 #include "net_nfc_server_dispatcher_private.h"
 
-#define NET_NFC_OEM_LIBRARY_PATH "/usr/lib/libnfc-plugin.so"
+#define NET_NFC_OEM_LIBRARY_PATH LIBPATH "/libnfc-plugin.so"
 
 static net_nfc_oem_interface_s g_interface;
 
@@ -72,24 +72,24 @@ void *net_nfc_controller_onload()
 		if ((!(strncmp(token_cpuinfo[1], "SLP_PQ", 6)) && (revision >= 7))) //|| !(strncmp(token_cpuinfo[1] , "REDWOOD" , 7)))
 		{
 			DEBUG_SERVER_MSG("It's SLP_PQ && Revision 7!! || REDWOOD revC.");
-			library_path = "/usr/lib/libnfc-plugin-65nxp.so";
+			library_path = LIBPATH "/libnfc-plugin-65nxp.so";
 
 		}
 		else if (!(strncmp(token_cpuinfo[1], "REDWOOD", 7)))
 		{
 			DEBUG_SERVER_MSG("It's REDWOOD revC.");
-			library_path = "/usr/lib/libnfc-plugin-lsi.so";
+			library_path = LIBPATH "/libnfc-plugin-lsi.so";
 		}
 		else
 		{
 			DEBUG_SERVER_MSG("It's NOT!!!! SLP_PQ && Revision 7!!");
-			library_path = "/usr/lib/libnfc-plugin.so";
+			library_path = LIBPATH "/libnfc-plugin.so";
 		}
 	}
 	else
 	{
 		DEBUG_SERVER_MSG("It doesn't have Hardware info!!");
-		library_path = "/usr/lib/libnfc-plugin.so";
+		library_path = LIBPATH "/libnfc-plugin.so";
 	}
 
 	if ((handle = dlopen(library_path/*NET_NFC_OEM_LIBRARY_PATH*/, RTLD_LAZY)) != NULL)

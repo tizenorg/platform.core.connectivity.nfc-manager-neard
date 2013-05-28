@@ -8,7 +8,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../commonlib/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 AUX_SOURCE_DIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/ MANAGER_SRCS)
-
+ADD_DEFINITIONS("-DLIBPATH=\"${LIB_INSTALL_DIR}\"")
 IF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 	SET(CMAKE_BUILD_TYPE "Release")
 ENDIF("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -24,7 +24,7 @@ MESSAGE("CHECK MODULE in MANAGER ${manager_pkges_LDFLAGS}")
 
 # this for NFC flag
 
-SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -pipe -fomit-frame-pointer -Wall -Wno-trigraphs -Werror-implicit-function-declaration  -fno-strict-aliasing -Wl,-zdefs -fvisibility=hidden")
+SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fPIC -pipe -fomit-frame-pointer -Wall -Wno-trigraphs -Werror-implicit-function-declaration  -fno-strict-aliasing -Wl,-zdefs -fvisibility=hidden")
 
 SET(ARM_CFLAGS "${ARM_CLAGS} -mapcs -mno-sched-prolog -mabi=aapcs-linux -Uarm -fno-common -fpic")
 

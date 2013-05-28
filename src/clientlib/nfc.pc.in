@@ -1,6 +1,6 @@
 prefix=/usr
 exec_prefix=${prefix}/bin
-libdir=${prefix}/lib
+libdir=@LIB_INSTALL_DIR@
 includedir=${prefix}/include 
 
 Name: nfc
