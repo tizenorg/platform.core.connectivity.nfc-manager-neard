@@ -302,25 +302,12 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_unset_response_callback(void)
 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_set_launch_popup_state(int enable)
 {
-	net_nfc_error_e ret;
-	net_nfc_request_set_launch_state_t request = { 0, };
+	if (vconf_set_bool(NET_NFC_DISABLE_LAUNCH_POPUP_KEY, enable) != 0) {
+		DEBUG_CLIENT_MSG("launch state set vconf fail");
+		return NET_NFC_OPERATION_FAIL;
+	}
 
-	request.length = sizeof(net_nfc_request_set_launch_state_t);
-	request.request_type = NET_NFC_MESSAGE_SERVICE_SET_LAUNCH_STATE;
-
-	pthread_mutex_lock(&g_client_context.g_client_lock);
-	g_client_context.set_launch_popup = enable;
-
-	if(enable)
-		request.set_launch_popup = NET_NFC_LAUNCH_APP_SELECT;
-	else
-		request.set_launch_popup = NET_NFC_NO_LAUNCH_APP_SELECT;
-
-	pthread_mutex_unlock(&g_client_context.g_client_lock);
-
-	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
-
-	return ret;
+	return NET_NFC_OK;
 }
 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_launch_popup_state(int *state)
@@ -416,30 +403,17 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_state(int *state)
 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_state_activate(void)
 {
-	net_nfc_error_e ret;
-	net_nfc_request_change_client_state_t request = { 0, };
 
-	request.length = sizeof(net_nfc_request_change_client_state_t);
-	request.request_type = NET_NFC_MESSAGE_SERVICE_CHANGE_CLIENT_STATE;
-	request.client_state = NET_NFC_CLIENT_ACTIVE_STATE;
-
-	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
-
-	return ret;
+	/*
+	 * state is used to track whether to execute the client request
+	 * can be deprecated with neard base solution
+	 */
+	return NET_NFC_OK;
 }
 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_state_deactivate(void)
 {
-	net_nfc_error_e ret;
-	net_nfc_request_change_client_state_t request = { 0, };
-
-	request.length = sizeof(net_nfc_request_change_client_state_t);
-	request.request_type = NET_NFC_MESSAGE_SERVICE_CHANGE_CLIENT_STATE;
-	request.client_state = NET_NFC_CLIENT_INACTIVE_STATE;
-
-	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
-
-	return ret;
+	return NET_NFC_OK;
 }
 
 client_context_t *net_nfc_get_client_context()
