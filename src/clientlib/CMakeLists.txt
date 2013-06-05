@@ -18,7 +18,7 @@ IF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 ENDIF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 
 INCLUDE(FindPkgConfig)
-pkg_check_modules(clientlib_pkges REQUIRED security-server dbus-glib-1 dlog ecore vconf)
+pkg_check_modules(clientlib_pkges REQUIRED security-server dbus-glib-1 dlog ecore vconf neardal)
 
 FOREACH(flag ${clientlib_pkges_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
@@ -84,6 +84,7 @@ SET(CLIENT_HEADER
 	include/net_nfc_exchanger.h
 	include/net_nfc_internal_se.h
 	include/net_nfc_test.h
+	include/net_nfc_neard.h
 	../manager/include/nfc-service-glue.h
 	../manager/include/net_nfc_manager_dbus.h
 )
