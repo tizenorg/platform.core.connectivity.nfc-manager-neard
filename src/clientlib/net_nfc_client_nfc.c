@@ -34,6 +34,7 @@
 #include "net_nfc_client_nfc_private.h"
 #include "net_nfc_manager_dbus.h"
 #include "nfc-service-glue.h"
+#include "net_nfc_neard.h"
 
 #ifndef NET_NFC_EXPORT_API
 #define NET_NFC_EXPORT_API __attribute__((visibility("default")))
@@ -196,6 +197,7 @@ static net_nfc_error_e _net_nfc_load_cookies()
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_initialize()
 {
 	net_nfc_error_e result = NET_NFC_OK;
+	int state;
 
 	if (!g_thread_supported())
 	{
@@ -230,15 +232,17 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_initialize()
 	}
 #endif
 
-	result = net_nfc_client_socket_initialize();
-	if (result == NET_NFC_OK || result == NET_NFC_ALREADY_INITIALIZED)
+	result = net_nfc_neard_initialize();
+	if (result == NET_NFC_OK && vconf_get_bool(
+					VCONFKEY_NFC_STATE, &state) == 0)
 	{
-		DEBUG_CLIENT_MSG("socket is initialized");
+		DEBUG_CLIENT_MSG("neard initialized");
 		g_client_context.initialized = true;
-	}
-	else
-	{
-		DEBUG_ERR_MSG("socket init is failed = [%d]", result);
+		if (state == true)
+			result = net_nfc_neard_enable();
+	} else {
+
+		DEBUG_ERR_MSG("neard initialize is failed = [%d]", result);
 		_net_nfc_client_free_cookies();
 	}
 
@@ -254,7 +258,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_deinitialize()
 
 	pthread_mutex_lock(&g_client_context.g_client_lock);
 
-	net_nfc_client_socket_finalize();
+	net_nfc_neard_deinitialize();
 	_net_nfc_client_free_cookies();
 	_net_nfc_reset_client_context();
 
@@ -279,7 +283,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_set_response_callback(net_nfc_respons
 	pthread_mutex_lock(&g_client_context.g_client_lock);
 
 	g_client_context.register_user_param = user_param;
-	result = _net_nfc_client_register_cb(cb);
+	result = net_nfc_neard_register_cb(cb);
 
 	pthread_mutex_unlock(&g_client_context.g_client_lock);
 
@@ -293,7 +297,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_unset_response_callback(void)
 	pthread_mutex_lock(&g_client_context.g_client_lock);
 
 	g_client_context.register_user_param = NULL;
-	result = _net_nfc_client_unregister_cb();
+	result = net_nfc_neard_unregister_cb();
 
 	pthread_mutex_unlock(&g_client_context.g_client_lock);
 
@@ -436,29 +440,11 @@ bool net_nfc_tag_is_connected()
 
 net_nfc_error_e net_nfc_send_init(void *context)
 {
-	net_nfc_error_e ret;
-	net_nfc_request_msg_t req_msg = { 0, };
-
-	req_msg.length = sizeof(net_nfc_request_msg_t);
-	req_msg.request_type = NET_NFC_MESSAGE_SERVICE_INIT;
-	req_msg.user_param = (uint32_t)context;
-
-	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&req_msg, NULL);
-
-	return ret;
+	return net_nfc_neard_enable();
 }
 
 net_nfc_error_e net_nfc_send_deinit(void *context)
 {
-	net_nfc_error_e ret;
-	net_nfc_request_msg_t req_msg = { 0, };
-
-	req_msg.length = sizeof(net_nfc_request_msg_t);
-	req_msg.request_type = NET_NFC_MESSAGE_SERVICE_DEINIT;
-	req_msg.user_param = (uint32_t)context;
-
-	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&req_msg, NULL);
-
-	return ret;
+	return net_nfc_neard_disable();
 }
 
