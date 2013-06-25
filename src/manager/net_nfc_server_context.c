@@ -136,7 +136,7 @@ void net_nfc_server_add_client_context(pid_t pid, int socket, GIOChannel *channe
 		if (info != NULL)
 		{
 			info->pid = pid;
-			info->pgid = net_nfc_util_get_current_app_pgid(pid);
+			info->pgid = getpgid(pid);
 			info->socket = socket;
 			info->channel = channel;
 			info->src_id = src_id;
