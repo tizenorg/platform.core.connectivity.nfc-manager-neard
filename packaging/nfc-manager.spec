@@ -7,6 +7,7 @@ License:    Flora Software License
 Source0:    %{name}-%{version}.tar.gz
 Source1:    libnfc-manager-0.init.in
 Source2:    nfc-manager.service
+Source1001: 	nfc-manager.manifest
 Requires:   sys-assert
 BuildRequires: pkgconfig(aul)
 BuildRequires: pkgconfig(glib-2.0)
@@ -44,6 +45,7 @@ NFC library Manager.
 
 %prep
 %setup -q
+cp %{SOURCE1001} .
 
 
 %package devel
@@ -143,7 +145,7 @@ systemctl daemon-reload
 
 
 %files
-%manifest nfc-manager.manifest
+%manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libnfc.so.1
 %{_libdir}/libnfc.so.1.0.0
@@ -157,7 +159,7 @@ systemctl daemon-reload
 
 
 %files devel
-%manifest nfc-manager-devel.manifest
+%manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_libdir}/pkgconfig/nfc.pc
 %{_includedir}/nfc/*.h
@@ -165,7 +167,7 @@ systemctl daemon-reload
 
 
 %files -n nfc-common-lib
-%manifest nfc-common-lib.manifest
+%manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libnfc-common-lib.so.1
 %{_libdir}/libnfc-common-lib.so.1.0.0
@@ -174,7 +176,7 @@ systemctl daemon-reload
 
 
 %files -n nfc-common-lib-devel
-%manifest nfc-common-lib-devel.manifest
+%manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libnfc-common-lib.so
 %{_libdir}/pkgconfig/nfc-common-lib.pc
