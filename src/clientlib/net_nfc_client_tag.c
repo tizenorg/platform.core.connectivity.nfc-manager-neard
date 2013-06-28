@@ -24,6 +24,7 @@
 #include "net_nfc_util_private.h"
 #include "net_nfc_util_ndef_message.h"
 #include "net_nfc_client_nfc_private.h"
+#include "net_nfc_neard.h"
 
 #ifndef NET_NFC_EXPORT_API
 #define NET_NFC_EXPORT_API __attribute__((visibility("default")))
@@ -308,38 +309,16 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_write_ndef(net_nfc_target_handle_h ha
 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_is_tag_connected(void *trans_param)
 {
-	net_nfc_request_is_tag_connected_t request = { 0, };
-	net_nfc_error_e result;
-
-	request.length = sizeof(net_nfc_request_is_tag_connected_t);
-	request.request_type = NET_NFC_MESSAGE_IS_TAG_CONNECTED;
-	request.trans_param = trans_param;
-
-	result = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
-
-	return result;
+	net_nfc_neard_is_tag_connected(NULL);
+	return NET_NFC_OK;
 }
 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_is_tag_connected_sync(int *dev_type)
 {
-	net_nfc_request_is_tag_connected_t request = { 0, };
-	net_nfc_response_is_tag_connected_t context = { 0, };
-	net_nfc_error_e result;
-
 	if (dev_type == NULL)
 		return NET_NFC_INVALID_PARAM;
 
-	request.length = sizeof(net_nfc_request_is_tag_connected_t);
-	request.request_type = NET_NFC_MESSAGE_IS_TAG_CONNECTED;
-	request.trans_param = (void *)&context;
-
-	result = net_nfc_client_send_request_sync((net_nfc_request_msg_t *)&request, NULL);
-	if (result == NET_NFC_OK)
-	{
-		*dev_type = context.devType;
-	}
-
-	return result;
+	return net_nfc_neard_is_tag_connected(dev_type);
 }
 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_make_read_only_ndef_tag(net_nfc_target_handle_h handle, void *trans_param)
