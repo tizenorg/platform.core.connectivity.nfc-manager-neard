@@ -225,7 +225,6 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_transceive(net_nfc_target_handle_h ha
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_read_tag(net_nfc_target_handle_h handle, void *trans_param)
 {
 	net_nfc_error_e ret;
-	net_nfc_request_read_ndef_t request = { 0, };
 
 	DEBUG_CLIENT_MSG("send reqeust :: read ndef = [%p]", handle);
 
@@ -239,21 +238,15 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_read_tag(net_nfc_target_handle_h hand
 		return NET_NFC_OPERATION_FAIL;
 	}
 
-	request.length = sizeof(net_nfc_request_read_ndef_t);
-	request.request_type = NET_NFC_MESSAGE_READ_NDEF;
-	request.handle = (net_nfc_target_handle_s *)handle;
-	request.trans_param = trans_param;
-
-	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
+	ret = net_nfc_neard_read_tag(handle, trans_param);
 
 	return ret;
 }
 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_write_ndef(net_nfc_target_handle_h handle, ndef_message_h msg, void *trans_param)
 {
-	net_nfc_request_write_ndef_t *request = NULL;
 	net_nfc_error_e result;
-	data_s data;
+	data_s data = {NULL, 0};
 	uint32_t length = 0, ndef_length = 0;
 
 	DEBUG_CLIENT_MSG("send reqeust :: write ndef = [%p]", handle);
@@ -274,37 +267,25 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_write_ndef(net_nfc_target_handle_h ha
 		return NET_NFC_INVALID_PARAM;
 	}
 
-	length = sizeof(net_nfc_request_write_ndef_t) + ndef_length;
-
-	_net_nfc_util_alloc_mem(request, length);
-	if (request == NULL)
-	{
-		return NET_NFC_ALLOC_FAIL;
-	}
-
-	/* fill request message */
-	request->length = length;
-	request->request_type = NET_NFC_MESSAGE_WRITE_NDEF;
-	request->handle = (net_nfc_target_handle_s *)handle;
-	request->trans_param = trans_param;
-	request->data.length = ndef_length;
-
 	data.length = ndef_length;
-	data.buffer = request->data.buffer;
+	_net_nfc_util_alloc_mem(data.buffer, data.length);
 
-	result = net_nfc_util_convert_ndef_message_to_rawdata((ndef_message_s *)msg, &data);
-	if (result != NET_NFC_OK)
+	if (data.buffer != NULL)
 	{
-		DEBUG_CLIENT_MSG("NDEF to rawdata is failed (reason:%d)", result);
-		_net_nfc_util_free_mem(request);
+
+		result = net_nfc_util_convert_ndef_message_to_rawdata(
+						(ndef_message_s *)msg, &data);
+		if (result != NET_NFC_OK) {
+			DEBUG_CLIENT_MSG("Convert failed reason:%d", result);
+			net_nfc_util_free_data(&data);
+			return result;
+		}
+
+		result = net_nfc_neard_write_ndef(handle, &data, trans_param);
+		_net_nfc_util_free_mem(data.buffer);
 		return result;
-	}
-
-	result = net_nfc_client_send_request((net_nfc_request_msg_t *)request, NULL);
-
-	_net_nfc_util_free_mem(request);
-
-	return result;
+	} else
+		return NET_NFC_ALLOC_FAIL;
 }
 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_is_tag_connected(void *trans_param)
