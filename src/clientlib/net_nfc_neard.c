@@ -9,6 +9,8 @@
 #include "net_nfc_debug_private.h"
 #include "net_nfc_typedef_private.h"
 #include "net_nfc_client_nfc_private.h"
+#include "net_nfc_util_private.h"
+#include "net_nfc_util_ndef_message.h"
 
 #include "neardal.h"
 
@@ -145,6 +147,45 @@ static void _power_completed_cb(errorCode_t error_code, void *user_data)
 	}
 }
 
+static void _tag_found_cb(const char *tagName, void *user_data)
+{
+	DEBUG_CLIENT_MSG("NFC tag found");
+
+	if (neardal_get_tag_properties(tagName, &tag) != NEARDAL_SUCCESS)
+		return;
+	if (tag == NULL && tag->records == NULL)
+		return;
+}
+
+static void _tag_lost_cb(const char *tagName, void *user_data)
+{
+	DEBUG_CLIENT_MSG("NFC tag lost");
+
+	if (tag != NULL) {
+		neardal_free_tag(tag);
+		tag = NULL;
+	}
+
+	if (nfc_adapter_polling == true)
+		return;
+
+	if (neardal_start_poll_loop(nfc_adapter_path, NEARD_ADP_MODE_DUAL)
+							== NEARDAL_SUCCESS)
+		nfc_adapter_polling = true;
+
+	if (client_cb != NULL && client_context != NULL)
+		client_cb(NET_NFC_MESSAGE_TAG_DETACHED, NET_NFC_OK, NULL,
+				client_context->register_user_param, NULL);
+}
+
+net_nfc_error_e net_nfc_neard_is_tag_connected(int *dev_type)
+{
+	if (tag == NULL)
+		return NET_NFC_NOT_CONNECTED;
+
+	return NET_NFC_OK;
+}
+
 net_nfc_error_e net_nfc_neard_register_cb(net_nfc_response_cb cb)
 {
 	if (cb == NULL)
@@ -174,7 +215,11 @@ net_nfc_error_e net_nfc_neard_cb_init(void)
 		neardal_set_cb_adapter_property_changed(
 			_adapter_property_changed_cb, NULL) != NEARDAL_SUCCESS ||
 		neardal_set_cb_power_completed(_power_completed_cb, NULL)
-							!= NEARDAL_SUCCESS) {
+							!= NEARDAL_SUCCESS ||
+		neardal_set_cb_tag_found(
+			_tag_found_cb, NULL) != NEARDAL_SUCCESS ||
+		neardal_set_cb_tag_lost(
+			_tag_lost_cb, NULL) != NEARDAL_SUCCESS) {
 
 		DEBUG_CLIENT_MSG("failed to register the callback");
 
