@@ -1,2 +1,5 @@
+* Fri Jun 28 2013 Patrick McCarty <patrick.mccarty@linux.intel.com> 1f962af
+- packaging: remove explicit requires on sys-assert
+
 * Tue May 28 2013 Baptiste DURAND <baptiste.durand@eurogiciel.fr> accepted/tizen/20130520.101035@bc7a137
 - Fix compatibility for x64 arch

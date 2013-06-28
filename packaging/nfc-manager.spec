@@ -7,7 +7,6 @@ License:    Flora Software License
 Source0:    %{name}-%{version}.tar.gz
 Source1:    libnfc-manager-0.init.in
 Source2:    nfc-manager.service
-Requires:   sys-assert
 BuildRequires: pkgconfig(aul)
 BuildRequires: pkgconfig(glib-2.0)
 BuildRequires: pkgconfig(gobject-2.0)
