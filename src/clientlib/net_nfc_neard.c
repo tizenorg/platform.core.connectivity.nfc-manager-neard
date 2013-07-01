@@ -114,6 +114,18 @@ static uint32_t _get_tag_id(const char *name)
 	return id;
 }
 
+static uint32_t _get_dev_id(const char *name)
+{
+	uint32_t id;
+	char **s;
+
+	s = g_strsplit(name, "device", 2);
+	id = atoi(s[1]);
+	g_strfreev(s);
+
+	return id;
+}
+
 static bool _check_ndef(uint8_t *ndef_card_state,
 					int *max_data_size,
 					int *real_data_size)
@@ -426,6 +438,68 @@ static void _write_completed_cb(errorCode_t error_code, void *user_data)
 			client_context->register_user_param, callback_data);
 }
 
+static void _device_found_cb(const char *devName, void *user_data)
+{
+	int devType = 0;
+
+	DEBUG_CLIENT_MSG("p2p device found %s", devName);
+	if (neardal_get_dev_properties(devName, &dev) != NEARDAL_SUCCESS)
+		return;
+
+	if (target_handle == NULL)
+		target_handle = g_try_malloc0(sizeof(net_nfc_target_handle_s));
+
+	if (target_handle == NULL) {
+		DEBUG_CLIENT_MSG("handle mem alloc is failed");
+		return;
+	}
+
+
+	devType = _convert_target_type(nfc_adapter_mode);
+	if (devType == NET_NFC_NFCIP1_INITIATOR)
+		target_handle->connection_type = NET_NFC_P2P_CONNECTION_TARGET;
+	else if (devType == NET_NFC_NFCIP1_TARGET)
+		target_handle->connection_type =
+					NET_NFC_P2P_CONNECTION_INITIATOR;
+	target_handle->connection_id = _get_dev_id(devName);
+	target_handle->target_type = devType;
+
+	if (client_cb != NULL)
+		client_cb(NET_NFC_MESSAGE_P2P_DISCOVERED,
+					NET_NFC_OK, target_handle,
+					client_context->register_user_param,
+					NULL);
+}
+
+static void _device_lost_cb(const char *devName, void *user_data)
+{
+	errorCode_t err;
+
+	DEBUG_CLIENT_MSG("p2p device lost %s", devName);
+	if (target_handle != NULL) {
+		g_free(target_handle);
+		target_handle = NULL;
+	}
+
+	if (nfc_adapter_polling == true)
+		goto exit;
+
+	if (nfc_adapter_path == NULL)
+		goto exit;
+
+	err = neardal_start_poll_loop(nfc_adapter_path,
+						NEARD_ADP_MODE_DUAL);
+	if (err != NEARDAL_SUCCESS)
+		goto exit;
+
+	nfc_adapter_polling = true;
+
+exit:
+	if (client_cb != NULL)
+		client_cb(NET_NFC_MESSAGE_P2P_DETACHED, NET_NFC_OK, NULL,
+				client_context->register_user_param, NULL);
+}
+
 net_nfc_error_e net_nfc_neard_read_tag(net_nfc_target_handle_s *handle,
 							void *trans_param)
 {
@@ -531,6 +605,10 @@ net_nfc_error_e net_nfc_neard_cb_init(void)
 		neardal_set_cb_read_completed(_read_completed_cb, NULL)
 							!= NEARDAL_SUCCESS ||
 		neardal_set_cb_write_completed(_write_completed_cb, NULL)
+							!= NEARDAL_SUCCESS ||
+		neardal_set_cb_dev_found(_device_found_cb, NULL)
+							!= NEARDAL_SUCCESS ||
+		neardal_set_cb_dev_lost(_device_lost_cb, NULL)
 							!= NEARDAL_SUCCESS) {
 		DEBUG_CLIENT_MSG("failed to register the callback");
 
