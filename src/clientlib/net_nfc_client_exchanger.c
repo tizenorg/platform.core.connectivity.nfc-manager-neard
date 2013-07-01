@@ -25,6 +25,7 @@
 #include "net_nfc_debug_private.h"
 #include "net_nfc_client_ipc_private.h"
 #include "net_nfc_client_nfc_private.h"
+#include "net_nfc_neard.h"
 
 static net_nfc_exchanger_cb exchanger_cb = NULL;
 
@@ -112,32 +113,25 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_unset_exchanger_cb()
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_send_exchanger_data(net_nfc_exchanger_data_h ex_handle, net_nfc_target_handle_h target_handle, void* trans_param)
 {
 	net_nfc_error_e ret;
-	net_nfc_request_p2p_send_t *request = NULL;
-	uint32_t length = 0;
-	net_nfc_exchanger_data_s *ex_data = (net_nfc_exchanger_data_s *)ex_handle;
+	data_s exchanger_data = {NULL, 0};
 
 	DEBUG_CLIENT_MSG("send reqeust :: exchanger data = [%p] target_handle = [%p]", ex_handle, target_handle);
 
-	length = sizeof(net_nfc_request_p2p_send_t) + ex_data->binary_data.length;
-
-	_net_nfc_util_alloc_mem(request, length);
-	if (request == NULL)
-	{
+	_net_nfc_util_alloc_mem(exchanger_data.buffer,
+				ex_handle->binary_data.length);
+	if (exchanger_data.buffer == NULL)
 		return NET_NFC_ALLOC_FAIL;
-	}
 
-	request->length = length;
-	request->request_type = NET_NFC_MESSAGE_P2P_SEND;
-	request->handle = (net_nfc_target_handle_s *)target_handle;
-	request->data_type = ex_data->type;
-	request->data.length = ex_data->binary_data.length;
-	request->user_param = (uint32_t)trans_param;
+	exchanger_data.length = ex_handle->binary_data.length;
 
-	memcpy(&request->data.buffer, ex_data->binary_data.buffer, request->data.length);
+	memcpy(exchanger_data.buffer, ex_handle->binary_data.buffer,
+						exchanger_data.length);
 
-	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)request, NULL);
+	ret = net_nfc_neard_send_p2p(target_handle, &exchanger_data,
+							trans_param);
 
-	_net_nfc_util_free_mem(request);
+	DEBUG_CLIENT_MSG("send result = [%d]", ret);
+	_net_nfc_util_free_mem(exchanger_data.buffer);
 
 	return ret;
 }

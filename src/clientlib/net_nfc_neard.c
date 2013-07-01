@@ -500,6 +500,19 @@ exit:
 				client_context->register_user_param, NULL);
 }
 
+static void _p2p_send_completed_cb(errorCode_t error_code, void *user_data)
+{
+	net_nfc_error_e result;
+
+	DEBUG_CLIENT_MSG("p2p send completed cb error code %d", error_code);
+
+	result = _convert_error_code(error_code);
+
+	if (client_cb != NULL)
+		client_cb(NET_NFC_MESSAGE_P2P_SEND, result, NULL,
+			client_context->register_user_param, NULL);
+}
+
 net_nfc_error_e net_nfc_neard_read_tag(net_nfc_target_handle_s *handle,
 							void *trans_param)
 {
@@ -560,6 +573,46 @@ net_nfc_error_e net_nfc_neard_write_ndef(net_nfc_target_handle_s *handle,
 	return NET_NFC_OK;
 }
 
+net_nfc_error_e net_nfc_neard_send_p2p(net_nfc_target_handle_s *handle, data_s *data, void *trans_param)
+{
+	neardal_record *record;
+
+	DEBUG_CLIENT_MSG("neard send p2p");
+
+	if (target_handle == NULL || handle != target_handle)
+		return NET_NFC_TARGET_IS_MOVED_AWAY;
+
+	if ((data->buffer == NULL && data->length != 0) ||
+		(data->buffer != NULL && data->length == 0))
+		return NET_NFC_NULL_PARAMETER;
+
+	record = g_try_malloc0(sizeof(neardal_record));
+	if (record == NULL)
+		return NET_NFC_ALLOC_FAIL;
+
+	record->name = g_strdup(dev->name);
+	record->type = g_strdup("Raw");
+	record->rawNDEF = g_try_malloc0(data->length);
+	if (record->rawNDEF == NULL) {
+		neardal_free_record(record);
+		return NET_NFC_ALLOC_FAIL;
+	}
+
+	memcpy(record->rawNDEF, data->buffer, data->length);
+	record->rawNDEFSize = data->length;
+
+	if (neardal_dev_push(record) != NEARDAL_SUCCESS) {
+		neardal_free_record(record);
+		return NET_NFC_TAG_WRITE_FAILED;
+	}
+
+	neardal_free_record(record);
+
+	DEBUG_CLIENT_MSG("neard send p2p successfully");
+	callback_data = trans_param;
+	return NET_NFC_OK;
+}
+
 net_nfc_error_e net_nfc_neard_is_tag_connected(int *dev_type)
 {
 	if (tag == NULL)
@@ -609,6 +662,8 @@ net_nfc_error_e net_nfc_neard_cb_init(void)
 		neardal_set_cb_dev_found(_device_found_cb, NULL)
 							!= NEARDAL_SUCCESS ||
 		neardal_set_cb_dev_lost(_device_lost_cb, NULL)
+							!= NEARDAL_SUCCESS ||
+		neardal_set_cb_push_completed(_p2p_send_completed_cb, NULL)
 							!= NEARDAL_SUCCESS) {
 		DEBUG_CLIENT_MSG("failed to register the callback");
 
