@@ -139,30 +139,13 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_send_exchanger_data(net_nfc_exchanger
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_exchanger_request_connection_handover(net_nfc_target_handle_h target_handle, net_nfc_conn_handover_carrier_type_e type)
 {
 	net_nfc_error_e ret = NET_NFC_UNKNOWN_ERROR;
-	net_nfc_request_connection_handover_t *request = NULL;
-	uint32_t length = 0;
 
 	if (target_handle == NULL)
 	{
 		return NET_NFC_NULL_PARAMETER;
 	}
 
-	length = sizeof(net_nfc_request_p2p_send_t);
-
-	_net_nfc_util_alloc_mem(request, length);
-	if (request == NULL)
-	{
-		return NET_NFC_ALLOC_FAIL;
-	}
-
-	request->length = length;
-	request->request_type = NET_NFC_MESSAGE_CONNECTION_HANDOVER;
-	request->handle = (net_nfc_target_handle_s *)target_handle;
-	request->type = type;
-
-	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)request, NULL);
-
-	_net_nfc_util_free_mem(request);
+	ret = net_nfc_neard_handover(target_handle, type);
 
 	return ret;
 }
