@@ -11,6 +11,8 @@
 #include "net_nfc_client_nfc_private.h"
 #include "net_nfc_util_private.h"
 #include "net_nfc_util_ndef_message.h"
+#include "net_nfc_manager_util_private.h"
+#include "net_nfc_app_util_private.h"
 
 #include "neardal.h"
 
@@ -249,6 +251,8 @@ static void _tag_found_cb(const char *tagName, void *user_data)
 {
 	DEBUG_CLIENT_MSG("NFC tag found %s", tagName);
 
+	net_nfc_manager_util_play_sound(NET_NFC_TASK_START);
+
 	if (neardal_get_tag_properties(tagName, &tag) != NEARDAL_SUCCESS)
 		return;
 	if (tag == NULL || tag->records == NULL)
@@ -379,6 +383,8 @@ static void _read_completed_cb(GVariant *ret, void *user_data)
 	}
 
 	memcpy(rawNDEF->buffer, value, rawNDEF->length);
+
+	net_nfc_app_util_process_ndef(rawNDEF);
 
 	_create_target_info(rawNDEF);
 
