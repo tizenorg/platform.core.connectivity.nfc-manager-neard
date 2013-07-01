@@ -513,6 +513,50 @@ static void _p2p_send_completed_cb(errorCode_t error_code, void *user_data)
 			client_context->register_user_param, NULL);
 }
 
+static void _p2p_received_cb(GVariant *ret, void *user_data)
+{
+	gconstpointer value;
+	gsize length;
+	ndef_message_s *ndef = NULL;
+
+	DEBUG_CLIENT_MSG("p2p received cb adapter path %s", nfc_adapter_path);
+	if (nfc_adapter_path == NULL)
+		return;
+
+	if (ret == NULL)
+		return;
+
+	value = g_variant_get_data(ret);
+	length = g_variant_get_size(ret);
+
+	if (length < 0)
+		return;
+
+	if (rawNDEF != NULL) {
+		net_nfc_util_free_data(rawNDEF);
+		rawNDEF = NULL;
+	}
+
+	rawNDEF = g_try_malloc0(sizeof(data_s));
+	if (rawNDEF == NULL)
+		return;
+
+	rawNDEF->length = (int)length;
+	rawNDEF->buffer = g_try_malloc0(rawNDEF->length);
+	if (rawNDEF->buffer == NULL) {
+		g_free(rawNDEF);
+		return;
+	}
+
+	memcpy(rawNDEF->buffer, value, rawNDEF->length);
+
+	net_nfc_app_util_process_ndef(rawNDEF);
+
+	if (client_cb != NULL)
+		client_cb(NET_NFC_MESSAGE_P2P_RECEIVE, NET_NFC_OK, rawNDEF,
+			client_context->register_user_param, NULL);
+}
+
 net_nfc_error_e net_nfc_neard_read_tag(net_nfc_target_handle_s *handle,
 							void *trans_param)
 {
@@ -664,6 +708,8 @@ net_nfc_error_e net_nfc_neard_cb_init(void)
 		neardal_set_cb_dev_lost(_device_lost_cb, NULL)
 							!= NEARDAL_SUCCESS ||
 		neardal_set_cb_push_completed(_p2p_send_completed_cb, NULL)
+							!= NEARDAL_SUCCESS ||
+		neardal_set_cb_p2p_received(_p2p_received_cb, NULL)
 							!= NEARDAL_SUCCESS) {
 		DEBUG_CLIENT_MSG("failed to register the callback");
 
