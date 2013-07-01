@@ -23,7 +23,7 @@
 
 
 #ifndef NET_NFC_MANAGER_DATA_PATH
-#define NET_NFC_MANAGER_DATA_PATH				"/opt/data/nfc-manager-daemon"
+#define NET_NFC_MANAGER_DATA_PATH				"/home/app/data/nfc-manager-daemon"
 #endif
 
 #ifndef NET_NFC_MANAGER_DATA_PATH_MESSAGE
