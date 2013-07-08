@@ -1,13 +1,15 @@
-Name:       nfc-manager
+Name:       nfc-manager-neard
 Summary:    NFC framework manager
 Version:    0.0.45
 Release:    0
-Group:      libs
+Group:      Connectivity/NFC
 License:    Flora Software License
+URL:        https://review.tizen.org/git/platform/core/connectivity/nfc-manager-neard.git
 Source0:    %{name}-%{version}.tar.gz
-Source1:    libnfc-manager-0.init.in
-Source2:    nfc-manager.service
+Source1:    nfc-manager.service
 Requires:   sys-assert
+Requires:   neard
+Requires:   neardal
 BuildRequires: pkgconfig(aul)
 BuildRequires: pkgconfig(glib-2.0)
 BuildRequires: pkgconfig(gobject-2.0)
@@ -49,7 +51,7 @@ NFC library Manager.
 
 %package devel
 Summary:    Download agent
-Group:      Development/Libraries
+Group:      Development/Building
 Requires:   %{name} = %{version}-%{release}
 
 
@@ -57,23 +59,22 @@ Requires:   %{name} = %{version}-%{release}
 NFC library Manager (devel)
 
 
-%package -n nfc-common-lib
+%package -n nfc-common-lib-neard
 Summary:    NFC common library
-Group:      Development/Libraries
 Requires:   %{name} = %{version}-%{release}
 
 
-%description -n nfc-common-lib
+%description -n nfc-common-lib-neard
 NFC Common library.
 
 
-%package -n nfc-common-lib-devel
+%package -n nfc-common-lib-neard-devel
 Summary:    NFC common library (devel)
-Group:      libs
+Group:      Development/Building
 Requires:   %{name} = %{version}-%{release}
 
 
-%description -n nfc-common-lib-devel
+%description -n nfc-common-lib-neard-devel
 NFC common library (devel)
 
 
@@ -90,15 +91,12 @@ make
 cd cmake_tmp
 %make_install
 cd ..
-%__mkdir -p  %{buildroot}/etc/init.d/
-%__cp -af %SOURCE1  %{buildroot}/etc/init.d/libnfc-manager-0
-chmod 755 %{buildroot}/etc/init.d/libnfc-manager-0
 mkdir -p %{buildroot}/usr/share/license
 cp -af LICENSE.Flora %{buildroot}/usr/share/license/nfc-common-lib
 cp -af LICENSE.Flora %{buildroot}/usr/share/license/nfc-manager
 
 mkdir -p %{buildroot}/usr/lib/systemd/system/multi-user.target.wants
-cp -af %{SOURCE2} %{buildroot}/usr/lib/systemd/system/
+cp -af %{SOURCE1} %{buildroot}/usr/lib/systemd/system/
 ln -s ../nfc-manager.service %{buildroot}/usr/lib/systemd/system/multi-user.target.wants/nfc-manager.service
 
 
@@ -137,10 +135,10 @@ fi
 systemctl daemon-reload
 
 
-%post -n nfc-common-lib -p /sbin/ldconfig
+%post -n nfc-common-lib-neard -p /sbin/ldconfig
 
 
-%postun -n nfc-common-lib -p /sbin/ldconfig
+%postun -n nfc-common-lib-neard -p /sbin/ldconfig
 
 
 %files
@@ -150,7 +148,6 @@ systemctl daemon-reload
 %{_libdir}/libnfc.so.1.0.0
 %{_prefix}/bin/nfc-manager-daemon
 %{_prefix}/bin/ndef-tool
-/etc/init.d/libnfc-manager-0
 %{_datadir}/dbus-1/services/org.tizen.nfc_service.service
 /usr/share/license/nfc-manager
 /usr/lib/systemd/system/nfc-manager.service
@@ -165,7 +162,7 @@ systemctl daemon-reload
 %{_libdir}/libnfc.so
 
 
-%files -n nfc-common-lib
+%files -n nfc-common-lib-neard
 %manifest nfc-common-lib.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libnfc-common-lib.so.1
@@ -174,7 +171,7 @@ systemctl daemon-reload
 /usr/share/nfc-manager-daemon/sounds/*
 
 
-%files -n nfc-common-lib-devel
+%files -n nfc-common-lib-neard-devel
 %manifest nfc-common-lib-devel.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libnfc-common-lib.so
