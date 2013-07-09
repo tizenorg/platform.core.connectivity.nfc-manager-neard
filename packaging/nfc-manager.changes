@@ -1,2 +1,17 @@
+* Tue Jul 09 2013 Arron Wang <arron.wang@intel.com> submit/tizen/20130709.004351@85cbbd8
+- Remove sysvinit script
+- Rename package name with neard postfix
+- Add P2P handover support
+- Add P2P data receive callback
+- Add P2P send support
+- Add P2P detection callback
+- Enable auto app handler
+- Add tag read/write feature
+- Add tag found/lost callback
+- Add neard enable/disable operation
+- Fix the compatiable issue with upper CAPI
+- NFC feature support check through neard
+- Add Changelog
+
 * Tue May 28 2013 Baptiste DURAND <baptiste.durand@eurogiciel.fr> accepted/tizen/20130520.101035@bc7a137
 - Fix compatibility for x64 arch
