@@ -82,6 +82,40 @@ inline void net_nfc_client_ipc_unlock()
 	pthread_mutex_unlock(&g_client_ipc_mutex);
 }
 
+static inline int _client_safe_send(int fd, void *message, int length, int flag)
+{
+	int ret, sended=0;
+	while (length) {
+		ret = send(fd, message+sended, length, flag);
+		if (-1 == ret) {
+			if (EINTR == errno)
+				continue;
+			else
+				return ret;
+		}
+		sended += ret;
+		length -= ret;
+	}
+	return sended;
+}
+
+static inline int _client_safe_recv(int fd, void *message, int length)
+{
+	int ret, received=0;
+	while (length) {
+		ret = recv(fd, message+received, length, 0);
+		if (-1 == ret) {
+			if (EINTR == errno)
+				continue;
+			else
+				return ret;
+		}
+		received += ret;
+		length -= ret;
+	}
+	return received;
+}
+
 static void net_nfc_client_prepare_sync_call(net_nfc_request_msg_t *msg)
 {
 	net_nfc_client_ipc_lock();
@@ -672,7 +706,7 @@ int __net_nfc_client_read_util(void **detail, size_t size)
 	int length;
 	static uint8_t flushing[128];
 
-	if (recv(g_client_sock_fd, &length, sizeof(length), 0) != sizeof(length))
+	if (_client_safe_recv(g_client_sock_fd, &length, sizeof(length)) != sizeof(length))
 	{
 		return 0;
 	}
@@ -688,7 +722,7 @@ int __net_nfc_client_read_util(void **detail, size_t size)
 		while (readbytes > 0)
 		{
 			read_size = readbytes > 128 ? 128 : readbytes;
-			if (recv(g_client_sock_fd, flushing, read_size, 0) <= 0)
+			if (_client_safe_recv(g_client_sock_fd, flushing, read_size) <= 0)
 			{
 				return 0;
 			}
@@ -697,7 +731,7 @@ int __net_nfc_client_read_util(void **detail, size_t size)
 		return 0;
 	}
 	/* read */
-	if (recv(g_client_sock_fd, *detail, size, 0) <= 0)
+	if (_client_safe_recv(g_client_sock_fd, *detail, size) <= 0)
 	{
 		_net_nfc_util_free_mem(*detail);
 		return 0;
@@ -717,7 +751,7 @@ net_nfc_response_msg_t *net_nfc_client_read_response_msg(net_nfc_error_e *result
 		return NULL;
 	}
 
-	if (recv(g_client_sock_fd, (void *)&(resp_msg->response_type), sizeof(int), 0) != sizeof(int))
+	if (_client_safe_recv(g_client_sock_fd, (void *)&(resp_msg->response_type), sizeof(int)) != sizeof(int))
 	{
 		DEBUG_ERR_MSG("reading message is failed");
 		_net_nfc_util_free_mem(resp_msg);
@@ -1573,7 +1607,7 @@ net_nfc_response_msg_t *net_nfc_client_read_response_msg(net_nfc_error_e *result
 
 bool __net_nfc_client_send_msg(void *message, int length)
 {
-	bool result = (send(g_client_sock_fd, (void *)message, length, MSG_NOSIGNAL) > 0);
+	bool result = (_client_safe_send(g_client_sock_fd, (void *)message, length, MSG_NOSIGNAL) > 0);
 
 	if (result == false)
 	{
