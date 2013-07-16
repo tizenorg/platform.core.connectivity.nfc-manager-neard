@@ -66,42 +66,6 @@ static bool net_nfc_server_process_client_connect_request();
 
 /////////////////////////
 
-static inline int _server_safe_send(int fd, void *message, int length, int flag)
-{
-	int ret, sended=0;
-	while (length) {
-		ret = send(fd, message+sended, length, flag);
-		if (-1 == ret) {
-			if (EINTR == errno)
-				continue;
-			else
-				return ret;
-		}
-		sended += ret;
-		length -= ret;
-	}
-	return sended;
-}
-
-
-static inline int _server_safe_recv(int fd, void *message, int length)
-{
-	int ret, received=0;
-	while (length) {
-		ret = recv(fd, message+received, length, 0);
-		if (-1 == ret) {
-			if (EINTR == errno)
-				continue;
-			else
-				return ret;
-		}
-		received += ret;
-		length -= ret;
-	}
-	return received;
-}
-
-
 bool net_nfc_server_set_server_state(uint32_t state)
 {
 	pthread_mutex_lock(&g_server_socket_lock);
@@ -682,7 +646,7 @@ bool net_nfc_server_send_message_to_client(int socket, void *message, int length
 	bool result = true;
 
 	pthread_mutex_lock(&g_server_socket_lock);
-	len = _server_safe_send(socket, (void *)message, length, MSG_NOSIGNAL);
+	len = send(socket, (void *)message, length, MSG_NOSIGNAL);
 	pthread_mutex_unlock(&g_server_socket_lock);
 
 	if (len <= 0)
@@ -703,7 +667,7 @@ bool net_nfc_server_send_message_to_client(int socket, void *message, int length
 bool net_nfc_server_send_message_to_client(void* message, int length)
 {
 	pthread_mutex_lock(&g_server_socket_lock);
-	int leng = _server_safe_send(g_server_info.client_sock_fd, (void *)message, length, 0);
+	int leng = send(g_server_info.client_sock_fd, (void *)message, length, 0);
 	pthread_mutex_unlock(&g_server_socket_lock);
 
 	if(leng > 0)
@@ -720,7 +684,7 @@ bool net_nfc_server_send_message_to_client(void* message, int length)
 
 int net_nfc_server_recv_message_from_client(int client_sock_fd, void* message, int length)
 {
-	int leng = _server_safe_recv(client_sock_fd, message, length);
+	int leng = recv(client_sock_fd, message, length, 0);
 
 	return leng;
 }
