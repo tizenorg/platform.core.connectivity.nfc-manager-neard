@@ -29,9 +29,7 @@
 #include <errno.h>
 
 #include "vconf.h"
-#ifdef SECURITY_SERVER
 #include "security-server.h"
-#endif
 
 #include "net_nfc_typedef_private.h"
 #include "net_nfc_debug_private.h"
@@ -599,6 +597,17 @@ bool net_nfc_server_read_client_request(int client_sock_fd, net_nfc_error_e *res
 
 	case NET_NFC_MESSAGE_SERVICE_SET_LAUNCH_STATE :
 		{
+			DEBUG_SERVER_MSG("checking NET_NFC_MESSAGE_SERVICE_SET_LAUNCH_STATE...");
+#if 1
+			int ret = security_server_check_privilege_by_sockfd(req_msg->client_fd,"nfc-manager::common","w");
+
+			if (ret == SECURITY_SERVER_API_ERROR_ACCESS_DENIED)
+			{
+				DEBUG_SERVER_MSG("checking faile and return...");
+//				return false;
+			}
+#endif
+
 			net_nfc_request_set_launch_state_t *detail = (net_nfc_request_set_launch_state_t *)req_msg;
 
 			net_nfc_server_set_launch_state(client_sock_fd, detail->set_launch_popup);

@@ -21,6 +21,7 @@
 #include <glib.h>
 
 #include "vconf.h"
+#include "security-server.h"
 
 #include "net_nfc_server_dispatcher_private.h"
 #include "net_nfc_typedef_private.h"
@@ -45,6 +46,9 @@ static pthread_mutex_t g_dispatcher_queue_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t g_dispatcher_thread;
 
 static void *_net_nfc_dispatcher_thread_func(void *data);
+
+static bool _net_nfc_check_dispatcher_privilege(net_nfc_request_msg_t *msg);
+
 static net_nfc_request_msg_t *_net_nfc_dispatcher_queue_pop();
 
 static net_nfc_request_msg_t *_net_nfc_dispatcher_queue_pop()
@@ -186,6 +190,14 @@ static void *_net_nfc_dispatcher_thread_func(void *data)
 		pthread_mutex_unlock(&g_dispatcher_queue_lock);
 
 //		DEBUG_SERVER_MSG("net_nfc_controller get command = [%d]", req_msg->request_type);
+
+#if 1
+		if (!_net_nfc_check_dispatcher_privilege(req_msg))
+		{
+//			_net_nfc_util_free_mem(req_msg);
+//			continue;
+		}
+#endif
 
 		switch (req_msg->request_type)
 		{
@@ -899,4 +911,217 @@ static void *_net_nfc_dispatcher_thread_func(void *data)
 	}
 
 	return (void *)NULL;
+}
+
+/* return true to authentication success; false to fail to authenticate */
+bool _net_nfc_check_dispatcher_privilege(net_nfc_request_msg_t *request_msg)
+{
+	int client_fd_request = request_msg->client_fd;
+	int ret_value;
+	
+	DEBUG_SERVER_MSG("enter check privilege function");
+	switch(request_msg->request_type)
+	{
+#if 0
+		case NET_NFC_MESSAGE_SERVICE_ACTIVATE:
+			DEBUG_SERVER_MSG("checking NET_NFC_MESSAGE_SERVICE_ACTIVATE...");
+			ret_value = security_server_check_privilege_by_sockfd(client_fd_request,"nfc-manager::admin","w");
+			if (ret_value == SECURITY_SERVER_API_ERROR_ACCESS_DENIED)
+			{
+				DEBUG_SERVER_MSG("checking failed, and then send response to client");
+
+				if (net_nfc_server_check_client_is_running(client_fd_request)){
+					net_nfc_response_test_t resp = { 0, };
+					resp.length = sizeof(net_nfc_response_test_t);
+					resp.flags = request_msg->flags;
+					resp.result = NET_NFC_SECURITY_FAIL;
+					resp.trans_param = (void *)request_msg->user_param;
+					net_nfc_send_response_msg(request_msg->client_fd, request_msg->request_type,(void *)&resp, sizeof(net_nfc_response_test_t), NULL);
+
+				}
+				return false;
+			}
+			DEBUG_SERVER_MSG("checking success");
+			break;
+
+#endif
+		case NET_NFC_MESSAGE_TRANSCEIVE:
+			DEBUG_SERVER_MSG("checking NET_NFC_MESSAGE_TRANSCEIVE...");
+			ret_value = security_server_check_privilege_by_sockfd(client_fd_request,"nfc-manager::tag","w");
+
+			if (ret_value == SECURITY_SERVER_API_ERROR_ACCESS_DENIED)
+			{
+				DEBUG_SERVER_MSG("checking failed, and then send response to client");
+#if 0
+
+				if (net_nfc_server_check_client_is_running(client_fd_request))
+				{
+					net_nfc_request_transceive_t *detail = (net_nfc_request_transceive_t *)request_msg;
+					net_nfc_response_transceive_t resp = { 0, };
+
+					resp.length = sizeof(net_nfc_response_transceive_t);
+					resp.flags = detail->flags;
+					resp.trans_param = detail->trans_param;
+					resp.result = NET_NFC_SECURITY_FAIL;
+
+					net_nfc_send_response_msg(request_msg->client_fd, request_msg->request_type, (void *)&resp, sizeof(net_nfc_response_transceive_t), NULL);
+
+				}
+				return false;
+#endif
+			}
+			DEBUG_SERVER_MSG("checking success");
+			break;
+
+		case NET_NFC_MESSAGE_READ_NDEF:
+
+			DEBUG_SERVER_MSG("checking NET_NFC_MESSAGE_READ_NDEF...");
+			ret_value = security_server_check_privilege_by_sockfd(client_fd_request,"nfc-manager::tag","w");
+
+			if (ret_value == SECURITY_SERVER_API_ERROR_ACCESS_DENIED)
+			{
+				DEBUG_SERVER_MSG("checking failed, and then send response to client");
+#if 0
+
+				if (net_nfc_server_check_client_is_running(client_fd_request))
+				{
+					net_nfc_request_read_ndef_t *detail = (net_nfc_request_read_ndef_t *)request_msg;
+					net_nfc_response_write_ndef_t resp = { 0, };
+
+					resp.length = sizeof(net_nfc_response_read_ndef_t);
+					resp.flags = detail->flags;
+					resp.trans_param = detail->trans_param;
+					resp.result = NET_NFC_SECURITY_FAIL;
+
+					net_nfc_send_response_msg(request_msg->client_fd, request_msg->request_type, (void *)&resp, sizeof(net_nfc_response_write_ndef_t), NULL);
+
+				}
+				return false;
+#endif
+			}
+			DEBUG_SERVER_MSG("checking success");
+			break;
+
+		case NET_NFC_MESSAGE_WRITE_NDEF:
+			DEBUG_SERVER_MSG("checking NET_NFC_MESSAGE_WRITE_NDEF...");
+			ret_value = security_server_check_privilege_by_sockfd(client_fd_request,"nfc-manager::tag","w");
+
+			if (ret_value == SECURITY_SERVER_API_ERROR_ACCESS_DENIED)
+			{
+				DEBUG_SERVER_MSG("checking failed, and then send response to client");
+#if 0
+
+				if (net_nfc_server_check_client_is_running(client_fd_request))
+				{
+					net_nfc_request_write_ndef_t *detail = (net_nfc_request_write_ndef_t *)request_msg;
+					net_nfc_response_write_ndef_t resp = { 0, };
+
+					resp.length = sizeof(net_nfc_response_write_ndef_t);
+					resp.flags = detail->flags;
+					resp.trans_param = detail->trans_param;
+					resp.result = NET_NFC_SECURITY_FAIL;
+
+					net_nfc_send_response_msg(request_msg->client_fd, request_msg->request_type, (void *)&resp, sizeof(net_nfc_response_write_ndef_t), NULL);
+
+				}
+				return false;
+#endif
+			}
+			DEBUG_SERVER_MSG("checking success");
+			break;
+
+		case NET_NFC_MESSAGE_P2P_SEND:
+			DEBUG_SERVER_MSG("checking NET_NFC_MESSAGE_P2P_SEND...");
+			ret_value = security_server_check_privilege_by_sockfd(client_fd_request,"nfc-manager::p2p","w");
+
+			if (ret_value == SECURITY_SERVER_API_ERROR_ACCESS_DENIED)
+			{
+				DEBUG_SERVER_MSG("checking failed, and then send response to client");
+#if 0
+
+				if (net_nfc_server_check_client_is_running(client_fd_request))
+				{
+					net_nfc_request_p2p_send_t *exchanger = (net_nfc_request_p2p_send_t *)request_msg;
+
+					net_nfc_response_p2p_send_t resp_msg = { 0, };
+
+					resp_msg.length = sizeof(resp_msg);
+					resp_msg.response_type = NET_NFC_MESSAGE_P2P_SEND;
+					resp_msg.handle = exchanger->handle;
+					resp_msg.result = NET_NFC_SECURITY_FAIL;
+					resp_msg.trans_param = (void *)exchanger->user_param;
+
+					net_nfc_send_response_msg(request_msg->client_fd,NET_NFC_MESSAGE_P2P_SEND, &resp_msg,sizeof(resp_msg), NULL);
+
+				}
+				return false;
+#endif
+			}
+			DEBUG_SERVER_MSG("checking success");
+			break;
+
+#if 0
+		case NET_NFC_MESSAGE_SNEP_START_SERVER :
+			DEBUG_SERVER_MSG("checking NET_NFC_MESSAGE_SNEP_START_SERVER...");
+			ret_value = security_server_check_privilege_by_sockfd(client_fd_request,"nfc-manager::p2p","rw");
+
+			if (ret_value == SECURITY_SERVER_API_ERROR_ACCESS_DENIED)
+			{
+				DEBUG_SERVER_MSG("checking failed, and then send response to client");
+				if (net_nfc_server_check_client_is_running(client_fd_request))
+				{
+					net_nfc_request_listen_socket_t *msg = (net_nfc_request_listen_socket_t *)request_msg;
+					net_nfc_response_receive_socket_t resp = { 0 };
+					resp.length = sizeof(resp);
+					resp.response_type = NET_NFC_MESSAGE_SNEP_START_SERVER;
+					resp.user_param = msg->user_param;
+					resp.result = NET_NFC_SECURITY_FAIL;
+					net_nfc_send_response_msg(request_msg->client_fd, request_msg->request_type, (void *)&resp, sizeof(net_nfc_response_receive_socket_t), NULL);
+				}
+				return false;
+			}
+			DEBUG_SERVER_MSG("checking success");
+			break;
+
+#endif
+#if 0
+		case NET_NFC_MESSAGE_SNEP_START_CLIENT :
+			DEBUG_SERVER_MSG("checking NET_NFC_MESSAGE_SNEP_START_CLIENT...");
+
+			ret_value = security_server_check_privilege_by_sockfd(client_fd_request,"nfc-manager::p2p","rw");
+			if (ret_value == SECURITY_SERVER_API_ERROR_ACCESS_DENIED)
+			{
+				DEBUG_SERVER_MSG("checking failed, and then send response to client");
+				if (net_nfc_server_check_client_is_running(client_fd_request))
+				{
+					net_nfc_request_snep_client_t *msg =(net_nfc_request_snep_client_t *)request_msg;
+					net_nfc_response_receive_socket_t resp_msg = { 0, };
+					resp_msg.length = sizeof(resp_msg);
+					resp_msg.response_type = NET_NFC_MESSAGE_SNEP_START_CLIENT;
+					resp_msg.user_param = msg->user_param;
+					resp_msg.result = NET_NFC_SECURITY_FAIL;
+					net_nfc_send_response_msg(request_msg->client_fd, request_msg->request_type, (void *)&resp_msg, sizeof(net_nfc_response_receive_socket_t), NULL);
+				}
+				return false;
+			}
+			DEBUG_SERVER_MSG("checking success");
+			break;
+
+#endif
+#if 0
+		case NET_NFC_MESSAGE_SNEP_STOP_SERVICE :
+			ret_value = security_server_check_privilege_by_sockfd(client_fd_request,"nfc-manager::p2p","rw");
+			if (ret_value == SECURITY_SERVER_API_ERROR_ACCESS_DENIED)
+			{
+				return false;
+
+			}
+			break;
+
+#endif
+		default :
+			return true;
+	}
+
+	return true;
 }
