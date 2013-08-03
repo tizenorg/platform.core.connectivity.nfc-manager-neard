@@ -16,11 +16,11 @@
 
 #include <stdbool.h>
 
-#include "net_nfc_typedef_private.h"
-#include "net_nfc_debug_private.h"
+#include "net_nfc_typedef_internal.h"
+#include "net_nfc_debug_internal.h"
 #include "net_nfc_data.h"
 #include "net_nfc_target_info.h"
-#include "net_nfc_util_private.h"
+#include "net_nfc_util_internal.h"
 
 #ifndef NET_NFC_EXPORT_API
 #define NET_NFC_EXPORT_API __attribute__((visibility("default")))
@@ -32,9 +32,9 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_tag_type(net_nfc_target_info_h ta
 	{
 		return NET_NFC_NULL_PARAMETER;
 	}
-	net_nfc_target_info_s * target_info_private = (net_nfc_target_info_s*)target_info;
+	net_nfc_target_info_s * tmp_target_info = (net_nfc_target_info_s*)target_info;
 
-	*type = target_info_private->devType;
+	*type = tmp_target_info->devType;
 	return NET_NFC_OK;
 }
 
@@ -44,9 +44,9 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_tag_handle(net_nfc_target_info_h 
 	{
 		return NET_NFC_NULL_PARAMETER;
 	}
-	net_nfc_target_info_s * target_info_private = (net_nfc_target_info_s*)target_info;
+	net_nfc_target_info_s * tmp_target_info = (net_nfc_target_info_s*)target_info;
 
-	*handle = (net_nfc_target_handle_h)target_info_private->handle;
+	*handle = (net_nfc_target_handle_h)tmp_target_info->handle;
 	return NET_NFC_OK;
 }
 
@@ -56,9 +56,9 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_tag_ndef_support(net_nfc_target_i
 	{
 		return NET_NFC_NULL_PARAMETER;
 	}
-	net_nfc_target_info_s * target_info_private = (net_nfc_target_info_s*)target_info;
+	net_nfc_target_info_s * tmp_target_info = (net_nfc_target_info_s*)target_info;
 
-	*is_support = (bool)target_info_private->is_ndef_supported;
+	*is_support = (bool)tmp_target_info->is_ndef_supported;
 	return NET_NFC_OK;
 }
 
@@ -68,9 +68,9 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_tag_max_data_size(net_nfc_target_
 	{
 		return NET_NFC_NULL_PARAMETER;
 	}
-	net_nfc_target_info_s * target_info_private = (net_nfc_target_info_s*)target_info;
+	net_nfc_target_info_s * tmp_target_info = (net_nfc_target_info_s*)target_info;
 
-	*max_size = target_info_private->maxDataSize;
+	*max_size = tmp_target_info->maxDataSize;
 	return NET_NFC_OK;
 }
 
@@ -80,9 +80,9 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_tag_actual_data_size(net_nfc_targ
 	{
 		return NET_NFC_NULL_PARAMETER;
 	}
-	net_nfc_target_info_s * target_info_private = (net_nfc_target_info_s*)target_info;
+	net_nfc_target_info_s * tmp_target_info = (net_nfc_target_info_s*)target_info;
 
-	*actual_data = target_info_private->actualDataSize;
+	*actual_data = tmp_target_info->actualDataSize;
 	return NET_NFC_OK;
 }
 
@@ -222,7 +222,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_duplicate_target_info(net_nfc_target_
 		}
 	}
 
-	if (handle->raw_data.buffer != NULL && handle->raw_data.length > 0)
+	if (handle->raw_data.length > 0)
 	{
 		net_nfc_util_alloc_data(&temp->raw_data, handle->raw_data.length);
 		memcpy(temp->raw_data.buffer, handle->raw_data.buffer, temp->raw_data.length);
@@ -233,7 +233,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_duplicate_target_info(net_nfc_target_
 	return NET_NFC_OK;
 }
 
-net_nfc_error_e net_nfc_util_release_tag_info(net_nfc_target_info_s *info)
+static net_nfc_error_e net_nfc_util_release_tag_info(net_nfc_target_info_s *info)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_tag_info_s *list = NULL;

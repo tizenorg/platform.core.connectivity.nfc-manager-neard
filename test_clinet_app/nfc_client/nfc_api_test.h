@@ -13,10 +13,8 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-
-
-#ifndef __NET_NFC_TEST_H__
-#define __NET_NFC_TEST_H__
+#ifndef __NFC_API_TEST_H__
+#define __NFC_API_TEST_H__
 
 typedef enum {
 	NET_NFC_TEST_NOT_YET,
@@ -82,8 +80,4 @@ typedef struct
   uint8_t        		testResult;
 } nfcTestType;
 
-
-
-
-#endif
-
+#endif //__NFC_API_TEST_H__

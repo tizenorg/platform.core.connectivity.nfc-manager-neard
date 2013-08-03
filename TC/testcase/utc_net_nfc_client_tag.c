@@ -18,8 +18,8 @@
 #include <tet_api.h>
 #include <stdint.h>
 
-#include "net_nfc_typedef_private.h"
-#include "net_nfc_util_private.h"
+#include "net_nfc_typedef_internal.h"
+#include "net_nfc_util_internal.h"
 #include "net_nfc.h"
 
 

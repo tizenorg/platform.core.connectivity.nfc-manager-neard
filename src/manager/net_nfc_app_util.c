@@ -36,20 +36,21 @@
 #include "Ecore_X.h"
 
 #include "net_nfc_typedef.h"
-#include "net_nfc_typedef_private.h"
-#include "net_nfc_debug_private.h"
+#include "net_nfc_typedef_internal.h"
+#include "net_nfc_debug_internal.h"
 #include "net_nfc_util_defines.h"
-#include "net_nfc_util_private.h"
+#include "net_nfc_util_internal.h"
 #include "net_nfc_util_ndef_message.h"
 #include "net_nfc_util_ndef_record.h"
-#include "net_nfc_manager_util_private.h"
-#include "net_nfc_app_util_private.h"
-#include "net_nfc_server_context_private.h"
+#include "net_nfc_manager_util_internal.h"
+#include "net_nfc_app_util_internal.h"
+#include "net_nfc_server_context_internal.h"
+#include "net_nfc_server_se.h"
 //#include "syspopup_caller.h"
 
-#define OSP_K_COND			"__OSP_COND_NAME__"
-#define OSP_K_COND_TYPE			"nfc"
-#define OSP_K_LAUNCH_TYPE		"__OSP_LAUNCH_TYPE__"
+#define OSP_K_COND		"__OSP_COND_NAME__"
+#define OSP_K_COND_TYPE		"nfc"
+#define OSP_K_LAUNCH_TYPE	"__OSP_LAUNCH_TYPE__"
 
 static bool _net_nfc_app_util_get_operation_from_record(ndef_record_s *record, char *operation, size_t length);
 static bool _net_nfc_app_util_get_mime_from_record(ndef_record_s *record, char *mime, size_t length);
@@ -57,19 +58,6 @@ static bool _net_nfc_app_util_get_mime_from_record(ndef_record_s *record, char *
 static bool _net_nfc_app_util_get_uri_from_record(ndef_record_s *record, char *uri, size_t length);
 #endif
 static bool _net_nfc_app_util_get_data_from_record(ndef_record_s *record, char *data, size_t length);
-
-static const char *sbeam_mime_type[] =
-{
-	"text/DirectShareGallery",
-	"text/DirectShareMusic",
-	"text/DirectShareVideos",
-	"text/DirectShareFile",
-	"text/DirectSharePolarisViewer",
-	"text/DirectSharePolarisEditor",
-	"text/DirectShareDefault",
-	"text/DirectShareError",
-	NULL
-};
 
 static const char osp_launch_type_condition[] = "condition";
 
@@ -84,7 +72,6 @@ net_nfc_error_e net_nfc_app_util_process_ndef(data_s *data)
 	char uri[2048] = { 0, };
 #endif
 	int ret = 0;
-	int disable = 0;
 
 	if (data == NULL || data->buffer == NULL || data->length == 0)
 	{
@@ -244,7 +231,7 @@ net_nfc_error_e net_nfc_app_util_store_ndef_message(data_s *data)
 		int result;
 		char command[1024];
 
-		DEBUG_SERVER_MSG("path doesn't exist, do mkdir : %s", file_name);
+		SECURE_LOGD("path doesn't exist, do mkdir : %s", file_name);
 
 		snprintf(command, sizeof(command), "mkdir -p -m 755 %s", file_name);
 
@@ -260,7 +247,7 @@ net_nfc_error_e net_nfc_app_util_store_ndef_message(data_s *data)
 	/* create file */
 	snprintf(file_name, sizeof(file_name), "%s/%s/%s", NET_NFC_MANAGER_DATA_PATH,
 		NET_NFC_MANAGER_DATA_PATH_MESSAGE, NET_NFC_MANAGER_NDEF_FILE_NAME);
-	DEBUG_SERVER_MSG("file path : %s", file_name);
+	SECURE_LOGD("file path : %s", file_name);
 
 	unlink(file_name);
 
@@ -349,31 +336,6 @@ void net_nfc_app_util_clean_storage(char* src_path)
 	rmdir(src_path);
 }
 
-static bool __check_is_sbeam_record(ndef_record_s *record)
-{
-	data_s *type_s = &record->type_s;
-	int index = 0;
-
-	if (type_s->buffer == NULL || type_s->length == 0)
-	{
-		return FALSE;
-	}
-
-	DEBUG_SERVER_MSG("mime : %s", type_s->buffer);
-
-	while (sbeam_mime_type[index] != NULL)
-	{
-		if (strncasecmp((char *)type_s->buffer, sbeam_mime_type[index],
-			MIN(type_s->length, strlen(sbeam_mime_type[index]))) == 0)
-		{
-			return TRUE;
-		}
-		index++;
-	}
-
-	return FALSE;
-}
-
 static void _to_lower_utf_8(char *str)
 {
 	while (*str != 0)
@@ -407,13 +369,8 @@ static bool _net_nfc_app_util_get_operation_from_record(ndef_record_s *record, c
 		break;
 
 	case NET_NFC_RECORD_MIME_TYPE :
-		{
-			if (__check_is_sbeam_record(record))
-				op_text = "http://tizen.org/appcontrol/operation/nfc_sbeam_receive";
-			else
-				op_text = "http://tizen.org/appcontrol/operation/nfc/mime";
-		}
-		break;
+		op_text = "http://tizen.org/appcontrol/operation/nfc/mime";
+ 		break;
 
 	case NET_NFC_RECORD_URI : /* Absolute URI */
 		op_text = "http://tizen.org/appcontrol/operation/nfc/uri";
@@ -722,7 +679,7 @@ int net_nfc_app_util_appsvc_launch(const char *operation, const char *uri, const
 	{
 		DEBUG_SERVER_MSG("operation : %s", operation);
 		appsvc_set_operation(bd, operation);
-	}
+ 	}
 
 	if (uri != NULL && strlen(uri) > 0)
 	{
@@ -804,7 +761,6 @@ void _string_to_binary(const char *input, uint8_t *output, uint32_t *length)
 
 int net_nfc_app_util_launch_se_transaction_app(uint8_t *aid, uint32_t aid_len, uint8_t *param, uint32_t param_len)
 {
-	int result;
 	bundle *bd = NULL;
 
 	/* launch */
@@ -833,11 +789,10 @@ int net_nfc_app_util_launch_se_transaction_app(uint8_t *aid, uint32_t aid_len, u
 		appsvc_add_data(bd, "data", param_string);
 	}
 
-	result = appsvc_run_service(bd, 0, NULL, NULL);
-
+	appsvc_run_service(bd, 0, NULL, NULL);
 	bundle_free(bd);
 
-	return result;
+	return 0;
 }
 
 int net_nfc_app_util_encode_base64(uint8_t *buffer, uint32_t buf_len, char *result, uint32_t max_result)
@@ -931,11 +886,10 @@ bool net_nfc_app_util_check_launch_state()
 
 	focus_app_pid = _net_nfc_app_util_get_focus_app_pid();
 
-	popup_state = net_nfc_server_get_client_popup_state(focus_app_pid);
+	popup_state = net_nfc_server_gdbus_get_client_popup_state(focus_app_pid);
 
 	if(popup_state == NET_NFC_NO_LAUNCH_APP_SELECT)
 		result = true;
 
 	return result;
 }
-

@@ -17,10 +17,10 @@
 
 #include <glib.h>
 
-#include "net_nfc_typedef_private.h"
-#include "net_nfc_debug_private.h"
+#include "net_nfc_typedef_internal.h"
+#include "net_nfc_debug_internal.h"
 #include "net_nfc_util_defines.h"
-#include "net_nfc_util_private.h"
+#include "net_nfc_util_internal.h"
 #include "net_nfc_util_ndef_record.h"
 #include "net_nfc_util_ndef_message.h"
 #include "net_nfc_util_handover.h"
@@ -208,8 +208,8 @@ net_nfc_error_e net_nfc_util_add_carrier_config_property(net_nfc_carrier_config_
 	elem->attribute = attribute;
 	elem->length = size;
 	elem->is_group = false;
-	_net_nfc_util_alloc_mem(elem->data, size);
 
+	_net_nfc_util_alloc_mem(elem->data, size);
 	if (elem->data == NULL)
 	{
 		_net_nfc_util_free_mem(elem);
@@ -739,7 +739,7 @@ net_nfc_error_e net_nfc_util_create_carrier_config_from_config_record(net_nfc_ca
 	switch ((*config)->type)
 	{
 	case NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS :
-		case NET_NFC_CONN_HANDOVER_CARRIER_WIFI_IBSS :
+	case NET_NFC_CONN_HANDOVER_CARRIER_WIFI_IBSS :
 		result = __net_nfc_get_list_from_serial_for_wifi((GList **)&((*config)->data), record->payload_s.buffer, record->payload_s.length);
 		break;
 	case NET_NFC_CONN_HANDOVER_CARRIER_BT :
@@ -802,7 +802,7 @@ net_nfc_error_e net_nfc_util_create_handover_request_message(ndef_message_s **me
 	}
 	payload.length = size;
 
-	uint8_t version = ((CONN_HANOVER_MAJOR_VER << 4) & 0xf0) | (CONN_HANOVER_MINOR_VER & 0x0f);
+	uint8_t version = CH_VERSION;
 
 	(payload.buffer)[0] = version;
 	(payload.buffer)++;
@@ -823,8 +823,8 @@ net_nfc_error_e net_nfc_util_create_handover_request_message(ndef_message_s **me
 	(payload.buffer)--;
 	(payload.length)++;
 
-	type.buffer = (uint8_t *)CONN_HANDOVER_REQ_RECORD_TYPE;
-	type.length = strlen(CONN_HANDOVER_REQ_RECORD_TYPE);
+	type.buffer = (uint8_t *)CH_REQ_RECORD_TYPE;
+	type.length = strlen(CH_REQ_RECORD_TYPE);
 
 	net_nfc_util_create_record(NET_NFC_RECORD_WELL_KNOWN_TYPE, &type, NULL, &payload, &record);
 	net_nfc_util_append_record(*message, record);
@@ -860,10 +860,10 @@ net_nfc_error_e net_nfc_util_create_handover_select_message(ndef_message_s **mes
 	}
 	payload.length = (uint32_t)1;
 
-	(payload.buffer)[0] = ((CONN_HANOVER_MAJOR_VER << 4) & 0xf0) | (CONN_HANOVER_MINOR_VER & 0x0f);
+	(payload.buffer)[0] = CH_VERSION;
 
-	type.buffer = (uint8_t*)CONN_HANDOVER_SEL_RECORD_TYPE;
-	type.length = strlen(CONN_HANDOVER_SEL_RECORD_TYPE);
+	type.buffer = (uint8_t*)CH_SEL_RECORD_TYPE;
+	type.length = strlen(CH_SEL_RECORD_TYPE);
 
 	net_nfc_util_create_record(NET_NFC_RECORD_WELL_KNOWN_TYPE, &type, NULL, &payload, &record);
 	net_nfc_util_append_record(*message, record);
@@ -930,8 +930,8 @@ static net_nfc_error_e __net_nfc_get_inner_message(ndef_message_s *message, ndef
 		return NET_NFC_INVALID_FORMAT;
 	}
 
-	if (strncmp((char*)(inner_record->type_s.buffer), CONN_HANDOVER_REQ_RECORD_TYPE, (size_t)(inner_record->type_s.length)) != 0
-		&& strncmp((char*)(inner_record->type_s.buffer), CONN_HANDOVER_SEL_RECORD_TYPE, (size_t)(inner_record->type_s.length)) != 0)
+	if (strncmp((char*)(inner_record->type_s.buffer), CH_REQ_RECORD_TYPE, (size_t)(inner_record->type_s.length)) != 0
+		&& strncmp((char*)(inner_record->type_s.buffer), CH_SEL_RECORD_TYPE, (size_t)(inner_record->type_s.length)) != 0)
 	{
 		// This message is not connection handover message
 		return NET_NFC_INVALID_FORMAT;
@@ -972,8 +972,8 @@ static net_nfc_error_e __net_nfc_replace_inner_message(ndef_message_s *message, 
 		return NET_NFC_INVALID_FORMAT;
 	}
 
-	if (strncmp((char *)(inner_record->type_s.buffer), CONN_HANDOVER_REQ_RECORD_TYPE, (size_t)(inner_record->type_s.length)) != 0
-		&& strncmp((char *)(inner_record->type_s.buffer), CONN_HANDOVER_SEL_RECORD_TYPE, (size_t)(inner_record->type_s.length)) != 0)
+	if (strncmp((char *)(inner_record->type_s.buffer), CH_REQ_RECORD_TYPE, (size_t)(inner_record->type_s.length)) != 0
+		&& strncmp((char *)(inner_record->type_s.buffer), CH_SEL_RECORD_TYPE, (size_t)(inner_record->type_s.length)) != 0)
 	{
 		// This message is not connection handover message
 		DEBUG_ERR_MSG("unknown type [%s]", inner_record->type_s.buffer);
@@ -1029,7 +1029,12 @@ net_nfc_error_e net_nfc_util_append_carrier_config_record(ndef_message_s *messag
 	data_s type = { NULL, 0 };
 	int config_ref_count = 0;
 	net_nfc_error_e error;
-	char buffer[256] = { 0, };
+	uint8_t buffer[256] = { 0, };
+#if 0
+	int i;
+#endif
+	int offset;
+	uint8_t id;
 
 	if (message == NULL || record == NULL)
 	{
@@ -1038,7 +1043,7 @@ net_nfc_error_e net_nfc_util_append_carrier_config_record(ndef_message_s *messag
 
 	if ((error = net_nfc_util_create_ndef_message(&inner_msg)) != NET_NFC_OK)
 	{
-		DEBUG_MSG("net_nfc_util_create_ndef_message failed [%d]", error);
+		DEBUG_ERR_MSG("net_nfc_util_create_ndef_message failed [%d]", error);
 
 		return error;
 	}
@@ -1059,14 +1064,15 @@ net_nfc_error_e net_nfc_util_append_carrier_config_record(ndef_message_s *messag
 		}
 		else if (strncmp((char *)last_rec->type_s.buffer, ALTERNATIVE_RECORD_TYPE, (size_t)last_rec->type_s.length) == 0)
 		{
-			strncpy(buffer, (char *)((last_rec->payload_s.buffer) + 2), (size_t)(last_rec->payload_s.buffer[1]));
-			config_ref_count = atoi(buffer);
+			memcpy(buffer, last_rec->payload_s.buffer, last_rec->payload_s.length);
+			config_ref_count = last_rec->payload_s.buffer[1];
 		}
 	}
 	else
 	{
 		/* selector record type can include empty inner message. so that case, we will continue */
-		if (memcmp((char *)message->records->type_s.buffer, CONN_HANDOVER_SEL_RECORD_TYPE, (size_t)message->records->type_s.length) != 0)
+		if (message->records != NULL &&
+			memcmp((char *)message->records->type_s.buffer, CH_SEL_RECORD_TYPE, (size_t)message->records->type_s.length) != 0)
 		{
 			DEBUG_ERR_MSG("ERROR [%d]", error);
 
@@ -1080,12 +1086,32 @@ net_nfc_error_e net_nfc_util_append_carrier_config_record(ndef_message_s *messag
 	type.length = strlen(ALTERNATIVE_RECORD_TYPE);
 
 	config_ref_count++;
-	snprintf(buffer, sizeof(buffer), "  %d ", config_ref_count);	/* total size of payload is generally greater than 4. this is a trick :)*/
+	offset = 0;
+//	id = '0' + config_ref_count;
+	id = 'b';
 
-	payload.length = strlen(buffer);
-	payload.buffer = (uint8_t *)buffer;
-	payload.buffer[0] = (uint8_t)(power_status & 0x3);	/* first byte, power status */
-	payload.buffer[1] = (uint8_t)payload.length - 2;	/* payload length except 2 bytes (power status and itself) */
+	/* carrier flag */
+	buffer[offset++] = (uint8_t)(power_status & 0x3);	/* first byte, power status */
+
+	/* carrier data ref. len */
+	buffer[offset++] = config_ref_count;
+
+	/* carrier data ref. */
+	offset += (config_ref_count - 1);
+	buffer[offset++] = id;
+
+	/* FIXME */
+	/* aux data ref. len */
+	buffer[offset++] = 0;
+#if 0 /* FIXME */
+	/* carrier data ref. */
+	for (i = 0; i < 0; i++)
+	{
+		buffer[offset++] = 0;
+	}
+#endif
+	payload.buffer = buffer;
+	payload.length = offset;
 
 	error = net_nfc_util_create_record(NET_NFC_RECORD_WELL_KNOWN_TYPE, &type, NULL, &payload, &carrier_rec);
 	if (error != NET_NFC_OK)
@@ -1118,7 +1144,7 @@ net_nfc_error_e net_nfc_util_append_carrier_config_record(ndef_message_s *messag
 	}
 
 	/* set record id to record that will be appended to ndef message */
-	error = net_nfc_util_set_record_id((ndef_record_s *)record, (uint8_t *)(buffer + 2), payload.length - 2);
+	error = net_nfc_util_set_record_id((ndef_record_s *)record, &id, sizeof(id));
 	if (error != NET_NFC_OK)
 	{
 		DEBUG_ERR_MSG("net_nfc_util_set_record_id failed [%d]", error);

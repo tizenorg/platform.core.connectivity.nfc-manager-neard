@@ -19,7 +19,7 @@
 
 #include "net_nfc.h"
 #include "net_nfc_typedef.h"
-#include "net_nfc_util_private.h"
+#include "net_nfc_util_internal.h"
 
 #ifdef SECURITY_SERVER
 #include <security-server.h>

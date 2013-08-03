@@ -17,8 +17,8 @@
 #include "net_nfc_ndef_record.h"
 #include "net_nfc_ndef_message.h"
 #include "net_nfc_data.h"
-#include "net_nfc_debug_private.h"
-#include "net_nfc_util_private.h"
+#include "net_nfc_debug_internal.h"
+#include "net_nfc_util_internal.h"
 #include "net_nfc_util_ndef_record.h"
 
 #ifndef NET_NFC_EXPORT_API
@@ -102,14 +102,14 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_record_tnf(ndef_record_h record, 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_set_record_id(ndef_record_h record, data_h id)
 {
 
-	ndef_record_s * record_private = (ndef_record_s *)record;
-	data_s * id_private = (data_s *)id;
+	ndef_record_s * tmp_record = (ndef_record_s *)record;
+	data_s * tmp_id = (data_s *)id;
 
-	if (id_private == NULL)
+	if (tmp_id == NULL)
 	{
 		return NET_NFC_NULL_PARAMETER;
 	}
-	return net_nfc_util_set_record_id(record_private, id_private->buffer, id_private->length);
+	return net_nfc_util_set_record_id(tmp_record, tmp_id->buffer, tmp_id->length);
 }
 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_record_flags(ndef_record_h record, uint8_t * flag)
@@ -138,27 +138,27 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_record_flags(ndef_record_h record
 
 NET_NFC_EXPORT_API uint8_t net_nfc_get_record_mb(uint8_t flag)
 {
-	return (flag & 0x80) >> 7;
+	return ((flag >> 7) & 0x01);
 }
 
 NET_NFC_EXPORT_API uint8_t net_nfc_get_record_me(uint8_t flag)
 {
-	return (flag & 0x40) >> 6;
+	return ((flag >> 6) & 0x01);
 }
 
 NET_NFC_EXPORT_API uint8_t net_nfc_get_record_cf(uint8_t flag)
 {
-	return (flag & 0x20) >> 5;
-}
-
-NET_NFC_EXPORT_API uint8_t net_nfc_get_record_il(uint8_t flag)
-{
-	return (flag & 0x10) >> 4;
+	return ((flag >> 5) & 0x01);
 }
 
 NET_NFC_EXPORT_API uint8_t net_nfc_get_record_sr(uint8_t flag)
 {
-	return (flag & 0x08) >> 3;
+	return ((flag >> 4) & 0x01);
+}
+
+NET_NFC_EXPORT_API uint8_t net_nfc_get_record_il(uint8_t flag)
+{
+	return ((flag >> 3) & 0x01);
 }
 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_create_text_string_from_text_record(ndef_record_h record, char** buffer)

@@ -17,12 +17,12 @@
 
 #include <sys/param.h>
 
-#include "net_nfc_debug_private.h"
+#include "net_nfc_debug_internal.h"
 #include "net_nfc_util_defines.h"
-#include "net_nfc_util_private.h"
+#include "net_nfc_util_internal.h"
 #include "net_nfc_util_ndef_message.h"
 #include "net_nfc_util_ndef_record.h"
-#include "net_nfc_util_openssl_private.h"
+#include "net_nfc_util_openssl_internal.h"
 #include "net_nfc_util_sign_record.h"
 
 #define IS_SIGN_RECORD(__x) \
@@ -158,7 +158,7 @@ net_nfc_error_e net_nfc_util_verify_signature_records(ndef_record_s *begin_recor
 		/* parse certificate chain info */
 		chain_info = (net_nfc_certificate_chain_s *)__NEXT_SUB_FIELD(&(sign_info->signature));
 
-		DEBUG_MSG("certificate URI present? : %s", chain_info->uri_present ? "true" : "false");
+		SECURE_LOGD("certificate URI present? : %s", chain_info->uri_present ? "true" : "false");
 		DEBUG_MSG("certificate format : %d", chain_info->cert_format);
 		DEBUG_MSG("number of certificates : %d", chain_info->num_of_certs);
 
@@ -238,6 +238,10 @@ net_nfc_error_e net_nfc_util_verify_signature_records(ndef_record_s *begin_recor
 	}
 	else
 	{
+		if(buffer != NULL)
+		{
+			_net_nfc_util_free_mem(buffer);
+		}
 		DEBUG_ERR_MSG("_get_records_data_buffer failed");
 	}
 

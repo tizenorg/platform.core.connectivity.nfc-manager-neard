@@ -28,7 +28,8 @@
 
 static GMainLoop *main_loop = NULL;
 
-void _activation_complete_cb(net_nfc_message_e message, net_nfc_error_e result, void *data, void *user_param, void *trans_data)
+void _activation_complete_cb(net_nfc_message_e message, net_nfc_error_e result,
+	void *data, void *user_param, void *trans_data)
 {
 	switch (message)
 	{
@@ -158,6 +159,7 @@ static void print_usage(char *file_name)
 	fprintf(stdout, "        --write-tag              Write a ndef file to tag\n");
 	fprintf(stdout, "        --receive-ndef           Receive a ndef from target device and store to file\n");
 	fprintf(stdout, "        --send-ndef              Send a ndef file to target device\n");
+	fprintf(stdout, "        --handover               Try to handover another carrier\n");
 	fprintf(stdout, "\n");
 	fprintf(stdout, "    -h, --help                   Show this help messages\n");
 	fprintf(stdout, "\n");
@@ -367,6 +369,10 @@ int main(int argc, char *argv[])
 		{
 			operation = OPERATION_SEND_NDEF;
 		}
+		else if (__COMPARE_OPTION(argv[i], 0, "handover"))
+		{
+			operation = OPERATION_HANDOVER;
+		}
 		else if (__COMPARE_OPTION(argv[i], 0, "off")) /* hidden operation */
 		{
 			operation = OPERATION_OFF;
@@ -374,6 +380,14 @@ int main(int argc, char *argv[])
 		else if (__COMPARE_OPTION(argv[i], 0, "on")) /* hidden operation */
 		{
 			operation = OPERATION_ON;
+		}
+		else if (__COMPARE_OPTION(argv[i], 0, "send-apdu")) /* hidden operation */
+		{
+			operation = OPERATION_SEND_APDU;
+		}
+		else if (__COMPARE_OPTION(argv[i], 0, "set-se")) /* hidden operation */
+		{
+			operation = OPERATION_SET_SE;
 		}
 		else if (__COMPARE_OPTION(argv[i], 'i', "record-index"))
 		{
@@ -617,6 +631,10 @@ int main(int argc, char *argv[])
 		ndef_tool_send_ndef_via_p2p(file_name);
 		break;
 
+	case OPERATION_HANDOVER :
+		ndef_tool_connection_handover(file_name);
+		break;
+
 	case OPERATION_ON :
 		{
 			int state = 0;
@@ -677,6 +695,22 @@ int main(int argc, char *argv[])
 		}
 		break;
 
+	case OPERATION_SEND_APDU :
+		ndef_tool_send_apdu(file_name);
+		break;
+
+	case OPERATION_SET_SE :
+		net_nfc_initialize();
+
+		if (strcmp(file_name, "SIM1") == 0) {
+			net_nfc_set_secure_element_type(NET_NFC_SE_TYPE_UICC, NULL);
+		} else if (strcmp(file_name, "eSE") == 0) {
+			net_nfc_set_secure_element_type(NET_NFC_SE_TYPE_ESE, NULL);
+		} else {
+			fprintf(stdout, "Unknown SE name.\n\n");
+		}
+		break;
+
 	case OPERATION_ERROR :
 	default :
 		print_usage(argv[0]);
@@ -685,4 +719,3 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
-

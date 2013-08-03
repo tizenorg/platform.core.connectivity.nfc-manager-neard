@@ -1,149 +1,538 @@
 /*
-  * Copyright (c) 2012, 2013 Samsung Electronics Co., Ltd.
-  *
-  * Licensed under the Flora License, Version 1.1 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
+ * Copyright (c) 2012, 2013 Samsung Electronics Co., Ltd.
+ *
+ * Licensed under the Flora License, Version 1.1 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://floralicense.org/license/
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-  *     http://floralicense.org/license/
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  */
-
-
-#include "net_nfc.h"
-#include "net_nfc_typedef.h"
-#include "net_nfc_util_private.h"
-#include "net_nfc_util_defines.h"
-#include "net_nfc_debug_private.h"
-#include "net_nfc_client_ipc_private.h"
-
+#include "net_nfc_debug_internal.h"
+#include "net_nfc_util_gdbus_internal.h"
+#include "net_nfc_gdbus.h"
+#include "net_nfc_client.h"
+#include "net_nfc_client_manager.h"
+#include "net_nfc_client_test.h"
 
 #ifndef NET_NFC_EXPORT_API
 #define NET_NFC_EXPORT_API __attribute__((visibility("default")))
 #endif
 
-NET_NFC_EXPORT_API void net_nfc_test_read_test_cb(net_nfc_message_e message, net_nfc_error_e result, void* data, void* user_param, void * trans_data)
-{
-	DEBUG_CLIENT_MSG("user_param = [%p] trans_param = [%p] , message[%d]", user_param, trans_data, message);
+typedef struct _TestFuncData TestFuncData;
 
-	switch (message)
+struct _TestFuncData
+{
+	gpointer callback;
+	gpointer user_data;
+};
+
+static void test_call_sim_test_callback(GObject *source_object,
+					GAsyncResult *res,
+					gpointer user_data);
+
+static void test_call_prbs_test_callback(GObject *source_object,
+					GAsyncResult *res,
+					gpointer user_data);
+
+static void test_call_get_firmware_version_callback(GObject *source_object,
+						GAsyncResult *res,
+						gpointer user_data);
+
+static void test_call_set_ee_data_callback(GObject *source_object,
+					GAsyncResult *res,
+					gpointer user_data);
+
+static NetNfcGDbusTest *test_proxy = NULL;
+
+
+static void test_call_sim_test_callback(GObject *source_object,
+					GAsyncResult *res,
+					gpointer user_data)
+{
+	TestFuncData *func_data;
+
+	net_nfc_error_e out_result = NET_NFC_OK;
+	GError *error = NULL;
+
+	net_nfc_client_test_sim_test_completed callback;
+	gpointer data;
+
+	if (net_nfc_gdbus_test_call_sim_test_finish(
+				NET_NFC_GDBUS_TEST(source_object),
+				(gint *)&out_result,
+				res,
+				&error) == FALSE)
 	{
-	case NET_NFC_MESSAGE_TAG_DISCOVERED :
-		{
-			if (result == NET_NFC_OK)
-			{
-				DEBUG_CLIENT_MSG("net_nfc_test_read_cb SUCCESS!!!!! [%d ]", result);
-			}
-			else
-			{
-				DEBUG_CLIENT_MSG("net_nfc_test_read_cb FAIL!!!!![%d]", result);
-			}
-		}
-		break;
 
-	default :
-		break;
-	}
-}
+		out_result = NET_NFC_UNKNOWN_ERROR;
 
-NET_NFC_EXPORT_API void net_nfc_test_sim_test_cb(net_nfc_message_e message, net_nfc_error_e result, void* data, void* user_param, void * trans_data)
-{
-	DEBUG_CLIENT_MSG("user_param = [%p] trans_param = [%p] data = [%p]", user_param, trans_data, data);
-
-	switch (message)
-	{
-	case NET_NFC_MESSAGE_SIM_TEST :
-		{
-			if (result == NET_NFC_OK)
-			{
-				DEBUG_CLIENT_MSG("net_nfc_test_sim_test_cb SUCCESS!!!!! [%d]", result);
-			}
-			else
-			{
-				DEBUG_CLIENT_MSG("net_nfc_test_sim_test_cb FAIL!!!!![%d]", result);
-			}
-		}
-		break;
-
-	default :
-		break;
-	}
-}
-
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_sim_test(void)
-{
-	net_nfc_error_e ret;
-	net_nfc_request_test_t request = { 0, };
-
-	request.length = sizeof(net_nfc_request_test_t);
-	request.request_type = NET_NFC_MESSAGE_SIM_TEST;
-
-	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
-
-	return ret;
-}
-
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_prbs_test(int tech, int rate)
-{
-	net_nfc_error_e ret;
-	net_nfc_request_test_t request = { 0, };
-
-	request.length = sizeof(net_nfc_request_test_t);
-	request.request_type = NET_NFC_MESSAGE_PRBS_TEST;/*TEST MODE*/
-	request.rate = rate;
-	request.tech = tech;
-
-	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
-
-	return ret;
-}
-
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_firmware_version(void)
-{
-	net_nfc_error_e ret;
-	net_nfc_request_msg_t request = { 0, };
-
-	request.length = sizeof(net_nfc_request_msg_t);
-	request.request_type = NET_NFC_MESSAGE_GET_FIRMWARE_VERSION;
-
-	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)&request, NULL);
-
-	return ret;
-}
-
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_set_eedata_register(int mode, int reg_id, uint8_t *data, uint32_t len)
-{
-	net_nfc_request_eedata_register_t *request = NULL;
-	net_nfc_error_e result;
-	uint32_t length = 0;
-
-	DEBUG_CLIENT_MSG("net_nfc_set_eedata_register");
-
-	length = sizeof(net_nfc_request_eedata_register_t) + len;
-
-	_net_nfc_util_alloc_mem(request, length);
-	if (request == NULL)
-	{
-		return NET_NFC_ALLOC_FAIL;
+		DEBUG_ERR_MSG("Can not finish sim_test: %s",
+			error->message);
+		g_error_free(error);
 	}
 
-	/* fill request message */
-	request->length = length;
-	request->request_type = NET_NFC_MESSAGE_SET_EEDATA;
-	request->mode = mode;
-	request->reg_id = reg_id;
-	request->data.length = len;
-	memcpy(request->data.buffer, data, len);
+	func_data = user_data;
+	if (func_data == NULL)
+		return;
 
-	result = net_nfc_client_send_request((net_nfc_request_msg_t *)request, NULL);
+	if (func_data->callback == NULL)
+	{
+		g_free(func_data);
+		return;
+	}
 
-	_net_nfc_util_free_mem(request);
+	callback = (net_nfc_client_test_sim_test_completed)func_data->callback;
+	data = func_data->user_data;
 
-	return result;
+	callback(out_result, data);
+
+	g_free(func_data);
 }
 
+static void test_call_prbs_test_callback(GObject *source_object,
+					GAsyncResult *res,
+					gpointer user_data)
+{
+	TestFuncData *func_data;
+
+	net_nfc_error_e out_result = NET_NFC_OK;
+	GError *error = NULL;
+
+	net_nfc_client_test_prbs_test_completed callback;
+	gpointer data;
+
+	if (net_nfc_gdbus_test_call_prbs_test_finish(
+				NET_NFC_GDBUS_TEST(source_object),
+				(gint *)&out_result,
+				res,
+				&error) == FALSE)
+	{
+
+		out_result = NET_NFC_UNKNOWN_ERROR;
+
+		DEBUG_ERR_MSG("Can not finish prbs test: %s",
+			error->message);
+		g_error_free(error);
+	}
+
+	func_data = user_data;
+	if (func_data == NULL)
+		return;
+
+	if (func_data->callback == NULL)
+	{
+		g_free(func_data);
+		return;
+	}
+
+	callback = (net_nfc_client_test_prbs_test_completed)
+			func_data->callback;
+	data = func_data->user_data;
+
+	callback(out_result, data);
+
+	g_free(func_data);
+}
+
+static void test_call_get_firmware_version_callback(GObject *source_object,
+						GAsyncResult *res,
+						gpointer user_data)
+{
+	TestFuncData *func_data;
+
+	net_nfc_error_e out_result = NET_NFC_OK;
+	gchar *out_version = NULL;
+	GError *error = NULL;
+
+	net_nfc_client_test_get_firmware_version_completed callback;
+	gpointer data;
+
+	if (net_nfc_gdbus_test_call_get_firmware_version_finish(
+				NET_NFC_GDBUS_TEST(source_object),
+				(gint *)&out_result,
+				&out_version,
+				res,
+				&error) == FALSE)
+	{
+
+		out_result = NET_NFC_UNKNOWN_ERROR;
+
+		DEBUG_ERR_MSG("Can not finish get_firmware_version: %s",
+			error->message);
+		g_error_free(error);
+	}
+
+	func_data = user_data;
+	if (func_data == NULL)
+		return;
+
+	if (func_data->callback == NULL)
+	{
+		g_free(out_version);
+		g_free(func_data);
+		return;
+	}
+
+	callback = (net_nfc_client_test_get_firmware_version_completed)
+			func_data->callback;
+	data = func_data->user_data;
+
+	callback(out_result, out_version, data);
+
+	g_free(out_version);
+	g_free(func_data);
+}
+
+static void test_call_set_ee_data_callback(GObject *source_object,
+					GAsyncResult *res,
+					gpointer user_data)
+{
+	TestFuncData *func_data;
+
+	net_nfc_error_e out_result = NET_NFC_OK;
+
+	GError *error = NULL;
+
+	net_nfc_client_test_set_ee_data_completed callback;
+
+	if (net_nfc_gdbus_test_call_set_ee_data_finish(
+				NET_NFC_GDBUS_TEST(source_object),
+				(gint *)&out_result,
+				res,
+				&error) == FALSE)
+	{
+		out_result = NET_NFC_UNKNOWN_ERROR;
+
+		DEBUG_ERR_MSG("Can not finish set_ee_data: %s\n",
+			error->message);
+		g_error_free(error);
+	}
+
+	func_data = user_data;
+
+	if (func_data->callback == NULL)
+	{
+		g_free(func_data);
+		return;
+	}
+
+	callback = (net_nfc_client_test_set_ee_data_completed)
+			func_data->callback;
+
+	callback(out_result, func_data->user_data);
+
+	g_free(func_data);
+}
+
+
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_test_sim_test(
+			net_nfc_client_test_sim_test_completed callback,
+			void *user_data)
+{
+	TestFuncData *func_data;
+
+	if (test_proxy == NULL)
+		return NET_NFC_UNKNOWN_ERROR;
+
+	/* prevent executing daemon when nfc is off */
+	if (net_nfc_client_manager_is_activated() == false) {
+		return NET_NFC_INVALID_STATE;
+	}
+
+	func_data = g_new0(TestFuncData, 1);
+	if (func_data == NULL)
+		return NET_NFC_UNKNOWN_ERROR;
+
+	func_data->callback = (gpointer)callback;
+	func_data->user_data = user_data;
+
+	net_nfc_gdbus_test_call_sim_test(test_proxy,
+					net_nfc_client_gdbus_get_privilege(),
+					NULL,
+					test_call_sim_test_callback,
+					func_data);
+
+	return NET_NFC_OK;
+}
+
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_test_sim_test_sync(void)
+{
+	GError *error = NULL;
+	net_nfc_error_e out_result = NET_NFC_OK;
+
+	if (test_proxy == NULL)
+		return NET_NFC_UNKNOWN_ERROR;
+
+	/* prevent executing daemon when nfc is off */
+	if (net_nfc_client_manager_is_activated() == false) {
+		return NET_NFC_INVALID_STATE;
+	}
+
+	if (net_nfc_gdbus_test_call_sim_test_sync(test_proxy,
+						net_nfc_client_gdbus_get_privilege(),
+						(gint *)&out_result,
+						NULL,
+						&error) == FALSE)
+	{
+		DEBUG_CLIENT_MSG("can not call SimTest: %s",
+				error->message);
+		g_error_free(error);
+		return NET_NFC_UNKNOWN_ERROR;
+	}
+
+	return out_result;
+}
+
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_test_prbs_test(uint32_t tech,
+			uint32_t rate,
+			net_nfc_client_test_prbs_test_completed callback,
+			void *user_data)
+{
+	TestFuncData *func_data;
+
+	if (test_proxy == NULL)
+		return NET_NFC_UNKNOWN_ERROR;
+
+	/* prevent executing daemon when nfc is off */
+	if (net_nfc_client_manager_is_activated() == false) {
+		return NET_NFC_INVALID_STATE;
+	}
+
+	func_data = g_new0(TestFuncData, 1);
+	if (func_data == NULL)
+		return NET_NFC_UNKNOWN_ERROR;
+
+	func_data->callback = (gpointer)callback;
+	func_data->user_data = user_data;
+
+	net_nfc_gdbus_test_call_prbs_test(test_proxy,
+					tech,
+					rate,
+					net_nfc_client_gdbus_get_privilege(),
+					NULL,
+					test_call_prbs_test_callback,
+					func_data);
+
+	return NET_NFC_OK;
+}
+
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_test_prbs_test_sync(uint32_t tech,
+						uint32_t rate)
+{
+	GError *error = NULL;
+	net_nfc_error_e out_result = NET_NFC_OK;
+
+	if (test_proxy == NULL)
+		return NET_NFC_UNKNOWN_ERROR;
+
+	/* prevent executing daemon when nfc is off */
+	if (net_nfc_client_manager_is_activated() == false) {
+		return NET_NFC_INVALID_STATE;
+	}
+
+	if (net_nfc_gdbus_test_call_prbs_test_sync(test_proxy,
+						tech,
+						rate,
+						net_nfc_client_gdbus_get_privilege(),
+						(gint *)&out_result,
+						NULL,
+						&error) == FALSE)
+	{
+		DEBUG_CLIENT_MSG("can not call PrbsTest: %s",
+				error->message);
+		g_error_free(error);
+		return NET_NFC_UNKNOWN_ERROR;
+	}
+
+	return out_result;
+}
+
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_test_get_firmware_version(
+		net_nfc_client_test_get_firmware_version_completed callback,
+		void *user_data)
+{
+	TestFuncData *func_data;
+
+	if (test_proxy == NULL)
+		return NET_NFC_UNKNOWN_ERROR;
+
+	/* prevent executing daemon when nfc is off */
+	if (net_nfc_client_manager_is_activated() == false) {
+		return NET_NFC_INVALID_STATE;
+	}
+
+	func_data = g_new0(TestFuncData, 1);
+	if (func_data == NULL)
+		return NET_NFC_UNKNOWN_ERROR;
+
+	func_data->callback = (gpointer)callback;
+	func_data->user_data = user_data;
+
+	net_nfc_gdbus_test_call_get_firmware_version(test_proxy,
+				net_nfc_client_gdbus_get_privilege(),
+				NULL,
+				test_call_get_firmware_version_callback,
+				func_data);
+
+	return NET_NFC_OK;
+}
+
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_test_get_firmware_version_sync(char **version)
+{
+	gchar *out_version = NULL;
+	GError *error = NULL;
+
+	net_nfc_error_e out_result = NET_NFC_OK;
+
+	if (test_proxy == NULL)
+		return NET_NFC_UNKNOWN_ERROR;
+
+	/* prevent executing daemon when nfc is off */
+	if (net_nfc_client_manager_is_activated() == false) {
+		return NET_NFC_INVALID_STATE;
+	}
+
+	if (net_nfc_gdbus_test_call_get_firmware_version_sync(test_proxy,
+							net_nfc_client_gdbus_get_privilege(),
+							(gint *)out_result,
+							&out_version,
+							NULL,
+							&error) == FALSE)
+	{
+		DEBUG_CLIENT_MSG("can not call PrbsTest: %s",
+				error->message);
+		g_error_free(error);
+		return NET_NFC_UNKNOWN_ERROR;
+	}
+
+	if (version != NULL)
+		*version = out_version;
+
+	return out_result;
+}
+
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_test_set_ee_data(int mode,
+			int reg_id,
+			data_h data,
+			net_nfc_client_test_set_ee_data_completed callback,
+			void *user_data)
+{
+	TestFuncData *func_data;
+	GVariant *variant = NULL;
+
+	if (test_proxy == NULL)
+		return NET_NFC_UNKNOWN_ERROR;
+
+	/* prevent executing daemon when nfc is off */
+	if (net_nfc_client_manager_is_activated() == false) {
+		return NET_NFC_INVALID_STATE;
+	}
+
+	func_data = g_new0(TestFuncData, 1);
+	func_data->callback = (gpointer)callback;
+	func_data->user_data = user_data;
+
+	variant = net_nfc_util_gdbus_data_to_variant((data_s *)data);
+
+	net_nfc_gdbus_test_call_set_ee_data(test_proxy,
+					mode,
+					reg_id,
+					variant,
+					net_nfc_client_gdbus_get_privilege(),
+					NULL,
+					test_call_set_ee_data_callback,
+					func_data);
+
+	return NET_NFC_OK;
+}
+
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_test_set_ee_data_sync(int mode,
+						int reg_id,
+						data_h data)
+{
+	GVariant *variant = NULL;
+	GError *error = NULL;
+
+	net_nfc_error_e out_result = NET_NFC_OK;
+
+	if (test_proxy == NULL)
+		return NET_NFC_UNKNOWN_ERROR;
+
+	/* prevent executing daemon when nfc is off */
+	if (net_nfc_client_manager_is_activated() == false) {
+		return NET_NFC_INVALID_STATE;
+	}
+
+	variant = net_nfc_util_gdbus_data_to_variant((data_s *)data);
+
+	if (net_nfc_gdbus_test_call_set_ee_data_sync(test_proxy,
+						mode,
+						reg_id,
+						variant,
+						net_nfc_client_gdbus_get_privilege(),
+						(gint *)&out_result,
+						NULL,
+						&error) == FALSE)
+	{
+		DEBUG_CLIENT_MSG("can not call SetEeTest: %s",
+				error->message);
+		g_error_free(error);
+		return NET_NFC_UNKNOWN_ERROR;
+	}
+
+	return out_result;
+}
+
+net_nfc_error_e net_nfc_client_test_init(void)
+{
+	GError *error = NULL;
+
+	if (test_proxy)
+	{
+		DEBUG_CLIENT_MSG("Already initialized");
+
+		return NET_NFC_OK;
+	}
+
+	test_proxy = net_nfc_gdbus_test_proxy_new_for_bus_sync(
+					G_BUS_TYPE_SYSTEM,
+					G_DBUS_PROXY_FLAGS_NONE,
+					"org.tizen.NetNfcService",
+					"/org/tizen/NetNfcService/Test",
+					NULL,
+					&error);
+
+	if (test_proxy == NULL)
+	{
+		DEBUG_ERR_MSG("Can not create proxy : %s", error->message);
+		g_error_free(error);
+
+		return NET_NFC_UNKNOWN_ERROR;
+	}
+
+	return NET_NFC_OK;
+}
+
+void net_nfc_client_test_deinit(void)
+{
+	if (test_proxy)
+	{
+		g_object_unref(test_proxy);
+		test_proxy = NULL;
+	}
+}

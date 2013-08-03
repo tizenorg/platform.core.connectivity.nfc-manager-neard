@@ -20,8 +20,8 @@
 
 #include <net_nfc_data.h>
 #include <net_nfc_typedef.h>
-#include <net_nfc_typedef_private.h>
-#include <net_nfc_util_private.h>
+#include <net_nfc_typedef_internal.h>
+#include <net_nfc_util_internal.h>
 
 
 enum {

@@ -1,38 +1,40 @@
 /*
- * Copyright (c) 2012, 2013 Samsung Electronics Co., Ltd.
- *
- * Licensed under the Flora License, Version 1.1 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://floralicense.org/license/
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright (c) 2012, 2013 Samsung Electronics Co., Ltd.
+*
+* Licensed under the Flora License, Version 1.1 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://floralicense.org/license/
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 #include <pthread.h>
 
-#include "net_nfc_exchanger.h"
-#include "net_nfc_exchanger_private.h"
-#include "net_nfc.h"
-#include "net_nfc_typedef.h"
-#include "net_nfc_typedef_private.h"
-#include "net_nfc_util_private.h"
-#include "net_nfc_debug_private.h"
-#include "net_nfc_client_ipc_private.h"
-#include "net_nfc_client_nfc_private.h"
+#include "net_nfc_typedef_internal.h"
+#include "net_nfc_debug_internal.h"
+#include "net_nfc_util_internal.h"
+#include "net_nfc_data.h"
+#include "net_nfc_client_context.h"
+#include "net_nfc_client_p2p.h"
+#include "net_nfc_client_handover.h"
+#include "net_nfc_client_exchanger.h"
 
-static net_nfc_exchanger_cb exchanger_cb = NULL;
+static net_nfc_exchanger_cb gdbus_exch_cb = NULL;
 
 #ifndef NET_NFC_EXPORT_API
 #define NET_NFC_EXPORT_API __attribute__((visibility("default")))
 #endif
 
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_create_exchanger_data(net_nfc_exchanger_data_h *ex_data, data_h payload)
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_create_exchanger_data(
+			net_nfc_exchanger_data_h *ex_data,
+			data_h payload)
 {
 	net_nfc_exchanger_data_s* tmp_ex_data = NULL;
 
@@ -41,7 +43,10 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_create_exchanger_data(net_nfc_exchang
 		return NET_NFC_NULL_PARAMETER;
 	}
 
-	_net_nfc_util_alloc_mem(tmp_ex_data, sizeof(net_nfc_exchanger_data_s));
+	_net_nfc_util_alloc_mem(
+		tmp_ex_data,
+		sizeof(net_nfc_exchanger_data_s));
+
 	if (tmp_ex_data == NULL)
 	{
 		return NET_NFC_ALLOC_FAIL;
@@ -49,7 +54,10 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_create_exchanger_data(net_nfc_exchang
 
 	tmp_ex_data->type = NET_NFC_EXCHANGER_RAW;
 
-	_net_nfc_util_alloc_mem(tmp_ex_data->binary_data.buffer, ((data_s *)payload)->length);
+	_net_nfc_util_alloc_mem(
+		tmp_ex_data->binary_data.buffer,
+		((data_s *)payload)->length);
+
 	if (tmp_ex_data->binary_data.buffer == NULL)
 	{
 		_net_nfc_util_free_mem(tmp_ex_data);
@@ -57,7 +65,9 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_create_exchanger_data(net_nfc_exchang
 		return NET_NFC_ALLOC_FAIL;
 	}
 
-	memcpy(tmp_ex_data->binary_data.buffer, ((data_s *)payload)->buffer, ((data_s *)payload)->length);
+	memcpy(tmp_ex_data->binary_data.buffer,
+				((data_s *)payload)->buffer,
+				((data_s *)payload)->length);
 
 	tmp_ex_data->binary_data.length = ((data_s *)payload)->length;
 
@@ -66,7 +76,10 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_create_exchanger_data(net_nfc_exchang
 	return NET_NFC_OK;
 }
 
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_free_exchanger_data(net_nfc_exchanger_data_h ex_data)
+
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_free_exchanger_data(
+			net_nfc_exchanger_data_h ex_data)
 {
 	if (ex_data == NULL)
 	{
@@ -75,7 +88,8 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_free_exchanger_data(net_nfc_exchanger
 
 	if (((net_nfc_exchanger_data_s *)ex_data)->binary_data.buffer != NULL)
 	{
-		_net_nfc_util_free_mem(((net_nfc_exchanger_data_s *)ex_data)->binary_data.buffer);
+		_net_nfc_util_free_mem(
+			((net_nfc_exchanger_data_s *)ex_data)->binary_data.buffer);
 	}
 
 	_net_nfc_util_free_mem(ex_data);
@@ -83,97 +97,72 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_free_exchanger_data(net_nfc_exchanger
 	return NET_NFC_OK;
 }
 
-net_nfc_exchanger_cb net_nfc_get_exchanger_cb()
+NET_NFC_EXPORT_API
+net_nfc_exchanger_cb net_nfc_client_get_exchanger_cb()
 {
-	return exchanger_cb;
+	return gdbus_exch_cb;
 }
 
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_unset_exchanger_cb()
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_unset_exchanger_cb()
 {
-	client_context_t* client_context = net_nfc_get_client_context();
 
-	if (exchanger_cb == NULL)
+	if (gdbus_exch_cb == NULL)
 	{
 		return NET_NFC_NOT_REGISTERED;
 	}
 
-	if (client_context != NULL)
-		pthread_mutex_lock(&(client_context->g_client_lock));
-	exchanger_cb = NULL;
-	if (client_context != NULL)
-		pthread_mutex_unlock(&(client_context->g_client_lock));
+	gdbus_exch_cb = NULL;
 
-	net_nfc_state_deactivate();
-	net_nfc_deinitialize();
+	net_nfc_client_deinitialize();
 
 	return NET_NFC_OK;
 }
 
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_send_exchanger_data(net_nfc_exchanger_data_h ex_handle, net_nfc_target_handle_h target_handle, void* trans_param)
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_send_exchanger_data(
+			net_nfc_exchanger_data_h ex_handle,
+			net_nfc_target_handle_h target_handle,
+			void* trans_param)
 {
 	net_nfc_error_e ret;
-	net_nfc_request_p2p_send_t *request = NULL;
-	uint32_t length = 0;
 	net_nfc_exchanger_data_s *ex_data = (net_nfc_exchanger_data_s *)ex_handle;
 
-	DEBUG_CLIENT_MSG("send reqeust :: exchanger data = [%p] target_handle = [%p]", ex_handle, target_handle);
+	DEBUG_CLIENT_MSG("send reqeust :: exchanger data = "
+		"[%p] target_handle = [%p]", ex_handle, target_handle);
 
-	length = sizeof(net_nfc_request_p2p_send_t) + ex_data->binary_data.length;
-
-	_net_nfc_util_alloc_mem(request, length);
-	if (request == NULL)
-	{
-		return NET_NFC_ALLOC_FAIL;
-	}
-
-	request->length = length;
-	request->request_type = NET_NFC_MESSAGE_P2P_SEND;
-	request->handle = (net_nfc_target_handle_s *)target_handle;
-	request->data_type = ex_data->type;
-	request->data.length = ex_data->binary_data.length;
-	request->user_param = (uint32_t)trans_param;
-
-	memcpy(&request->data.buffer, ex_data->binary_data.buffer, request->data.length);
-
-	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)request, NULL);
-
-	_net_nfc_util_free_mem(request);
+	/*Sync call is used because there is no callback provided*/
+	ret = net_nfc_client_p2p_send_sync(ex_data,target_handle);
 
 	return ret;
 }
 
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_exchanger_request_connection_handover(net_nfc_target_handle_h target_handle, net_nfc_conn_handover_carrier_type_e type)
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_exchanger_request_connection_handover(
+			net_nfc_target_handle_h target_handle,
+			net_nfc_conn_handover_carrier_type_e type)
 {
 	net_nfc_error_e ret = NET_NFC_UNKNOWN_ERROR;
-	net_nfc_request_connection_handover_t *request = NULL;
-	uint32_t length = 0;
+	net_nfc_conn_handover_carrier_type_e carrier_type;
+	data_h data = NULL;
 
 	if (target_handle == NULL)
 	{
 		return NET_NFC_NULL_PARAMETER;
 	}
 
-	length = sizeof(net_nfc_request_p2p_send_t);
-
-	_net_nfc_util_alloc_mem(request, length);
-	if (request == NULL)
-	{
-		return NET_NFC_ALLOC_FAIL;
-	}
-
-	request->length = length;
-	request->request_type = NET_NFC_MESSAGE_CONNECTION_HANDOVER;
-	request->handle = (net_nfc_target_handle_s *)target_handle;
-	request->type = type;
-
-	ret = net_nfc_client_send_request((net_nfc_request_msg_t *)request, NULL);
-
-	_net_nfc_util_free_mem(request);
+	ret = net_nfc_client_p2p_connection_handover_sync(target_handle,
+				type,
+				&carrier_type,
+				&data);
 
 	return ret;
 }
 
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_exchanger_get_alternative_carrier_type(net_nfc_connection_handover_info_h info_handle, net_nfc_conn_handover_carrier_type_e *type)
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_exchanger_get_alternative_carrier_type(
+			net_nfc_connection_handover_info_h info_handle,
+			net_nfc_conn_handover_carrier_type_e *type)
 {
 	net_nfc_connection_handover_info_s *info = NULL;
 
@@ -187,7 +176,10 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_exchanger_get_alternative_carrier_typ
 	return NET_NFC_OK;
 }
 
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_exchanger_get_alternative_carrier_data(net_nfc_connection_handover_info_h info_handle, data_h *data)
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_exchanger_get_alternative_carrier_data(
+			net_nfc_connection_handover_info_h info_handle,
+			data_h *data)
 {
 	net_nfc_error_e result = NET_NFC_UNKNOWN_ERROR;
 	net_nfc_connection_handover_info_s *info = NULL;
@@ -202,7 +194,9 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_exchanger_get_alternative_carrier_dat
 	return result;
 }
 
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_exchanger_free_alternative_carrier_data(net_nfc_connection_handover_info_h info_handle)
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_exchanger_free_alternative_carrier_data(
+			net_nfc_connection_handover_info_h info_handle)
 {
 	net_nfc_error_e result = NET_NFC_UNKNOWN_ERROR;
 	net_nfc_connection_handover_info_s *info = NULL;

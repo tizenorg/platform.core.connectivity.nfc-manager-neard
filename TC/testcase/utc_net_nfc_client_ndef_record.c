@@ -19,10 +19,10 @@
 
 #include "net_nfc_ndef_record.h"
 #include "net_nfc_ndef_message.h"
-#include "net_nfc_util_private.h"
+#include "net_nfc_util_internal.h"
 #include "net_nfc_data.h"
-//#include "net_nfc_debug_private.h"
-#include "net_nfc_util_private.h"
+//#include "net_nfc_debug_internal.h"
+#include "net_nfc_util_internal.h"
 
 
 enum {

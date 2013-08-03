@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#ifndef NET_NFC_UTIL_IPC_H_
-#define NET_NFC_UTIL_IPC_H_
+#ifndef __NET_NFC_UTIL_IPC_H__
+#define __NET_NFC_UTIL_IPC_H__
 
 #define NET_NFC_SERVER_ADDRESS				"127.0.0.1"
 #define NET_NFC_SERVER_PORT				3000
@@ -42,4 +41,4 @@ int net_nfc_util_get_va_list_length(va_list list);
 int net_nfc_util_fill_va_list(uint8_t *buffer, int length, va_list list);
 void net_nfc_util_set_non_block_socket(int socket);
 
-#endif /* NET_NFC_UTIL_IPC_H_ */
+#endif //__NET_NFC_UTIL_IPC_H__

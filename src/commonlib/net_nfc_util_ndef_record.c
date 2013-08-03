@@ -14,9 +14,9 @@
   * limitations under the License.
   */
 
-#include "net_nfc_debug_private.h"
+#include "net_nfc_debug_internal.h"
 #include "net_nfc_util_defines.h"
-#include "net_nfc_util_private.h"
+#include "net_nfc_util_internal.h"
 #include "net_nfc_util_ndef_message.h"
 #include "net_nfc_util_ndef_record.h"
 
@@ -268,6 +268,9 @@ net_nfc_error_e net_nfc_util_set_record_id(ndef_record_s *record, uint8_t *data,
 uint32_t net_nfc_util_get_record_length(ndef_record_s *Record)
 {
 	uint32_t RecordLength = 1;
+
+	if (Record == NULL)
+		return 0;
 
 	/* Type length is present only for following TNF
 	 NET_NFC_TNF_NFCWELLKNOWN

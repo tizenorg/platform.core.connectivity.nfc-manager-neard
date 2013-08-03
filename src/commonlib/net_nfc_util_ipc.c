@@ -21,7 +21,7 @@
 #include <string.h>
 #include <fcntl.h>
 
-#include "net_nfc_debug_private.h"
+#include "net_nfc_debug_internal.h"
 
 int net_nfc_util_get_va_list_length(va_list list)
 {

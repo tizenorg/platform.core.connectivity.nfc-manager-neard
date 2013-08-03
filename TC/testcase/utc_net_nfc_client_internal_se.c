@@ -18,9 +18,9 @@
 #include <tet_api.h>
 
 #include "net_nfc_tag.h"
-#include "net_nfc_typedef_private.h"
+#include "net_nfc_typedef_internal.h"
 #include "net_nfc_internal_se.h"
-#include "net_nfc_util_private.h"
+#include "net_nfc_util_internal.h"
 #include "net_nfc_data.h"
 
 

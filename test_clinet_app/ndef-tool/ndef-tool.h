@@ -13,10 +13,8 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-
-
-#ifndef __NDEF_TOOL_H
-#define __NDEF_TOOL_H
+#ifndef __NDEF_TOOL_H__
+#define __NDEF_TOOL_H__
 
 #include "net_nfc_typedef.h"
 
@@ -32,8 +30,11 @@ enum
 	OPERATION_WRITE_TAG,
 	OPERATION_RECEIVE_NDEF,
 	OPERATION_SEND_NDEF,
+	OPERATION_HANDOVER,
+	OPERATION_SEND_APDU,
 	OPERATION_ON, /* hidden operation */
 	OPERATION_OFF, /* hidden operation */
+	OPERATION_SET_SE, /* hidden operation */
 };
 
 int ndef_tool_read_ndef_message_from_file(const char *file_name, ndef_message_h *msg);
@@ -50,9 +51,8 @@ int ndef_tool_read_ndef_from_tag(const char *file);
 int ndef_tool_write_ndef_to_tag(const char *file);
 int ndef_tool_receive_ndef_via_p2p(const char *file);
 int ndef_tool_send_ndef_via_p2p(const char *file);
+int ndef_tool_connection_handover(const char *file);
+int ndef_tool_send_apdu(const char *apdu);
 
 
-
-
-#endif /* __NDEF_TOOL_H */
-
+#endif //__NDEF_TOOL_H__

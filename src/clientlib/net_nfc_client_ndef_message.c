@@ -14,16 +14,16 @@
   * limitations under the License.
   */
 
-#include "net_nfc_debug_private.h"
-#include "net_nfc_util_private.h"
+#include "net_nfc_debug_internal.h"
+#include "net_nfc_util_internal.h"
 #include "net_nfc_util_ndef_message.h"
-
 #include "net_nfc_ndef_message.h"
-#include "net_nfc.h" // to use net_nfc_data
+#include "net_nfc_data.h"
+
 
 
 #ifndef NET_NFC_MANAGER_DATA_PATH
-#define NET_NFC_MANAGER_DATA_PATH				"/opt/data/nfc-manager-daemon"
+#define NET_NFC_MANAGER_DATA_PATH			"/opt/data/nfc-manager-daemon"
 #endif
 
 #ifndef NET_NFC_MANAGER_DATA_PATH_MESSAGE
@@ -41,57 +41,87 @@
 
 
 /* public functions */
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_create_ndef_message (ndef_message_h* ndef_message)
+NET_NFC_EXPORT_API net_nfc_error_e net_nfc_create_ndef_message(ndef_message_h *ndef_message)
 {
-	return net_nfc_util_create_ndef_message ((ndef_message_s **) ndef_message);
+	return net_nfc_util_create_ndef_message((ndef_message_s **)ndef_message);
 }
 
-
-
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_create_rawdata_from_ndef_message (ndef_message_h ndef_message, data_h* rawdata)
+NET_NFC_EXPORT_API net_nfc_error_e net_nfc_create_rawdata_from_ndef_message(ndef_message_h ndef_message, data_h *rawdata)
 {
-	if (ndef_message == NULL || rawdata == NULL){
+	uint32_t count;
+	net_nfc_error_e result;
+	data_h data;
+
+	if (ndef_message == NULL || rawdata == NULL) {
 		return NET_NFC_NULL_PARAMETER;
 	}
-	int count;
-	net_nfc_error_e result;
 
-	result = net_nfc_get_ndef_message_byte_length (ndef_message,&count);
-	if (result  != NET_NFC_OK){
-		return result;
-	}
+	*rawdata = NULL;
 
-	result = net_nfc_create_data (rawdata ,NULL, count);
+	result = net_nfc_get_ndef_message_byte_length(ndef_message, &count);
 	if (result != NET_NFC_OK) {
 		return result;
 	}
-	return net_nfc_util_convert_ndef_message_to_rawdata((ndef_message_s*)ndef_message, (data_s*)*rawdata);
-}
 
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_create_ndef_message_from_rawdata (ndef_message_h* ndef_message, data_h  rawdata)
-{
-	if (ndef_message == NULL || rawdata == NULL ){
-		return NET_NFC_NULL_PARAMETER;
-	}
-
-	net_nfc_error_e result;
-	result = net_nfc_create_ndef_message (ndef_message);
-	if (result  != NET_NFC_OK){
+	result = net_nfc_create_data(&data ,NULL, count);
+	if (result != NET_NFC_OK) {
 		return result;
 	}
 
-	return net_nfc_util_convert_rawdata_to_ndef_message((data_s*)rawdata, (ndef_message_s*)*ndef_message);
+	result = net_nfc_util_convert_ndef_message_to_rawdata(
+		(ndef_message_s *)ndef_message, (data_s *)data);
+	if (result == NET_NFC_OK) {
+		*rawdata = data;
+	} else {
+		net_nfc_free_data(data);
+	}
+
+	return result;
 }
 
-
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_ndef_message_byte_length(ndef_message_h ndef_message, int * length)
+NET_NFC_EXPORT_API net_nfc_error_e net_nfc_create_ndef_message_from_rawdata(ndef_message_h *ndef_message, data_h rawdata)
 {
+	net_nfc_error_e result;
+	ndef_message_h msg;
+
+	if (ndef_message == NULL || rawdata == NULL) {
+		return NET_NFC_NULL_PARAMETER;
+	}
+
+	*ndef_message = NULL;
+
+	result = net_nfc_create_ndef_message(&msg);
+	if (result != NET_NFC_OK) {
+		return result;
+	}
+
+	result = net_nfc_util_convert_rawdata_to_ndef_message(
+		(data_s *)rawdata, (ndef_message_s *)msg);
+	if (result == NET_NFC_OK) {
+		*ndef_message = msg;
+	} else {
+		net_nfc_free_ndef_message(msg);
+	}
+
+	return result;
+}
+
+NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_ndef_message_byte_length(ndef_message_h ndef_message, uint32_t *length)
+{
+	net_nfc_error_e result;
+
 	if (ndef_message == NULL || length == NULL){
 		return NET_NFC_NULL_PARAMETER;
 	}
 
-	* length = net_nfc_util_get_ndef_message_length((ndef_message_s*)ndef_message);
-	return NET_NFC_OK;
+	*length = net_nfc_util_get_ndef_message_length((ndef_message_s *)ndef_message);
+	if (*length > 0) {
+		result = NET_NFC_OK;
+	} else {
+		result = NET_NFC_INVALID_PARAM;
+	}
+
+	return result;
 }
 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_append_record_to_ndef_message(ndef_message_h ndef_message, ndef_record_h  record)
@@ -105,24 +135,22 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_append_record_to_ndef_message(ndef_me
 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_free_ndef_message(ndef_message_h ndef_message)
 {
-	if (ndef_message == NULL){
+	if (ndef_message == NULL) {
 		return NET_NFC_NULL_PARAMETER;
 	}
-	net_nfc_error_e error = net_nfc_util_free_ndef_message((ndef_message_s *)ndef_message);
-	if (error != NET_NFC_OK){
-		return error;
-	}
-	return error;
+
+	return net_nfc_util_free_ndef_message((ndef_message_s *)ndef_message);
 }
 
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_ndef_message_record_count (ndef_message_h ndef_message, int * count)
+NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_ndef_message_record_count(ndef_message_h ndef_message, int *count)
 {
-	if (ndef_message == NULL || count == NULL){
+	if (ndef_message == NULL || count == NULL) {
 		return NET_NFC_NULL_PARAMETER;
 	}
-	ndef_message_s * ndef_message_private = (ndef_message_s *)ndef_message;
 
-	* count = ndef_message_private->recordCount;
+	ndef_message_s *msg = (ndef_message_s *)ndef_message;
+
+	*count = msg->recordCount;
 
 	return NET_NFC_OK;
 }

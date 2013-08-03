@@ -125,7 +125,85 @@ static void _p2p_send_cb(net_nfc_target_handle_h handle, void *user_data)
 	net_nfc_free_exchanger_data(data_handle);
 }
 
-void _nfc_response_cb(net_nfc_message_e message, net_nfc_error_e result, void *data, void *user_param, void *trans_data)
+static void _handover_completed_cb(net_nfc_error_e result,
+	data_h data, void *user_data)
+{
+//	response_context_t *context = (response_context_t *)user_data;
+//	data_h rawdata;
+
+	if (result == NET_NFC_OK)
+		fprintf(stdout, "handover success!!!\n\n");
+	else
+		fprintf(stdout, "handover failed.\n\n");
+
+//	net_nfc_create_rawdata_from_ndef_message((ndef_message_h)context->user_param, &rawdata);
+//
+//	net_nfc_ex
+	g_main_loop_quit(main_loop);
+}
+
+static void _open_se_cb(net_nfc_error_e result, net_nfc_target_handle_h handle,
+		void *user_data)
+{
+	response_context_t *context = (response_context_t *)user_data;
+
+	if (result == NET_NFC_OK)
+	{
+		data_h data = NULL;
+
+		fprintf(stdout, "net_nfc_open_internal_secure_element success!!!\n\n");
+
+		net_nfc_create_data(&data, (uint8_t *)context->user_param,
+				context->type);
+		if (data != NULL) {
+			net_nfc_send_apdu(handle, data, handle);
+			net_nfc_free_data(data);
+		}
+	}
+	else
+	{
+		fprintf(stdout, "net_nfc_open_internal_secure_element failed.\n\n");
+		g_main_loop_quit(main_loop);
+	}
+}
+
+static void _send_apdu_se_cb(net_nfc_error_e result, net_nfc_target_handle_h handle, void *user_data)
+{
+//	response_context_t *context = (response_context_t *)user_data;
+//	data_h rawdata;
+
+	if (result == NET_NFC_OK)
+	{
+		fprintf(stdout, "net_nfc_send_apdu success!!!\n\n");
+		net_nfc_close_internal_secure_element(handle, user_data);
+	}
+	else
+	{
+		fprintf(stdout, "net_nfc_send_apdu failed.\n\n");
+		g_main_loop_quit(main_loop);
+	}
+}
+
+static void _close_se_cb(net_nfc_error_e result, void *user_data)
+{
+	if (result == NET_NFC_OK)
+		fprintf(stdout, "net_nfc_close_internal_secure_element success!!!\n\n");
+	else
+		fprintf(stdout, "net_nfc_close_internal_secure_element failed.\n\n");
+
+	g_main_loop_quit(main_loop);
+}
+
+static void _handover_cb(net_nfc_target_handle_h handle, void *user_data)
+{
+	fprintf(stdout, "\ntry to handover...\n\n");
+
+	net_nfc_exchanger_request_connection_handover(handle,
+		NET_NFC_CONN_HANDOVER_CARRIER_BT);
+}
+
+void _nfc_response_cb(net_nfc_message_e message, net_nfc_error_e result,
+	void *data, void *user_param, void *trans_data)
 {
 	response_context_t *context = (response_context_t *)user_param;
 
@@ -176,6 +254,10 @@ void _nfc_response_cb(net_nfc_message_e message, net_nfc_error_e result, void *d
 		{
 			_p2p_send_cb((net_nfc_target_handle_h)data, user_param);
 		}
+		else if (context->type == 2) /* handover */
+		{
+			_handover_cb((net_nfc_target_handle_h)data, user_param);
+		}
 		break;
 
 	case NET_NFC_MESSAGE_P2P_SEND :
@@ -186,6 +268,22 @@ void _nfc_response_cb(net_nfc_message_e message, net_nfc_error_e result, void *d
 		_p2p_receive_completed_cb(data, user_param);
 		break;
 
+	case NET_NFC_MESSAGE_CONNECTION_HANDOVER :
+		_handover_completed_cb(result, data, user_param);
+		break;
+
+	case NET_NFC_MESSAGE_OPEN_INTERNAL_SE :
+		_open_se_cb(result, data, user_param);
+		break;
+
+	case NET_NFC_MESSAGE_SEND_APDU_SE :
+		_send_apdu_se_cb(result, trans_data, user_param);
+		break;
+
+	case NET_NFC_MESSAGE_CLOSE_INTERNAL_SE :
+		_close_se_cb(result, user_param);
+		break;
+
 	default :
 		break;
 	}
@@ -193,16 +291,18 @@ void _nfc_response_cb(net_nfc_message_e message, net_nfc_error_e result, void *d
 
 static void _initialize_tag_context(response_context_t *context)
 {
-	if(!g_thread_supported())
+	int ret = 0;
+
+	if (!g_thread_supported())
 	{
 		g_thread_init(NULL);
 	}
 
-//	g_type_init();
-
-	net_nfc_initialize();
-
-	net_nfc_set_response_callback(_nfc_response_cb, (void *)context);
+	ret = net_nfc_initialize();
+	if (ret == NET_NFC_OK)
+	{
+		net_nfc_set_response_callback(_nfc_response_cb, (void *)context);
+	}
 }
 
 static void _run_tag_action()
@@ -290,7 +390,7 @@ int ndef_tool_send_ndef_via_p2p(const char *file)
 
 		_initialize_tag_context(&response_context);
 
-		fprintf(stdout, "Contact a tag to device.....\n");
+		fprintf(stdout, "Contact a target to device.....\n");
 
 		_run_tag_action();
 
@@ -302,3 +402,143 @@ int ndef_tool_send_ndef_via_p2p(const char *file)
 	return result;
 }
 
+static int _make_file_to_ndef_message(ndef_message_h *msg, const char *file_name)
+{
+	int result = 0;
+	FILE *file = NULL;
+
+	file = fopen(file_name, "rb");
+	if (file != NULL)
+	{
+		long int file_size = 0;
+		size_t read = 0;
+
+		fseek(file, 0, SEEK_END);
+		file_size = ftell(file);
+		fseek(file, 0, SEEK_SET);
+
+		if (file_size > 0)
+		{
+			data_h data;
+
+			net_nfc_create_data(&data, NULL, file_size);
+			if (data != NULL)
+			{
+				ndef_record_h record;
+				data_h type;
+
+				read = fread((void *)net_nfc_get_data_buffer(data), 1, file_size, file);
+
+				net_nfc_create_ndef_message(msg);
+
+				net_nfc_create_data(&type, (uint8_t *)"image/jpeg", 10);
+
+				net_nfc_create_record(&record, NET_NFC_RECORD_MIME_TYPE, type, NULL, data);
+
+				net_nfc_append_record_to_ndef_message(*msg, record);
+
+				net_nfc_free_data(type);
+				net_nfc_free_data(data);
+
+				result = file_size;
+			}
+		}
+
+		fclose(file);
+	}
+
+	return result;
+}
+
+int ndef_tool_connection_handover(const char *file)
+{
+	int result = 0;
+	ndef_message_h msg = NULL;
+
+	if (_make_file_to_ndef_message(&msg, file) > 0)
+	{
+		response_context.type = 2;
+		response_context.user_param = (void *)msg;
+
+		_initialize_tag_context(&response_context);
+
+		fprintf(stdout, "Contact a target to device.....\n");
+
+		_run_tag_action();
+
+		net_nfc_free_ndef_message(msg);
+
+		_release_tag_context();
+	}
+
+	return result;
+}
+
+static unsigned char char_to_num[] =
+{
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, -1, -1, -1, -1, -1, -1,
+	-1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+};
+
+int _convert_string_to_hex(const char *str, unsigned char *buffer, size_t length)
+{
+	size_t i, j, len = strlen(str);
+
+	for (i = 0, j = 0; i < len; j++)
+	{
+		buffer[j] = (char_to_num[(unsigned char)str[i++]] << 4);
+		if (i < len)
+		{
+			buffer[j] |= char_to_num[(unsigned char)str[i++]];
+		}
+	}
+
+	return (int)j;
+}
+
+int ndef_tool_send_apdu(const char *apdu)
+{
+	int result = 0;
+	unsigned char *buffer;
+	unsigned int length = (strlen(apdu) >> 1) + 1;
+
+	buffer = calloc(1, length);
+	if (buffer != NULL)
+	{
+		length = _convert_string_to_hex(apdu, buffer, length);
+		if (length > 0)
+		{
+			response_context.type = length;
+			response_context.user_param = (void *)buffer;
+
+			_initialize_tag_context(&response_context);
+
+			fprintf(stdout, "try to open eSE.....\n");
+
+			net_nfc_open_internal_secure_element(NET_NFC_SE_TYPE_ESE, buffer);
+
+			_run_tag_action();
+
+
+			_release_tag_context();
+		}
+
+		free(buffer);
+	}
+
+	return result;
+}

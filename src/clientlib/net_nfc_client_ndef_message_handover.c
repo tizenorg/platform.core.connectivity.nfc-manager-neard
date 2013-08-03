@@ -17,9 +17,9 @@
 
 #include "net_nfc_ndef_message_handover.h"
 
-#include "net_nfc_typedef_private.h"
-#include "net_nfc_debug_private.h"
-#include "net_nfc_util_private.h"
+#include "net_nfc_typedef_internal.h"
+#include "net_nfc_debug_internal.h"
+#include "net_nfc_util_internal.h"
 #include "net_nfc_util_handover.h"
 
 #ifndef NET_NFC_EXPORT_API

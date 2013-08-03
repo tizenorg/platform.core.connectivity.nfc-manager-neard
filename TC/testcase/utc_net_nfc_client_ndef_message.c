@@ -19,7 +19,7 @@
 #include <stdint.h>
 
 #include "net_nfc_ndef_message.h"
-#include "net_nfc_util_private.h"
+#include "net_nfc_util_internal.h"
 #include "net_nfc.h" // to use net_nfc_data
 
 
@@ -162,7 +162,7 @@ static void utc_net_nfc_get_ndef_message_byte_length_p(void)
 	char url[] = "samsung.com";
 	ndef_record_h record = NULL;
 	ndef_message_h msg = NULL;
-	int length = 0;
+	uint32_t length = 0;
 
 	net_nfc_create_uri_type_record(&record, url, NET_NFC_SCHEMA_HTTPS_WWW);
 
@@ -170,7 +170,7 @@ static void utc_net_nfc_get_ndef_message_byte_length_p(void)
 
 	net_nfc_append_record_to_ndef_message(msg, record);
 
-	ret = net_nfc_get_ndef_message_byte_length( msg , &length);
+	ret = net_nfc_get_ndef_message_byte_length(msg , &length);
 
 	dts_check_eq(__func__, ret, NET_NFC_OK, "net_nfc_get_ndef_message_byte_length is failed");
 }

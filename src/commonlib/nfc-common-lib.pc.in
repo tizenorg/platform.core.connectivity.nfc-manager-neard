@@ -2,12 +2,12 @@
 
 prefix=/usr
 exec_prefix=/usr/bin
-libdir=@LIB_INSTALL_DIR@
+libdir=/usr/lib
 includedir=/usr/include/nfc-common-lib
 
 Name: nfc-common-lib
 Description: NFC Common Library
 Version: 1.0
 Requires: 
-Libs: -L@LIB_INSTALL_DIR@ -lnfc-common-lib
+Libs: -L/usr/lib -lnfc-common-lib
 Cflags: -I/usr/include/nfc-common-lib

@@ -21,9 +21,9 @@
 #include "svi.h"
 #include "wav_player.h"
 
-#include "net_nfc_debug_private.h"
-#include "net_nfc_util_private.h"
-#include "net_nfc_manager_util_private.h"
+#include "net_nfc_debug_internal.h"
+#include "net_nfc_util_internal.h"
+#include "net_nfc_manager_util_internal.h"
 
 static void _play_sound_callback(int id, void *data)
 {
@@ -109,4 +109,3 @@ void net_nfc_manager_util_play_sound(net_nfc_sound_type_e sound_type)
 		}
 	}
 }
-

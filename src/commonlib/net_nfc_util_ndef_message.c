@@ -15,9 +15,9 @@
   */
 
 
-#include "net_nfc_debug_private.h"
+#include "net_nfc_debug_internal.h"
 #include "net_nfc_util_defines.h"
-#include "net_nfc_util_private.h"
+#include "net_nfc_util_internal.h"
 #include "net_nfc_util_ndef_message.h"
 #include "net_nfc_util_ndef_record.h"
 
@@ -418,9 +418,7 @@ uint32_t net_nfc_util_get_ndef_message_length(ndef_message_s *message)
 	int total = 0;
 
 	if (message == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+		return 0;
 
 	current = message->records;
 
@@ -429,8 +427,6 @@ uint32_t net_nfc_util_get_ndef_message_length(ndef_message_s *message)
 		total += net_nfc_util_get_record_length(current);
 		current = current->next;
 	}
-
-	DEBUG_MSG("total byte length = [%d]", total);
 
 	return total;
 }
@@ -473,7 +469,7 @@ void net_nfc_util_print_ndef_message(ndef_message_s *msg)
 		{
 			memcpy(buffer, current->id_s.buffer, current->id_s.length);
 			buffer[current->id_s.length] = '\0';
-			DEBUG_MSG("ID: %s\n", buffer);
+			SECURE_LOGD("ID: %s\n", buffer);
 		}
 		if (current->payload_s.buffer != NULL)
 		{
@@ -521,12 +517,14 @@ net_nfc_error_e net_nfc_util_free_ndef_message(ndef_message_s *msg)
 
 net_nfc_error_e net_nfc_util_create_ndef_message(ndef_message_s **ndef_message)
 {
-	if (ndef_message == NULL)
-	{
+	if (ndef_message == NULL) {
 		return NET_NFC_NULL_PARAMETER;
 	}
 
 	_net_nfc_util_alloc_mem(*ndef_message, sizeof(ndef_message_s));
+	if (*ndef_message == NULL) {
+		return NET_NFC_ALLOC_FAIL;
+	}
 
 	return NET_NFC_OK;
 }
@@ -652,7 +650,7 @@ net_nfc_error_e net_nfc_util_append_record_by_index(ndef_message_s *ndef_message
 net_nfc_error_e net_nfc_util_search_record_by_type(ndef_message_s *ndef_message, net_nfc_record_tnf_e tnf, data_s *type, ndef_record_s **record)
 {
 	int idx = 0;
-	ndef_record_s *record_private;
+	ndef_record_s *tmp_record;
 	uint32_t type_length;
 	uint8_t *buf;
 
@@ -675,27 +673,27 @@ net_nfc_error_e net_nfc_util_search_record_by_type(ndef_message_s *ndef_message,
 		}
 	}
 
-	record_private = ndef_message->records;
+	tmp_record = ndef_message->records;
 
 	for (; idx < ndef_message->recordCount; idx++)
 	{
-		if (record_private == NULL)
+		if (tmp_record == NULL)
 		{
 			*record = NULL;
 
 			return NET_NFC_INVALID_FORMAT;
 		}
 
-		if (record_private->TNF == tnf &&
-			type_length == record_private->type_s.length &&
-			memcmp(buf, record_private->type_s.buffer, type_length) == 0)
+		if (tmp_record->TNF == tnf &&
+			type_length == tmp_record->type_s.length &&
+			memcmp(buf, tmp_record->type_s.buffer, type_length) == 0)
 		{
-			*record = record_private;
+			*record = tmp_record;
 
 			return NET_NFC_OK;
 		}
 
-		record_private = record_private->next;
+		tmp_record = tmp_record->next;
 	}
 
 	return NET_NFC_NO_DATA_FOUND;

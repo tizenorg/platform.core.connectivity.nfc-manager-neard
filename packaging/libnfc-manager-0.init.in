@@ -15,13 +15,13 @@
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 DAEMON=/usr/bin/nfc-manager-daemon
-DAEMON_ARGS="script"             # Arguments to run the daemon with
+DAEMON_ARGS="--daemon"             # Arguments to run the daemon with
 VCONFTOOL=/usr/bin/vconftool
-                                      
+
 # Exit if the package is not installed
-[ -x $DAEMON ] || exit 0                                                  
-[ -x $VCONFTOOL ] || exit 0                                               
-                                                                          
+[ -x $DAEMON ] || exit 0
+[ -x $VCONFTOOL ] || exit 0
+
 #if vconftool get db/nfc/enable | grep -q "db/nfc/enable, value = 1 (bool)"
 #then
 	if ! ps -f --ppid 1 | grep -q nfc-manager-daemon
