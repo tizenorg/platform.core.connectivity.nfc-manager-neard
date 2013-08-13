@@ -876,11 +876,11 @@ static bool net_nfc_client_dispatch_response(client_dispatcher_param_t *param)
 net_nfc_error_e net_nfc_client_dispatch_sync_response(net_nfc_response_msg_t *msg)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-//	client_context_t *client_context = NULL;
+	client_context_t *client_context = NULL;
 
 	DEBUG_CLIENT_MSG("synchronous callback, message = [%d]", msg->response_type);
 
-//	client_context = net_nfc_get_client_context();
+	client_context = net_nfc_get_client_context();
 
 	switch (msg->response_type)
 	{
@@ -1032,6 +1032,8 @@ net_nfc_error_e net_nfc_client_dispatch_sync_response(net_nfc_response_msg_t *ms
 						}
 
 						context->trans_param = info;
+						// TODO: check usage of trans_param
+						client_context->target_info = info;
 					}
 					else
 					{
