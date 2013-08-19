@@ -24,6 +24,7 @@
 #include "net_nfc_util_private.h"
 #include "net_nfc_util_ndef_message.h"
 #include "net_nfc_client_nfc_private.h"
+#include "net_nfc_target_info.h"
 
 #ifndef NET_NFC_EXPORT_API
 #define NET_NFC_EXPORT_API __attribute__((visibility("default")))
@@ -431,7 +432,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_current_tag_info_sync(net_nfc_tar
 	if (result == NET_NFC_OK)
 	{
 		/* already allocated memory */
-		*info = (net_nfc_target_info_h)response.trans_param;
+		net_nfc_duplicate_target_info((net_nfc_target_info_h)response.trans_param, info);
 	}
 
 	return result;
