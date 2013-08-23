@@ -23,17 +23,17 @@
 static void run_next_callback(gpointer user_data);
 
 static void sim_test_completed(net_nfc_error_e result,
-			void *user_data);
+		void *user_data);
 
 static void prbs_test_completed(net_nfc_error_e result,
-				void *user_data);
+		void *user_data);
 
 static void get_firmware_version_completed(net_nfc_error_e result,
-					char *version,
-					void *user_data);
+		char *version,
+		void *user_data);
 
 static void set_ee_data_completed(net_nfc_error_e reuslt,
-				void *user_data);
+		void *user_data);
 
 
 
@@ -50,7 +50,7 @@ static void run_next_callback(gpointer user_data)
 
 
 static void sim_test_completed(net_nfc_error_e result,
-			void *user_data)
+		void *user_data)
 {
 	g_print("SimTestCompleted Completed %d\n", result);
 	run_next_callback(user_data);
@@ -59,7 +59,7 @@ static void sim_test_completed(net_nfc_error_e result,
 
 
 static void prbs_test_completed(net_nfc_error_e result,
-				void *user_data)
+		void *user_data)
 {
 	g_print("PrbsTest Completed %d\n", result);
 	run_next_callback(user_data);
@@ -68,8 +68,8 @@ static void prbs_test_completed(net_nfc_error_e result,
 
 
 static void get_firmware_version_completed(net_nfc_error_e result,
-					char *version,
-					void *user_data)
+		char *version,
+		void *user_data)
 {
 	g_print("GetFirmwareVersion Completed %d: %s\n", result, version);
 	run_next_callback(user_data);
@@ -78,7 +78,7 @@ static void get_firmware_version_completed(net_nfc_error_e result,
 
 
 static void set_ee_data_completed(net_nfc_error_e result,
-				void *user_data)
+		void *user_data)
 {
 	g_print("SetEeData Completed %d\n", result);
 	run_next_callback(user_data);
@@ -86,7 +86,7 @@ static void set_ee_data_completed(net_nfc_error_e result,
 
 
 void net_nfc_test_test_sim_test(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_client_test_sim_test(sim_test_completed, user_data);
 }
@@ -94,32 +94,32 @@ void net_nfc_test_test_sim_test(gpointer data,
 
 
 void net_nfc_test_test_prbs_test(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	/* FIXME : fill right value */
 	uint32_t tech = 0;
 	uint32_t rate = 0;
 
 	net_nfc_client_test_prbs_test(tech,
-				rate,
-				prbs_test_completed,
-				user_data);
+			rate,
+			prbs_test_completed,
+			user_data);
 }
 
 
 
 void net_nfc_test_test_get_firmware_version(gpointer data,
-					gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_client_test_get_firmware_version(
-					get_firmware_version_completed,
-					user_data);
+			get_firmware_version_completed,
+			user_data);
 }
 
 
 
 void net_nfc_test_test_set_ee_data(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 
 	/* FIXME : fill right value */
@@ -128,17 +128,17 @@ void net_nfc_test_test_set_ee_data(gpointer data,
 	data_h ee_data = (data_h)data;
 
 	net_nfc_client_test_set_ee_data(mode,
-					reg_id,
-					ee_data,
-					set_ee_data_completed,
-					user_data);
+			reg_id,
+			ee_data,
+			set_ee_data_completed,
+			user_data);
 
 }
 
 
 
 void net_nfc_test_test_sim_test_sync(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result;
 	result = net_nfc_client_test_sim_test_sync();
@@ -149,7 +149,7 @@ void net_nfc_test_test_sim_test_sync(gpointer data,
 
 
 void net_nfc_test_test_prbs_test_sync(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result;
 
@@ -165,7 +165,7 @@ void net_nfc_test_test_prbs_test_sync(gpointer data,
 
 
 void net_nfc_test_test_get_firmware_version_sync(gpointer data,
-						gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result;
 	char *version = NULL;
@@ -180,7 +180,7 @@ void net_nfc_test_test_get_firmware_version_sync(gpointer data,
 
 
 void net_nfc_test_test_set_ee_data_sync(gpointer data,
-					gpointer user_data)
+		gpointer user_data)
 {
 
 	net_nfc_error_e result;
@@ -191,8 +191,8 @@ void net_nfc_test_test_set_ee_data_sync(gpointer data,
 	data_h ee_data = (data_h)data;
 
 	result = net_nfc_client_test_set_ee_data_sync(mode,
-						reg_id,
-						ee_data);
+			reg_id,
+			ee_data);
 	g_print("SetEeData: %d\n", result);
 	run_next_callback(user_data);
 

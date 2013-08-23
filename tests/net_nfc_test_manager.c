@@ -27,11 +27,11 @@ static void set_activated_cb(bool state,
 		void *user_data);
 
 static void set_active_completed_cb(net_nfc_error_e result,
-				void *user_data);
+		void *user_data);
 
 static void get_server_state_completed_cb(net_nfc_error_e result,
-				unsigned int state,
-				void *user_data);
+		unsigned int state,
+		void *user_data);
 
 static void run_next_callback(gpointer user_data)
 {
@@ -59,7 +59,7 @@ static void print_server_state(gint state)
 		if (state & NET_NFC_SNEP_CLIENT_CONNECTED)
 		{
 			g_print("\tNET_NFC_SNEP_CLIENT_CONNECTED(%d)\n",
-								state);
+					state);
 		}
 		if (state & NET_NFC_NPP_CLIENT_CONNECTED)
 			g_print("\tNET_NFC_NPP_CLIENT_CONNECTED(%d)\n", state);
@@ -71,21 +71,21 @@ static void print_server_state(gint state)
 }
 
 static void set_activated_cb(bool state,
-			void *user_data)
+		void *user_data)
 {
 	g_print("Activated state %d\n", state);
 }
 
 static void set_active_completed_cb(net_nfc_error_e result,
-				void *user_data)
+		void *user_data)
 {
 	g_print("SetActive Completed %d\n", result);
 	run_next_callback(user_data);
 }
 
 static void get_server_state_completed_cb(net_nfc_error_e result,
-				unsigned int state,
-				void *user_data)
+		unsigned int state,
+		void *user_data)
 {
 	g_print("GetServerState Completed %d\n", result);
 
@@ -95,24 +95,24 @@ static void get_server_state_completed_cb(net_nfc_error_e result,
 }
 
 void net_nfc_test_manager_set_active(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_client_manager_set_activated(set_activated_cb, NULL);
 
 	net_nfc_client_manager_set_active(1,
-					set_active_completed_cb,
-					user_data);
+			set_active_completed_cb,
+			user_data);
 }
 
 void net_nfc_test_manager_get_server_state(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_client_manager_get_server_state(get_server_state_completed_cb,
-						user_data);
+			user_data);
 }
 
 void net_nfc_test_manager_set_active_sync(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	gint i;
 
@@ -131,7 +131,7 @@ void net_nfc_test_manager_set_active_sync(gpointer data,
 }
 
 void net_nfc_test_manager_get_server_state_sync(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result;
 	guint state = 0;

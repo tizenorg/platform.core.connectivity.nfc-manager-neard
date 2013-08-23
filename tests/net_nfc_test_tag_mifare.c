@@ -15,7 +15,7 @@
  */
 
 
-#include "net_nfc_tag_mifare.h"
+#include "net_nfc_client_tag_mifare.h"
 #include "net_nfc_test_tag_mifare.h"
 #include "net_nfc_target_info.h"
 #include "net_nfc_typedef_internal.h"
@@ -26,8 +26,8 @@
 static net_nfc_target_handle_h tag_get_handle(void);
 
 static void mifare_read_cb(net_nfc_error_e result,
-				data_h resp_data,
-				void *user_data);
+		data_h resp_data,
+		void *user_data);
 
 static void mifare_write_block_cb(net_nfc_error_e result, void* user_data);
 
@@ -70,8 +70,8 @@ static void run_next_callback(gpointer user_data)
 }
 
 static void mifare_read_cb(net_nfc_error_e result,
-				data_h resp_data,
-				void *user_data)
+		data_h resp_data,
+		void *user_data)
 {
 	g_print("mifare_read_cb Completed %d\n", result);
 	print_received_data(resp_data);
@@ -137,7 +137,7 @@ static void mifare_write_auth_keyB_cb(net_nfc_error_e result, void* user_data)
 
 
 void net_nfc_test_tag_mifare_read(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e  result  = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -154,13 +154,13 @@ void net_nfc_test_tag_mifare_read(gpointer data,
 	g_print("Handle is %#x\n", GPOINTER_TO_UINT(handle));
 
 	result = net_nfc_client_mifare_read(handle,
-				block_index,
-				mifare_read_cb,
-				user_data);
+			block_index,
+			mifare_read_cb,
+			user_data);
 }
 
 void net_nfc_test_tag_mifare_write_block(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e  result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -183,14 +183,14 @@ void net_nfc_test_tag_mifare_write_block(gpointer data,
 	g_print("Handle is %#x\n", GPOINTER_TO_UINT(handle));
 
 	result = net_nfc_client_mifare_write_block(handle,
-				block_index,
-				(data_h)& write_data,
-				mifare_write_block_cb,
-				user_data);
+			block_index,
+			(data_h)& write_data,
+			mifare_write_block_cb,
+			user_data);
 }
 
 void net_nfc_test_tag_mifare_write_page(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e  result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -213,14 +213,14 @@ void net_nfc_test_tag_mifare_write_page(gpointer data,
 	g_print("Handle is %#x\n", GPOINTER_TO_UINT(handle));
 
 	result = net_nfc_client_mifare_write_page(handle,
-				block_index,
-				(data_h)& write_data,
-				mifare_write_page_cb,
-				user_data);
+			block_index,
+			(data_h)& write_data,
+			mifare_write_page_cb,
+			user_data);
 }
 
 void net_nfc_test_tag_mifare_increment(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e  result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -236,15 +236,16 @@ void net_nfc_test_tag_mifare_increment(gpointer data,
 		return;
 	}
 	g_print("Handle is %#x\n", GPOINTER_TO_UINT(handle));
+
 	result = net_nfc_client_mifare_increment(handle,
-				block_index,
-				value,
-				mifare_write_mifare_incr_cb,
-				user_data);
+			block_index,
+			value,
+			mifare_write_mifare_incr_cb,
+			user_data);
 }
 
 void net_nfc_test_tag_mifare_decrement(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e  result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -260,15 +261,16 @@ void net_nfc_test_tag_mifare_decrement(gpointer data,
 		return;
 	}
 	g_print("Handle is %#x\n", GPOINTER_TO_UINT(handle));
+
 	result = net_nfc_client_mifare_decrement(handle,
-				block_index,
-				value,
-				mifare_write_mifare_decr_cb,
-				user_data);
+			block_index,
+			value,
+			mifare_write_mifare_decr_cb,
+			user_data);
 }
 
 void net_nfc_test_tag_mifare_transfer(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e  result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -283,14 +285,15 @@ void net_nfc_test_tag_mifare_transfer(gpointer data,
 		return;
 	}
 	g_print("Handle is %#x\n", GPOINTER_TO_UINT(handle));
+
 	result = net_nfc_client_mifare_transfer(handle,
-				block_index,
-				mifare_write_mifare_transfer_cb,
-				user_data);
+			block_index,
+			mifare_write_mifare_transfer_cb,
+			user_data);
 }
 
 void net_nfc_test_tag_mifare_restore(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e  result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -307,13 +310,13 @@ void net_nfc_test_tag_mifare_restore(gpointer data,
 	g_print("Handle is %#x\n", GPOINTER_TO_UINT(handle));
 
 	result = net_nfc_client_mifare_restore(handle,
-				block_index,
-				mifare_write_mifare_restore_cb,
-				user_data);
+			block_index,
+			mifare_write_mifare_restore_cb,
+			user_data);
 }
 
 void net_nfc_test_tag_mifare_authenticate_with_keyA(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e  result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -334,15 +337,15 @@ void net_nfc_test_tag_mifare_authenticate_with_keyA(gpointer data,
 	g_print("default key create %d", result);
 
 	result = net_nfc_client_mifare_authenticate_with_keyA(
-				handle,
-				sector_index,
-				auth_key,
-				mifare_write_auth_keyA_cb,
-				user_data);
+			handle,
+			sector_index,
+			auth_key,
+			mifare_write_auth_keyA_cb,
+			user_data);
 }
 
 void net_nfc_test_tag_mifare_authenticate_with_keyB(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -363,9 +366,9 @@ void net_nfc_test_tag_mifare_authenticate_with_keyB(gpointer data,
 	g_print("default key create %d", result);
 
 	result = net_nfc_client_mifare_authenticate_with_keyB(
-				handle,
-				sector_index,
-				auth_key,
-				mifare_write_auth_keyB_cb,
-				user_data);
+			handle,
+			sector_index,
+			auth_key,
+			mifare_write_auth_keyB_cb,
+			user_data);
 }

@@ -1,0 +1,11 @@
+prefix=@PREFIX@
+exec_prefix=${prefix}/bin
+libdir=@LIB_INSTALL_DIR@
+includedir=@INCLUDE_INSTALL_DIR@/@NFC_CLIENT@
+
+Name: @NFC_CLIENT@
+Description: NFC
+Version: @FULLVER@
+Requires: glib-2.0
+Libs: -L${libdir} -l@NFC_CLIENT@
+Cflags: -I${includedir}

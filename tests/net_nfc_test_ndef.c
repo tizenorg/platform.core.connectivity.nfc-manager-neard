@@ -36,8 +36,8 @@ static void print_ndef_message(ndef_message_h message);
 static net_nfc_target_handle_h ndef_get_handle(void);
 
 static ndef_message_h create_ndef_message_text(const gchar *str,
-					const gchar *lang,
-					net_nfc_encode_type_e encode);
+		const gchar *lang,
+		net_nfc_encode_type_e encode);
 
 static void set_string(const gchar *str);
 
@@ -52,7 +52,7 @@ static void ndef_write_cb(net_nfc_error_e result,
 		void *user_data);
 
 static void ndef_make_read_only_cb(net_nfc_error_e result,
-				void *user_data);
+		void *user_data);
 
 static void ndef_format_cb(net_nfc_error_e result,
 		void *user_data);
@@ -106,14 +106,14 @@ static void print_record_well_known_type(ndef_record_h record)
 	net_nfc_get_encoding_type_from_text_record(record, &enc);
 	switch (enc)
 	{
-		case NET_NFC_ENCODE_UTF_8:
-			g_print("Encoding: UTF-8\n");
-			break;
-		case NET_NFC_ENCODE_UTF_16:
-			g_print("Encoding: UTF-16\n");
-			break;
-		default:
-			g_print("Encoding: Unknown\n");
+	case NET_NFC_ENCODE_UTF_8:
+		g_print("Encoding: UTF-8\n");
+		break;
+	case NET_NFC_ENCODE_UTF_16:
+		g_print("Encoding: UTF-16\n");
+		break;
+	default:
+		g_print("Encoding: Unknown\n");
 	}
 }
 
@@ -168,24 +168,24 @@ static void print_record(ndef_record_h record)
 
 	switch(tnf)
 	{
-		case NET_NFC_RECORD_EMPTY:
-			break;
-		case NET_NFC_RECORD_WELL_KNOWN_TYPE:
-			print_record_well_known_type(record);
-			break;
-		case NET_NFC_RECORD_MIME_TYPE:
-			break;
-		case NET_NFC_RECORD_URI:
-			break;
-		case NET_NFC_RECORD_EXTERNAL_RTD:
-			break;
-		case NET_NFC_RECORD_UNKNOWN:
-			break;
-		case NET_NFC_RECORD_UNCHAGNED:
-			break;
-		default:
-			g_print("TNF: unknown error\n");
-			break;
+	case NET_NFC_RECORD_EMPTY:
+		break;
+	case NET_NFC_RECORD_WELL_KNOWN_TYPE:
+		print_record_well_known_type(record);
+		break;
+	case NET_NFC_RECORD_MIME_TYPE:
+		break;
+	case NET_NFC_RECORD_URI:
+		break;
+	case NET_NFC_RECORD_EXTERNAL_RTD:
+		break;
+	case NET_NFC_RECORD_UNKNOWN:
+		break;
+	case NET_NFC_RECORD_UNCHAGNED:
+		break;
+	default:
+		g_print("TNF: unknown error\n");
+		break;
 	}
 }
 
@@ -201,7 +201,7 @@ static void print_ndef_message(ndef_message_h message)
 	}
 
 	if (net_nfc_get_ndef_message_record_count(message,
-						&count) != NET_NFC_OK)
+				&count) != NET_NFC_OK)
 	{
 		g_print("can not get count of record\n");
 		return;
@@ -214,8 +214,8 @@ static void print_ndef_message(ndef_message_h message)
 		g_print("Record count : %d\n", i+1);
 
 		if (net_nfc_get_record_by_index(message,
-						i,
-						&record) != NET_NFC_OK)
+					i,
+					&record) != NET_NFC_OK)
 		{
 			g_print("can not get record from index %d\n", i);
 			continue;
@@ -255,8 +255,8 @@ static net_nfc_target_handle_h ndef_get_handle(void)
 }
 
 static ndef_message_h create_ndef_message_text(const gchar *str,
-					const gchar *lang,
-					net_nfc_encode_type_e encode)
+		const gchar *lang,
+		net_nfc_encode_type_e encode)
 {
 	ndef_record_h record = NULL;
 	ndef_message_h message = NULL;
@@ -268,9 +268,9 @@ static ndef_message_h create_ndef_message_text(const gchar *str,
 	}
 
 	if (net_nfc_create_text_type_record(&record,
-					str,
-					lang,
-					encode) != NET_NFC_OK)
+				str,
+				lang,
+				encode) != NET_NFC_OK)
 	{
 		g_printerr("Can not create text record(%s, %d): %s\n",
 				lang, encode, str);
@@ -280,7 +280,7 @@ static ndef_message_h create_ndef_message_text(const gchar *str,
 	}
 
 	if (net_nfc_append_record_to_ndef_message(message,
-					record) != NET_NFC_OK)
+				record) != NET_NFC_OK)
 	{
 		g_printerr("Can not append record to message\n");
 		net_nfc_free_ndef_message(message);
@@ -356,7 +356,7 @@ static void ndef_write_cb(net_nfc_error_e result,
 
 
 static void ndef_make_read_only_cb(net_nfc_error_e result,
-				void *user_data)
+		void *user_data)
 {
 	g_print("Make Read only Completed %d\n", result);
 
@@ -375,7 +375,7 @@ static void ndef_format_cb(net_nfc_error_e result,
 
 
 void net_nfc_test_ndef_read(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_target_handle_h handle;
 
@@ -392,12 +392,12 @@ void net_nfc_test_ndef_read(gpointer data,
 	g_print("Handle is %#x\n", GPOINTER_TO_UINT(handle));
 
 	net_nfc_client_ndef_read(handle,
-				ndef_read_cb,
-				user_data);
+			ndef_read_cb,
+			user_data);
 }
 
 void net_nfc_test_ndef_write(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_target_handle_h handle;
 	ndef_message_h message;
@@ -425,8 +425,8 @@ void net_nfc_test_ndef_write(gpointer data,
 	}
 
 	message = create_ndef_message_text(str,
-					"en-US",
-					NET_NFC_ENCODE_UTF_8);
+			"en-US",
+			NET_NFC_ENCODE_UTF_8);
 
 	g_free(str);
 
@@ -439,14 +439,14 @@ void net_nfc_test_ndef_write(gpointer data,
 	}
 
 	net_nfc_client_ndef_write(handle,
-				message,
-				ndef_write_cb,
-				user_data);
+			message,
+			ndef_write_cb,
+			user_data);
 
 }
 
 void net_nfc_test_ndef_make_read_only(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_target_handle_h handle;
 
@@ -462,12 +462,12 @@ void net_nfc_test_ndef_make_read_only(gpointer data,
 	g_print("Handle is %#x\n", GPOINTER_TO_UINT(handle));
 
 	net_nfc_client_ndef_make_read_only(handle,
-					ndef_make_read_only_cb,
-					user_data);
+			ndef_make_read_only_cb,
+			user_data);
 }
 
 void net_nfc_test_ndef_format(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_target_handle_h handle;
 	data_h key;
@@ -485,9 +485,9 @@ void net_nfc_test_ndef_format(gpointer data,
 	net_nfc_create_data(&key, format_data, 6);
 
 	net_nfc_client_ndef_format(handle,
-				key,
-				ndef_format_cb,
-				user_data);
+			key,
+			ndef_format_cb,
+			user_data);
 
 	net_nfc_free_data(key);
 
@@ -495,7 +495,7 @@ void net_nfc_test_ndef_format(gpointer data,
 }
 
 void net_nfc_test_ndef_read_sync(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_target_handle_h handle;
 	ndef_message_h message = NULL;
@@ -513,7 +513,7 @@ void net_nfc_test_ndef_read_sync(gpointer data,
 	g_print("Handle is %#x\n", GPOINTER_TO_UINT(handle));
 
 	result = net_nfc_client_ndef_read_sync(handle,
-					&message);
+			&message);
 
 	g_print("Read Ndef: %d\n", result);
 
@@ -525,7 +525,7 @@ void net_nfc_test_ndef_read_sync(gpointer data,
 }
 
 void net_nfc_test_ndef_write_sync(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	gchar *str = NULL;
 
@@ -554,8 +554,8 @@ void net_nfc_test_ndef_write_sync(gpointer data,
 	}
 
 	message = create_ndef_message_text(str,
-					"en-US",
-					NET_NFC_ENCODE_UTF_8);
+			"en-US",
+			NET_NFC_ENCODE_UTF_8);
 
 	g_free(str);
 
@@ -576,7 +576,7 @@ void net_nfc_test_ndef_write_sync(gpointer data,
 }
 
 void net_nfc_test_ndef_make_read_only_sync(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_target_handle_h handle;
 	net_nfc_error_e result;
@@ -601,7 +601,7 @@ void net_nfc_test_ndef_make_read_only_sync(gpointer data,
 }
 
 void net_nfc_test_ndef_format_sync(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_target_handle_h handle;
 	net_nfc_error_e result;

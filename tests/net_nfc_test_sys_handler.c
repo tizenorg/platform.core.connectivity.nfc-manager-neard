@@ -1,18 +1,18 @@
 /*
-* Copyright (c) 2012, 2013 Samsung Electronics Co., Ltd.
-*
-* Licensed under the Flora License, Version 1.1 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://floralicense.org/license/
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (c) 2012, 2013 Samsung Electronics Co., Ltd.
+ *
+ * Licensed under the Flora License, Version 1.1 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://floralicense.org/license/
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <glib-object.h>
 
@@ -28,7 +28,7 @@ static void run_next_callback(gpointer user_data);
 
 static void run_next_callback(gpointer user_data)
 {
-		if (user_data)
+	if (user_data)
 	{
 		GCallback callback;
 
@@ -40,7 +40,7 @@ static void run_next_callback(gpointer user_data)
 /********************** Function Calls ******************************/
 
 void net_nfc_test_sys_handler_set_launch_popup_state(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result;
 	int enable = 1;
@@ -60,7 +60,7 @@ void net_nfc_test_sys_handler_set_launch_popup_state(gpointer data,
 }
 
 void net_nfc_test_sys_handler_get_launch_popup_state(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result;
 	int state = 0;

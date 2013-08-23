@@ -1,17 +1,36 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+PROJECT(nfc-manager C)
 
-MESSAGE("build nfc-common-lib and nfc-manager")
+INCLUDE(FindPkgConfig)
+
+SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -Wall -Werror-implicit-function-declaration")
+SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fPIC -fvisibility=hidden")
+#SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fno-strict-aliasing")
+
+#SET(ARM_CFLAGS "-mabi=aapcs-linux -fno-common")
+
+FIND_PROGRAM(UNAME NAMES uname)
+EXEC_PROGRAM("${UNAME}" ARGS "-m" OUTPUT_VARIABLE "ARCH")
+IF("${ARCH}" MATCHES "^arm.*")
+	ADD_DEFINITIONS("-DTARGET")
+	MESSAGE("add -DTARGET")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARM_CFLAGS}")
+ENDIF()
+
+SET(CMAKE_SHARED_LINKER_FLAGS " -Wl,--as-needed -Wl,--rpath=${LIB_INSTALL_DIR}")
+SET(CMAKE_EXE_LINKER_FLAGS " -Wl,--as-needed -Wl,--rpath=${LIB_INSTALL_DIR}")
 
 SET(PREFIX ${CMAKE_INSTALL_PREFIX})
-SET(LIBDIR "${PREFIX}/lib")
-SET(MODULEDIR "${LIBDIR}/nfc")
 
-ADD_DEFINITIONS("-D_GNU_SOURCE")
+ADD_DEFINITIONS("-DNFC_MANAGER_MODULEDIR=\"${LIB_INSTALL_DIR}/nfc\"")
+
 #ADD_DEFINITIONS("-DSECURITY_SERVER")
+ADD_DEFINITIONS("-DUSE_FULL_URI")
+#ADD_DEFINITIONS("-DESE_ALWAYS_ON")
 
-ADD_SUBDIRECTORY(src/commonlib)
-ADD_SUBDIRECTORY(src/clientlib)
-ADD_SUBDIRECTORY(src/manager)
-#ADD_SUBDIRECTORY(test_clinet_app/ndef-tool)
-#ADD_SUBDIRECTORY(test_clinet_app/nfc_client)
+ADD_SUBDIRECTORY(common)
+ADD_SUBDIRECTORY(client)
+ADD_SUBDIRECTORY(daemon)
 ADD_SUBDIRECTORY(tests)
+#ADD_SUBDIRECTORY(tools/ndef-tool)
+#ADD_SUBDIRECTORY(tools/nfc-client)

@@ -30,34 +30,34 @@ static net_nfc_snep_handle_h snep_handle = NULL;
 static void run_next_callback(gpointer user_data);
 
 static void snep_tag_discovered_cb(net_nfc_target_info_h info,
-			void *user_data);
+		void *user_data);
 
 static void snep_tag_detached_cb(void *user_data);
 
 static void snep_start_server_cb(net_nfc_snep_handle_h target,
-			net_nfc_snep_type_t event,
-			net_nfc_error_e result,
-			ndef_message_h msg,
-			void *user_data);
+		net_nfc_snep_type_t event,
+		net_nfc_error_e result,
+		ndef_message_h msg,
+		void *user_data);
 
 static void snep_start_client_cb(net_nfc_snep_handle_h target,
-			net_nfc_snep_type_t event,
-			net_nfc_error_e result,
-			ndef_message_h msg,
-			void *user_data);
+		net_nfc_snep_type_t event,
+		net_nfc_error_e result,
+		ndef_message_h msg,
+		void *user_data);
 
 static void snep_send_request_cb(net_nfc_snep_handle_h target,
-			net_nfc_snep_type_t event,
-			net_nfc_error_e result,
-			ndef_message_h msg,
-			void *user_data);
+		net_nfc_snep_type_t event,
+		net_nfc_error_e result,
+		ndef_message_h msg,
+		void *user_data);
 
 
 static void snep_register_server_cb(net_nfc_snep_handle_h target,
-				net_nfc_snep_type_t event,
-				net_nfc_error_e result,
-				ndef_message_h msg,
-				void *user_data);
+		net_nfc_snep_type_t event,
+		net_nfc_error_e result,
+		ndef_message_h msg,
+		void *user_data);
 
 /******************************Callbacks*********************************************/
 
@@ -79,7 +79,7 @@ static void snep_tag_detached_cb(void *user_data)
 }
 
 static void snep_tag_discovered_cb(net_nfc_target_info_h info,
-			void *user_data)
+		void *user_data)
 {
 	g_print("TagDiscovered\n");
 
@@ -88,10 +88,10 @@ static void snep_tag_discovered_cb(net_nfc_target_info_h info,
 }
 
 static void snep_start_server_cb(net_nfc_snep_handle_h target,
-			net_nfc_snep_type_t event,
-			net_nfc_error_e result,
-			ndef_message_h msg,
-			void *user_data)
+		net_nfc_snep_type_t event,
+		net_nfc_error_e result,
+		ndef_message_h msg,
+		void *user_data)
 {
 
 	snep_handle = target;
@@ -106,10 +106,10 @@ static void snep_start_server_cb(net_nfc_snep_handle_h target,
 }
 
 static void snep_start_client_cb(net_nfc_snep_handle_h target,
-			net_nfc_snep_type_t event,
-			net_nfc_error_e result,
-			ndef_message_h msg,
-			void *user_data)
+		net_nfc_snep_type_t event,
+		net_nfc_error_e result,
+		ndef_message_h msg,
+		void *user_data)
 {
 
 	g_print("snep_start_client_cb Completed %d\n", event);
@@ -120,10 +120,10 @@ static void snep_start_client_cb(net_nfc_snep_handle_h target,
 
 
 static void snep_send_request_cb(net_nfc_snep_handle_h target,
-			net_nfc_snep_type_t event,
-			net_nfc_error_e result,
-			ndef_message_h msg,
-			void *user_data)
+		net_nfc_snep_type_t event,
+		net_nfc_error_e result,
+		ndef_message_h msg,
+		void *user_data)
 {
 
 	g_print("snep_send_request_cb Completed %d\n", event);
@@ -136,19 +136,19 @@ static void snep_send_request_cb(net_nfc_snep_handle_h target,
 
 
 static void snep_register_server_cb(net_nfc_snep_handle_h target,
-				net_nfc_snep_type_t event,
-				net_nfc_error_e result,
-				ndef_message_h msg,
-				void *user_data)
-	{
+		net_nfc_snep_type_t event,
+		net_nfc_error_e result,
+		ndef_message_h msg,
+		void *user_data)
+{
 
-		g_print("snep_register_server_cb Completed %d\n", event);
-		g_print("snep_register_server_cb Completed %d\n", result);
+	g_print("snep_register_server_cb Completed %d\n", event);
+	g_print("snep_register_server_cb Completed %d\n", result);
 
-		net_nfc_util_print_ndef_message (msg);
+	net_nfc_util_print_ndef_message (msg);
 
-		run_next_callback(user_data);
-	}
+	run_next_callback(user_data);
+}
 
 /*
 static void snep_unregister_server_cb(net_nfc_snep_handle_h target,
@@ -170,7 +170,7 @@ static void snep_unregister_server_cb(net_nfc_snep_handle_h target,
 /******************************API Calls*********************************************/
 
 void net_nfc_test_snep_set_tag_discovered(gpointer data,
-					gpointer user_data)
+		gpointer user_data)
 {
 	g_print("Waiting for TagDiscovered Singal\n");
 
@@ -183,15 +183,15 @@ void net_nfc_test_snep_set_tag_discovered(gpointer data,
 
 
 void net_nfc_test_snep_start_server(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result;
 
 	result = net_nfc_client_snep_start_server(target_info->handle,
-					"urn:nfc:xsn:samsung.com:testllcp",
-					16,
-					snep_start_server_cb,
-					user_data);
+			"urn:nfc:xsn:samsung.com:testllcp",
+			16,
+			snep_start_server_cb,
+			user_data);
 
 	if(result != NET_NFC_OK)
 	{
@@ -203,7 +203,7 @@ void net_nfc_test_snep_start_server(gpointer data,
 
 
 void net_nfc_test_snep_start_server_sync(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 	/*
 
@@ -232,15 +232,15 @@ void net_nfc_test_snep_start_server_sync(gpointer data,
 
 
 void net_nfc_test_snep_start_client(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result;
 
 	result = net_nfc_client_snep_start_client(target_info->handle,
-					"urn:nfc:xsn:samsung.com:testllcp",
-					16,
-					snep_start_client_cb,
-					user_data);
+			"urn:nfc:xsn:samsung.com:testllcp",
+			16,
+			snep_start_client_cb,
+			user_data);
 
 	if(result != NET_NFC_OK)
 	{
@@ -251,7 +251,7 @@ void net_nfc_test_snep_start_client(gpointer data,
 
 
 void net_nfc_test_snep_start_client_sync(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 	/*
 
@@ -277,7 +277,7 @@ void net_nfc_test_snep_start_client_sync(gpointer data,
 }
 
 void net_nfc_test_snep_send_client_request(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result= NET_NFC_OK;
 	net_nfc_error_e error = NET_NFC_OK;
@@ -285,24 +285,24 @@ void net_nfc_test_snep_send_client_request(gpointer data,
 	ndef_record_h record = NULL;
 
 	if( (error = net_nfc_create_uri_type_record(&record,
-							"http://www.naver.com",
-							NET_NFC_SCHEMA_FULL_URI)) == NET_NFC_OK)
+					"http://www.naver.com",
+					NET_NFC_SCHEMA_FULL_URI)) == NET_NFC_OK)
+	{
+		if( (error = net_nfc_create_ndef_message(&msg)) == NET_NFC_OK)
 		{
-			if( (error = net_nfc_create_ndef_message(&msg)) == NET_NFC_OK)
-			{
-				if( (error = net_nfc_append_record_to_ndef_message(
+			if( (error = net_nfc_append_record_to_ndef_message(
 							msg,
 							record)) == NET_NFC_OK)
-					{
-						result = net_nfc_client_snep_send_client_request(
-											target_info->handle,
-											NET_NFC_SNEP_GET,
-											msg,
-											snep_send_request_cb,
-											user_data);
-					}
-				}
+			{
+				result = net_nfc_client_snep_send_client_request(
+						target_info->handle,
+						NET_NFC_SNEP_GET,
+						msg,
+						snep_send_request_cb,
+						user_data);
+			}
 		}
+	}
 
 	if(result != NET_NFC_OK)
 	{
@@ -314,7 +314,7 @@ void net_nfc_test_snep_send_client_request(gpointer data,
 
 
 void net_nfc_test_snep_send_client_request_sync(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 	/*
 
@@ -362,15 +362,15 @@ void net_nfc_test_snep_send_client_request_sync(gpointer data,
 
 
 void net_nfc_test_snep_register_server(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result= NET_NFC_OK;
 
 	result = net_nfc_client_snep_register_server(
-					"urn:nfc:xsn:samsung.com:testllcp",
-					16,
-					snep_register_server_cb,
-					user_data);
+			"urn:nfc:xsn:samsung.com:testllcp",
+			16,
+			snep_register_server_cb,
+			user_data);
 
 	if(result != NET_NFC_OK)
 	{
@@ -380,13 +380,13 @@ void net_nfc_test_snep_register_server(gpointer data,
 }
 
 void net_nfc_test_snep_unregister_server(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result= NET_NFC_OK;
 
 	result = net_nfc_client_snep_unregister_server(
-					"urn:nfc:xsn:samsung.com:testllcp",
-					16);
+			"urn:nfc:xsn:samsung.com:testllcp",
+			16);
 
 	if(result != NET_NFC_OK)
 	{
@@ -397,7 +397,7 @@ void net_nfc_test_snep_unregister_server(gpointer data,
 
 
 void net_nfc_test_snep_stop_service(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 /*
 	net_nfc_error_e result= NET_NFC_OK;
@@ -416,13 +416,13 @@ void net_nfc_test_snep_stop_service(gpointer data,
 
 
 void net_nfc_test_snep_stop_service_sync(gpointer data,
-			gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result= NET_NFC_OK;
 
 	result = net_nfc_client_snep_stop_service_sync(
-					target_info->handle,
-					snep_handle);
+			target_info->handle,
+			snep_handle);
 
 	if(result != NET_NFC_OK)
 	{

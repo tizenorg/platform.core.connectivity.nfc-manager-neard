@@ -15,6 +15,7 @@
  */
 
 #include <glib-object.h>
+
 #include "net_nfc_test_client.h"
 #include "net_nfc_client_context.h"
 #include "net_nfc_test_client.h"
@@ -34,8 +35,7 @@ static void run_next_callback(gpointer user_data)
 	}
 }
 
-void net_nfc_test_initialize(gpointer data,
-				gpointer user_data)
+void net_nfc_test_initialize(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 
@@ -52,8 +52,7 @@ void net_nfc_test_initialize(gpointer data,
 	run_next_callback(user_data);
 }
 
-void net_nfc_test_deinitialize(gpointer data,
-				gpointer user_data)
+void net_nfc_test_deinitialize(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 
@@ -62,8 +61,7 @@ void net_nfc_test_deinitialize(gpointer data,
 	g_print("Client Deinitialization Completed & Result is %d\n", result);
 }
 
-void net_nfc_test_is_nfc_supported(gpointer data,
-				gpointer user_data)
+void net_nfc_test_is_nfc_supported(gpointer data, gpointer user_data)
 {
 	int feature = 0;
 	net_nfc_error_e result = NET_NFC_OK;
@@ -83,8 +81,7 @@ void net_nfc_test_is_nfc_supported(gpointer data,
 	run_next_callback(user_data);
 }
 
-void net_nfc_test_get_nfc_state(gpointer data,
-				gpointer user_data)
+void net_nfc_test_get_nfc_state(gpointer data, gpointer user_data)
 {
 	int state = 0;
 	net_nfc_error_e result = NET_NFC_OK;

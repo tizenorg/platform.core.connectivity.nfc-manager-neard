@@ -1,18 +1,18 @@
 /*
-* Copyright (c) 2012, 2013 Samsung Electronics Co., Ltd.
-*
-* Licensed under the Flora License, Version 1.1 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://floralicense.org/license/
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (c) 2012, 2013 Samsung Electronics Co., Ltd.
+ *
+ * Licensed under the Flora License, Version 1.1 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://floralicense.org/license/
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include "net_nfc_test_tag_felica.h"
 #include "net_nfc_typedef_internal.h"
@@ -27,8 +27,8 @@ static net_nfc_target_handle_h get_handle();
 static void run_next_callback(gpointer user_data);
 
 static void felica_cb(net_nfc_error_e result,
-				data_h resp_data,
-				void *user_data);
+		data_h resp_data,
+		void *user_data);
 
 
 static net_nfc_target_handle_h get_handle()
@@ -56,8 +56,8 @@ static void run_next_callback(gpointer user_data)
 }
 
 static void felica_cb(net_nfc_error_e result,
-				data_h resp_data,
-				void *user_data)
+		data_h resp_data,
+		void *user_data)
 {
 	g_print("felica_cb Completed %d\n", result);
 
@@ -67,7 +67,7 @@ static void felica_cb(net_nfc_error_e result,
 }
 
 void net_nfc_test_felica_poll(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -78,15 +78,11 @@ void net_nfc_test_felica_poll(gpointer data,
 	if (handle == NULL)
 		return ;
 
-	result = net_nfc_client_felica_poll(handle,
-				req_code,
-				time_slot,
-				felica_cb,
-				user_data);
+	result = net_nfc_client_felica_poll(handle, req_code, time_slot, felica_cb, user_data);
 }
 
 void net_nfc_test_felica_request_service(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -99,15 +95,15 @@ void net_nfc_test_felica_request_service(gpointer data,
 		return ;
 
 	result = net_nfc_client_felica_request_service(handle,
-				number_of_area_service,
-				area_service_list,
-				number_of_services,
-				felica_cb,
-				user_data);
+			number_of_area_service,
+			area_service_list,
+			number_of_services,
+			felica_cb,
+			user_data);
 }
 
 void net_nfc_test_felica_request_response(gpointer data,
-					gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -116,13 +112,11 @@ void net_nfc_test_felica_request_response(gpointer data,
 	if (handle == NULL)
 		return ;
 
-	result = net_nfc_client_felica_request_response(handle,
-				felica_cb,
-				user_data);
+	result = net_nfc_client_felica_request_response(handle, felica_cb, user_data);
 }
 
 void net_nfc_test_felica_read_without_encryption(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -136,16 +130,16 @@ void net_nfc_test_felica_read_without_encryption(gpointer data,
 		return ;
 
 	result = net_nfc_client_felica_read_without_encryption(handle,
-				number_of_services,
-				service_list,
-				number_of_blocks,
-				block_list,
-				felica_cb,
-				user_data);
+			number_of_services,
+			service_list,
+			number_of_blocks,
+			block_list,
+			felica_cb,
+			user_data);
 }
 
 void net_nfc_test_felica_write_without_encryption(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -160,17 +154,17 @@ void net_nfc_test_felica_write_without_encryption(gpointer data,
 		return ;
 
 	result = net_nfc_client_felica_write_without_encryption(handle,
-				number_of_services,
-				service_list,
-				number_of_blocks,
-				block_list,
-				data_to_write,
-				felica_cb,
-				user_data);
+			number_of_services,
+			service_list,
+			number_of_blocks,
+			block_list,
+			data_to_write,
+			felica_cb,
+			user_data);
 }
 
 void net_nfc_test_felica_request_system_code(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -179,7 +173,5 @@ void net_nfc_test_felica_request_system_code(gpointer data,
 	if (handle == NULL)
 		return ;
 
-	result = net_nfc_client_felica_request_system_code(handle,
-				felica_cb,
-				user_data);
+	result = net_nfc_client_felica_request_system_code(handle, felica_cb, user_data);
 }

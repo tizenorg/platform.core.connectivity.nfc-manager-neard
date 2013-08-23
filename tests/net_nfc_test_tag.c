@@ -31,21 +31,21 @@ static void print_get_current_tag_info(net_nfc_target_info_h info);
 static void print_get_current_target_handle(net_nfc_target_handle_h handle);
 
 static void is_tag_connected_completed(net_nfc_error_e result,
-				net_nfc_target_type_e dev_type,
-				void *user_data);
+		net_nfc_target_type_e dev_type,
+		void *user_data);
 
 static void get_current_tag_info_completed(net_nfc_error_e result,
-				net_nfc_target_info_h info,
-				void *user_data);
+		net_nfc_target_info_h info,
+		void *user_data);
 
 static void get_current_target_handle_completed(net_nfc_error_e result,
-				net_nfc_target_handle_h handle,
-				void *user_data);
+		net_nfc_target_handle_h handle,
+		void *user_data);
 
 static void tag_detached(void *user_data);
 
 static void tag_discovered(net_nfc_target_info_h info,
-				void *user_data);
+		void *user_data);
 
 static net_nfc_target_info_h global_info = NULL;
 
@@ -66,44 +66,44 @@ static gchar *tag_type_to_string(net_nfc_target_type_e dev_type)
 {
 	switch(dev_type)
 	{
-		case NET_NFC_UNKNOWN_TARGET:
-			return "Unknown Target";
-		case NET_NFC_GENERIC_PICC:
-			return "Generic PICC";
-		case NET_NFC_ISO14443_A_PICC:
-			return "ISO14443 PICC";
-		case NET_NFC_ISO14443_4A_PICC:
-			return "ISO14443 4A PICC";
-		case NET_NFC_ISO14443_3A_PICC:
-			return "ISO14443 3A PICC";
-		case NET_NFC_MIFARE_MINI_PICC:
-			return "Mifare mini PICC";
-		case NET_NFC_MIFARE_1K_PICC:
-			return "Mifare 1K PICC";
-		case NET_NFC_MIFARE_4K_PICC:
-			return "Mifare 4K PICC";
-		case NET_NFC_MIFARE_ULTRA_PICC:
-			return "Mifare Ultra PICC";
-		case NET_NFC_MIFARE_DESFIRE_PICC:
-			return "Mifare Desfire PICC";
-		case NET_NFC_ISO14443_B_PICC:
-			return "ISO14443 B PICC";
-		case NET_NFC_ISO14443_4B_PICC:
-			return "ISO14443 4B PICC";
-		case NET_NFC_ISO14443_BPRIME_PICC:
-			return "ISO14443 BPRIME PICC";
-		case NET_NFC_FELICA_PICC:
-			return "Felica PICC";
-		case NET_NFC_JEWEL_PICC:
-			return "Jewel PICC";
-		case NET_NFC_ISO15693_PICC:
-			return "ISO15693 PICC";
-		case NET_NFC_NFCIP1_TARGET:
-			return "NFCIP1 Target";
-		case NET_NFC_NFCIP1_INITIATOR:
-			return "NFCIP1 Initiator";
-		default:
-			break;
+	case NET_NFC_UNKNOWN_TARGET:
+		return "Unknown Target";
+	case NET_NFC_GENERIC_PICC:
+		return "Generic PICC";
+	case NET_NFC_ISO14443_A_PICC:
+		return "ISO14443 PICC";
+	case NET_NFC_ISO14443_4A_PICC:
+		return "ISO14443 4A PICC";
+	case NET_NFC_ISO14443_3A_PICC:
+		return "ISO14443 3A PICC";
+	case NET_NFC_MIFARE_MINI_PICC:
+		return "Mifare mini PICC";
+	case NET_NFC_MIFARE_1K_PICC:
+		return "Mifare 1K PICC";
+	case NET_NFC_MIFARE_4K_PICC:
+		return "Mifare 4K PICC";
+	case NET_NFC_MIFARE_ULTRA_PICC:
+		return "Mifare Ultra PICC";
+	case NET_NFC_MIFARE_DESFIRE_PICC:
+		return "Mifare Desfire PICC";
+	case NET_NFC_ISO14443_B_PICC:
+		return "ISO14443 B PICC";
+	case NET_NFC_ISO14443_4B_PICC:
+		return "ISO14443 4B PICC";
+	case NET_NFC_ISO14443_BPRIME_PICC:
+		return "ISO14443 BPRIME PICC";
+	case NET_NFC_FELICA_PICC:
+		return "Felica PICC";
+	case NET_NFC_JEWEL_PICC:
+		return "Jewel PICC";
+	case NET_NFC_ISO15693_PICC:
+		return "ISO15693 PICC";
+	case NET_NFC_NFCIP1_TARGET:
+		return "NFCIP1 Target";
+	case NET_NFC_NFCIP1_INITIATOR:
+		return "NFCIP1 Initiator";
+	default:
+		break;
 	}
 	return "Invalid Target";
 }
@@ -155,8 +155,8 @@ static void print_get_current_target_handle(net_nfc_target_handle_h handle)
 	handle_id = GPOINTER_TO_UINT(handle);
 
 	g_print("Tag handle %x, Current Tag handle %x\n",
-				global_handle_id,
-				handle_id);
+			global_handle_id,
+			handle_id);
 	if (global_handle_id == handle_id)
 		g_print("Current Tag is matched discovered Tag\n");
 }
@@ -167,12 +167,12 @@ static void tag_detached(void *user_data)
 }
 
 static void is_tag_connected_completed(net_nfc_error_e result,
-				net_nfc_target_type_e dev_type,
-				void *user_data)
+		net_nfc_target_type_e dev_type,
+		void *user_data)
 {
 	g_print("IsTagConnected Completed %d\n", result);
 	g_print("--- dev type : %s (%d)\n", tag_type_to_string(dev_type),
-					dev_type);
+			dev_type);
 
 	if (result == NET_NFC_OK)
 		print_is_tag_connected(dev_type);
@@ -183,8 +183,8 @@ static void is_tag_connected_completed(net_nfc_error_e result,
 }
 
 static void get_current_tag_info_completed(net_nfc_error_e result,
-				net_nfc_target_info_h info,
-				void *user_data)
+		net_nfc_target_info_h info,
+		void *user_data)
 {
 	g_print("GetCurrentTagInfo Completed %d\n", result);
 
@@ -195,8 +195,8 @@ static void get_current_tag_info_completed(net_nfc_error_e result,
 }
 
 static void get_current_target_handle_completed(net_nfc_error_e result,
-				net_nfc_target_handle_h handle,
-				void *user_data)
+		net_nfc_target_handle_h handle,
+		void *user_data)
 {
 	g_print("GetCurrentTargetHandle Completed %d\n", result);
 
@@ -208,7 +208,7 @@ static void get_current_target_handle_completed(net_nfc_error_e result,
 
 
 static void tag_discovered(net_nfc_target_info_h info,
-				void *user_data)
+		void *user_data)
 {
 	g_print("TagDiscovered\n");
 
@@ -220,29 +220,29 @@ static void tag_discovered(net_nfc_target_info_h info,
 
 
 void net_nfc_test_tag_is_tag_connected(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_client_tag_is_tag_connected(is_tag_connected_completed,
-				user_data);
+			user_data);
 }
 
 void net_nfc_test_tag_get_current_tag_info(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_client_tag_get_current_tag_info(get_current_tag_info_completed,
-				user_data);
+			user_data);
 }
 
 void net_nfc_test_tag_get_current_target_handle(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_client_tag_get_current_target_handle(
-				get_current_target_handle_completed,
-				user_data);
+			get_current_target_handle_completed,
+			user_data);
 }
 
 void net_nfc_test_tag_is_tag_connected_sync(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result;
 	net_nfc_target_type_e dev_type;
@@ -258,7 +258,7 @@ void net_nfc_test_tag_is_tag_connected_sync(gpointer data,
 }
 
 void net_nfc_test_tag_get_current_tag_info_sync(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result;
 	net_nfc_target_info_h info;
@@ -272,7 +272,7 @@ void net_nfc_test_tag_get_current_tag_info_sync(gpointer data,
 }
 
 void net_nfc_test_tag_get_current_target_handle_sync(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result;
 	net_nfc_target_handle_h handle;
@@ -286,7 +286,7 @@ void net_nfc_test_tag_get_current_target_handle_sync(gpointer data,
 }
 
 void net_nfc_test_tag_set_tag_discovered(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	g_print("Waiting for TagDiscovered Signal\n");
 
@@ -305,7 +305,7 @@ net_nfc_target_info_h net_nfc_test_tag_get_target_info(void)
 }
 
 void net_nfc_test_tag_set_tag_detached(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	g_print("Waiting for TagDetached Singal\n");
 

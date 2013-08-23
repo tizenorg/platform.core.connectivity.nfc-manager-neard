@@ -987,8 +987,6 @@ int main(int argc, char *argv[])
 {
 	gint i;
 
-	g_type_init();
-
 	if (argc == 2 && strcmp(argv[1], "--help") == 0)
 	{
 		g_print("nfc-client-test: nfc-client-test [inteface.name]\n");
@@ -1025,7 +1023,7 @@ int main(int argc, char *argv[])
 		strv = pos->data;
 
 		if (strcmp(strv[0], "Manager") != 0 ||
-			strcmp(strv[1], "SetActive") != 0)
+				strcmp(strv[1], "SetActive") != 0)
 		{
 			gchar **manager_strv;
 

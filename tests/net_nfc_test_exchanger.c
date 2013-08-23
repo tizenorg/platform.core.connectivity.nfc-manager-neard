@@ -64,8 +64,7 @@ static net_nfc_exchanger_data_h _net_nfc_test_create_exchgr_data()
 	return exch_data;
 }
 
-void net_nfc_test_handle_exchanger_data(gpointer data,
-				gpointer user_data)
+void net_nfc_test_handle_exchanger_data(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	ndef_message_h msg = NULL;
@@ -96,8 +95,7 @@ void net_nfc_test_handle_exchanger_data(gpointer data,
 	return;
 }
 
-void net_nfc_test_send_exchanger_data(gpointer data,
-				gpointer user_data)
+void net_nfc_test_send_exchanger_data(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -107,14 +105,13 @@ void net_nfc_test_send_exchanger_data(gpointer data,
 	handle = net_nfc_test_device_get_target_handle();
 
 	result = net_nfc_client_send_exchanger_data(exch_data,
-				handle,
-				user_data);
+			handle,
+			user_data);
 	g_print("Send exchanger result : %d\n", result);
 	run_next_callback(user_data);
 }
 
-void net_nfc_test_exchanger_request_connection_handover(gpointer data,
-				gpointer user_data)
+void net_nfc_test_exchanger_request_connection_handover(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_conn_handover_carrier_type_e type = NET_NFC_CONN_HANDOVER_CARRIER_BT;
@@ -127,8 +124,7 @@ void net_nfc_test_exchanger_request_connection_handover(gpointer data,
 	run_next_callback(user_data);
 }
 
-void net_nfc_test_exchanger_get_alternative_carrier_type(gpointer data,
-				gpointer user_data)
+void net_nfc_test_exchanger_get_alternative_carrier_type(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	/*Handover info needs to check-.As of now passing NULL*/
@@ -142,7 +138,7 @@ void net_nfc_test_exchanger_get_alternative_carrier_type(gpointer data,
 }
 
 void net_nfc_test_exchanger_get_alternative_carrier_data(gpointer data,
-				gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	/*Handover info needs to check-.As of now passing NULL*/

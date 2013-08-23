@@ -1,0 +1,11 @@
+prefix=@PREFIX@
+exec_prefix=${prefix}/bin
+libdir=@LIB_INSTALL_DIR@
+includedir=@INCLUDE_INSTALL_DIR@/@NFC_COMMON@
+
+Name: @NFC_COMMON@
+Description: NFC Common Library
+Version: @FULLVER@
+Requires:
+Libs: -L${libdir} -l@NFC_COMMON@
+Cflags: -I${includedir}

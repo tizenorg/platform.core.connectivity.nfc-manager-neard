@@ -27,9 +27,9 @@
 static void run_next_callback(gpointer user_data);
 
 static void p2p_connection_handover_cb(net_nfc_error_e result,
-						net_nfc_conn_handover_carrier_type_e type,
-						data_h data,
-						void *user_data);
+		net_nfc_conn_handover_carrier_type_e type,
+		data_h data,
+		void *user_data);
 
 net_nfc_connection_handover_info_h global_info = NULL;
 
@@ -45,9 +45,9 @@ static void run_next_callback(gpointer user_data)
 }
 
 static void p2p_connection_handover_cb(net_nfc_error_e result,
-					net_nfc_conn_handover_carrier_type_e type,
-					data_h data,
-					void *user_data)
+		net_nfc_conn_handover_carrier_type_e type,
+		data_h data,
+		void *user_data)
 {
 	g_print("Connection handover completed\n");
 
@@ -67,7 +67,7 @@ static void p2p_connection_handover_cb(net_nfc_error_e result,
 }
 
 void net_nfc_test_p2p_connection_handover(gpointer data,
-						gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_conn_handover_carrier_type_e type = NET_NFC_CONN_HANDOVER_CARRIER_BT;
@@ -78,14 +78,14 @@ void net_nfc_test_p2p_connection_handover(gpointer data,
 	g_print("handle for handover  : %p \n", handle);
 
 	result = net_nfc_client_p2p_connection_handover(
-					handle,
-					type,
-					p2p_connection_handover_cb,
-					user_data);
+			handle,
+			type,
+			p2p_connection_handover_cb,
+			user_data);
 }
 
 void  net_nfc_test_p2p_connection_handover_sync(gpointer data,
-						gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_conn_handover_carrier_type_e type;
@@ -97,19 +97,18 @@ void  net_nfc_test_p2p_connection_handover_sync(gpointer data,
 	handle = net_nfc_test_device_get_target_handle();
 
 	result = net_nfc_client_p2p_connection_handover_sync(
-					handle,
-					type,
-					&out_carrier,
-					&out_data);
+			handle,
+			type,
+			&out_carrier,
+			&out_data);
 
 	g_print("Received out carrier type & carrier type  %d, %d\n", out_carrier, type);
 	print_received_data(out_data);
 	run_next_callback(user_data);
 }
 
-
 void net_nfc_test_handover_get_alternative_carrier_type(gpointer data,
-						gpointer user_data)
+		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_conn_handover_carrier_type_e type;
@@ -119,7 +118,7 @@ void net_nfc_test_handover_get_alternative_carrier_type(gpointer data,
 }
 
 void net_nfc_test_handover_handle_alternative_carrier_data(gpointer data,
-							gpointer user_datarrierData)
+		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	data_h out_data = NULL;
@@ -133,5 +132,4 @@ void net_nfc_test_handover_handle_alternative_carrier_data(gpointer data,
 
 	result = net_nfc_client_handover_free_alternative_carrier_data(hand_info);
 	g_print("Free alternative carrier data	%d", result);
-
 }
