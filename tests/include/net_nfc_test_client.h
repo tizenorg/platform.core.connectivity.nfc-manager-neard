@@ -21,13 +21,17 @@
 #include <glib.h>
 
 
-void net_nfc_test_initialize();
+void net_nfc_test_initialize(gpointer data,
+				gpointer user_data);
 
-void net_nfc_test_deinitialize();
+void net_nfc_test_deinitialize(gpointer data,
+				gpointer user_data);
 
-void net_nfc_test_is_nfc_supported();
+void net_nfc_test_is_nfc_supported(gpointer data,
+				gpointer user_data);
 
-void net_nfc_test_get_nfc_state();
+void net_nfc_test_get_nfc_state(gpointer data,
+				gpointer user_data);
 
-#endif
+#endif//__NET_NFC_TEST_CLIENT_H__
 

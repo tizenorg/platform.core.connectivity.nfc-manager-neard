@@ -35,6 +35,7 @@
 #include "net_nfc_test_tag_felica.h"
 #include "net_nfc_test_exchanger.h"
 #include "net_nfc_test_se.h"
+#include "net_nfc_test_sys_handler.h"
 
 
 typedef struct _TestData TestData;
@@ -286,10 +287,10 @@ static TestData test_data[] = {
 
 	{
 		"Handover",
-		"GetCarrierData",
-		net_nfc_test_handover_get_alternative_carrier_data,
-		net_nfc_test_handover_get_alternative_carrier_data,
-		"Get Handover Carrier Data"
+		"HandleCarrierData",
+		net_nfc_test_handover_handle_alternative_carrier_data,
+		net_nfc_test_handover_handle_alternative_carrier_data,
+		"Create/Free Handover Carrier Data"
 
 	},
 
@@ -460,10 +461,10 @@ static TestData test_data[] = {
 
 	{
 		"Exchanger",
-		"CreateData",
-		net_nfc_test_create_exchanger_data,
-		net_nfc_test_create_exchanger_data,
-		"Create exchanger data"
+		"HandleData",
+		net_nfc_test_handle_exchanger_data,
+		net_nfc_test_handle_exchanger_data,
+		"Create/Free exchanger data"
 	},
 
 	{
@@ -497,6 +498,23 @@ static TestData test_data[] = {
 		net_nfc_test_exchanger_get_alternative_carrier_type,
 		"Get Alternative carrier type"
 	},
+
+	{
+		"llcp",
+		"CreateSocket",
+		net_nfc_test_llcp_create_socket,
+		net_nfc_test_llcp_create_socket,
+		"Create a LLCP socket"
+	},
+
+	{
+		"llcp",
+		"CloseSocket",
+		net_nfc_test_llcp_close_socket,
+		net_nfc_test_llcp_close_socket_sync,
+		"Close the socket"
+	},
+
 	{
 		"llcp",
 		"SetDefaultConfig",
@@ -882,6 +900,22 @@ static TestData test_data[] = {
 		net_nfc_test_se_unset_transaction_event_cb,
 		net_nfc_test_se_unset_transaction_event_cb,
 		"Unset transaction callback"
+	},
+
+	{
+		"SystemHandler",
+		"SetLaunchPopState",
+		net_nfc_test_sys_handler_set_launch_popup_state,
+		net_nfc_test_sys_handler_set_launch_popup_state,
+		"Set launch popup state"
+	},
+
+	{
+		"SystemHandler",
+		"GetLaunchPopState",
+		net_nfc_test_sys_handler_get_launch_popup_state,
+		net_nfc_test_sys_handler_get_launch_popup_state,
+		"Get launch popup state"
 	},
 
 	{ NULL }

@@ -122,6 +122,14 @@ void net_nfc_test_llcp_receive_from(gpointer data,
 void net_nfc_test_llcp_receive_from_sync(gpointer data,
 				gpointer user_data);
 
+void net_nfc_test_llcp_create_socket(gpointer data,
+			gpointer user_data);
+
+void net_nfc_test_llcp_close_socket(gpointer data,
+			gpointer user_data);
+
+void net_nfc_test_llcp_close_socket_sync(gpointer data,
+			gpointer user_data);
 
 void net_nfc_test_llcp_connect(gpointer data,
 			gpointer user_data);
@@ -141,7 +149,6 @@ void net_nfc_test_llcp_send(gpointer data,
 void net_nfc_test_llcp_send_sync(gpointer data,
 			gpointer user_data);
 
-
 void net_nfc_test_llcp_send_to(gpointer data,
 			gpointer user_data);
 
@@ -157,5 +164,5 @@ void net_nfc_test_llcp_disconnect_server(gpointer func_data,
 void net_nfc_test_llcp_disconnect_sync(gpointer func_data,
 			gpointer user_data);
 
-#endif
+#endif//__NET_NFC_TEST_LLCP_H__
 

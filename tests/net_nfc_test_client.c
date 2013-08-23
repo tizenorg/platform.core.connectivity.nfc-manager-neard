@@ -21,40 +21,85 @@
 #include "net_nfc_typedef_internal.h"
 
 
-void net_nfc_test_initialize()
+static void run_next_callback(gpointer user_data);
+
+static void run_next_callback(gpointer user_data)
+{
+	if (user_data)
+	{
+		GCallback callback;
+
+		callback = (GCallback)(user_data);
+		callback();
+	}
+}
+
+void net_nfc_test_initialize(gpointer data,
+				gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 
 	result = net_nfc_client_initialize();
 
-	g_print("Client Initialization Completed & Return value is %d\n", result);
+	if(result != NET_NFC_OK)
+	{
+		g_print("Client Initialization failed & Result is %d\n", result);
+		return;
+	}
+
+	g_print("Client Initialization Completed & Result is %d\n", result);
+
+	run_next_callback(user_data);
 }
 
-void net_nfc_test_deinitialize()
+void net_nfc_test_deinitialize(gpointer data,
+				gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 
 	result = net_nfc_client_deinitialize();
 
-	g_print("Client Deinitialization Completed & Return value is %d\n", result);
+	g_print("Client Deinitialization Completed & Result is %d\n", result);
 }
 
-void net_nfc_test_is_nfc_supported()
+void net_nfc_test_is_nfc_supported(gpointer data,
+				gpointer user_data)
 {
-	int state = 0;
+	int feature = 0;
 	net_nfc_error_e result = NET_NFC_OK;
 
-	result = net_nfc_client_is_nfc_supported(&state);
+	result = net_nfc_client_is_nfc_supported(&feature);
 
-	g_print("Client is_nfc_supported completed & state value is %d\n", state);
+	if((result != NET_NFC_OK) || (feature != 1))
+	{
+		g_print("Client is_nfc_supported failed & result is %d\n", result);
+		g_print("Client is_nfc_supported failed & feature value is %d\n", feature);
+		return;
+	}
+
+	g_print("Client is_nfc_supported completed & feature value is %d\n", feature);
+	g_print("Client is_nfc_supported completed & result is %d\n", result);
+
+	run_next_callback(user_data);
 }
 
-void net_nfc_test_get_nfc_state()
+void net_nfc_test_get_nfc_state(gpointer data,
+				gpointer user_data)
 {
 	int state = 0;
 	net_nfc_error_e result = NET_NFC_OK;
 
 	result = net_nfc_client_get_nfc_state(&state);
 
+	if((result != NET_NFC_OK) || (state != 1))
+	{
+		g_print("Client get_nfc_state failed & result is %d\n", result);
+		g_print("Client get_nfc_state failed & state value is %d\n", state);
+		return;
+	}
+
 	g_print("Client get_nfc_state completed & state value is %d\n", state);
+	g_print("Client get_nfc_state completed & result is %d\n", result);
+
+	run_next_callback(user_data);
 }

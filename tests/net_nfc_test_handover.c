@@ -21,7 +21,7 @@
 #include "net_nfc_typedef_internal.h"
 #include "net_nfc_typedef.h"
 #include "net_nfc_test_p2p.h"
-
+#include "net_nfc_util_internal.h"
 
 
 static void run_next_callback(gpointer user_data);
@@ -30,6 +30,8 @@ static void p2p_connection_handover_cb(net_nfc_error_e result,
 						net_nfc_conn_handover_carrier_type_e type,
 						data_h data,
 						void *user_data);
+
+net_nfc_connection_handover_info_h global_info = NULL;
 
 
 static void run_next_callback(gpointer user_data)
@@ -50,6 +52,17 @@ static void p2p_connection_handover_cb(net_nfc_error_e result,
 	g_print("Connection handover completed\n");
 
 	print_received_data(data);
+
+	global_info->type = type;
+
+	if(data->length > 0)
+	{
+		g_print("Callback has valid data \n");
+		global_info->data.buffer = data->buffer;
+		global_info->data.length = data->length;
+		print_received_data(&global_info->data);
+	}
+
 	run_next_callback(user_data);
 }
 
@@ -91,32 +104,34 @@ void  net_nfc_test_p2p_connection_handover_sync(gpointer data,
 
 	g_print("Received out carrier type & carrier type  %d, %d\n", out_carrier, type);
 	print_received_data(out_data);
+	run_next_callback(user_data);
 }
+
 
 void net_nfc_test_handover_get_alternative_carrier_type(gpointer data,
 						gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_conn_handover_carrier_type_e type;
-	net_nfc_connection_handover_info_h info = NULL;
 
-	result = net_nfc_client_handover_get_alternative_carrier_type(
-				(net_nfc_connection_handover_info_h) & info, &type);
+	result = net_nfc_client_handover_get_alternative_carrier_type(global_info, &type);
 	g_print("Handover alternative carrier type -> %d", type);
 }
 
-void net_nfc_test_handover_get_alternative_carrier_data(gpointer data,
-						gpointer user_data)
-
+void net_nfc_test_handover_handle_alternative_carrier_data(gpointer data,
+							gpointer user_datarrierData)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	data_h out_data = NULL;
-	net_nfc_connection_handover_info_h info = NULL;
+	net_nfc_connection_handover_info_h hand_info = NULL;
 
-	result = net_nfc_client_handover_get_alternative_carrier_data(
-				(net_nfc_connection_handover_info_h)&info, &out_data);
+	result = net_nfc_client_handover_get_alternative_carrier_data(global_info, &out_data);
 	g_print(" Get alternative carrier data  %d", result);
 	print_received_data(out_data);
 
-	g_print("Handover get data carrier data completed\n");
+	hand_info = global_info;
+
+	result = net_nfc_client_handover_free_alternative_carrier_data(hand_info);
+	g_print("Free alternative carrier data	%d", result);
+
 }

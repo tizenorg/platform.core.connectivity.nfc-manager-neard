@@ -20,6 +20,10 @@
 #include "net_nfc_test_exchanger.h"
 #include "net_nfc_ndef_message.h"
 #include "net_nfc_test_util.h"
+#include "net_nfc_ndef_record.h"
+#include "net_nfc_typedef_internal.h"
+
+
 
 static void run_next_callback(gpointer user_data);
 
@@ -42,10 +46,14 @@ static net_nfc_exchanger_data_h _net_nfc_test_create_exchgr_data()
 	net_nfc_error_e result = NET_NFC_OK;
 	ndef_message_h msg = NULL;
 	data_h rawdata = NULL;
+	ndef_record_h record = NULL;
 	net_nfc_exchanger_data_h exch_data = NULL;
 
-	net_nfc_create_ndef_message(&msg);
+	net_nfc_create_ndef_message (&msg);
+	net_nfc_create_uri_type_record (&record ,"http://www.samsung.com" ,NET_NFC_SCHEMA_FULL_URI);
+	net_nfc_append_record_to_ndef_message (msg ,record);
 	net_nfc_create_rawdata_from_ndef_message(msg, &rawdata);
+
 	if((result = net_nfc_client_create_exchanger_data(&exch_data, rawdata)) != NET_NFC_OK)
 	{
 		net_nfc_free_data(rawdata);
@@ -56,28 +64,40 @@ static net_nfc_exchanger_data_h _net_nfc_test_create_exchgr_data()
 	return exch_data;
 }
 
-void net_nfc_test_create_exchanger_data(gpointer data,
-								gpointer user_data)
+void net_nfc_test_handle_exchanger_data(gpointer data,
+				gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	ndef_message_h msg = NULL;
 	data_h rawdata = NULL;
+	ndef_record_h record = NULL;
 	net_nfc_exchanger_data_h exch_data = NULL;
 
-	net_nfc_create_ndef_message(&msg);
+	net_nfc_create_ndef_message (&msg);
+	net_nfc_create_uri_type_record (&record ,"http://www.samsung.com" ,NET_NFC_SCHEMA_FULL_URI);
+	net_nfc_append_record_to_ndef_message (msg ,record);
 	net_nfc_create_rawdata_from_ndef_message(msg, &rawdata);
+
 	if((result = net_nfc_client_create_exchanger_data(&exch_data, rawdata)) != NET_NFC_OK)
 	{
 		net_nfc_free_data(rawdata);
-		g_printerr(" Exchanger data creation failed \n");
+		g_printerr(" Exchanger data creation failed : %d\n", result);
 		return;
 	}
+	if((result = net_nfc_client_free_exchanger_data(exch_data)) != NET_NFC_OK)
+	{
+		g_printerr(" Exchanger data free failed : %d\n", result);
+		return;
+	}
+
 	net_nfc_free_data(rawdata);
+
+	g_print("Exchanger data created and freed successfully\n");
 	return;
 }
 
 void net_nfc_test_send_exchanger_data(gpointer data,
-                                gpointer user_data)
+				gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -94,7 +114,7 @@ void net_nfc_test_send_exchanger_data(gpointer data,
 }
 
 void net_nfc_test_exchanger_request_connection_handover(gpointer data,
-                                gpointer user_data)
+				gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_conn_handover_carrier_type_e type = NET_NFC_CONN_HANDOVER_CARRIER_BT;
@@ -108,25 +128,33 @@ void net_nfc_test_exchanger_request_connection_handover(gpointer data,
 }
 
 void net_nfc_test_exchanger_get_alternative_carrier_type(gpointer data,
-                                gpointer user_data)
+				gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	net_nfc_connection_handover_info_h info = NULL;
+	/*Handover info needs to check-.As of now passing NULL*/
+	net_nfc_connection_handover_info_s info;
+	info.type = NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS;
+
 	net_nfc_conn_handover_carrier_type_e type = NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN;
 
-	result = net_nfc_client_exchanger_get_alternative_carrier_type(info, &type);
+	result = net_nfc_client_exchanger_get_alternative_carrier_type(&info, &type);
 	g_print(" Exchanger alternative carrier type and result : %d \n %d",type, result);
 }
 
 void net_nfc_test_exchanger_get_alternative_carrier_data(gpointer data,
-                                gpointer user_data)
+				gpointer user_data)
 {
-        net_nfc_error_e result = NET_NFC_OK;
-        net_nfc_connection_handover_info_h info = NULL;
+	net_nfc_error_e result = NET_NFC_OK;
+	/*Handover info needs to check-.As of now passing NULL*/
+	net_nfc_connection_handover_info_s info;
+	uint8_t *carrier_data = "Wifi";
 	data_h data_info = NULL;
 
-        result = net_nfc_client_exchanger_get_alternative_carrier_data(info, &data_info);
-        g_print(" Exchanger alternative carrier  result : %d \n",result);
+	data_info = calloc(1,sizeof(data_h));
+	result = net_nfc_set_data(data,carrier_data,4);
+
+	result = net_nfc_client_exchanger_get_alternative_carrier_data(&info, &data_info);
+	g_print(" Exchanger alternative carrier  result : %d \n",result);
 	print_received_data(data_info);
 }
 

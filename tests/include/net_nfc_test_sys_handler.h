@@ -14,28 +14,15 @@
 * limitations under the License.
 */
 
-
-#ifndef __NET_NFC_TEST_EXCHANGER_H__
-#define __NET_NFC_TEST_EXCHANGER_H__
-
+#ifndef __NET_NFC_TEST_SYS_HANDLER_H__
+#define __NET_NFC_TEST_SYS_HANDLER_H__
 
 #include <glib.h>
-#include "net_nfc_typedef.h"
 
-
-void net_nfc_test_handle_exchanger_data(gpointer data,
+void net_nfc_test_sys_handler_set_launch_popup_state(gpointer data,
 				gpointer user_data);
 
-void net_nfc_test_send_exchanger_data(gpointer data,
+void net_nfc_test_sys_handler_get_launch_popup_state(gpointer data,
 				gpointer user_data);
 
-void net_nfc_test_exchanger_request_connection_handover(gpointer data,
-				gpointer user_data);
-
-void net_nfc_test_exchanger_get_alternative_carrier_type(gpointer data,
-				gpointer user_data);
-
-void net_nfc_test_exchanger_get_alternative_carrier_data(gpointer data,
-				gpointer user_data);
-
-#endif//__NET_NFC_TEST_EXCHANGER_H__
+#endif//__NET_NFC_TEST_SYS_HANDLER_H__

@@ -36,6 +36,7 @@ ADD_EXECUTABLE(${NFC_CLIENT_TEST}
 		net_nfc_test_llcp.c
 		net_nfc_test_snep.c
 		net_nfc_test_se.c
+		net_nfc_test_sys_handler.c
 		net_nfc_test_util.c
 		)
 
