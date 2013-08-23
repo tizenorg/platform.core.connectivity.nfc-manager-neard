@@ -1,3 +1,6 @@
+* Fri Aug 23 2013 Kevron Rees <kevron.m.rees@intel.com> 
+- Use "_" domain for now in smack manifest
+
 * Tue Jul 09 2013 Arron Wang <arron.wang@intel.com> submit/tizen/20130709.004351@85cbbd8
 - Remove sysvinit script
 - Rename package name with neard postfix
