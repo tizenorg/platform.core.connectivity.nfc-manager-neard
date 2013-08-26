@@ -29,4 +29,18 @@ net_nfc_error_e net_nfc_server_handover_default_server_register();
 
 net_nfc_error_e net_nfc_server_handover_default_server_unregister();
 
+net_nfc_error_e _net_nfc_server_handover_create_selector_from_rawdata(
+							ndef_message_s **selector,
+							data_s *data);
+
+net_nfc_error_e
+_net_nfc_server_handover_get_carrier_record_by_priority_order(
+				ndef_message_s *request,
+				ndef_record_s **record);
+
+net_nfc_error_e _net_nfc_server_handover_process_carrier_record(
+				ndef_record_s *carrier,
+				void *cb,
+				void *user_param);
+
 #endif //__NET_NFC_SERVER_PROCESS_HANDOVER_H__

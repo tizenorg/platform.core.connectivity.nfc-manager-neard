@@ -27,7 +27,7 @@
 #include "net_nfc_server_handover_internal.h"
 #include "net_nfc_server_process_snep.h"
 #include "net_nfc_util_gdbus_internal.h"
-
+#include "net_nfc_server_handover_bss.h"
 
 typedef void (*_net_nfc_server_handover_create_carrier_msg_cb)(
 						net_nfc_error_e result,
@@ -100,11 +100,6 @@ static void _net_nfc_server_handover_client_connected_cb(
 
 static void _net_nfc_server_handover_get_response_process(
 					net_nfc_handover_context_t *context);
-
-static net_nfc_error_e _net_nfc_server_handover_process_carrier_record(
-						ndef_record_s *carrier,
-						void *cb,
-						void *user_param);
 
 static int _net_nfc_server_handover_append_wifi_carrier_config(
 		net_nfc_server_handover_create_config_context_t *context);
@@ -294,7 +289,7 @@ static void _net_nfc_server_handover_bt_process_carrier_record_cb(
 }
 
 
-static net_nfc_error_e
+net_nfc_error_e
 _net_nfc_server_handover_get_carrier_record_by_priority_order(
 				ndef_message_s *request,
 				ndef_record_s **record)
@@ -399,7 +394,7 @@ static net_nfc_error_e _net_nfc_server_handover_create_requester_from_rawdata(
 	return result;
 }
 
-static net_nfc_error_e _net_nfc_server_handover_create_selector_from_rawdata(
+net_nfc_error_e _net_nfc_server_handover_create_selector_from_rawdata(
 							ndef_message_s **selector,
 							data_s *data)
 {
@@ -875,7 +870,7 @@ _net_nfc_server_handover_create_low_power_selector_message(
 	return result;
 }
 
-static net_nfc_error_e _net_nfc_server_handover_process_carrier_record(
+net_nfc_error_e _net_nfc_server_handover_process_carrier_record(
 				ndef_record_s *carrier,
 				void *cb,
 				void *user_param)
@@ -912,6 +907,10 @@ static net_nfc_error_e _net_nfc_server_handover_process_carrier_record(
 
 		case NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS :
 			DEBUG_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS]");
+			net_nfc_server_handover_bss_process_carrier_record(
+				carrier,
+				NULL,
+				NULL);
 			_net_nfc_util_free_mem(context);
 			break;
 

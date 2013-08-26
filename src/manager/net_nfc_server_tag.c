@@ -24,7 +24,8 @@
 #include "net_nfc_server_context_internal.h"
 #include "net_nfc_server_tag.h"
 #include "net_nfc_server_p2p.h"
-
+#include "net_nfc_server_process_handover.h"
+#include "net_nfc_util_ndef_record.h"
 
 typedef struct _CurrentTagInfoData CurrentTagInfoData;
 
@@ -360,6 +361,7 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 	GVariant *raw_data = NULL;
 
 	WatchDogData *watch_dog = NULL;
+	bool isHandoverMessage = false;
 
 	target = net_nfc_server_get_target_info();
 
@@ -414,8 +416,41 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 					target->devType,
 					&recv_data) == TRUE)
 		{
-			net_nfc_app_util_process_ndef(recv_data);
-			raw_data = net_nfc_util_gdbus_data_to_variant(recv_data);
+			ndef_message_s *selector;
+			ndef_record_s *record;
+			ndef_record_s *recordasperpriority;
+			result = _net_nfc_server_handover_create_selector_from_rawdata(
+					&selector,
+					recv_data);
+
+			if (result == NET_NFC_OK)
+			{
+				result =
+				_net_nfc_server_handover_get_carrier_record_by_priority_order(
+						selector,
+						&record);
+				isHandoverMessage = true;
+				if (result == NET_NFC_OK)
+				{
+					net_nfc_util_create_record(
+						record->TNF,
+						&record->type_s, &record->id_s,
+						&record->payload_s,
+						&recordasperpriority);
+
+					_net_nfc_server_handover_process_carrier_record(recordasperpriority, NULL, NULL);
+				}
+				else
+				{
+					DEBUG_ERR_MSG("_get_carrier_record_by_priority_order"
+							" failed, [%d]",result);
+				}
+			}
+		else
+			{
+				net_nfc_app_util_process_ndef(recv_data);
+				raw_data = net_nfc_util_gdbus_data_to_variant(recv_data);
+			}
 		}
 		else
 		{
@@ -435,17 +470,20 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 		raw_data = net_nfc_util_gdbus_data_to_variant(&empty_data);
 	}
 
-	/* send TagDiscoverd signal */
-	net_nfc_gdbus_tag_emit_tag_discovered(tag_skeleton,
-					GPOINTER_TO_UINT(target->handle),
-					target->devType,
-					is_ndef_supported,
-					ndef_card_state,
-					max_data_size,
-					actual_data_size,
-					target->number_of_keys,
-					target_info_values,
-					raw_data);
+	if(isHandoverMessage == false)
+	{
+		/* send TagDiscoverd signal */
+		net_nfc_gdbus_tag_emit_tag_discovered(tag_skeleton,
+						GPOINTER_TO_UINT(target->handle),
+						target->devType,
+						is_ndef_supported,
+						ndef_card_state,
+						max_data_size,
+						actual_data_size,
+						target->number_of_keys,
+						target_info_values,
+						raw_data);
+	}
 
 	/* turn on watch dog */
 	DEBUG_SERVER_MSG("turn on watch dog");
