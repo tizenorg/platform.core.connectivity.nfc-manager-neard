@@ -607,23 +607,23 @@ net_nfc_error_e net_nfc_util_create_ndef_record_with_carrier_config(ndef_record_
 
 static net_nfc_error_e __net_nfc_get_list_from_serial_for_wifi(GList **list, uint8_t *data, uint32_t length)
 {
-	net_nfc_carrier_property_s *elem = NULL;
 	uint8_t *current = data;
 	uint8_t *last = current + length;
 
 	while (current < last)
 	{
+		net_nfc_carrier_property_s *elem = NULL;
 		_net_nfc_util_alloc_mem(elem, sizeof(net_nfc_carrier_property_s));
 		if (elem == NULL)
 		{
 			return NET_NFC_ALLOC_FAIL;
 		}
-		elem->attribute = *((uint16_t *)current);
-		elem->length = *((uint16_t *)(current + 2));
+		elem->attribute = current[0]<<8|current[1];
+		elem->length = current[2]<<8|current[3];
 
 		if (elem->attribute == NET_NFC_WIFI_ATTRIBUTE_CREDENTIAL)
 		{
-			__net_nfc_get_list_from_serial_for_wifi((GList **)&(elem->data), (current + 4), elem->length);
+			__net_nfc_get_list_from_serial_for_wifi(list, (current + 4), elem->length);
 			elem->is_group = true;
 		}
 		else

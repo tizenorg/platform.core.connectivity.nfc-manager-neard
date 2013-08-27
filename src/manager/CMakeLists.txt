@@ -15,7 +15,7 @@ IF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 ENDIF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 
 INCLUDE(FindPkgConfig)
-pkg_check_modules(manager_pkges REQUIRED aul glib-2.0 gio-unix-2.0 security-server vconf dlog tapi appsvc libcurl bluetooth-api libssl svi capi-media-wav-player pkgmgr pkgmgr-info ecore-x pmapi)
+pkg_check_modules(manager_pkges REQUIRED aul glib-2.0 gio-unix-2.0 security-server vconf dlog tapi appsvc libcurl bluetooth-api libssl svi capi-media-wav-player pkgmgr pkgmgr-info capi-network-wifi ecore-x pmapi)
 FOREACH(flag ${manager_pkges_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
 ENDFOREACH(flag)
