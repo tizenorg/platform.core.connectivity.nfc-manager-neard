@@ -38,7 +38,6 @@ extern "C" {
 #include "net_nfc_client_llcp.h"
 #include "net_nfc_client_p2p.h"
 #include "net_nfc_client_snep.h"
-#include "net_nfc_client_exchanger.h"
 #include "net_nfc_client_handover.h"
 #include "net_nfc_client_se.h"
 #include "net_nfc_client_tag_felica.h"

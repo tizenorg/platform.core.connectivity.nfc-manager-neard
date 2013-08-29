@@ -19,8 +19,7 @@
 #include "net_nfc_typedef.h"
 
 typedef void (*net_nfc_client_ndef_read_completed) (net_nfc_error_e result,
-		ndef_message_h message,
-		void *user_data);
+		ndef_message_h message, void *user_data);
 
 typedef void (*net_nfc_client_ndef_write_completed) (net_nfc_error_e result,
 		void *user_data);
@@ -40,9 +39,7 @@ net_nfc_error_e net_nfc_client_ndef_read_sync(net_nfc_target_handle_h handle,
 		ndef_message_h *message);
 
 net_nfc_error_e net_nfc_client_ndef_write(net_nfc_target_handle_h handle,
-		ndef_message_h message,
-		net_nfc_client_ndef_write_completed callback,
-		void *user_data);
+		ndef_message_h message, net_nfc_client_ndef_write_completed callback, void *user_data);
 
 net_nfc_error_e net_nfc_client_ndef_write_sync(net_nfc_target_handle_h handle,
 		ndef_message_h message);
@@ -56,12 +53,9 @@ net_nfc_error_e net_nfc_client_ndef_make_read_only_sync(
 		net_nfc_target_handle_h handle);
 
 net_nfc_error_e net_nfc_client_ndef_format(net_nfc_target_handle_h handle,
-		data_h key,
-		net_nfc_client_ndef_format_completed callback,
-		void *user_data);
+		data_h key, net_nfc_client_ndef_format_completed callback, void *user_data);
 
-net_nfc_error_e net_nfc_client_ndef_format_sync(
-		net_nfc_target_handle_h handle,
+net_nfc_error_e net_nfc_client_ndef_format_sync(net_nfc_target_handle_h handle,
 		data_h key);
 
 /* TODO : move to internal header */

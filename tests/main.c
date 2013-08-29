@@ -32,7 +32,6 @@
 #include "net_nfc_test_jewel.h"
 #include "net_nfc_test_tag_mifare.h"
 #include "net_nfc_test_tag_felica.h"
-#include "net_nfc_test_exchanger.h"
 #include "net_nfc_test_se.h"
 #include "net_nfc_test_sys_handler.h"
 
@@ -424,46 +423,6 @@ static TestData test_data[] = {
 		net_nfc_test_felica_request_system_code,
 		net_nfc_test_felica_request_system_code,
 		"Felica Request System Code"
-	},
-
-	{
-		"Exchanger",
-		"HandleData",
-		net_nfc_test_handle_exchanger_data,
-		net_nfc_test_handle_exchanger_data,
-		"Create/Free exchanger data"
-	},
-
-	{
-		"Exchanger",
-		"SendData",
-		net_nfc_test_send_exchanger_data,
-		net_nfc_test_send_exchanger_data,
-		"Send Exchanger Data"
-	},
-
-	{
-		"Exchanger",
-		"ConnectionHandover",
-		net_nfc_test_exchanger_request_connection_handover,
-		net_nfc_test_exchanger_request_connection_handover,
-		"Request Connection Hnadover"
-	},
-
-	{
-		"Exchanger",
-		"GetCarrierData",
-		net_nfc_test_exchanger_get_alternative_carrier_data,
-		net_nfc_test_exchanger_get_alternative_carrier_data,
-		"Get alternative carrier data"
-	},
-
-	{
-		"Exchanger",
-		"GetCarrierType",
-		net_nfc_test_exchanger_get_alternative_carrier_type,
-		net_nfc_test_exchanger_get_alternative_carrier_type,
-		"Get Alternative carrier type"
 	},
 
 	{

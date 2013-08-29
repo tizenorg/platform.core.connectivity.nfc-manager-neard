@@ -60,8 +60,7 @@ typedef void (*net_nfc_client_llcp_disconnect_completed)(net_nfc_error_e result,
 		net_nfc_llcp_socket_t client_socket, void *user_data);
 
 net_nfc_error_e net_nfc_client_llcp_config(net_nfc_llcp_config_info_h config,
-		net_nfc_client_llcp_config_completed callback,
-		void *user_data);
+		net_nfc_client_llcp_config_completed callback, void *user_data);
 
 net_nfc_error_e net_nfc_client_llcp_config_sync
 					(net_nfc_llcp_config_info_h config);
@@ -208,28 +207,22 @@ net_nfc_error_e net_nfc_client_llcp_get_config_wks(
 		uint16_t *wks);
 
 net_nfc_error_e net_nfc_client_llcp_get_config_lto(
-		net_nfc_llcp_config_info_h config,
-		uint8_t *lto);
+		net_nfc_llcp_config_info_h config, uint8_t *lto);
 
 net_nfc_error_e net_nfc_client_llcp_get_config_option(
-		net_nfc_llcp_config_info_h config,
-		uint8_t *option);
+		net_nfc_llcp_config_info_h config, uint8_t *option);
 
 net_nfc_error_e net_nfc_client_llcp_set_config_miu(
-		net_nfc_llcp_config_info_h config,
-		uint16_t miu);
+		net_nfc_llcp_config_info_h config, uint16_t miu);
 
 net_nfc_error_e net_nfc_client_llcp_set_config_wks(
-		net_nfc_llcp_config_info_h config,
-		uint16_t wks);
+		net_nfc_llcp_config_info_h config, uint16_t wks);
 
 net_nfc_error_e net_nfc_client_llcp_set_config_lto(
-		net_nfc_llcp_config_info_h config,
-		uint8_t lto);
+		net_nfc_llcp_config_info_h config, uint8_t lto);
 
 net_nfc_error_e net_nfc_client_llcp_set_config_option(
-		net_nfc_llcp_config_info_h config,
-		uint8_t option);
+		net_nfc_llcp_config_info_h config, uint8_t option);
 
 net_nfc_error_e net_nfc_client_llcp_free_config(
 		net_nfc_llcp_config_info_h config);

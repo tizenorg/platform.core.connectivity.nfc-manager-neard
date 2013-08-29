@@ -18,6 +18,12 @@
 
 #include <glib.h>
 
+typedef struct _NetNfcCallback
+{
+	void *callback;
+	void *user_data;
+}
+NetNfcCallback;
 
 void net_nfc_client_gdbus_init(void);
 

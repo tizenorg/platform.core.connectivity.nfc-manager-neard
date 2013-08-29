@@ -76,9 +76,10 @@ typedef struct _net_nfc_server_handover_process_config_context_t
 
 
 
-static void _net_nfc_server_handover_send_response(void *user_param,
-		data_h ac_data,
-		net_nfc_error_e result);
+static void _net_nfc_server_handover_send_response(net_nfc_error_e result,
+		net_nfc_conn_handover_carrier_type_e carrier,
+		data_s *ac_data,
+		void *user_param);
 
 static void _net_nfc_server_handover_client_process(
 		net_nfc_handover_context_t *context);
@@ -138,37 +139,23 @@ static void _net_nfc_server_handover_server_process(
 ////////////////////////////////////////////////////////////////////////////
 
 static void _net_nfc_server_handover_send_response(
-		void *user_param,
-		data_h ac_data,
-		net_nfc_error_e result)
+		net_nfc_error_e result,
+		net_nfc_conn_handover_carrier_type_e carrier,
+		data_s *ac_data,
+		void *user_param)
 {
-	HandoverRequestData *handover_data = NULL;
-	guint32 resp_event;
-	guint32 resp_type;
-	GVariant* data = NULL;
+	HandoverRequestData *handover_data = (HandoverRequestData *)user_param;
 
-	handover_data = (HandoverRequestData*)user_param;
+	g_assert(handover_data != NULL);
+	g_assert(handover_data->invocation != NULL);
+	g_assert(handover_data->handoverobj != NULL);
 
-	data = net_nfc_util_gdbus_data_to_variant(ac_data);
-
-	resp_type = NET_NFC_MESSAGE_CONNECTION_HANDOVER;
-
-	if (result == NET_NFC_OK)
-		resp_event = NET_NFC_EXCHANGER_TRANSFER_COMPLETED;
-	else
-		resp_event = NET_NFC_EXCHANGER_TRANSFER_FAILED;
-
-	if (handover_data->invocation)
-	{
-		net_nfc_gdbus_handover_complete_request(
-				handover_data->handoverobj,
-				handover_data->invocation,
-				resp_event,
-				resp_type,
-				data);
-
-		g_object_unref(handover_data->invocation);
-	}
+	net_nfc_gdbus_handover_complete_request(
+			handover_data->handoverobj,
+			handover_data->invocation,
+			result,
+			carrier,
+			net_nfc_util_gdbus_data_to_variant(ac_data));
 
 	if (handover_data->data)
 	{
@@ -176,6 +163,7 @@ static void _net_nfc_server_handover_send_response(
 		g_free(handover_data->data);
 	}
 
+	g_object_unref(handover_data->invocation);
 	g_object_unref(handover_data->handoverobj);
 
 	g_free(handover_data);
@@ -2090,9 +2078,10 @@ static void _net_nfc_server_handover_client_process(
 
 		/* complete and invoke callback */
 		_net_nfc_server_handover_send_response(
-				context->user_param,
+				context->result,
+				context->type,
 				&context->data,
-				context->result);
+				context->user_param);
 
 		net_nfc_util_free_data(&context->data);
 		net_nfc_util_free_record(context->record);
@@ -2104,9 +2093,10 @@ static void _net_nfc_server_handover_client_process(
 		DEBUG_ERR_MSG("NET_NFC_STATE_ERROR");
 
 		_net_nfc_server_handover_send_response(
-				context->user_param,
+				context->result,
+				context->type,
 				NULL,
-				context->result);
+				context->user_param);
 		break;
 	}
 }
@@ -2161,7 +2151,11 @@ static void _net_nfc_server_handover_client_error_cb(net_nfc_error_e result,
 
 	if (false)
 	{
-		_net_nfc_server_handover_send_response(user_param, NULL, result);
+		_net_nfc_server_handover_send_response(
+				result,
+				NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN,
+				NULL,
+				user_param);
 	}
 
 	net_nfc_controller_llcp_socket_close(socket, &result);

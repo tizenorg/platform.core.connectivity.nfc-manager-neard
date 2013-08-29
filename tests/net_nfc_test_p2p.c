@@ -15,7 +15,6 @@
  */
 
 #include "net_nfc_client_p2p.h"
-#include "net_nfc_client_exchanger.h"
 #include "net_nfc_test_p2p.h"
 #include "net_nfc_test_util.h"
 #include "net_nfc_target_info.h"
@@ -27,18 +26,12 @@
 
 
 static net_nfc_target_handle_h global_handle = NULL;
-
 static void run_next_callback(gpointer user_data);
-
-static void p2p_send(net_nfc_error_e result,
-		void *user_data);
-
+static void p2p_send(net_nfc_error_e result, void *user_data);
 static void p2p_device_discovered(net_nfc_target_handle_h handle,
 		void *user_data);
 
-
 static void p2p_device_detached(void * user_data);
-
 static void p2p_device_data_received(data_h p2p_data, void *user_data);
 
 static void run_next_callback(gpointer user_data)
@@ -48,21 +41,18 @@ static void run_next_callback(gpointer user_data)
 		GCallback callback;
 
 		callback = (GCallback)(user_data);
-
 		callback();
 	}
 }
 
-static void p2p_send(net_nfc_error_e result,
-		void *user_data)
+static void p2p_send(net_nfc_error_e result, void *user_data)
 {
 	g_print("P2P send  Completed %d\n", result);
 
 	run_next_callback(user_data);
 }
 
-static void p2p_device_discovered(net_nfc_target_handle_h handle,
-		void *user_data)
+static void p2p_device_discovered(net_nfc_target_handle_h handle, void *user_data)
 {
 	g_print("Target is Discovered\n");
 	global_handle = handle;
@@ -87,14 +77,11 @@ static void p2p_device_data_received(data_h p2p_data, void *user_data)
 	run_next_callback(user_data);
 }
 
-void net_nfc_test_p2p_send(gpointer data,
-		gpointer user_data)
+void net_nfc_test_p2p_send(gpointer data, gpointer user_data)
 {
-
 	net_nfc_error_e result = NET_NFC_OK;
 	ndef_message_h msg = NULL;
 	ndef_record_h record = NULL;
-	net_nfc_exchanger_data_h exch_data = NULL;
 	data_h rawdata = NULL;
 
 	net_nfc_create_ndef_message (&msg);
@@ -102,46 +89,40 @@ void net_nfc_test_p2p_send(gpointer data,
 	net_nfc_append_record_to_ndef_message (msg ,record);
 	net_nfc_create_rawdata_from_ndef_message(msg, &rawdata);
 
-	if((result = net_nfc_client_create_exchanger_data(&exch_data,  rawdata)) != NET_NFC_OK)
-	{
-		net_nfc_free_data(rawdata);
-
-		g_printerr("create exchanger data is failed\n");
-		return;
-	}
-	net_nfc_free_data(rawdata);
 	g_print("Handle is %#x\n", GPOINTER_TO_UINT(global_handle));
 
-	net_nfc_client_p2p_send(
-			exch_data,
-			global_handle,
-			p2p_send,
-			user_data);
+	result = net_nfc_client_p2p_send(global_handle,
+				rawdata,
+				p2p_send,
+				user_data);
+
+	g_print("net_nfc_client_p2p_send() Return(%d)\n", result);
+
+	net_nfc_free_data(rawdata);
 }
 
-void net_nfc_test_p2p_send_sync(gpointer data,
-		gpointer user_data)
+void net_nfc_test_p2p_send_sync(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	ndef_message_h msg = NULL;
 	ndef_record_h record = NULL;
-	net_nfc_exchanger_data_h exch_data = NULL;
 	data_h rawdata = NULL;
 
 	net_nfc_create_ndef_message (&msg);
 	net_nfc_create_uri_type_record (&record ,"http://www.samsung.com", NET_NFC_SCHEMA_FULL_URI);
 	net_nfc_append_record_to_ndef_message (msg, record);
 	net_nfc_create_rawdata_from_ndef_message(msg, &rawdata);
-	net_nfc_client_create_exchanger_data(&exch_data, rawdata);
 
-	result = net_nfc_client_p2p_send_sync(exch_data, global_handle);
+	result = net_nfc_client_p2p_send_sync(global_handle, rawdata);
 
 	g_print(" P2P send sync result: %d\n", result);
+
+	net_nfc_free_data(rawdata);
+
 	run_next_callback(user_data);
 }
 
-void net_nfc_test_p2p_set_device_discovered(gpointer data,
-		gpointer user_data)
+void net_nfc_test_p2p_set_device_discovered(gpointer data, gpointer user_data)
 {
 	g_print("Waiting for Device Discovered Singal\n");
 
@@ -150,18 +131,14 @@ void net_nfc_test_p2p_set_device_discovered(gpointer data,
 	g_print("Device Discovered set\n");
 }
 
-void net_nfc_test_p2p_set_device_detached(gpointer data,
-		gpointer user_data)
+void net_nfc_test_p2p_set_device_detached(gpointer data, gpointer user_data)
 {
-	net_nfc_client_p2p_set_device_detached(p2p_device_detached,
-			user_data);
+	net_nfc_client_p2p_set_device_detached(p2p_device_detached, user_data);
 }
 
-void net_nfc_test_p2p_set_data_received(gpointer data,
-		gpointer user_data)
+void net_nfc_test_p2p_set_data_received(gpointer data, gpointer user_data)
 {
-	net_nfc_client_p2p_set_data_received(p2p_device_data_received,
-			user_data);
+	net_nfc_client_p2p_set_data_received(p2p_device_data_received, user_data);
 }
 
 net_nfc_target_handle_h net_nfc_test_device_get_target_handle(void)
