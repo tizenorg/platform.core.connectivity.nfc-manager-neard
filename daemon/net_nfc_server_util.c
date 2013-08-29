@@ -24,7 +24,6 @@
 #include <time.h>
 #include <pthread.h>
 #include <unistd.h>
-#include <stdlib.h>
 #include <curl/curl.h>
 #include <glib.h>
 #include <openssl/evp.h>
@@ -58,6 +57,61 @@
 #define OSP_K_LAUNCH_TYPE	"__OSP_LAUNCH_TYPE__"
 
 static const char osp_launch_type_condition[] = "condition";
+
+static inline int _mkdir_recursive(char *path, mode_t mode)
+{
+	char *found = path;
+
+	while (found)
+	{
+		char tmp_ch;
+
+		if ('\0' == found[1])
+			break;
+
+		found = strchr(found+1, '/');
+
+		if (found)
+		{
+			int ret;
+			DIR *exist;
+
+			tmp_ch = *found;
+			*found = '\0';
+
+			exist = opendir(path);
+			if (NULL == exist)
+			{
+				if (ENOENT == errno)
+				{
+					ret = mkdir(path, mode);
+					if (-1 == ret)
+					{
+						char buf[1024];
+						DEBUG_ERR_MSG("mkdir() Failed(%s)", strerror_r(errno, buf, sizeof(buf)));
+						return -1;
+					}
+				}
+				else
+				{
+					char buf[1024];
+					DEBUG_ERR_MSG("opendir() Failed(%s)", strerror_r(errno, buf, sizeof(buf)));
+					return -1;
+				}
+			}
+			else
+			{
+				closedir(exist);
+			}
+			*found = tmp_ch;
+		}
+		else
+		{
+			mkdir(path, mode);
+		}
+	}
+	return 0;
+}
 
 static bool _net_nfc_app_util_change_file_owner_permission(FILE *file)
 {
@@ -116,9 +170,9 @@ static bool _net_nfc_app_util_change_file_owner_permission(FILE *file)
 
 static net_nfc_error_e net_nfc_app_util_store_ndef_message(data_s *data)
 {
+	int ret;
 	net_nfc_error_e result = NET_NFC_UNKNOWN_ERROR;
 	char file_name[1024] = { 0, };
-	struct stat st;
 	FILE *fp = NULL;
 
 	if (data == NULL)
@@ -130,22 +184,11 @@ static net_nfc_error_e net_nfc_app_util_store_ndef_message(data_s *data)
 	snprintf(file_name, sizeof(file_name), "%s/%s", NET_NFC_MANAGER_DATA_PATH,
 			NET_NFC_MANAGER_DATA_PATH_MESSAGE);
 
-	if (stat(file_name, &st) == -1)
+	ret = _mkdir_recursive(file_name, 0755);
+	if (-1 == ret)
 	{
-		int ret;
-		char command[1024];
-
-		SECURE_LOGD("path doesn't exist, do mkdir : %s", file_name);
-
-		snprintf(command, sizeof(command), "mkdir -p -m 755 %s", file_name);
-
-		ret = system(command);
-
-		if (stat(file_name, &st) == -1)
-		{
-			DEBUG_ERR_MSG("mkdir failed(%d)", ret);
-			return NET_NFC_UNKNOWN_ERROR;
-		}
+		DEBUG_ERR_MSG("_mkdir_recursive() Failed");
+		return NET_NFC_UNKNOWN_ERROR;
 	}
 
 	/* create file */
