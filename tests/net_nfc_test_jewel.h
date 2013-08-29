@@ -35,4 +35,4 @@ void net_nfc_test_tag_jewel_write_with_erase(gpointer data,
 void net_nfc_test_tag_jewel_write_with_no_erase(gpointer data,
 					gpointer user_data);
 
-#endif
+#endif //__NET_NFC_TEST_JEWEL_TAG_H__

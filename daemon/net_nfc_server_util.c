@@ -132,18 +132,18 @@ static net_nfc_error_e net_nfc_app_util_store_ndef_message(data_s *data)
 
 	if (stat(file_name, &st) == -1)
 	{
-		int result;
+		int ret;
 		char command[1024];
 
 		SECURE_LOGD("path doesn't exist, do mkdir : %s", file_name);
 
 		snprintf(command, sizeof(command), "mkdir -p -m 755 %s", file_name);
 
-		result = system(command);
+		ret = system(command);
 
 		if (stat(file_name, &st) == -1)
 		{
-			DEBUG_ERR_MSG("mkdir failed");
+			DEBUG_ERR_MSG("mkdir failed(%d)", ret);
 			return NET_NFC_UNKNOWN_ERROR;
 		}
 	}

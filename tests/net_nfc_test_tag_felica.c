@@ -26,9 +26,7 @@ static net_nfc_target_handle_h get_handle();
 
 static void run_next_callback(gpointer user_data);
 
-static void felica_cb(net_nfc_error_e result,
-		data_h resp_data,
-		void *user_data);
+static void felica_cb(net_nfc_error_e result, data_h resp_data, void *user_data);
 
 
 static net_nfc_target_handle_h get_handle()
@@ -55,9 +53,7 @@ static void run_next_callback(gpointer user_data)
 	}
 }
 
-static void felica_cb(net_nfc_error_e result,
-		data_h resp_data,
-		void *user_data)
+static void felica_cb(net_nfc_error_e result, data_h resp_data, void *user_data)
 {
 	g_print("felica_cb Completed %d\n", result);
 
@@ -66,8 +62,7 @@ static void felica_cb(net_nfc_error_e result,
 	run_next_callback(user_data);
 }
 
-void net_nfc_test_felica_poll(gpointer data,
-		gpointer user_data)
+void net_nfc_test_felica_poll(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -79,10 +74,11 @@ void net_nfc_test_felica_poll(gpointer data,
 		return ;
 
 	result = net_nfc_client_felica_poll(handle, req_code, time_slot, felica_cb, user_data);
+
+	g_print("net_nfc_client_felica_poll() : %d\n", result);
 }
 
-void net_nfc_test_felica_request_service(gpointer data,
-		gpointer user_data)
+void net_nfc_test_felica_request_service(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -100,10 +96,10 @@ void net_nfc_test_felica_request_service(gpointer data,
 			number_of_services,
 			felica_cb,
 			user_data);
+	g_print("net_nfc_client_felica_request_service() : %d\n", result);
 }
 
-void net_nfc_test_felica_request_response(gpointer data,
-		gpointer user_data)
+void net_nfc_test_felica_request_response(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -113,6 +109,7 @@ void net_nfc_test_felica_request_response(gpointer data,
 		return ;
 
 	result = net_nfc_client_felica_request_response(handle, felica_cb, user_data);
+	g_print("net_nfc_client_felica_request_response() : %d\n", result);
 }
 
 void net_nfc_test_felica_read_without_encryption(gpointer data,
@@ -121,7 +118,7 @@ void net_nfc_test_felica_read_without_encryption(gpointer data,
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
 	uint8_t number_of_services = 10;
-	uint16_t service_list[2] = {0,};
+	uint16_t service_list[10] = {0,};
 	uint8_t number_of_blocks = 1;
 	uint8_t block_list[3] = {0,};
 
@@ -136,6 +133,7 @@ void net_nfc_test_felica_read_without_encryption(gpointer data,
 			block_list,
 			felica_cb,
 			user_data);
+	g_print("net_nfc_client_felica_read_without_encryption() : %d\n", result);
 }
 
 void net_nfc_test_felica_write_without_encryption(gpointer data,
@@ -161,10 +159,10 @@ void net_nfc_test_felica_write_without_encryption(gpointer data,
 			data_to_write,
 			felica_cb,
 			user_data);
+	g_print("net_nfc_client_felica_write_without_encryption() : %d\n", result);
 }
 
-void net_nfc_test_felica_request_system_code(gpointer data,
-		gpointer user_data)
+void net_nfc_test_felica_request_system_code(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
@@ -174,4 +172,5 @@ void net_nfc_test_felica_request_system_code(gpointer data,
 		return ;
 
 	result = net_nfc_client_felica_request_system_code(handle, felica_cb, user_data);
+	g_print("net_nfc_client_felica_request_system_code() : %d\n", result);
 }

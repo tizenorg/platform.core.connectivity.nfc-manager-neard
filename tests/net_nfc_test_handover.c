@@ -31,7 +31,7 @@ static void p2p_connection_handover_cb(net_nfc_error_e result,
 		data_h data,
 		void *user_data);
 
-net_nfc_connection_handover_info_h global_info = NULL;
+static net_nfc_connection_handover_info_h global_info = NULL;
 
 
 static void run_next_callback(gpointer user_data)
@@ -82,6 +82,7 @@ void net_nfc_test_p2p_connection_handover(gpointer data,
 			type,
 			p2p_connection_handover_cb,
 			user_data);
+	g_print("net_nfc_client_p2p_connection_handover() : %d\n", result);
 }
 
 void  net_nfc_test_p2p_connection_handover_sync(gpointer data,
@@ -101,6 +102,7 @@ void  net_nfc_test_p2p_connection_handover_sync(gpointer data,
 			type,
 			&out_carrier,
 			&out_data);
+	g_print("net_nfc_client_p2p_connection_handover_sync() : %d\n", result);
 
 	g_print("Received out carrier type & carrier type  %d, %d\n", out_carrier, type);
 	print_received_data(out_data);
@@ -114,6 +116,7 @@ void net_nfc_test_handover_get_alternative_carrier_type(gpointer data,
 	net_nfc_conn_handover_carrier_type_e type;
 
 	result = net_nfc_client_handover_get_alternative_carrier_type(global_info, &type);
+	g_print("net_nfc_client_handover_get_alternative_carrier_type() : %d\n", result);
 	g_print("Handover alternative carrier type -> %d", type);
 }
 

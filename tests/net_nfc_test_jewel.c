@@ -23,16 +23,9 @@
 
 
 static net_nfc_target_handle_h get_handle();
-
 static void run_next_callback(gpointer user_data);
-
-static void jewel_read_cb(net_nfc_error_e result,
-		data_h resp_data,
-		void *user_data);
-;
-static void jewel_write_cb(net_nfc_error_e result,
-		void* user_data);
-
+static void jewel_read_cb(net_nfc_error_e result, data_h resp_data, void *user_data);
+static void jewel_write_cb(net_nfc_error_e result, void* user_data);
 
 static net_nfc_target_handle_h get_handle()
 {
@@ -96,6 +89,7 @@ void net_nfc_test_tag_jewel_read_id(gpointer data,
 	result = net_nfc_client_jewel_read_id(handle,
 			jewel_read_cb,
 			user_data);
+	g_print("net_nfc_client_jewel_read_id() : %d\n", result);
 }
 
 void net_nfc_test_tag_jewel_read_byte(gpointer data,
@@ -113,6 +107,7 @@ void net_nfc_test_tag_jewel_read_byte(gpointer data,
 			byte,
 			jewel_read_cb,
 			user_data);
+	g_print("net_nfc_client_jewel_read_byte() : %d\n", result);
 }
 
 void net_nfc_test_tag_jewel_read_all(gpointer data,
@@ -126,6 +121,7 @@ void net_nfc_test_tag_jewel_read_all(gpointer data,
 	result = net_nfc_client_jewel_read_all(handle,
 			jewel_read_cb,
 			user_data);
+	g_print("net_nfc_client_jewel_read_all() : %d\n", result);
 }
 
 void net_nfc_test_tag_jewel_write_with_erase(gpointer data,
@@ -145,6 +141,7 @@ void net_nfc_test_tag_jewel_write_with_erase(gpointer data,
 			data_to_write,
 			jewel_write_cb,
 			user_data);
+	g_print("net_nfc_client_jewel_write_with_erase() : %d\n", result);
 }
 
 void net_nfc_test_tag_jewel_write_with_no_erase(gpointer data,
@@ -164,4 +161,5 @@ void net_nfc_test_tag_jewel_write_with_no_erase(gpointer data,
 			data_to_write,
 			jewel_write_cb,
 			user_data);
+	g_print("net_nfc_client_jewel_write_with_erase() : %d\n", result);
 }

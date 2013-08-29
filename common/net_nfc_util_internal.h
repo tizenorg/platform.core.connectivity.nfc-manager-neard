@@ -26,24 +26,6 @@
 #define NET_NFC_MANAGER_DATA_PATH_MESSAGE	"message"
 #define NET_NFC_MANAGER_NDEF_FILE_NAME		"ndef-message.txt"
 
-#define NET_NFC_REVERSE_ORDER_6_BYTES(__array) \
-	do \
-	{ \
-		uint16_t __x = htons(*(uint16_t *)(__array + 4)); \
-		*(uint32_t *)(__array + 2) = htonl(*(uint32_t *)(__array)); \
-		*(uint16_t *)(__array) = __x; \
-	} while (0)
-
-#define NET_NFC_REVERSE_ORDER_16_BYTES(array) \
-	do \
-	{ \
-		uint32_t __x1 = htonl(*(uint32_t *)(array + 12)); \
-		uint32_t __x2 = htonl(*(uint32_t *)(array + 8)); \
-		*(uint32_t *)(array + 8) = htonl(*(uint32_t *)(array + 4)); \
-		*(uint32_t *)(array + 12) = htonl(*(uint32_t *)(array)); \
-		*(uint32_t *)(array) = __x1; \
-		*(uint32_t *)(array + 4) = __x2; \
-	} while (0)
 
 typedef enum
 {

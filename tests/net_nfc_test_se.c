@@ -40,12 +40,10 @@ static void get_atr_secure_element_cb(net_nfc_error_e result, data_h data,
 
 static void se_set_event_cb(net_nfc_message_e event, void *user_data);
 
-static void se_ese_detection_cb(net_nfc_target_handle_h handle,
-		int dev_type, data_h data, void *user_data);
+static void se_ese_detection_cb(net_nfc_target_handle_h handle, int dev_type,
+		data_h data, void *user_data);
 
-static void se_set_transaction_cb(data_h aid,
-		data_h param,
-		void *user_data);
+static void se_set_transaction_cb(data_h aid, data_h param, void *user_data);
 
 /*This handle would be intialized by open secure element callback function*/
 static net_nfc_target_handle_h global_handle = NULL;
@@ -105,10 +103,8 @@ static void se_set_event_cb(net_nfc_message_e event, void* user_data)
 	run_next_callback(user_data);
 }
 
-static void se_ese_detection_cb(net_nfc_target_handle_h handle,
-		int dev_type,
-		data_h data,
-		void *user_data)
+static void se_ese_detection_cb(net_nfc_target_handle_h handle, int dev_type,
+		data_h data, void *user_data)
 {
 	g_print("Set ese detection callback successfully\n");
 	g_print("Handle is %#x\n", GPOINTER_TO_UINT(handle));
@@ -116,9 +112,7 @@ static void se_ese_detection_cb(net_nfc_target_handle_h handle,
 	print_received_data(data);
 }
 
-static void se_set_transaction_cb(data_h aid,
-		data_h param,
-		void *user_data)
+static void se_set_transaction_cb(data_h aid, data_h param, void *user_data)
 {
 	g_print("Set transaction callback successfully\n");
 	g_print("*****displaying Aid data****\n");
@@ -128,8 +122,7 @@ static void se_set_transaction_cb(data_h aid,
 	run_next_callback(user_data);
 }
 
-void net_nfc_test_se_send_apdu(gpointer data,
-		gpointer user_data)
+void net_nfc_test_se_send_apdu(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	data_h apdu_data = NULL;
@@ -137,14 +130,11 @@ void net_nfc_test_se_send_apdu(gpointer data,
 
 	net_nfc_create_data(&apdu_data, apdu_cmd, 4);
 
-	result = net_nfc_client_se_send_apdu(global_handle,
-			apdu_data,
-			send_apdu_cb,
-			user_data);
+	result = net_nfc_client_se_send_apdu(global_handle, apdu_data, send_apdu_cb, user_data);
+	g_print("net_nfc_client_se_send_apdu() : %d\n", result);
 }
 
-void net_nfc_test_se_send_apdu_sync(gpointer data,
-		gpointer user_data)
+void net_nfc_test_se_send_apdu_sync(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	data_h apdu_data = NULL;
@@ -152,17 +142,14 @@ void net_nfc_test_se_send_apdu_sync(gpointer data,
 	data_h response = NULL;
 
 	net_nfc_create_data(&apdu_data, apdu_cmd, 4);
-	result = net_nfc_client_se_send_apdu_sync(global_handle,
-			apdu_data,
-			&response);
+	result = net_nfc_client_se_send_apdu_sync(global_handle, apdu_data, &response);
 
 	g_print(" Send apdu data sync completed %d\n", result);
 	print_received_data(response);
 	run_next_callback(user_data);
 }
 
-void net_nfc_test_se_set_secure_element_type(gpointer data,
-		gpointer user_data)
+void net_nfc_test_se_set_secure_element_type(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_se_type_e se_type = NET_NFC_SE_TYPE_UICC;
@@ -171,6 +158,7 @@ void net_nfc_test_se_set_secure_element_type(gpointer data,
 			se_type,
 			set_secure_element_cb,
 			user_data);
+	g_print("net_nfc_client_se_set_secure_element_type() : %d\n", result);
 }
 
 void net_nfc_test_se_set_secure_element_type_sync(gpointer data,
@@ -194,6 +182,7 @@ void net_nfc_test_se_open_internal_secure_element(gpointer data,
 			se_type,
 			open_secure_element_cb,
 			user_data);
+	g_print("net_nfc_client_se_open_internal_secure_element() : %d\n", result);
 }
 
 void net_nfc_test_se_open_internal_secure_element_sync(gpointer data,
@@ -207,7 +196,7 @@ void net_nfc_test_se_open_internal_secure_element_sync(gpointer data,
 			&global_handle);
 
 	g_print("Handle is %#x\n", GPOINTER_TO_UINT(global_handle));
-	g_print(" open secure element completed %d\n", result);
+	g_print("open secure element completed %d\n", result);
 	run_next_callback(user_data);
 }
 
@@ -220,6 +209,7 @@ void net_nfc_test_se_close_internal_secure_element(gpointer data,
 			global_handle,
 			close_secure_element_cb,
 			user_data);
+	g_print("net_nfc_client_se_close_internal_secure_element() : %d\n", result);
 }
 
 void net_nfc_test_se_close_internal_secure_element_sync(gpointer data,
@@ -232,66 +222,54 @@ void net_nfc_test_se_close_internal_secure_element_sync(gpointer data,
 	run_next_callback(user_data);
 }
 
-void net_nfc_test_se_get_atr(gpointer data,
-		gpointer user_data)
+void net_nfc_test_se_get_atr(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-
 
 	result = net_nfc_client_se_get_atr(
 			global_handle,
 			get_atr_secure_element_cb,
 			user_data);
+	g_print("net_nfc_client_se_get_atr() : %d\n", result);
 }
 
-void net_nfc_test_se_get_atr_sync(gpointer data,
-		gpointer user_data)
+void net_nfc_test_se_get_atr_sync(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	data_h attr_data = NULL;
 
-	result = net_nfc_client_se_get_atr_sync(
-			global_handle,
-			&attr_data);
+	result = net_nfc_client_se_get_atr_sync(global_handle, &attr_data);
 
 	g_print("Get atr data sync completed %d\n", result);
 	print_received_data(attr_data);
 	run_next_callback(user_data);
 }
 
-void net_nfc_test_se_set_event_cb(gpointer data,
-		gpointer user_data)
+void net_nfc_test_se_set_event_cb(gpointer data, gpointer user_data)
 {
-	net_nfc_client_se_set_event_cb(se_set_event_cb,
-			user_data);
+	net_nfc_client_se_set_event_cb(se_set_event_cb, user_data);
 }
 
-void net_nfc_test_se_unset_event_cb(gpointer data,
-		gpointer user_data)
+void net_nfc_test_se_unset_event_cb(gpointer data, gpointer user_data)
 {
 	net_nfc_client_se_unset_event_cb();
 	g_print(" Event unset callback successfully\n");
 }
 
-void net_nfc_test_se_set_ese_detection_cb(gpointer data,
-		gpointer user_data)
+void net_nfc_test_se_set_ese_detection_cb(gpointer data, gpointer user_data)
 {
-	net_nfc_client_se_set_ese_detection_cb(se_ese_detection_cb,
-			user_data);
+	net_nfc_client_se_set_ese_detection_cb(se_ese_detection_cb, user_data);
 }
 
-void net_nfc_test_se_unset_ese_detection_cb(gpointer data,
-		gpointer user_data)
+void net_nfc_test_se_unset_ese_detection_cb(gpointer data, gpointer user_data)
 {
 	net_nfc_client_se_unset_ese_detection_cb();
 	g_print("Detection unset callback successfuly\n");
 }
 
-void net_nfc_test_se_set_transaction_event_cb(gpointer data,
-		gpointer user_data)
+void net_nfc_test_se_set_transaction_event_cb(gpointer data, gpointer user_data)
 {
-	net_nfc_client_se_set_transaction_event_cb(se_set_transaction_cb,
-			user_data);
+	net_nfc_client_se_set_transaction_event_cb(se_set_transaction_cb, user_data);
 }
 
 void net_nfc_test_se_unset_transaction_event_cb(gpointer data,
