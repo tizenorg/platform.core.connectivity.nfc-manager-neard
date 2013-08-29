@@ -18,10 +18,6 @@
 
 #include "net_nfc_typedef.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef void (*net_nfc_client_llcp_config_completed) (net_nfc_error_e result,
 		void *user_data);
 
@@ -60,10 +56,8 @@ typedef void (*net_nfc_client_llcp_close_completed) (net_nfc_error_e result,
 		net_nfc_llcp_socket_t client_socket,
 		void *user_data);
 
-typedef void (*net_nfc_client_llcp_disconnect_completed) (
-		net_nfc_error_e result,
-		net_nfc_llcp_socket_t client_socket,
-		void *user_data);
+typedef void (*net_nfc_client_llcp_disconnect_completed)(net_nfc_error_e result,
+		net_nfc_llcp_socket_t client_socket, void *user_data);
 
 net_nfc_error_e net_nfc_client_llcp_config(net_nfc_llcp_config_info_h config,
 		net_nfc_client_llcp_config_completed callback,
@@ -244,22 +238,13 @@ net_nfc_error_e net_nfc_client_llcp_create_socket_option_default(
 		net_nfc_llcp_socket_option_h *option);
 
 net_nfc_error_e net_nfc_client_llcp_connect_sap(net_nfc_llcp_socket_t socket,
-		sap_t sap,
-		net_nfc_client_llcp_connect_sap_completed callback,
-		void *user_data);
+		sap_t sap, net_nfc_client_llcp_connect_sap_completed callback, void *user_data);
 
 net_nfc_error_e net_nfc_client_llcp_connect_sap_sync(
-		net_nfc_llcp_socket_t socket,
-		sap_t sap,
-		net_nfc_llcp_socket_t *out_socket);
-
+		net_nfc_llcp_socket_t socket, sap_t sap, net_nfc_llcp_socket_t *out_socket);
 
 net_nfc_error_e net_nfc_client_llcp_init(void);
 
 void net_nfc_client_llcp_deinit(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif //__NET_NFC_CLIENT_LLCP_H__

@@ -17,6 +17,10 @@
 #ifndef __NET_NFC_H__
 #define __NET_NFC_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "net_nfc_typedef.h"
 #include "net_nfc_data.h"
 #include "net_nfc_target_info.h"
@@ -40,6 +44,9 @@
 #include "net_nfc_client_tag_felica.h"
 #include "net_nfc_client_tag_jewel.h"
 #include "net_nfc_client_tag_mifare.h"
-#include "net_nfc_client_test.h"
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //__NET_NFC_H__

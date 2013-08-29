@@ -19,29 +19,29 @@
 #include "net_nfc_typedef_internal.h"
 
 typedef void (*net_nfc_server_handover_get_carrier_record_cb)(
-			net_nfc_error_e result,
-			net_nfc_conn_handover_carrier_state_e cps,
-			ndef_record_s *carrier,
-			uint32_t aux_data_count,
-			ndef_record_s *aux_data,
-			void *user_param);
+		net_nfc_error_e result,
+		net_nfc_conn_handover_carrier_state_e cps,
+		ndef_record_s *carrier,
+		uint32_t aux_data_count,
+		ndef_record_s *aux_data,
+		void *user_param);
 
 typedef void (*net_nfc_server_handover_process_carrier_record_cb)(
-			net_nfc_error_e result,
-			net_nfc_conn_handover_carrier_type_e type,
-			data_s *data,
-			void *user_param);
+		net_nfc_error_e result,
+		net_nfc_conn_handover_carrier_type_e type,
+		data_s *data,
+		void *user_param);
 
 /* alternative carrier functions */
 net_nfc_error_e net_nfc_server_handover_bt_get_carrier_record(
-	net_nfc_server_handover_get_carrier_record_cb cb, void *user_param);
+		net_nfc_server_handover_get_carrier_record_cb cb, void *user_param);
 
 net_nfc_error_e net_nfc_server_handover_bt_process_carrier_record(
-	ndef_record_s *record, net_nfc_server_handover_process_carrier_record_cb cb,
-	void *user_param);
+		ndef_record_s *record, net_nfc_server_handover_process_carrier_record_cb cb,
+		void *user_param);
 
 net_nfc_error_e net_nfc_server_handover_bt_post_process(data_s *data,
-	net_nfc_server_handover_process_carrier_record_cb cb,
-	void *user_param);
+		net_nfc_server_handover_process_carrier_record_cb cb,
+		void *user_param);
 
 #endif //__NET_NFC_SERVER_HANDOVER_BT_H__

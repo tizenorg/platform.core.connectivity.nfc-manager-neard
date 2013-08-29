@@ -437,43 +437,6 @@
     </method>
   </interface>
 
-  <interface name="org.tizen.NetNfcService.Test">
-    <!--
-      SimTest
-    -->
-    <method name="SimTest">
-      <arg type="a(y)" name="privilege" direction="in" />
-      <arg type="i" name="result" direction="out" />
-    </method>
-
-    <!--
-      PrbsTest
-    -->
-    <method name="PrbsTest">
-      <arg type="u" name="tech" direction="in" />
-      <arg type="u" name="rate" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
-      <arg type="i" name="result" direction="out" />
-    </method>
-
-    <!--
-      GetFirmwareVersion
-    -->
-    <method name="GetFirmwareVersion">
-      <arg type="a(y)" name="privilege" direction="in" />
-      <arg type="i" name="result" direction="out" />
-      <arg type="s" name="version" direction="out" />
-    </method>
-
-    <method name="SetEeData">
-      <arg type="u" name="mode" direction="in" />
-      <arg type="u" name="reg_id" direction="in" />
-      <arg type="a(y)" name="data" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
-      <arg type="i" name="result" direction="out" />
-    </method>
-  </interface>
-
   <interface name="org.tizen.NetNfcService.Snep">
     <!--
       Register Server

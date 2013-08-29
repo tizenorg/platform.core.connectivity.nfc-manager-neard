@@ -18,10 +18,6 @@
 
 #include "net_nfc_typedef.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef void (*net_nfc_client_popup_set_state_callback)(
 	net_nfc_error_e result,
 	void *user_data);
@@ -49,9 +45,5 @@ net_nfc_error_e net_nfc_client_sys_handler_get_launch_popup_state(int *state);
 net_nfc_error_e net_nfc_client_sys_handler_init(void);
 
 void net_nfc_client_sys_handler_deinit(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif //__NET_NFC_CLIENT_SYSTEM_HANDLER_H__

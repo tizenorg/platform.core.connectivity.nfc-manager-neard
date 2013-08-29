@@ -18,10 +18,6 @@
 
 #include "net_nfc_typedef.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
 
   @addtogroup NET_NFC_MANAGER_INFO
@@ -53,7 +49,8 @@ extern "C" {
 
 */
 
-net_nfc_error_e net_nfc_get_tag_type (net_nfc_target_info_h target_info, net_nfc_target_type_e * type);
+net_nfc_error_e net_nfc_get_tag_type (net_nfc_target_info_h target_info,
+		net_nfc_target_type_e * type);
 
 /**
   type getter from targte info handler
@@ -70,7 +67,8 @@ net_nfc_error_e net_nfc_get_tag_type (net_nfc_target_info_h target_info, net_nfc
 
 */
 
-net_nfc_error_e net_nfc_get_tag_handle(net_nfc_target_info_h target_info, net_nfc_target_handle_h * handle);
+net_nfc_error_e net_nfc_get_tag_handle(net_nfc_target_info_h target_info,
+		net_nfc_target_handle_h * handle);
 
 /**
   this API returns the NDEF support boolean value.
@@ -88,7 +86,8 @@ net_nfc_error_e net_nfc_get_tag_handle(net_nfc_target_info_h target_info, net_nf
 
 */
 
-net_nfc_error_e net_nfc_get_tag_ndef_support (net_nfc_target_info_h target_info, bool * is_support);
+net_nfc_error_e net_nfc_get_tag_ndef_support (net_nfc_target_info_h target_info,
+		bool * is_support);
 
 /**
   The max size getter from targte info handler. This max size indicates the maximum size of NDEF message that can be stored in this detected tag.
@@ -105,7 +104,8 @@ net_nfc_error_e net_nfc_get_tag_ndef_support (net_nfc_target_info_h target_info,
 
 */
 
-net_nfc_error_e net_nfc_get_tag_max_data_size (net_nfc_target_info_h target_info, uint32_t * max_size);
+net_nfc_error_e net_nfc_get_tag_max_data_size (net_nfc_target_info_h target_info,
+		uint32_t * max_size);
 
 /**
   this function return the actual NDEF message size that stored in the tag
@@ -122,7 +122,8 @@ net_nfc_error_e net_nfc_get_tag_max_data_size (net_nfc_target_info_h target_info
 
 */
 
-net_nfc_error_e net_nfc_get_tag_actual_data_size (net_nfc_target_info_h target_info, uint32_t * actual_data);
+net_nfc_error_e net_nfc_get_tag_actual_data_size(
+		net_nfc_target_info_h target_info, uint32_t * actual_data);
 
 
 /**
@@ -172,7 +173,8 @@ net_nfc_error_e net_nfc_get_tag_actual_data_size (net_nfc_target_info_h target_i
 
 */
 
-net_nfc_error_e net_nfc_get_tag_info_keys(net_nfc_target_info_h target_info, char ***keys, int* number_of_keys);
+net_nfc_error_e net_nfc_get_tag_info_keys(net_nfc_target_info_h target_info,
+		char ***keys, int* number_of_keys);
 
 /**
   this function return value which is matched key
@@ -219,7 +221,8 @@ net_nfc_error_e net_nfc_get_tag_info_keys(net_nfc_target_info_h target_info, cha
   @exception 	NET_NFC_NO_DATA_FOUND		No data is returned
   */
 
-net_nfc_error_e net_nfc_get_tag_info_value(net_nfc_target_info_h target_info, const char* key, data_h* value);
+net_nfc_error_e net_nfc_get_tag_info_value(net_nfc_target_info_h target_info,
+		const char* key, data_h* value);
 
 /**
   Duplicate a handle of target information
@@ -256,7 +259,8 @@ net_nfc_error_e net_nfc_get_tag_info_value(net_nfc_target_info_h target_info, co
   @exception 	NET_NFC_NULL_PARAMETER		parameter(s) has(have) illegal NULL pointer(s)
 */
 
-net_nfc_error_e net_nfc_duplicate_target_info(net_nfc_target_info_h origin, net_nfc_target_info_h *result);
+net_nfc_error_e net_nfc_duplicate_target_info(net_nfc_target_info_h origin,
+		net_nfc_target_info_h *result);
 
 /**
   After using net_nfc_target_info_h handle, you should release its resource by this function.
@@ -290,11 +294,5 @@ net_nfc_error_e net_nfc_release_tag_info(net_nfc_target_info_h target_info);
 /**
 @}
 */
-
-
-#ifdef __cplusplus
-}
-#endif
-
 
 #endif //__NET_NFC_TARGET_INFO_H__

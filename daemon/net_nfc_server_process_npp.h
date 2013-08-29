@@ -22,30 +22,24 @@
 #include "net_nfc_typedef_internal.h"
 
 typedef void (*net_nfc_server_npp_callback) (net_nfc_error_e result,
-					data_s *data,
-					gpointer user_data);
+		data_s *data,
+		gpointer user_data);
 
 net_nfc_error_e net_nfc_server_npp_server(net_nfc_target_handle_s *handle,
-					char *san,
-					sap_t sap,
-					net_nfc_server_npp_callback callback,
-					gpointer user_data);
+		char *san, sap_t sap, net_nfc_server_npp_callback callback, gpointer user_data);
 
 net_nfc_error_e net_nfc_server_npp_client(net_nfc_target_handle_s *handle,
-					char *san,
-					sap_t sap,
-					data_s *data,
-					net_nfc_server_npp_callback callback,
-					gpointer user_data);
+		char *san,
+		sap_t sap,
+		data_s *data,
+		net_nfc_server_npp_callback callback,
+		gpointer user_data);
 
 net_nfc_error_e net_nfc_server_npp_default_server_start(
-					net_nfc_target_handle_s *handle);
+		net_nfc_target_handle_s *handle);
 
 net_nfc_error_e net_nfc_server_npp_default_client_start(
-					net_nfc_target_handle_s *handle,
-					data_s *data,
-					int client,
-					gpointer user_data);
+		net_nfc_target_handle_s *handle, data_s *data, int client, gpointer user_data);
 
 net_nfc_error_e net_nfc_server_npp_default_server_register();
 

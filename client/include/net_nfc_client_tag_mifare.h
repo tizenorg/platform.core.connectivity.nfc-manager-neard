@@ -18,11 +18,6 @@
 
 #include "net_nfc_typedef.h"
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
 
   @addtogroup NET_NFC_MANAGER_TAG
@@ -138,9 +133,7 @@ net_nfc_error_e net_nfc_client_mifare_authenticate_with_keyB(
 */
 
 net_nfc_error_e net_nfc_client_mifare_read(net_nfc_target_handle_h handle,
-		uint8_t addr,
-		void *callback,
-		void *user_data);
+		uint8_t addr, void *callback, void *user_data);
 
 /**
   write block (16 byte) to addr. Only 4 bytes will be written when tag is
@@ -235,10 +228,7 @@ net_nfc_error_e net_nfc_client_mifare_write_page(
 */
 
 net_nfc_error_e net_nfc_client_mifare_increment(net_nfc_target_handle_h handle,
-		uint8_t addr,
-		int value,
-		void *callback,
-		void *user_data);
+		uint8_t addr, int value, void *callback, void *user_data);
 
 /**
   Decrease a value block, storing the result in the temporary block on the tag
@@ -266,10 +256,7 @@ net_nfc_error_e net_nfc_client_mifare_increment(net_nfc_target_handle_h handle,
 */
 
 net_nfc_error_e net_nfc_client_mifare_decrement(net_nfc_target_handle_h handle,
-		uint8_t addr,
-		int value,
-		void *callback,
-		void *user_data);
+		uint8_t addr, int value, void *callback, void *user_data);
 
 /**
   Copy from the temporary block to a value block.
@@ -297,9 +284,7 @@ net_nfc_error_e net_nfc_client_mifare_decrement(net_nfc_target_handle_h handle,
 */
 
 net_nfc_error_e net_nfc_client_mifare_transfer(net_nfc_target_handle_h handle,
-		uint8_t addr,
-		void *callback,
-		void *user_data);
+		uint8_t addr, void *callback, void *user_data);
 
 /**
   Copy from a value block to the temporary block.
@@ -327,9 +312,7 @@ net_nfc_error_e net_nfc_client_mifare_transfer(net_nfc_target_handle_h handle,
 */
 
 net_nfc_error_e net_nfc_client_mifare_restore(net_nfc_target_handle_h handle,
-		uint8_t addr,
-		void *callback,
-		void *user_data);
+		uint8_t addr, void *callback, void *user_data);
 
 /**
   create default factory key. The key is 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
@@ -386,9 +369,5 @@ net_nfc_error_e net_nfc_client_mifare_create_net_nfc_forum_key(data_h* key);
 /**
 @}
 */
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif //__NET_NFC_TAG_MIFARE_H__

@@ -19,10 +19,6 @@
 #include "net_nfc_typedef.h"
 #include "net_nfc_client_transceive.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
 
   @addtogroup NET_NFC_MANAGER_TAG
@@ -51,8 +47,7 @@ extern "C" {
 */
 
 net_nfc_error_e net_nfc_client_jewel_read_id(net_nfc_target_handle_h handle,
-		nfc_transceive_data_callback callback,
-		void *user_data);
+		nfc_transceive_data_callback callback, void *user_data);
 
 /**
   read one byte of specific address .
@@ -80,10 +75,7 @@ net_nfc_error_e net_nfc_client_jewel_read_id(net_nfc_target_handle_h handle,
 */
 
 net_nfc_error_e net_nfc_client_jewel_read_byte(net_nfc_target_handle_h handle,
-		uint8_t block,
-		uint8_t byte,
-		nfc_transceive_data_callback callback,
-		void *user_data);
+		uint8_t block, uint8_t byte, nfc_transceive_data_callback callback, void *user_data);
 
 /**
   read all byte from tag .
@@ -110,8 +102,7 @@ net_nfc_error_e net_nfc_client_jewel_read_byte(net_nfc_target_handle_h handle,
 
 
 net_nfc_error_e net_nfc_client_jewel_read_all(net_nfc_target_handle_h handle,
-		nfc_transceive_data_callback callback,
-		void *user_data);
+		nfc_transceive_data_callback callback, void *user_data);
 
 
 /**
@@ -192,11 +183,5 @@ net_nfc_error_e net_nfc_client_jewel_write_with_no_erase(
 /**
 @}
 */
-
-
-#ifdef __cplusplus
-}
-#endif
-
 
 #endif //__NET_NFC_CLIENT_TAG_JEWEL_H__

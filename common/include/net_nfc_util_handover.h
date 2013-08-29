@@ -18,11 +18,6 @@
 
 #include "net_nfc_typedef_internal.h"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 #define CH_MAJOR_VER	1
 #define CH_MINOR_VER	2
 #define CH_VERSION	((CH_MAJOR_VER << 4) | CH_MINOR_VER)
@@ -95,9 +90,5 @@ net_nfc_error_e net_nfc_util_create_handover_select_message(ndef_message_s **mes
 net_nfc_error_e net_nfc_util_create_handover_error_record(ndef_record_s **record, uint8_t reason, uint32_t data);
 
 net_nfc_error_e net_nfc_util_get_selector_power_status(ndef_message_s *message, net_nfc_conn_handover_carrier_state_e *power_state);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif //__NET_NFC_UTIL_HANDOVER_H__

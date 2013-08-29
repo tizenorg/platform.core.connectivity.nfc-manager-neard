@@ -18,10 +18,6 @@
 
 #include "net_nfc_typedef.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef void (*net_nfc_client_manager_set_active_completed)(
 		net_nfc_error_e result,
 		void *user_data);
@@ -53,15 +49,12 @@ net_nfc_error_e net_nfc_client_manager_get_server_state(
 net_nfc_error_e net_nfc_client_manager_get_server_state_sync(
 		unsigned int *state);
 
+bool net_nfc_client_manager_is_activated(void);
+
 /* TODO : move to internal header */
 net_nfc_error_e net_nfc_client_manager_init(void);
 
 void net_nfc_client_manager_deinit(void);
 
-bool net_nfc_client_manager_is_activated();
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif //__NET_NFC_CLIENT_MANAGER_H__

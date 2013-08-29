@@ -31,7 +31,6 @@
 #include "net_nfc_server_llcp.h"
 #include "net_nfc_server_p2p.h"
 #include "net_nfc_server_transceive.h"
-#include "net_nfc_server_test.h"
 #include "net_nfc_server_handover.h"
 #include "net_nfc_server_se.h"
 #include "net_nfc_server_snep.h"
@@ -196,12 +195,6 @@ static void net_nfc_server_gdbus_init(void)
 		return;
 	}
 
-	if (net_nfc_server_test_init(connection) == FALSE)
-	{
-		DEBUG_ERR_MSG("Can not init Test");
-		return;
-	}
-
 	if (net_nfc_server_handover_init(connection) == FALSE)
 	{
 		DEBUG_ERR_MSG("Can not initialize transceive");
@@ -244,7 +237,6 @@ static void net_nfc_server_gdbus_deinit(void)
 	net_nfc_server_ndef_deinit();
 	net_nfc_server_llcp_deinit();
 	net_nfc_server_transceive_deinit();
-	net_nfc_server_test_deinit();
 	net_nfc_server_handover_deinit();
 	net_nfc_server_se_deinit();
 	net_nfc_server_snep_deinit();

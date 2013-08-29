@@ -35,8 +35,8 @@ typedef struct _net_nfc_handover_bss_process_context_t
 net_nfc_handover_bss_process_context_t;
 
 net_nfc_error_e net_nfc_server_handover_bss_process_carrier_record(
-	ndef_record_s *record,
-	net_nfc_server_handover_process_carrier_record_cb cb,
-	void *user_param);
+		ndef_record_s *record,
+		net_nfc_server_handover_process_carrier_record_cb cb,
+		void *user_param);
 
 #endif //__NET_NFC_SERVER_HANDOVER_BSS_H__

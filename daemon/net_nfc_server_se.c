@@ -314,7 +314,7 @@ static void _se_uicc_deinit()
 }
 
 
-static net_nfc_target_handle_s *_se_uicc_open(void)
+static net_nfc_target_handle_s* _se_uicc_open()
 {
 	net_nfc_target_handle_s *result = NULL;
 

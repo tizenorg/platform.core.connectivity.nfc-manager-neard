@@ -97,13 +97,10 @@ static void _emit_snep_event_signal(GVariant *parameter,
 				"/org/tizen/NetNfcService/Snep",
 				"org.tizen.NetNfcService.Snep",
 				"SnepEvent",
-				g_variant_new("(uui@a(y)u)",
-					GPOINTER_TO_UINT(handle),
-					type,
-					(gint)result,
-					arg_data,
-					GPOINTER_TO_UINT(user_data)),
-				&error) == false) {
+				g_variant_new("(uui@a(y)u)", GPOINTER_TO_UINT(handle), type, (gint)result,
+					arg_data, GPOINTER_TO_UINT(user_data)),
+				&error) == false)
+	{
 		if (error != NULL && error->message != NULL) {
 			DEBUG_ERR_MSG("g_dbus_connection_emit_signal failed : %s", error->message);
 		} else {

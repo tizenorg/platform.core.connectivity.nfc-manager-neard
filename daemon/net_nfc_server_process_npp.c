@@ -84,18 +84,12 @@ static void npp_server_receive_cb(net_nfc_error_e result,
 
 static void npp_server_process(NppData *npp_data);
 
-static void npp_listen_cb(net_nfc_error_e result,
-		net_nfc_target_handle_s *handle,
-		net_nfc_llcp_socket_t socket,
-		data_s *data,
-		gpointer user_data);
+static void npp_listen_cb(net_nfc_error_e result, net_nfc_target_handle_s *handle,
+		net_nfc_llcp_socket_t socket, data_s *data, gpointer user_data);
 
 /* client */
 static void npp_client_disconnected_cb(net_nfc_llcp_socket_t socket,
-		net_nfc_error_e result,
-		data_s *data,
-		void *extra,
-		void *user_param);
+		net_nfc_error_e result, data_s *data, void *extra, void *user_param);
 
 static void npp_client_send_cb(net_nfc_error_e result,
 		net_nfc_target_handle_s *handle,
@@ -117,16 +111,13 @@ static void npp_socket_error_cb(net_nfc_error_e result,
 		data_s *data,
 		gpointer user_data);
 
-static void npp_default_server_cb(net_nfc_error_e result,
-		data_s *data,
+static void npp_default_server_cb(net_nfc_error_e result, data_s *data,
 		gpointer user_data);
 
-static void npp_default_client_cb(net_nfc_error_e result,
-		data_s *data,
+static void npp_default_client_cb(net_nfc_error_e result, data_s *data,
 		gpointer user_data);
 
-static net_nfc_error_e npp_create_message(data_s *data,
-		data_s *message)
+static net_nfc_error_e npp_create_message(data_s *data, data_s *message)
 {
 	uint32_t length = NPP_HEADER_LEN;
 	net_nfc_npp_msg_t *msg;
@@ -341,11 +332,8 @@ static void npp_server_process(NppData *npp_data)
 	}
 }
 
-static void npp_listen_cb(net_nfc_error_e result,
-		net_nfc_target_handle_s *handle,
-		net_nfc_llcp_socket_t socket,
-		data_s *data,
-		gpointer user_data)
+static void npp_listen_cb(net_nfc_error_e result, net_nfc_target_handle_s *handle,
+		net_nfc_llcp_socket_t socket, data_s *data, gpointer user_data)
 {
 	NppData *npp_data;
 	NppData *accept_data;
@@ -585,10 +573,7 @@ static void npp_default_client_cb(net_nfc_error_e result,
 
 /* public apis */
 net_nfc_error_e net_nfc_server_npp_server(net_nfc_target_handle_s *handle,
-		char *san,
-		sap_t sap,
-		net_nfc_server_npp_callback callback,
-		gpointer user_data)
+		char *san, sap_t sap, net_nfc_server_npp_callback callback, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 
@@ -733,8 +718,7 @@ net_nfc_error_e net_nfc_server_npp_default_server_start(
 			(gpointer)1234);
 }
 
-static void _npp_default_activate_cb(int event,
-		net_nfc_target_handle_s *handle,
+static void _npp_default_activate_cb(int event, net_nfc_target_handle_s *handle,
 		uint32_t sap, const char *san, void *user_param)
 {
 	net_nfc_error_e result;
@@ -784,10 +768,7 @@ net_nfc_error_e net_nfc_server_npp_default_server_unregister()
 }
 
 net_nfc_error_e net_nfc_server_npp_default_client_start(
-		net_nfc_target_handle_s *handle,
-		data_s *data,
-		int client,
-		gpointer user_data)
+		net_nfc_target_handle_s *handle, data_s *data, int client, gpointer user_data)
 {
 	NppClientStartData *npp_client_data;
 

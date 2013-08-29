@@ -38,48 +38,48 @@ typedef struct _net_nfc_client_context_info_t
 } net_nfc_client_context_info_t;
 
 typedef void (*net_nfc_server_gdbus_for_each_client_cb)(
-	net_nfc_client_context_info_t *client, void *user_param);
+		net_nfc_client_context_info_t *client, void *user_param);
 
 void net_nfc_server_gdbus_init_client_context();
 
 void net_nfc_server_gdbus_deinit_client_context();
 
 bool net_nfc_server_gdbus_check_privilege(GDBusMethodInvocation *invocation,
-	GVariant *privilege,
-	const char *object,
-	const char *right);
+		GVariant *privilege,
+		const char *object,
+		const char *right);
 
 void net_nfc_server_gdbus_add_client_context(const char *id,
-	client_state_e state);
+		client_state_e state);
 
 void net_nfc_server_gdbus_cleanup_client_context(const char *id);
 
 net_nfc_client_context_info_t *net_nfc_server_gdbus_get_client_context(
-	const char *id);
+		const char *id);
 
 size_t net_nfc_server_gdbus_get_client_count();
 
 void net_nfc_server_gdbus_for_each_client_context(
-	net_nfc_server_gdbus_for_each_client_cb cb,
-	void *user_param);
+		net_nfc_server_gdbus_for_each_client_cb cb,
+		void *user_param);
 
 bool net_nfc_server_gdbus_check_client_is_running(const char *id);
 
 client_state_e net_nfc_server_gdbus_get_client_state(
-	const char *id);
+		const char *id);
 
 void net_nfc_server_gdbus_set_client_state(const char *id,
-	client_state_e state);
+		client_state_e state);
 
 void net_nfc_server_gdbus_set_launch_state(const char *id,
-	net_nfc_launch_popup_state_e popup_state,
-	net_nfc_launch_popup_check_e check_foreground);
+		net_nfc_launch_popup_state_e popup_state,
+		net_nfc_launch_popup_check_e check_foreground);
 
 net_nfc_launch_popup_state_e net_nfc_server_gdbus_get_launch_state(
-	const char *id);
+		const char *id);
 
 net_nfc_launch_popup_state_e net_nfc_server_gdbus_get_client_popup_state(
-	pid_t pid);
+		pid_t pid);
 
 void net_nfc_server_gdbus_increase_se_count(const char *id);
 void net_nfc_server_gdbus_decrease_se_count(const char *id);

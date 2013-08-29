@@ -27,7 +27,6 @@
 #include "net_nfc_util_internal.h"
 #include "net_nfc_util_defines.h"
 #include "net_nfc_util_gdbus_internal.h"
-#include "net_nfc_server.h"
 #include "net_nfc_server_context.h"
 
 

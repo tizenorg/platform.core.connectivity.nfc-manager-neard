@@ -128,8 +128,6 @@ net_nfc_error_e net_nfc_util_verify_signature_records(ndef_record_s *begin_recor
 	/* get signed data */
 	if (_get_records_data_buffer(begin_record, sign_record, &buffer, &length) == true)
 	{
-		uint8_t *signature = NULL;
-		uint32_t sign_len = 0;
 		net_nfc_signature_record_s *sign_info = NULL;
 		net_nfc_certificate_chain_s *chain_info = NULL;
 
@@ -148,11 +146,6 @@ net_nfc_error_e net_nfc_util_verify_signature_records(ndef_record_s *begin_recor
 			DEBUG_ERR_MSG("NOT IMPLEMENTED (sign_info->uri_present == true)");
 			_net_nfc_util_free_mem(buffer);
 			return result;
-		}
-		else
-		{
-			signature = sign_info->signature.value;
-			sign_len = sign_info->signature.length;
 		}
 
 		/* parse certificate chain info */

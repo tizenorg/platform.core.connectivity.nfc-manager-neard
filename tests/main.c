@@ -26,7 +26,6 @@
 #include "net_nfc_test_manager.h"
 #include "net_nfc_test_tag.h"
 #include "net_nfc_test_ndef.h"
-#include "net_nfc_test_test.h"
 #include "net_nfc_test_p2p.h"
 #include "net_nfc_test_handover.h"
 #include "net_nfc_test_transceive.h"
@@ -184,38 +183,6 @@ static TestData test_data[] = {
 		net_nfc_test_ndef_make_read_only,
 		net_nfc_test_ndef_make_read_only_sync,
 		"Make Tag Read only"
-	},
-
-	{
-		"Test",
-		"SimTest",
-		net_nfc_test_test_sim_test,
-		net_nfc_test_test_sim_test_sync,
-		"Read SIM test"
-	},
-
-	{
-		"Test",
-		"PrbsTest",
-		net_nfc_test_test_prbs_test,
-		net_nfc_test_test_prbs_test_sync,
-		"PRBS Test"
-	},
-
-	{
-		"Test",
-		"GetFirmwareVersion",
-		net_nfc_test_test_get_firmware_version,
-		net_nfc_test_test_get_firmware_version_sync,
-		"Get firmware veresion"
-	},
-
-	{
-		"Test",
-		"SetEeData",
-		net_nfc_test_test_set_ee_data,
-		net_nfc_test_test_set_ee_data_sync,
-		"Set EEData"
 	},
 
 	{

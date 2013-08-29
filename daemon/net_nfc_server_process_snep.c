@@ -144,14 +144,12 @@ static void _net_nfc_server_snep_recv(
 static void _net_nfc_server_snep_send(
 		net_nfc_server_snep_op_context_t *context);
 
-static net_nfc_error_e net_nfc_server_snep_recv(
-		net_nfc_target_handle_s *handle,
+static net_nfc_error_e net_nfc_server_snep_recv(net_nfc_target_handle_s *handle,
 		net_nfc_llcp_socket_t socket,
 		_net_nfc_server_snep_operation_cb cb,
 		void *user_param);
 
-static net_nfc_error_e net_nfc_server_snep_send(
-		net_nfc_target_handle_s *handle,
+static net_nfc_error_e net_nfc_server_snep_send(net_nfc_target_handle_s *handle,
 		net_nfc_llcp_socket_t socket,
 		uint32_t type,
 		data_s *data,
@@ -223,9 +221,7 @@ static void _net_nfc_server_snep_del_get_response_cb(
 }
 
 static bool _net_nfc_server_snep_process_get_response_cb(
-		net_nfc_target_handle_s *handle,
-		data_s *data,
-		uint32_t max_len)
+		net_nfc_target_handle_s *handle, data_s *data, uint32_t max_len)
 {
 	GList *list = list_listen_cb;
 
@@ -249,8 +245,8 @@ static bool _net_nfc_server_snep_process_get_response_cb(
 	return false;
 }
 
-	static net_nfc_server_snep_op_context_t *
-_net_nfc_server_snep_create_send_context(uint32_t type,
+static net_nfc_server_snep_op_context_t* _net_nfc_server_snep_create_send_context(
+		uint32_t type,
 		net_nfc_target_handle_s *handle,
 		net_nfc_llcp_socket_t socket,
 		data_s *data,
@@ -339,8 +335,7 @@ _net_nfc_server_snep_create_send_context(uint32_t type,
 	return context;
 }
 
-	static net_nfc_server_snep_op_context_t *
-_net_nfc_server_snep_create_recv_context(
+static net_nfc_server_snep_op_context_t* _net_nfc_server_snep_create_recv_context(
 		net_nfc_target_handle_s *handle,
 		net_nfc_llcp_socket_t socket,
 		void *cb,
@@ -687,9 +682,7 @@ static void _net_nfc_server_snep_recv(
 	}
 }
 
-	static net_nfc_error_e
-net_nfc_server_snep_recv(
-		net_nfc_target_handle_s *handle,
+static net_nfc_error_e net_nfc_server_snep_recv(net_nfc_target_handle_s *handle,
 		net_nfc_llcp_socket_t socket,
 		_net_nfc_server_snep_operation_cb cb,
 		void *user_param)
@@ -932,8 +925,7 @@ static void _net_nfc_server_snep_send(
 	}
 }
 
-net_nfc_error_e net_nfc_server_snep_send(
-		net_nfc_target_handle_s *handle,
+net_nfc_error_e net_nfc_server_snep_send(net_nfc_target_handle_s *handle,
 		net_nfc_llcp_socket_t socket,
 		uint32_t type,
 		data_s *data,
@@ -1235,8 +1227,7 @@ static void _net_nfc_server_snep_incomming_socket_error_cb(
 }
 
 
-static void _net_nfc_server_snep_socket_error_cb(
-		net_nfc_error_e result,
+static void _net_nfc_server_snep_socket_error_cb(net_nfc_error_e result,
 		net_nfc_target_handle_s *handle,
 		net_nfc_llcp_socket_t socket,
 		data_s *data,
@@ -1277,8 +1268,7 @@ static void _net_nfc_server_snep_socket_error_cb(
 }
 
 
-static void _net_nfc_server_snep_incoming_cb(
-		net_nfc_error_e result,
+static void _net_nfc_server_snep_incoming_cb(net_nfc_error_e result,
 		net_nfc_target_handle_s *handle,
 		net_nfc_llcp_socket_t socket,
 		data_s *data,
@@ -1355,12 +1345,8 @@ ERROR :
 	}
 }
 
-net_nfc_error_e net_nfc_server_snep_server(
-		net_nfc_target_handle_s *handle,
-		const char *san,
-		sap_t sap,
-		net_nfc_server_snep_cb cb,
-		void *user_param)
+net_nfc_error_e net_nfc_server_snep_server(	net_nfc_target_handle_s *handle,
+		const char *san, sap_t sap, net_nfc_server_snep_cb cb, void *user_param)
 {
 	net_nfc_error_e result;
 	net_nfc_server_snep_context_t *context = NULL;
@@ -1409,8 +1395,7 @@ ERROR :
 }
 
 net_nfc_error_e net_nfc_server_snep_server_send_get_response(
-		net_nfc_snep_handle_h snep_handle,
-		data_s *data)
+		net_nfc_snep_handle_h snep_handle, data_s *data)
 {
 	net_nfc_server_snep_context_t *context =
 		(net_nfc_server_snep_context_t *)snep_handle;
@@ -1462,11 +1447,8 @@ net_nfc_error_e net_nfc_server_snep_server_send_get_response(
 	return result;
 }
 
-static void _net_nfc_server_snep_client_send_cb(
-		net_nfc_error_e result,
-		uint32_t type,
-		data_s *data,
-		void *user_param)
+static void _net_nfc_server_snep_client_send_cb(net_nfc_error_e result,
+		uint32_t type, data_s *data, void *user_param)
 {
 	net_nfc_server_snep_job_t*job =
 		(net_nfc_server_snep_job_t *)user_param;
@@ -1495,11 +1477,8 @@ static void _net_nfc_server_snep_client_send_cb(
 	_net_nfc_server_snep_client_process(job);
 }
 
-static void _net_nfc_server_snep_client_recv_cb(
-		net_nfc_error_e result,
-		uint32_t type,
-		data_s *data,
-		void *user_param)
+static void _net_nfc_server_snep_client_recv_cb(net_nfc_error_e result,
+		uint32_t type, data_s *data, void *user_param)
 {
 	net_nfc_server_snep_job_t *job =
 		(net_nfc_server_snep_job_t *)user_param;
@@ -1553,7 +1532,8 @@ static void _net_nfc_server_snep_client_recv_cb(
 }
 
 
-static void _net_nfc_server_snep_client_do_job(net_nfc_server_snep_context_t *context)
+static void _net_nfc_server_snep_client_do_job(
+	net_nfc_server_snep_context_t *context)
 {
 	if (context->state == NET_NFC_LLCP_IDLE &&
 			g_queue_is_empty(&context->queue) == false) {
@@ -1657,8 +1637,7 @@ static void _net_nfc_server_snep_client_process(
 	}
 }
 
-static void _net_nfc_server_snep_connected_cb(
-		net_nfc_error_e result,
+static void _net_nfc_server_snep_connected_cb(net_nfc_error_e result,
 		net_nfc_target_handle_s *handle,
 		net_nfc_llcp_socket_t socket,
 		data_s *data,
@@ -1695,12 +1674,8 @@ static void _net_nfc_server_snep_connected_cb(
 	}
 }
 
-net_nfc_error_e net_nfc_server_snep_client(
-		net_nfc_target_handle_s *handle,
-		const char *san,
-		sap_t sap,
-		net_nfc_server_snep_cb cb,
-		void *user_param)
+net_nfc_error_e net_nfc_server_snep_client(net_nfc_target_handle_s *handle,
+		const char *san, sap_t sap, net_nfc_server_snep_cb cb, void *user_param)
 {
 	net_nfc_error_e result;
 	net_nfc_server_snep_context_t *context = NULL;
@@ -1759,12 +1734,8 @@ ERROR :
 }
 
 
-net_nfc_error_e net_nfc_server_snep_client_request(
-		net_nfc_snep_handle_h snep,
-		uint8_t type,
-		data_s *data,
-		net_nfc_server_snep_cb cb,
-		void *user_param)
+net_nfc_error_e net_nfc_server_snep_client_request(net_nfc_snep_handle_h snep,
+		uint8_t type, data_s *data, net_nfc_server_snep_cb cb, void *user_param)
 {
 	net_nfc_server_snep_context_t *context = (net_nfc_server_snep_context_t *)snep;
 	net_nfc_error_e result = NET_NFC_OK;
@@ -2001,10 +1972,8 @@ net_nfc_error_e net_nfc_server_snep_default_client_start(
 	}
 }
 
-	net_nfc_error_e
-net_nfc_server_snep_default_server_register_get_response_cb(
-		net_nfc_server_snep_listen_cb cb,
-		void *user_param)
+net_nfc_error_e net_nfc_server_snep_default_server_register_get_response_cb(
+		net_nfc_server_snep_listen_cb cb, void *user_param)
 {
 	net_nfc_error_e result;
 
@@ -2020,8 +1989,7 @@ net_nfc_server_snep_default_server_register_get_response_cb(
 	return result;
 }
 
-	net_nfc_error_e
-net_nfc_server_snep_default_server_unregister_get_response_cb(
+net_nfc_error_e net_nfc_server_snep_default_server_unregister_get_response_cb(
 		net_nfc_server_snep_listen_cb cb)
 {
 	_net_nfc_server_snep_del_get_response_cb(cb);
@@ -2057,8 +2025,7 @@ net_nfc_error_e net_nfc_server_snep_default_server_send_get_response(
 	return result;
 }
 
-static void _snep_default_activate_cb(int event,
-		net_nfc_target_handle_s *handle,
+static void _snep_default_activate_cb(int event, net_nfc_target_handle_s *handle,
 		uint32_t sap, const char *san, void *user_param)
 {
 	net_nfc_error_e result;

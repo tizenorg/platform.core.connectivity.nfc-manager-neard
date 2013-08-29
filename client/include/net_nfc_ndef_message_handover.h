@@ -18,10 +18,6 @@
 
 #include "net_nfc_typedef.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
   This function create wifi configure handler instance.
 
@@ -407,11 +403,5 @@ net_nfc_error_e net_nfc_create_handover_select_message (ndef_message_h * message
   @exception NET_NFC_ALLOC_FAIL			allocation is failed
   */
 net_nfc_error_e net_nfc_create_handover_error_record (ndef_record_h * record, uint8_t reason, uint32_t data);
-
-
-#ifdef __cplusplus
-}
-#endif
-
 
 #endif //__NET_NFC_NDEF_MESSAGE_HANDOVER_H__

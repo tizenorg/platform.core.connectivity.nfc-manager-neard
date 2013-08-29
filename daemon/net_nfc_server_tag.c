@@ -48,8 +48,7 @@ static gboolean tag_is_isp_dep_ndef_formatable(net_nfc_target_handle_s *handle,
 		int dev_type);
 
 static gboolean tag_read_ndef_message(net_nfc_target_handle_s *handle,
-		int dev_type,
-		data_s **read_ndef);
+		int dev_type,data_s **read_ndef);
 
 static void tag_watchdog_thread_func(gpointer user_data);
 
@@ -123,8 +122,7 @@ static gboolean tag_is_isp_dep_ndef_formatable(net_nfc_target_handle_s *handle,
 }
 
 static gboolean tag_read_ndef_message(net_nfc_target_handle_s *handle,
-		int dev_type,
-		data_s **read_ndef)
+		int dev_type, data_s **read_ndef)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	data_s *temp = NULL;
@@ -419,26 +417,26 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 			ndef_message_s *selector;
 			ndef_record_s *record;
 			ndef_record_s *recordasperpriority;
-			result = _net_nfc_server_handover_create_selector_from_rawdata(
+			result = net_nfc_server_handover_create_selector_from_rawdata(
 					&selector,
 					recv_data);
 
 			if (result == NET_NFC_OK)
 			{
 				result =
-				_net_nfc_server_handover_get_carrier_record_by_priority_order(
-						selector,
-						&record);
+					net_nfc_server_handover_get_carrier_record_by_priority_order(
+							selector,
+							&record);
 				isHandoverMessage = true;
 				if (result == NET_NFC_OK)
 				{
 					net_nfc_util_create_record(
-						record->TNF,
-						&record->type_s, &record->id_s,
-						&record->payload_s,
-						&recordasperpriority);
+							record->TNF,
+							&record->type_s, &record->id_s,
+							&record->payload_s,
+							&recordasperpriority);
 
-					_net_nfc_server_handover_process_carrier_record(recordasperpriority, NULL, NULL);
+					net_nfc_server_handover_process_carrier_record(recordasperpriority, NULL, NULL);
 				}
 				else
 				{
@@ -446,7 +444,7 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 							" failed, [%d]",result);
 				}
 			}
-		else
+			else
 			{
 				net_nfc_app_util_process_ndef(recv_data);
 				raw_data = net_nfc_util_gdbus_data_to_variant(recv_data);
@@ -474,15 +472,15 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 	{
 		/* send TagDiscoverd signal */
 		net_nfc_gdbus_tag_emit_tag_discovered(tag_skeleton,
-						GPOINTER_TO_UINT(target->handle),
-						target->devType,
-						is_ndef_supported,
-						ndef_card_state,
-						max_data_size,
-						actual_data_size,
-						target->number_of_keys,
-						target_info_values,
-						raw_data);
+				GPOINTER_TO_UINT(target->handle),
+				target->devType,
+				is_ndef_supported,
+				ndef_card_state,
+				max_data_size,
+				actual_data_size,
+				target->number_of_keys,
+				target_info_values,
+				raw_data);
 	}
 
 	/* turn on watch dog */

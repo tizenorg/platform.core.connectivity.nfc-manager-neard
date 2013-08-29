@@ -18,10 +18,6 @@
 
 #include "net_nfc_typedef.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* p2p callbacks */
 
 typedef void (*net_nfc_client_p2p_send_completed)(net_nfc_error_e result,
@@ -72,9 +68,5 @@ void net_nfc_client_p2p_unset_device_discovered(void);
 net_nfc_error_e net_nfc_client_p2p_init(void);
 
 void net_nfc_client_p2p_deinit(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif //__NET_NFC_CLIENT_P2P_H__

@@ -727,11 +727,8 @@ static void llcp_disconnect_cb(net_nfc_llcp_socket_t socket,
 
 static void llcp_handle_config_thread_func(gpointer user_data)
 {
-	LlcpConfigData *data;
-
 	net_nfc_llcp_config_info_s config;
-
-	data = (LlcpConfigData *)user_data;
+	LlcpConfigData *data = user_data;
 
 	if (data == NULL)
 	{
@@ -2317,7 +2314,7 @@ static void llcp_deactivated_thread_func(gpointer user_data)
 
 	req_llcp_msg = (net_nfc_request_llcp_msg_t *)data->req_msg;
 
-	handle = (net_nfc_target_handle_s *)req_llcp_msg->user_param;
+	handle = (net_nfc_target_handle_s*)req_llcp_msg->user_param;
 	if (handle == NULL)
 	{
 		DEBUG_SERVER_MSG(
@@ -3039,8 +3036,7 @@ void net_nfc_server_llcp_disconnect(net_nfc_request_msg_t *req_msg)
 	llcp_add_async_queue(req_msg, llcp_disconnect_thread_func);
 }
 
-net_nfc_error_e net_nfc_server_llcp_set_config(
-		net_nfc_llcp_config_info_s *config)
+net_nfc_error_e net_nfc_server_llcp_set_config(net_nfc_llcp_config_info_s *config)
 {
 	net_nfc_error_e result;
 
@@ -3076,8 +3072,7 @@ guint8 net_nfc_server_llcp_get_option(void)
 	return llcp_config.option;
 }
 
-net_nfc_error_e net_nfc_server_llcp_simple_server(
-		net_nfc_target_handle_s *handle,
+net_nfc_error_e net_nfc_server_llcp_simple_server(net_nfc_target_handle_s *handle,
 		const char *san,
 		sap_t sap,
 		net_nfc_server_llcp_callback callback,
@@ -3534,10 +3529,9 @@ static void _llcp_start_services_cb(gpointer key, gpointer value,
 	service_t *service = (service_t *)value;
 
 	/* TODO : start service */
-	if (service != NULL && service->cb != NULL) {
-		service->cb(NET_NFC_LLCP_START,
-				(net_nfc_target_handle_s *)user_data,
-				service->sap,
+	if (service != NULL && service->cb != NULL)
+	{
+		service->cb(NET_NFC_LLCP_START, (net_nfc_target_handle_s*)user_data, service->sap,
 				service->san, service->user_data);
 	}
 }
@@ -3547,9 +3541,8 @@ static void _llcp_start_services(net_nfc_target_handle_s *handle)
 	g_hash_table_foreach(service_table, _llcp_start_services_cb, handle);
 }
 
-net_nfc_error_e net_nfc_server_llcp_register_service(const char *id,
-		sap_t sap, const char *san, net_nfc_server_llcp_activate_cb cb,
-		void *user_param)
+net_nfc_error_e net_nfc_server_llcp_register_service(const char *id, sap_t sap,
+		const char *san, net_nfc_server_llcp_activate_cb cb, void *user_param)
 {
 	return _llcp_add_service(id, sap, san, cb, user_param);
 }
@@ -3621,21 +3614,17 @@ net_nfc_error_e net_nfc_server_llcp_start_registered_services(
 static void net_nfc_server_llcp_process(gpointer user_data)
 {
 	net_nfc_current_target_info_s *target;
-#if 0
-	net_nfc_error_e result;
-#endif
 	net_nfc_target_handle_s *handle;
-	net_nfc_target_type_e dev_type;
 
 	target = net_nfc_server_get_target_info();
 
 	g_assert(target != NULL); /* raise exception!!! what;s wrong?? */
 
 	handle = target->handle;
-	dev_type = target->devType;
-
 	DEBUG_SERVER_MSG("connection type = [%d]", handle->connection_type);
 #if 0
+	net_nfc_target_type_e dev_type = target->devType;
+
 	if (dev_type == NET_NFC_NFCIP1_TARGET)
 	{
 		DEBUG_SERVER_MSG("LLCP : target, try to connect");

@@ -26,12 +26,14 @@ net_nfc_error_e net_nfc_util_create_record(net_nfc_record_tnf_e recordType, data
 /*
  create text type record
  */
-net_nfc_error_e net_nfc_util_create_text_type_record(const char *text, const char *lang_code_str, net_nfc_encode_type_e encode, ndef_record_s **record);
+net_nfc_error_e net_nfc_util_create_text_type_record(const char *text,
+		const char *lang_code_str, net_nfc_encode_type_e encode, ndef_record_s **record);
 
 /*
  this utility function help to create uri type record
  */
-net_nfc_error_e net_nfc_util_create_uri_type_record(const char *uri, net_nfc_schema_type_e protocol_schema, ndef_record_s **record);
+net_nfc_error_e net_nfc_util_create_uri_type_record(const char *uri,
+		net_nfc_schema_type_e protocol_schema, ndef_record_s **record);
 
 /*
  free ndef record. it free all the buffered data
@@ -41,7 +43,8 @@ net_nfc_error_e net_nfc_util_free_record(ndef_record_s *record);
 /*
  convert schema enum value to character string.
  */
-net_nfc_error_e net_nfc_util_set_record_id(ndef_record_s *record, uint8_t *data, int length);
+net_nfc_error_e net_nfc_util_set_record_id(ndef_record_s *record, uint8_t *data,
+		int length);
 
 /*
  get total bytes of ndef record in serial form
@@ -51,6 +54,7 @@ uint32_t net_nfc_util_get_record_length(ndef_record_s *record);
 /*
  create uri string from record
  */
-net_nfc_error_e net_nfc_util_create_uri_string_from_uri_record(ndef_record_s *record, char **uri);
+net_nfc_error_e net_nfc_util_create_uri_string_from_uri_record(
+		ndef_record_s *record, char **uri);
 
 #endif //__NET_NFC_UTIL_NDEF_RECORD_H__

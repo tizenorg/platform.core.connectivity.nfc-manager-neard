@@ -19,10 +19,6 @@
 #include <glib.h>
 #include "net_nfc_typedef.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*************Secure Element Callbacks*********/
 typedef void (*net_nfc_se_set_se_cb)(
 	net_nfc_error_e result,
@@ -64,27 +60,22 @@ typedef void (*net_nfc_client_se_ese_detected_event)(
 /************* Secure Element API's*************/
 
 net_nfc_error_e net_nfc_client_se_set_secure_element_type(
-					net_nfc_se_type_e se_type,
-					net_nfc_se_set_se_cb callback,
-					void *user_data);
+		net_nfc_se_type_e se_type, net_nfc_se_set_se_cb callback, void *user_data);
 
 
 net_nfc_error_e net_nfc_client_se_set_secure_element_type_sync(
-					net_nfc_se_type_e se_type);
+		net_nfc_se_type_e se_type);
 
 
-net_nfc_error_e net_nfc_client_se_get_secure_element_type(
-					void *user_data);
+net_nfc_error_e net_nfc_client_se_get_secure_element_type(void *user_data);
 
 
 net_nfc_error_e net_nfc_client_se_get_secure_element_type_sync(
-						gint *se_type);
+		gint *se_type);
 
 
 net_nfc_error_e net_nfc_client_se_open_internal_secure_element(
-					net_nfc_se_type_e se_type,
-					net_nfc_se_open_se_cb callback,
-					void *user_data);
+		net_nfc_se_type_e se_type, net_nfc_se_open_se_cb callback, void *user_data);
 
 
 net_nfc_error_e net_nfc_client_se_open_internal_secure_element_sync(
@@ -129,19 +120,17 @@ net_nfc_error_e net_nfc_client_se_send_apdu_sync(
 /************* Secure Element CallBack Register/Deregister functions*************/
 
 void net_nfc_client_se_set_ese_detection_cb(
-			net_nfc_client_se_ese_detected_event callback,
-			void *user_data);
+		net_nfc_client_se_ese_detected_event callback, void *user_data);
 
 void net_nfc_client_se_unset_ese_detection_cb(void);
 
 void net_nfc_client_se_set_transaction_event_cb(
-			net_nfc_client_se_transaction_event callback,
-			void *user_data);
+		net_nfc_client_se_transaction_event callback, void *user_data);
 
 void net_nfc_client_se_unset_transaction_event_cb(void);
 
 void net_nfc_client_se_set_event_cb(net_nfc_client_se_event callback,
-				void *user_data);
+		void *user_data);
 
 void net_nfc_client_se_unset_event_cb(void);
 
@@ -151,11 +140,7 @@ void net_nfc_client_se_unset_event_cb(void);
 
 net_nfc_error_e net_nfc_client_se_init(void);
 
-
 void net_nfc_client_se_deinit(void);
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif //__NET_NFC_CLIENT_SE_H__

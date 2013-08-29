@@ -256,14 +256,13 @@ net_nfc_error_e net_nfc_util_remove_carrier_config_property(net_nfc_carrier_conf
 	return NET_NFC_OK;
 }
 
-net_nfc_error_e net_nfc_util_get_carrier_config_property(net_nfc_carrier_config_s *config, uint16_t attribute, uint16_t * size, uint8_t ** data)
+net_nfc_error_e net_nfc_util_get_carrier_config_property(
+		net_nfc_carrier_config_s *config, uint16_t attribute, uint16_t *size, uint8_t **data)
 {
 	net_nfc_carrier_property_s *elem = NULL;
 
 	if (config == NULL || size == NULL || data == NULL)
-	{
 		return NET_NFC_NULL_PARAMETER;
-	}
 
 	elem = __find_property_by_attrubute(config->data, attribute);
 	if (elem == NULL)
@@ -275,27 +274,21 @@ net_nfc_error_e net_nfc_util_get_carrier_config_property(net_nfc_carrier_config_
 
 	*size = elem->length;
 	if (elem->is_group)
-	{
 		*data = NULL;
-	}
 	else
-	{
 		*data = elem->data;
-	}
 
 	return NET_NFC_OK;
 }
 
-net_nfc_error_e net_nfc_util_append_carrier_config_group(net_nfc_carrier_config_s *config, net_nfc_carrier_property_s *group)
+net_nfc_error_e net_nfc_util_append_carrier_config_group(
+		net_nfc_carrier_config_s *config, net_nfc_carrier_property_s *group)
 {
 	if (config == NULL || group == NULL)
-	{
 		return NET_NFC_NULL_PARAMETER;
-	}
+
 	if (g_list_find(config->data, group) != NULL)
-	{
 		return NET_NFC_ALREADY_REGISTERED;
-	}
 
 	config->data = g_list_append(config->data, group);
 	config->length += group->length;
@@ -490,7 +483,7 @@ net_nfc_error_e net_nfc_util_free_carrier_group(net_nfc_carrier_property_s *grou
 static void __make_serial_wifi(gpointer data, gpointer user_data)
 {
 	net_nfc_carrier_property_s *info = (net_nfc_carrier_property_s *)data;
-	data_s *payload = (data_s *)user_data;
+	data_s *payload = user_data;
 	uint8_t *current;
 	int inc = 0;
 
@@ -521,7 +514,7 @@ static void __make_serial_wifi(gpointer data, gpointer user_data)
 static void __make_serial_bt(gpointer data, gpointer user_data)
 {
 	net_nfc_carrier_property_s *info = (net_nfc_carrier_property_s *)data;
-	data_s *payload = (data_s *)user_data;
+	data_s *payload = user_data;
 	uint8_t *current;
 	int inc = 0;
 

@@ -23,7 +23,8 @@
 
 static net_nfc_error_e __net_nfc_repair_record_flags(ndef_message_s *ndef_message);
 
-net_nfc_error_e net_nfc_util_convert_rawdata_to_ndef_message(data_s *rawdata, ndef_message_s *ndef)
+net_nfc_error_e net_nfc_util_convert_rawdata_to_ndef_message(
+		data_s *rawdata, ndef_message_s *ndef)
 {
 	ndef_record_s *newRec = NULL;
 	ndef_record_s *prevRec = NULL;
@@ -355,9 +356,7 @@ net_nfc_error_e net_nfc_util_convert_ndef_message_to_rawdata(ndef_message_s *nde
 net_nfc_error_e net_nfc_util_append_record(ndef_message_s *msg, ndef_record_s *record)
 {
 	if (msg == NULL || record == NULL)
-	{
 		return NET_NFC_NULL_PARAMETER;
-	}
 
 	if (msg->recordCount == 0)
 	{

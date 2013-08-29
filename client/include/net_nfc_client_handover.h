@@ -18,10 +18,6 @@
 
 #include "net_nfc_typedef.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef void (*net_nfc_p2p_connection_handover_completed_cb)(
 		net_nfc_error_e result,
 		net_nfc_conn_handover_carrier_type_e carrier,
@@ -60,9 +56,5 @@ net_nfc_error_e net_nfc_client_p2p_connection_handover_sync(
 net_nfc_error_e net_nfc_client_handover_init(void);
 
 void net_nfc_client_handover_deinit(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif //__NET_NFC_CLIENT_HANDOVER_H__

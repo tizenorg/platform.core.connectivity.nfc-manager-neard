@@ -18,12 +18,6 @@
 
 #include "net_nfc_typedef.h"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-
 /**
 
   @addtogroup NET_NFC_MANAGER_RECORD
@@ -58,7 +52,8 @@ extern "C"
   net_nfc_sign_records(msg, 0, 1, "/tmp/cert.p12", "abcdef");
   @endcode
 */
-net_nfc_error_e net_nfc_sign_records(ndef_message_h msg, int begin_index, int end_index, char *cert_file, char *password);
+net_nfc_error_e net_nfc_sign_records(ndef_message_h msg, int begin_index,
+		int end_index, char *cert_file, char *password);
 
 /**
   this function make the signature of whole records in NDEF message
@@ -81,7 +76,8 @@ net_nfc_error_e net_nfc_sign_records(ndef_message_h msg, int begin_index, int en
   net_nfc_sign_ndef_message(msg, "/tmp/cert.p12", "abcdef");
   @endcode
 */
-net_nfc_error_e net_nfc_sign_ndef_message(ndef_message_h msg, char *cert_file, char *password);
+net_nfc_error_e net_nfc_sign_ndef_message(ndef_message_h msg, char *cert_file,
+		char *password);
 
 /**
   This function does verify signature of records
@@ -112,7 +108,8 @@ net_nfc_error_e net_nfc_sign_ndef_message(ndef_message_h msg, char *cert_file, c
   return (error == NET_NFC_OK);
   @endcode
 */
-net_nfc_error_e net_nfc_verify_signature_records(ndef_record_h begin_record, ndef_record_h sign_record);
+net_nfc_error_e net_nfc_verify_signature_records(ndef_record_h begin_record,
+		ndef_record_h sign_record);
 
 /**
   This function does verify signature in NDEF message
@@ -139,10 +136,5 @@ net_nfc_error_e net_nfc_verify_signature_records(ndef_record_h begin_record, nde
   @endcode
 */
 net_nfc_error_e net_nfc_verify_signature_ndef_message(ndef_message_h msg);
-
-#ifdef __cplusplus
-}
-#endif
-
 
 #endif //__NET_NFC_SIGN_RECORD_H__

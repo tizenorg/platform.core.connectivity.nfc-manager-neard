@@ -18,10 +18,6 @@
 
 #include "net_nfc_typedef.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define NET_NFC_SERVICE_EMPTY_TYPE	\
 	"http://tizen.org/appcontrol/operation/nfc/empty"
 #define NET_NFC_SERVICE_WELL_KNOWN_TYPE	\
@@ -42,8 +38,5 @@ net_nfc_error_e net_nfc_client_is_nfc_supported(int *state);
 
 net_nfc_error_e net_nfc_client_get_nfc_state(int *state);
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif //__NET_NFC_CLIENT_CONTEXT_H__

@@ -25,7 +25,7 @@
 // service access name
 #define SDP_SAN			"urn:nfc:sn:sdp"
 #define IP_SAN			"urn:nfc:sn:ip"
-#define OBEX_SAN 		"urn:nfc:sn:obex"
+#define OBEX_SAN		"urn:nfc:sn:obex"
 
 #define SDP_SAP			1  /* service discovery protocol service access point */
 #define IP_SAP			2  /* Internet protocol service access point */
@@ -69,17 +69,17 @@ typedef enum
 } net_nfc_state_e;
 
 typedef void (*net_nfc_server_llcp_callback) (net_nfc_error_e result,
-					net_nfc_target_handle_s *handle,
-					net_nfc_llcp_socket_t socket,
-					data_s *data,
-					gpointer user_data);
+		net_nfc_target_handle_s *handle,
+		net_nfc_llcp_socket_t socket,
+		data_s *data,
+		gpointer user_data);
 
 typedef void (*net_nfc_server_llcp_activate_cb)(
-	int event,
-	net_nfc_target_handle_s *handle,
-	uint32_t sap,
-	const char *san,
-	void *user_param);
+		int event,
+		net_nfc_target_handle_s *handle,
+		uint32_t sap,
+		const char *san,
+		void *user_param);
 
 gboolean net_nfc_server_llcp_init(GDBusConnection *connection);
 
@@ -104,8 +104,7 @@ void net_nfc_server_llcp_connect(net_nfc_request_msg_t *req_msg);
 
 void net_nfc_server_llcp_disconnect(net_nfc_request_msg_t *req_msg);
 
-net_nfc_error_e net_nfc_server_llcp_set_config(
-					net_nfc_llcp_config_info_s *config);
+net_nfc_error_e net_nfc_server_llcp_set_config(net_nfc_llcp_config_info_s *config);
 
 guint16 net_nfc_server_llcp_get_miu(void);
 
@@ -118,52 +117,52 @@ guint8 net_nfc_server_llcp_get_option(void);
 void net_nfc_server_llcp_target_detected(void *info);
 
 net_nfc_error_e net_nfc_server_llcp_simple_server(
-				net_nfc_target_handle_s *handle,
-				const char *san,
-				sap_t sap,
-				net_nfc_server_llcp_callback callback,
-				net_nfc_server_llcp_callback error_callback,
-				gpointer user_data);
+		net_nfc_target_handle_s *handle,
+		const char *san,
+		sap_t sap,
+		net_nfc_server_llcp_callback callback,
+		net_nfc_server_llcp_callback error_callback,
+		gpointer user_data);
 
 net_nfc_error_e net_nfc_server_llcp_simple_client(
-				net_nfc_target_handle_s *handle,
-				const char *san,
-				sap_t sap,
-				net_nfc_server_llcp_callback callback,
-				net_nfc_server_llcp_callback error_callback,
-				gpointer user_data);
+		net_nfc_target_handle_s *handle,
+		const char *san,
+		sap_t sap,
+		net_nfc_server_llcp_callback callback,
+		net_nfc_server_llcp_callback error_callback,
+		gpointer user_data);
 
 net_nfc_error_e net_nfc_server_llcp_simple_accept(
-				net_nfc_target_handle_s *handle,
-				net_nfc_llcp_socket_t socket,
-				net_nfc_server_llcp_callback error_callback,
-				gpointer user_data);
+		net_nfc_target_handle_s *handle,
+		net_nfc_llcp_socket_t socket,
+		net_nfc_server_llcp_callback error_callback,
+		gpointer user_data);
 
 net_nfc_error_e net_nfc_server_llcp_simple_send(
-					net_nfc_target_handle_s *handle,
-					net_nfc_llcp_socket_t socket,
-					data_s *data,
-					net_nfc_server_llcp_callback callback,
-					gpointer user_data);
+		net_nfc_target_handle_s *handle,
+		net_nfc_llcp_socket_t socket,
+		data_s *data,
+		net_nfc_server_llcp_callback callback,
+		gpointer user_data);
 
 net_nfc_error_e net_nfc_server_llcp_simple_receive(
-					net_nfc_target_handle_s *handle,
-					net_nfc_llcp_socket_t socket,
-					net_nfc_server_llcp_callback callback,
-					gpointer user_data);
+		net_nfc_target_handle_s *handle,
+		net_nfc_llcp_socket_t socket,
+		net_nfc_server_llcp_callback callback,
+		gpointer user_data);
 
 net_nfc_error_e net_nfc_server_llcp_register_service(const char *id,
-	sap_t sap, const char *san, net_nfc_server_llcp_activate_cb cb,
-	void *user_param);
+		sap_t sap, const char *san, net_nfc_server_llcp_activate_cb cb,
+		void *user_param);
 
 net_nfc_error_e net_nfc_server_llcp_unregister_service(const char *id,
-	sap_t sap, const char *san);
+		sap_t sap, const char *san);
 
 net_nfc_error_e net_nfc_server_llcp_unregister_services(const char *id);
 
 net_nfc_error_e net_nfc_server_llcp_unregister_all();
 
 net_nfc_error_e net_nfc_server_llcp_start_registered_services(
-	net_nfc_target_handle_s *handle);
+		net_nfc_target_handle_s *handle);
 
 #endif //__NET_NFC_SERVER_LLCP_H__

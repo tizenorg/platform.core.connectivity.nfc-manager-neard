@@ -23,11 +23,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 /**
  NFC Manager
  NFC Manager controls the nfc device with high level APIs such as SmartPoster and Connection handover.
@@ -391,8 +386,6 @@ typedef struct _ndef_message_s *ndef_message_h;
 
 typedef struct _net_nfc_target_info_s *net_nfc_target_info_h;
 
-typedef uint32_t net_nfc_traceive_cmd;
-
 typedef struct _net_nfc_llcp_config_info_s *net_nfc_llcp_config_info_h;
 
 typedef struct _net_nfc_llcp_socket_option_s *net_nfc_llcp_socket_option_h;
@@ -408,14 +401,18 @@ typedef uint32_t net_nfc_llcp_socket_t;
 typedef void *net_nfc_snep_handle_h;
 
 // LLCP Callback
-typedef void (*net_nfc_llcp_socket_cb)(net_nfc_llcp_message_e message, net_nfc_error_e result, void *data, void *user_data, void *trans_data);
+typedef void (*net_nfc_llcp_socket_cb)(net_nfc_llcp_message_e message,
+		net_nfc_error_e result, void *data, void *user_data, void *trans_data);
 
 // Main Callback
-typedef void (*net_nfc_response_cb)(net_nfc_message_e message, net_nfc_error_e result, void *data, void *user_param, void *trans_data);
+typedef void (*net_nfc_response_cb)(net_nfc_message_e message,
+		net_nfc_error_e result, void *data, void *user_param, void *trans_data);
 
-typedef void (*net_nfc_internal_se_response_cb)(net_nfc_message_e message, net_nfc_error_e result, void *data, void *user_param, void *trans_data);
+typedef void (*net_nfc_internal_se_response_cb)(net_nfc_message_e message,
+		net_nfc_error_e result, void *data, void *user_param, void *trans_data);
 
-typedef void (* net_nfc_set_activation_completed_cb)(net_nfc_error_e error, void *user_data);
+typedef void (* net_nfc_set_activation_completed_cb)(net_nfc_error_e error,
+		void *user_data);
 
 // for data exchanger
 
@@ -554,10 +551,6 @@ typedef enum
 	NET_NFC_CARD_EMULATION_DISABLE,
 }
 net_nfc_card_emulation_mode_t;
-
-#ifdef __cplusplus
-}
-#endif
 
 /**
  @}

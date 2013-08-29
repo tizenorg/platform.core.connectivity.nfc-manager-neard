@@ -31,8 +31,8 @@ void net_nfc_server_controller_init(void);
 void net_nfc_server_controller_deinit(void);
 #endif
 gboolean net_nfc_server_controller_async_queue_push(
-					net_nfc_server_controller_func func,
-					gpointer user_data);
+		net_nfc_server_controller_func func,
+		gpointer user_data);
 
 void net_nfc_server_restart_polling_loop(void);
 

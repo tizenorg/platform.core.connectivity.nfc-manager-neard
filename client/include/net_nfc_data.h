@@ -18,11 +18,6 @@
 
 #include "net_nfc_typedef.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 /**
 
   @addtogroup NET_NFC_MANAGER_INFO
@@ -31,7 +26,7 @@ extern "C" {
 
   NFC Manager defines are defined in <nfc-manager-def.h>
 
-  @li @c #net_nfc_initialize                  Initialize the nfc device.
+  @li @c #net_nfc_client_initialize                  Initialize the nfc device.
 
 */
 
@@ -132,8 +127,5 @@ net_nfc_error_e net_nfc_free_data (data_h data);
 /**
 @}
 */
-#ifdef __cplusplus
-}
-#endif
 
 #endif //__NET_NFC_DATA_H__

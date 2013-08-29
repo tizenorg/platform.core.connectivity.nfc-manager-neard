@@ -19,10 +19,6 @@
 #include "net_nfc_typedef.h"
 #include "net_nfc_client_transceive.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
 
   @addtogroup NET_NFC_MANAGER_TAG
@@ -256,11 +252,5 @@ net_nfc_error_e net_nfc_client_felica_request_system_code(
 /**
 @}
 */
-
-
-#ifdef __cplusplus
-}
-#endif
-
 
 #endif //__NET_NFC_CLIENT_TAG_FELICA_H__

@@ -18,19 +18,11 @@
 
 #include <glib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
-/* TODO : change to internal header */
 void net_nfc_client_gdbus_init(void);
 
 void net_nfc_client_gdbus_deinit(void);
 
 GVariant *net_nfc_client_gdbus_get_privilege();
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif //__NET_NFC_CLIENT_H__

@@ -110,8 +110,7 @@ void *net_nfc_controller_onload()
 	dirp = opendir(NFC_MANAGER_MODULEDIR);
 	if (dirp == NULL)
 	{
-		DEBUG_ERR_MSG("Can not open directory %s",
-				NFC_MANAGER_MODULEDIR);
+		DEBUG_ERR_MSG("Can not open directory %s", NFC_MANAGER_MODULEDIR);
 		return NULL;
 	}
 
@@ -124,20 +123,17 @@ void *net_nfc_controller_onload()
 		}
 
 		/* check ".so" suffix */
-		if (strcmp(dir->d_name + (strlen(dir->d_name) - strlen(".so")),
-					".so") != 0)
+		if (strcmp(dir->d_name + (strlen(dir->d_name) - strlen(".so")), ".so") != 0)
 			continue;
 
 		/* check default plugin later */
 		if (strcmp(dir->d_name, NET_NFC_DEFAULT_PLUGIN) == 0)
 			continue;
 
-		handle = net_nfc_controller_load_file(NFC_MANAGER_MODULEDIR,
-				dir->d_name);
+		handle = net_nfc_controller_load_file(NFC_MANAGER_MODULEDIR, dir->d_name);
 		if (handle)
 		{
-			SECURE_LOGD("Successfully loaded : %s",
-					dir->d_name);
+			SECURE_LOGD("Successfully loaded : %s", dir->d_name);
 			closedir(dirp);
 			return handle;
 		}
@@ -151,14 +147,12 @@ void *net_nfc_controller_onload()
 
 	if (handle)
 	{
-		DEBUG_SERVER_MSG("loaded default plugin : %s",
-				NET_NFC_DEFAULT_PLUGIN);
+		DEBUG_SERVER_MSG("loaded default plugin : %s", NET_NFC_DEFAULT_PLUGIN);
 		return handle;
 	}
 	else
 	{
-		DEBUG_ERR_MSG("can not load default plugin : %s",
-				NET_NFC_DEFAULT_PLUGIN);
+		DEBUG_ERR_MSG("can not load default plugin : %s", NET_NFC_DEFAULT_PLUGIN);
 		return NULL;
 	}
 }
@@ -202,12 +196,15 @@ bool net_nfc_controller_deinit(void)
 	}
 }
 
-bool net_nfc_controller_register_listener(target_detection_listener_cb target_detection_listener,
-		se_transaction_listener_cb se_transaction_listener, llcp_event_listener_cb llcp_event_listener, net_nfc_error_e *result)
+bool net_nfc_controller_register_listener(
+		target_detection_listener_cb target_detection_listener,
+		se_transaction_listener_cb se_transaction_listener,
+		llcp_event_listener_cb llcp_event_listener, net_nfc_error_e *result)
 {
 	if (g_interface.register_listener != NULL)
 	{
-		return g_interface.register_listener(target_detection_listener, se_transaction_listener, llcp_event_listener, result);
+		return g_interface.register_listener(target_detection_listener,
+				se_transaction_listener, llcp_event_listener, result);
 	}
 	else
 	{
@@ -230,7 +227,8 @@ bool net_nfc_controller_unregister_listener()
 	}
 }
 
-bool net_nfc_controller_get_firmware_version(data_s **data, net_nfc_error_e *result)
+bool net_nfc_controller_get_firmware_version(data_s **data,
+		net_nfc_error_e *result)
 {
 	if (g_interface.get_firmware_version != NULL)
 	{
@@ -272,7 +270,8 @@ bool net_nfc_controller_update_firmware(net_nfc_error_e *result)
 	}
 }
 
-bool net_nfc_controller_get_stack_information(net_nfc_stack_information_s *stack_info, net_nfc_error_e *result)
+bool net_nfc_controller_get_stack_information(
+		net_nfc_stack_information_s *stack_info, net_nfc_error_e *result)
 {
 	if (g_interface.get_stack_information != NULL)
 	{
@@ -286,7 +285,8 @@ bool net_nfc_controller_get_stack_information(net_nfc_stack_information_s *stack
 	}
 }
 
-bool net_nfc_controller_configure_discovery(net_nfc_discovery_mode_e mode, net_nfc_event_filter_e config, net_nfc_error_e *result)
+bool net_nfc_controller_configure_discovery(net_nfc_discovery_mode_e mode,
+		net_nfc_event_filter_e config, net_nfc_error_e *result)
 {
 	if (g_interface.configure_discovery != NULL)
 	{
@@ -300,7 +300,10 @@ bool net_nfc_controller_configure_discovery(net_nfc_discovery_mode_e mode, net_n
 	}
 }
 
-bool net_nfc_controller_get_secure_element_list(net_nfc_secure_element_info_s *list, int *count, net_nfc_error_e *result)
+bool net_nfc_controller_get_secure_element_list(
+		net_nfc_secure_element_info_s *list,
+		int *count,
+		net_nfc_error_e *result)
 {
 	if (g_interface.get_secure_element_list != NULL)
 	{
@@ -314,7 +317,10 @@ bool net_nfc_controller_get_secure_element_list(net_nfc_secure_element_info_s *l
 	}
 }
 
-bool net_nfc_controller_set_secure_element_mode(net_nfc_secure_element_type_e element_type, net_nfc_secure_element_mode_e mode, net_nfc_error_e *result)
+bool net_nfc_controller_set_secure_element_mode(
+		net_nfc_secure_element_type_e element_type,
+		net_nfc_secure_element_mode_e mode,
+		net_nfc_error_e *result)
 {
 	if (g_interface.set_secure_element_mode != NULL)
 	{
@@ -328,7 +334,10 @@ bool net_nfc_controller_set_secure_element_mode(net_nfc_secure_element_type_e el
 	}
 }
 
-bool net_nfc_controller_secure_element_open(net_nfc_secure_element_type_e element_type, net_nfc_target_handle_s **handle, net_nfc_error_e *result)
+bool net_nfc_controller_secure_element_open(
+		net_nfc_secure_element_type_e element_type,
+		net_nfc_target_handle_s **handle,
+		net_nfc_error_e *result)
 {
 	int ret_val = 0;
 
@@ -348,7 +357,8 @@ bool net_nfc_controller_secure_element_open(net_nfc_secure_element_type_e elemen
 	}
 }
 
-bool net_nfc_controller_secure_element_get_atr(net_nfc_target_handle_s *handle, data_s **atr, net_nfc_error_e *result)
+bool net_nfc_controller_secure_element_get_atr(net_nfc_target_handle_s *handle,
+		data_s **atr, net_nfc_error_e *result)
 {
 	if (g_interface.secure_element_get_atr != NULL)
 	{
@@ -362,7 +372,11 @@ bool net_nfc_controller_secure_element_get_atr(net_nfc_target_handle_s *handle, 
 	}
 }
 
-bool net_nfc_controller_secure_element_send_apdu(net_nfc_target_handle_s *handle, data_s *command, data_s **response, net_nfc_error_e *result)
+bool net_nfc_controller_secure_element_send_apdu(
+		net_nfc_target_handle_s *handle,
+		data_s *command,
+		data_s **response,
+		net_nfc_error_e *result)
 {
 	if (g_interface.secure_element_send_apdu != NULL)
 	{
@@ -376,7 +390,8 @@ bool net_nfc_controller_secure_element_send_apdu(net_nfc_target_handle_s *handle
 	}
 }
 
-bool net_nfc_controller_secure_element_close(net_nfc_target_handle_s *handle, net_nfc_error_e *result)
+bool net_nfc_controller_secure_element_close(net_nfc_target_handle_s *handle,
+		net_nfc_error_e *result)
 {
 	int ret_val = 0;
 
@@ -395,7 +410,8 @@ bool net_nfc_controller_secure_element_close(net_nfc_target_handle_s *handle, ne
 	}
 }
 
-bool net_nfc_controller_check_target_presence(net_nfc_target_handle_s *handle, net_nfc_error_e *result)
+bool net_nfc_controller_check_target_presence(net_nfc_target_handle_s *handle,
+		net_nfc_error_e *result)
 {
 	if (g_interface.check_presence != NULL)
 	{
@@ -409,7 +425,8 @@ bool net_nfc_controller_check_target_presence(net_nfc_target_handle_s *handle, n
 	}
 }
 
-bool net_nfc_controller_connect(net_nfc_target_handle_s *handle, net_nfc_error_e *result)
+bool net_nfc_controller_connect(net_nfc_target_handle_s *handle,
+		net_nfc_error_e *result)
 {
 	int ret_val = 0;
 
@@ -429,7 +446,8 @@ bool net_nfc_controller_connect(net_nfc_target_handle_s *handle, net_nfc_error_e
 	}
 }
 
-bool net_nfc_controller_disconnect(net_nfc_target_handle_s *handle, net_nfc_error_e *result)
+bool net_nfc_controller_disconnect(net_nfc_target_handle_s *handle,
+		net_nfc_error_e *result)
 {
 	int ret_val = 0;
 
@@ -451,11 +469,16 @@ bool net_nfc_controller_disconnect(net_nfc_target_handle_s *handle, net_nfc_erro
 	}
 }
 
-bool net_nfc_controller_check_ndef(net_nfc_target_handle_s *handle, uint8_t *ndef_card_state, int *max_data_size, int *real_data_size, net_nfc_error_e *result)
+bool net_nfc_controller_check_ndef(net_nfc_target_handle_s *handle,
+		uint8_t *ndef_card_state,
+		int *max_data_size,
+		int *real_data_size,
+		net_nfc_error_e *result)
 {
 	if (g_interface.check_ndef != NULL)
 	{
-		return g_interface.check_ndef(handle, ndef_card_state, max_data_size, real_data_size, result);
+		return g_interface.check_ndef(handle, ndef_card_state, max_data_size,
+				real_data_size, result);
 	}
 	else
 	{
@@ -465,7 +488,8 @@ bool net_nfc_controller_check_ndef(net_nfc_target_handle_s *handle, uint8_t *nde
 	}
 }
 
-bool net_nfc_controller_read_ndef(net_nfc_target_handle_s *handle, data_s **data, net_nfc_error_e *result)
+bool net_nfc_controller_read_ndef(net_nfc_target_handle_s *handle, data_s **data,
+		net_nfc_error_e *result)
 {
 	if (g_interface.read_ndef != NULL)
 	{
@@ -480,7 +504,7 @@ bool net_nfc_controller_read_ndef(net_nfc_target_handle_s *handle, data_s **data
 }
 
 bool net_nfc_controller_write_ndef(net_nfc_target_handle_s *handle, data_s *data,
-	net_nfc_error_e *result)
+		net_nfc_error_e *result)
 {
 	if (g_interface.write_ndef != NULL)
 	{
@@ -495,7 +519,7 @@ bool net_nfc_controller_write_ndef(net_nfc_target_handle_s *handle, data_s *data
 }
 
 bool net_nfc_controller_make_read_only_ndef(net_nfc_target_handle_s *handle,
-	net_nfc_error_e *result)
+		net_nfc_error_e *result)
 {
 	if (g_interface.make_read_only_ndef != NULL)
 	{
@@ -510,7 +534,7 @@ bool net_nfc_controller_make_read_only_ndef(net_nfc_target_handle_s *handle,
 }
 
 bool net_nfc_controller_format_ndef(net_nfc_target_handle_s *handle,
-	data_s *secure_key, net_nfc_error_e *result)
+		data_s *secure_key, net_nfc_error_e *result)
 {
 	if (g_interface.format_ndef != NULL)
 	{
@@ -525,7 +549,7 @@ bool net_nfc_controller_format_ndef(net_nfc_target_handle_s *handle,
 }
 
 bool net_nfc_controller_transceive(net_nfc_target_handle_s *handle,
-	net_nfc_transceive_info_s *info, data_s **data, net_nfc_error_e *result)
+		net_nfc_transceive_info_s *info, data_s **data, net_nfc_error_e *result)
 {
 	if (g_interface.transceive != NULL)
 	{
@@ -567,7 +591,7 @@ bool net_nfc_controller_is_ready(net_nfc_error_e *result)
 }
 
 bool net_nfc_controller_llcp_config(net_nfc_llcp_config_info_s *config,
-	net_nfc_error_e *result)
+		net_nfc_error_e *result)
 {
 	if (g_interface.config_llcp != NULL)
 	{
@@ -581,7 +605,7 @@ bool net_nfc_controller_llcp_config(net_nfc_llcp_config_info_s *config,
 	}
 }
 bool net_nfc_controller_llcp_check_llcp(net_nfc_target_handle_s *handle,
-	net_nfc_error_e *result)
+		net_nfc_error_e *result)
 {
 	if (g_interface.check_llcp_status != NULL)
 	{
@@ -595,7 +619,7 @@ bool net_nfc_controller_llcp_check_llcp(net_nfc_target_handle_s *handle,
 	}
 }
 bool net_nfc_controller_llcp_activate_llcp(net_nfc_target_handle_s *handle,
-	net_nfc_error_e *result)
+		net_nfc_error_e *result)
 {
 	if (g_interface.activate_llcp != NULL)
 	{
@@ -640,11 +664,11 @@ socket_info_t *_get_socket_info(net_nfc_llcp_socket_t socket)
 	return result;
 }
 
-socket_info_t *_add_socket_info(net_nfc_llcp_socket_t socket)
+socket_info_t* _add_socket_info(net_nfc_llcp_socket_t socket)
 {
 	socket_info_t *result;
 
-	_net_nfc_util_alloc_mem(result, sizeof(*result));
+	_net_nfc_util_alloc_mem(result, sizeof(socket_info_t));
 	if (result != NULL) {
 		result->socket = socket;
 
@@ -682,8 +706,12 @@ void net_nfc_controller_llcp_socket_error_cb(net_nfc_llcp_socket_t socket,
 }
 
 bool net_nfc_controller_llcp_create_socket(net_nfc_llcp_socket_t *socket,
-		net_nfc_socket_type_e socketType, uint16_t miu, uint8_t rw, net_nfc_error_e *result,
-		net_nfc_service_llcp_cb cb, void *user_param)
+		net_nfc_socket_type_e socketType,
+		uint16_t miu,
+		uint8_t rw,
+		net_nfc_error_e *result,
+		net_nfc_service_llcp_cb cb,
+		void *user_param)
 {
 	if (g_interface.create_llcp_socket != NULL)
 	{
@@ -740,8 +768,7 @@ void net_nfc_controller_llcp_incoming_cb(net_nfc_llcp_socket_t socket,
 	if (info != NULL) {
 		if (_add_socket_info(socket) != NULL) {
 			if (info->work_cb != NULL) {
-				info->work_cb(socket, result, NULL, NULL,
-						info->work_param);
+				info->work_cb(socket, result, NULL, NULL, info->work_param);
 			}
 		} else {
 			DEBUG_ERR_MSG("_net_nfc_util_alloc_mem failed");
@@ -750,8 +777,11 @@ void net_nfc_controller_llcp_incoming_cb(net_nfc_llcp_socket_t socket,
 }
 
 bool net_nfc_controller_llcp_listen(net_nfc_target_handle_s* handle,
-		uint8_t *service_access_name, net_nfc_llcp_socket_t socket, net_nfc_error_e *result,
-		net_nfc_service_llcp_cb cb, void *user_param)
+		uint8_t *service_access_name,
+		net_nfc_llcp_socket_t socket,
+		net_nfc_error_e *result,
+		net_nfc_service_llcp_cb cb,
+		void *user_param)
 {
 	if (g_interface.listen_llcp_socket != NULL)
 	{
@@ -767,7 +797,8 @@ bool net_nfc_controller_llcp_listen(net_nfc_target_handle_s* handle,
 		info->work_cb = cb;
 		info->work_param = user_param;
 
-		return g_interface.listen_llcp_socket(handle, service_access_name, socket, result, info);
+		return g_interface.listen_llcp_socket(handle, service_access_name, socket,
+				result, info);
 	}
 	else
 	{
@@ -842,14 +873,17 @@ void net_nfc_controller_llcp_connected_cb(net_nfc_llcp_socket_t socket,
 }
 
 bool net_nfc_controller_llcp_connect_by_url(net_nfc_target_handle_s *handle,
-		net_nfc_llcp_socket_t socket, uint8_t *service_access_name, net_nfc_error_e *result,
-		net_nfc_service_llcp_cb cb, void *user_param)
+		net_nfc_llcp_socket_t socket,
+		uint8_t *service_access_name,
+		net_nfc_error_e *result,
+		net_nfc_service_llcp_cb cb,
+		void *user_param)
 {
 	int ret_val = 0;
 
 	ret_val = pm_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
 
-	DEBUG_SERVER_MSG("net_nfc_controller_llcp_connect_by_url pm_lock_state [%d]!!", ret_val);
+	DEBUG_SERVER_MSG("pm_lock_state[%d]!!", ret_val);
 
 	if (g_interface.connect_llcp_by_url != NULL)
 	{
@@ -866,7 +900,8 @@ bool net_nfc_controller_llcp_connect_by_url(net_nfc_target_handle_s *handle,
 		param->cb = cb;
 		param->user_param = user_param;
 
-		return g_interface.connect_llcp_by_url(handle, socket, service_access_name, result, param);
+		return g_interface.connect_llcp_by_url(handle, socket, service_access_name,
+				result, param);
 	}
 	else
 	{
@@ -877,8 +912,11 @@ bool net_nfc_controller_llcp_connect_by_url(net_nfc_target_handle_s *handle,
 }
 
 bool net_nfc_controller_llcp_connect(net_nfc_target_handle_s *handle,
-		net_nfc_llcp_socket_t socket, uint8_t service_access_point, net_nfc_error_e *result,
-		net_nfc_service_llcp_cb cb, void *user_param)
+		net_nfc_llcp_socket_t socket,
+		uint8_t service_access_point,
+		net_nfc_error_e *result,
+		net_nfc_service_llcp_cb cb,
+		void *user_param)
 {
 	int ret_val = 0;
 
@@ -927,7 +965,9 @@ void net_nfc_controller_llcp_disconnected_cb(net_nfc_llcp_socket_t socket,
 }
 
 bool net_nfc_controller_llcp_disconnect(net_nfc_target_handle_s *handle,
-		net_nfc_llcp_socket_t socket, net_nfc_error_e *result, net_nfc_service_llcp_cb cb,
+		net_nfc_llcp_socket_t socket,
+		net_nfc_error_e *result,
+		net_nfc_service_llcp_cb cb,
 		void *user_param)
 {
 	int ret_val = 0;
@@ -940,7 +980,7 @@ bool net_nfc_controller_llcp_disconnect(net_nfc_target_handle_s *handle,
 	{
 		net_nfc_llcp_param_t *param = NULL;
 
-		_net_nfc_util_alloc_mem(param, sizeof(*param));
+		_net_nfc_util_alloc_mem(param, sizeof(net_nfc_llcp_param_t));
 		if (param == NULL) {
 			DEBUG_ERR_MSG("_net_nfc_util_alloc_mem failed");
 			*result = NET_NFC_ALLOC_FAIL;
@@ -995,8 +1035,11 @@ void net_nfc_controller_llcp_received_cb(net_nfc_llcp_socket_t socket,
 }
 
 bool net_nfc_controller_llcp_recv(net_nfc_target_handle_s *handle,
-		net_nfc_llcp_socket_t socket, uint32_t max_len, net_nfc_error_e *result,
-		net_nfc_service_llcp_cb cb, void *user_param)
+		net_nfc_llcp_socket_t socket,
+		uint32_t max_len,
+		net_nfc_error_e *result,
+		net_nfc_service_llcp_cb cb,
+		void *user_param)
 {
 	if (g_interface.recv_llcp != NULL)
 	{
@@ -1049,8 +1092,11 @@ void net_nfc_controller_llcp_sent_cb(net_nfc_llcp_socket_t socket,
 }
 
 bool net_nfc_controller_llcp_send(net_nfc_target_handle_s *handle,
-		net_nfc_llcp_socket_t socket, data_s *data, net_nfc_error_e *result,
-		net_nfc_service_llcp_cb cb, void *user_param)
+		net_nfc_llcp_socket_t socket,
+		data_s *data,
+		net_nfc_error_e *result,
+		net_nfc_service_llcp_cb cb,
+		void *user_param)
 {
 	if (g_interface.send_llcp != NULL)
 	{
@@ -1077,8 +1123,11 @@ bool net_nfc_controller_llcp_send(net_nfc_target_handle_s *handle,
 	}
 }
 bool net_nfc_controller_llcp_recv_from(net_nfc_target_handle_s *handle,
-		net_nfc_llcp_socket_t socket, uint32_t max_len, net_nfc_error_e *result,
-		net_nfc_service_llcp_cb cb, void *user_param)
+		net_nfc_llcp_socket_t socket,
+		uint32_t max_len,
+		net_nfc_error_e *result,
+		net_nfc_service_llcp_cb cb,
+		void *user_param)
 {
 	if (g_interface.recv_from_llcp != NULL)
 	{
@@ -1115,8 +1164,12 @@ bool net_nfc_controller_llcp_recv_from(net_nfc_target_handle_s *handle,
 	}
 }
 bool net_nfc_controller_llcp_send_to(net_nfc_target_handle_s *handle,
-		net_nfc_llcp_socket_t socket, data_s *data, uint8_t service_access_point,
-		net_nfc_error_e *result, net_nfc_service_llcp_cb cb, void *user_param)
+		net_nfc_llcp_socket_t socket,
+		data_s *data,
+		uint8_t service_access_point,
+		net_nfc_error_e *result,
+		net_nfc_service_llcp_cb cb,
+		void *user_param)
 {
 	if (g_interface.send_to_llcp != NULL)
 	{
@@ -1133,7 +1186,8 @@ bool net_nfc_controller_llcp_send_to(net_nfc_target_handle_s *handle,
 		param->cb = cb;
 		param->user_param = user_param;
 
-		return g_interface.send_to_llcp(handle, socket, data, service_access_point, result, param);
+		return g_interface.send_to_llcp(handle, socket, data, service_access_point,
+				result, param);
 	}
 	else
 	{
@@ -1157,8 +1211,11 @@ bool net_nfc_controller_llcp_get_remote_config(net_nfc_target_handle_s *handle,
 		return false;
 	}
 }
-bool net_nfc_controller_llcp_get_remote_socket_info(net_nfc_target_handle_s *handle,
-		net_nfc_llcp_socket_t socket, net_nfc_llcp_socket_option_s *option, net_nfc_error_e *result)
+bool net_nfc_controller_llcp_get_remote_socket_info(
+		net_nfc_target_handle_s *handle,
+		net_nfc_llcp_socket_t socket,
+		net_nfc_llcp_socket_option_s *option,
+		net_nfc_error_e *result)
 {
 	if (g_interface.get_remote_socket_info != NULL)
 	{
@@ -1187,7 +1244,8 @@ bool net_nfc_controller_sim_test(net_nfc_error_e *result)
 	}
 }
 
-bool net_nfc_controller_prbs_test(net_nfc_error_e *result, uint32_t tech, uint32_t rate)
+bool net_nfc_controller_prbs_test(net_nfc_error_e *result, uint32_t tech,
+		uint32_t rate)
 {
 	if (g_interface.prbs_test != NULL)
 	{
