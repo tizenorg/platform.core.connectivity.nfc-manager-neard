@@ -56,8 +56,6 @@ static bool _net_nfc_service_check_internal_ese_detected()
 }
 #endif
 
-static void _net_nfc_service_show_exception_msg(char* msg);
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void net_nfc_service_target_detected_cb(void *info, void *user_context)
@@ -314,10 +312,6 @@ bool net_nfc_service_standalone_mode_target_detected(net_nfc_request_msg_t* msg)
 
 				net_nfc_service_msg_processing(&rawdata);
 			}
-			else
-			{
-				_net_nfc_service_show_exception_msg("Try again");
-			}
 		}
 	}
 
@@ -498,27 +492,8 @@ bool net_nfc_service_termination(net_nfc_request_msg_t* msg)
 
 void net_nfc_service_msg_processing(data_s* data)
 {
-	if (data != NULL)
-	{
+	if (data)
 		net_nfc_app_util_process_ndef(data);
-	}
-	else
-	{
-		_net_nfc_service_show_exception_msg("unknown type tag");
-	}
-}
-
-static void _net_nfc_service_show_exception_msg(char* msg)
-{
-	bundle *kb = NULL;
-
-	kb = bundle_create();
-	bundle_add(kb, "type", "default");
-	bundle_add(kb, "text", msg);
-
-	net_nfc_app_util_aul_launch_app("com.samsung.nfc-app", kb); /* empty_tag */
-
-	bundle_free(kb);
 }
 
 void net_nfc_service_is_tag_connected(net_nfc_request_msg_t *msg)
