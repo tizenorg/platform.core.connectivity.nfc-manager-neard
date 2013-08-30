@@ -149,12 +149,13 @@ static void print_record(ndef_record_h record)
 			net_nfc_get_record_il(flag),
 			tnf_str[tnf]);
 
-	net_nfc_get_record_type(record, &type);
-
-	str = g_strndup((gchar *)net_nfc_get_data_buffer(type),
-			net_nfc_get_data_length(type));
-	g_print("Type : %s\n", str);
-	g_free(str);
+	if (net_nfc_get_record_type(record, &type) == NET_NFC_OK)
+	{
+		str = g_strndup((gchar *)net_nfc_get_data_buffer(type),
+				net_nfc_get_data_length(type));
+		g_print("Type : %s\n", str);
+		g_free(str);
+	}
 
 	net_nfc_get_record_id(record, &id);
 
@@ -163,8 +164,10 @@ static void print_record(ndef_record_h record)
 	g_print("ID : %s\n", str);
 	g_free(str);
 
-	net_nfc_get_record_payload(record, &payload);
-	print_received_data(payload);
+	if (net_nfc_get_record_payload(record, &payload) == NET_NFC_OK)
+	{
+		print_received_data(payload);
+	}
 
 	switch(tnf)
 	{

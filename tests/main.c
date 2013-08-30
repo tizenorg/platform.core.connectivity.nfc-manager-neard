@@ -95,7 +95,7 @@ static TestData test_data[] = {
 		net_nfc_test_get_nfc_state,
 		"Get nfc state"
 	},
-
+#if 0
 	{
 		"Tag",
 		"IsTagConnected",
@@ -118,7 +118,7 @@ static TestData test_data[] = {
 		net_nfc_test_tag_get_current_target_handle_sync,
 		"Get current target handle id"
 	},
-
+#endif
 	{
 		"Tag",
 		"TagDiscovered",		/* waiting for signal */

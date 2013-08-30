@@ -24,18 +24,11 @@
 #include "net_nfc_client_tag.h"
 #include "net_nfc_client_tag_internal.h"
 
-typedef struct _TagFuncData TagFuncData;
-
-struct _TagFuncData
-{
-	gpointer callback;
-	gpointer user_data;
-};
 
 static NetNfcGDbusTag *tag_proxy = NULL;
 
-static TagFuncData *tag_discovered_func_data = NULL;
-static TagFuncData *tag_detached_func_data = NULL;
+static NetNfcCallback tag_discovered_func_data;
+static NetNfcCallback tag_detached_func_data;
 
 static net_nfc_target_info_s *client_target_info = NULL;
 static net_nfc_event_filter_e client_filter = NET_NFC_ALL_ENABLE;
@@ -57,7 +50,7 @@ static void tag_get_target_info(guint handle,
 		GVariant *raw_data,
 		net_nfc_target_info_s **info);
 
-
+#if 0
 /* async callback */
 static void tag_is_tag_connected(GObject *source_object,
 		GAsyncResult *res,
@@ -70,7 +63,7 @@ static void tag_get_current_tag_info(GObject *source_object,
 static void tag_get_current_target_handle(GObject *source_object,
 		GAsyncResult *res,
 		gpointer user_data);
-
+#endif
 /* signal callback */
 static void tag_tag_discovered(NetNfcGDbusTag *object,
 		guint arg_handle,
@@ -95,13 +88,13 @@ static gboolean tag_check_filter(net_nfc_target_type_e type)
 
 	DEBUG_CLIENT_MSG("client filter =  %d", client_filter);
 
-	if (type >= NET_NFC_ISO14443_A_PICC &&
-			type <= NET_NFC_MIFARE_DESFIRE_PICC)
+	if (type >= NET_NFC_ISO14443_A_PICC
+			&& type <= NET_NFC_MIFARE_DESFIRE_PICC)
 	{
 		converted = NET_NFC_ISO14443A_ENABLE;
 	}
-	else if (type >= NET_NFC_ISO14443_B_PICC &&
-			type <= NET_NFC_ISO14443_BPRIME_PICC)
+	else if (type >= NET_NFC_ISO14443_B_PICC
+			&& type <= NET_NFC_ISO14443_BPRIME_PICC)
 	{
 		converted = NET_NFC_ISO14443B_ENABLE;
 	}
@@ -142,7 +135,7 @@ static void tag_get_info_list(guint8 *buffer,
 	tmp_list = g_new0(net_nfc_tag_info_s, number_of_keys);
 	current = tmp_list;
 
-	while(i < number_of_keys)
+	while (i < number_of_keys)
 	{
 		gchar *str = NULL;
 		data_h value = NULL;
@@ -219,20 +212,18 @@ static void tag_get_target_info(guint handle,
 
 	*info = info_data;
 }
-
+#if 0
 static void tag_is_tag_connected(GObject *source_object,
 		GAsyncResult *res,
 		gpointer user_data)
 {
-	TagFuncData *func_data;
-
-	net_nfc_error_e result = NET_NFC_OK;
+	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
+	net_nfc_error_e out_result = NET_NFC_OK;
+	gboolean out_is_connected = false;
+	net_nfc_target_type_e out_dev_type = NET_NFC_UNKNOWN_TARGET;
 	GError *error = NULL;
 
-	gboolean out_is_connected = FALSE;
-	net_nfc_target_type_e out_dev_type;
-
-	net_nfc_client_tag_is_tag_connected_completed callback;
+	g_assert(user_data != NULL);
 
 	if (net_nfc_gdbus_tag_call_is_tag_connected_finish(
 				NET_NFC_GDBUS_TAG(source_object),
@@ -241,30 +232,23 @@ static void tag_is_tag_connected(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		result = NET_NFC_UNKNOWN_ERROR;
-
 		DEBUG_ERR_MSG("Can not finish is_tag_connected: %s",
 				error->message);
 		g_error_free(error);
 
+		out_result = NET_NFC_IPC_FAIL;
 	}
 
-	func_data = user_data;
-	if (func_data == NULL)
-		return;
-
-	if (func_data->callback == NULL)
+	if (func_data->callback != NULL)
 	{
-		g_free(func_data);
-		return;
+		net_nfc_client_tag_is_tag_connected_completed callback =
+			(net_nfc_client_tag_is_tag_connected_completed)func_data->callback;
+
+		if (out_is_connected == FALSE)
+			out_result = NET_NFC_NOT_CONNECTED;
+
+		callback(out_result, out_dev_type, func_data->user_data);
 	}
-
-	if (out_is_connected == FALSE)
-		result = NET_NFC_NOT_CONNECTED;
-
-	callback = (net_nfc_client_tag_is_tag_connected_completed)
-		func_data->callback;
-	callback(result, out_dev_type, func_data->user_data);
 
 	g_free(func_data);
 }
@@ -273,27 +257,23 @@ static void tag_get_current_tag_info(GObject *source_object,
 		GAsyncResult *res,
 		gpointer user_data)
 {
-	TagFuncData *func_data;
+	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
+	net_nfc_error_e out_result = NET_NFC_OK;
 
-	net_nfc_error_e result = NET_NFC_OK;
-
-	net_nfc_target_type_e out_dev_type;
+	net_nfc_target_type_e out_dev_type = NET_NFC_UNKNOWN_TARGET;
 	gboolean out_is_connected = FALSE;
 	gboolean out_is_ndef_supported = FALSE;
-	guchar out_ndef_card_state;
-	guint out_handle;
-	guint out_max_data_size;
-	guint out_actual_data_size;
-	guint out_number_of_keys;
+	guchar out_ndef_card_state = 0;
+	guint out_handle = 0;
+	guint out_max_data_size = 0;
+	guint out_actual_data_size = 0;
+	guint out_number_of_keys = 0;
 	GVariant *out_target_info_values = NULL;
 	GVariant *out_raw_data = NULL;
 
 	GError *error = NULL;
 
-	net_nfc_client_tag_get_current_tag_info_completed callback;
-
-	/*FIXME: currently SAVE_TARGET_INFO_IN_CC support only */
-	net_nfc_target_info_s *info_s = NULL;
+	g_assert(user_data != NULL);
 
 	if (net_nfc_gdbus_tag_call_get_current_tag_info_finish (
 				NET_NFC_GDBUS_TAG(source_object),
@@ -310,56 +290,45 @@ static void tag_get_current_tag_info(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		result = NET_NFC_UNKNOWN_ERROR;
+		out_result = NET_NFC_IPC_FAIL;
 
 		DEBUG_ERR_MSG("Can not finish get_current_tag_info: %s",
 				error->message);
 		g_error_free(error);
 	}
 
-	func_data = user_data;
-	if(func_data == NULL)
-		return;
+	if (out_result == NET_NFC_OK && out_is_connected == true) {
+		net_nfc_release_tag_info((net_nfc_target_info_h)client_target_info);
+		client_target_info = NULL;
 
-	if (func_data->callback == NULL)
-	{
-		g_free(func_data);
-		return;
+		if (tag_check_filter(out_dev_type) == true) {
+			tag_get_target_info(out_handle,
+					out_dev_type,
+					out_is_ndef_supported,
+					out_ndef_card_state,
+					out_max_data_size,
+					out_actual_data_size,
+					out_number_of_keys,
+					out_target_info_values,
+					out_raw_data,
+					&client_target_info);
+		} else {
+			INFO_MSG("The detected target is filtered out, type [%d]", out_dev_type);
+
+			out_is_connected = false;
+		}
 	}
 
-	if (out_is_connected == FALSE)
-		result = NET_NFC_NOT_CONNECTED;
-
-	callback = (net_nfc_client_tag_get_current_tag_info_completed)
-		func_data->callback;
-
-	if (result != NET_NFC_OK)
+	if (func_data->callback != NULL)
 	{
-		callback(result, NULL, func_data->user_data);
-		g_free(func_data);
-		return;
+		net_nfc_client_tag_get_current_tag_info_completed callback =
+			(net_nfc_client_tag_get_current_tag_info_completed)func_data->callback;
+
+		if (out_result == NET_NFC_OK && out_is_connected == false)
+			out_result = NET_NFC_NOT_CONNECTED;
+
+		callback(out_result, client_target_info, func_data->user_data);
 	}
-
-	if (tag_check_filter(out_dev_type) == FALSE)
-		DEBUG_CLIENT_MSG("The detected target is filtered out");
-
-	net_nfc_release_tag_info((net_nfc_target_info_h)client_target_info);
-	client_target_info = NULL;
-
-	tag_get_target_info(out_handle,
-			out_dev_type,
-			out_is_ndef_supported,
-			out_ndef_card_state,
-			out_max_data_size,
-			out_actual_data_size,
-			out_number_of_keys,
-			out_target_info_values,
-			out_raw_data,
-			&info_s);
-
-	client_target_info = info_s;
-
-	callback(result, info_s, func_data->user_data);
 
 	g_free(func_data);
 }
@@ -368,58 +337,46 @@ static void tag_get_current_target_handle(GObject *source_object,
 		GAsyncResult *res,
 		gpointer user_data)
 {
-	TagFuncData *func_data;
-
-	net_nfc_target_handle_h handle = NULL;
-	net_nfc_target_type_e out_dev_type;
-
-	gboolean out_is_connected = FALSE;
-	guint out_handle = 0;
-
-	net_nfc_error_e result = NET_NFC_OK;
+	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
+	net_nfc_error_e out_result = NET_NFC_OK;
+	net_nfc_target_handle_h out_handle = NULL;
+	net_nfc_target_type_e out_dev_type = NET_NFC_UNKNOWN_TARGET;
+	gboolean out_is_connected = false;
 	GError *error = NULL;
 
-	net_nfc_client_tag_get_current_target_handle_completed callback;
+	g_assert(user_data != NULL);
 
 	if (net_nfc_gdbus_tag_call_get_current_target_handle_finish(
 				NET_NFC_GDBUS_TAG(source_object),
 				&out_is_connected,
-				&out_handle,
+				(guint *)&out_handle,
 				(gint *)&out_dev_type,
 				res,
 				&error) == FALSE)
 	{
-		result = NET_NFC_UNKNOWN_ERROR;
-
 		DEBUG_ERR_MSG("Can not finish get_current_target_handle: %s",
 				error->message);
 		g_error_free(error);
+
+		out_result = NET_NFC_IPC_FAIL;
 	}
 
-	func_data = user_data;
-	if (func_data == NULL)
-		return;
-
-	if (func_data->callback == NULL)
+	if (func_data->callback != NULL)
 	{
-		g_free(func_data);
-		return;
+		net_nfc_client_tag_get_current_target_handle_completed callback =
+			(net_nfc_client_tag_get_current_target_handle_completed)func_data->callback;
+
+		if (out_result == NET_NFC_OK && out_is_connected == FALSE)
+			out_result = NET_NFC_NOT_CONNECTED;
+
+		callback(out_result,
+				GUINT_TO_POINTER(out_handle),
+				func_data->user_data);
 	}
-
-	callback = (net_nfc_client_tag_get_current_target_handle_completed)
-		func_data->callback;
-
-	if (out_is_connected == FALSE)
-		result = NET_NFC_NOT_CONNECTED;
-
-	if (out_handle)
-		handle = GUINT_TO_POINTER(out_handle);
-
-	callback(result, handle, func_data->user_data);
 
 	g_free(func_data);
 }
-
+#endif
 static void tag_tag_discovered(NetNfcGDbusTag *object,
 		guint arg_handle,
 		gint arg_dev_type,
@@ -432,24 +389,16 @@ static void tag_tag_discovered(NetNfcGDbusTag *object,
 		GVariant *arg_raw_data,
 		gpointer user_data)
 {
-	/*FIXME: currently SAVE_TARGET_INFO_IN_CC support only */
-	net_nfc_target_info_s *info_s = NULL;
-
-	net_nfc_client_tag_tag_discovered callback;
-
 	INFO_MSG(">>> SIGNAL arrived");
-
-	if (tag_discovered_func_data == NULL)
-		return;
-
-	if (tag_discovered_func_data->callback == NULL)
-		return;
-
-	if (tag_check_filter(arg_dev_type) == FALSE)
-		DEBUG_CLIENT_MSG("The detected target is filtered out");
 
 	net_nfc_release_tag_info((net_nfc_target_info_h)client_target_info);
 	client_target_info = NULL;
+
+	if (tag_check_filter(arg_dev_type) == FALSE) {
+		INFO_MSG("The detected target is filtered out, type [%d]", arg_dev_type);
+
+		return;
+	}
 
 	tag_get_target_info(arg_handle,
 			arg_dev_type,
@@ -460,14 +409,15 @@ static void tag_tag_discovered(NetNfcGDbusTag *object,
 			arg_number_of_keys,
 			arg_target_info_values,
 			arg_raw_data,
-			&info_s);
+			&client_target_info);
 
-	client_target_info = info_s;
+	if (tag_discovered_func_data.callback != NULL) {
+		net_nfc_client_tag_tag_discovered callback =
+			(net_nfc_client_tag_tag_discovered)tag_discovered_func_data.callback;
 
-	callback = (net_nfc_client_tag_tag_discovered)
-		tag_discovered_func_data->callback;
-
-	callback(info_s, tag_discovered_func_data->user_data);
+		callback(client_target_info,
+				tag_discovered_func_data.user_data);
+	}
 }
 
 static void tag_tag_detached(NetNfcGDbusTag *object,
@@ -475,27 +425,21 @@ static void tag_tag_detached(NetNfcGDbusTag *object,
 		gint arg_dev_type,
 		gpointer user_data)
 {
-	net_nfc_client_tag_tag_detached callback;
-
 	INFO_MSG(">>> SIGNAL arrived");
 
-	if (tag_detached_func_data == NULL)
-		return;
+	if (tag_check_filter(arg_dev_type) == TRUE) {
+		if (tag_detached_func_data.callback != NULL) {
+			net_nfc_client_tag_tag_detached callback =
+				(net_nfc_client_tag_tag_detached)tag_detached_func_data.callback;
 
-	if (tag_detached_func_data->callback == NULL)
-		return;
+			callback(tag_detached_func_data.user_data);
+		}
+	} else {
+		INFO_MSG("The detected target is filtered out, type [%d]", arg_dev_type);
+	}
 
-	if (tag_check_filter(arg_dev_type) == FALSE)
-		DEBUG_CLIENT_MSG("The detected target is filtered out");
-
-	/*FIXME: currently SAVE_TARGET_INFO_IN_CC support only */
 	net_nfc_release_tag_info((net_nfc_target_info_h)client_target_info);
 	client_target_info = NULL;
-
-	callback = (net_nfc_client_tag_tag_detached)
-		tag_detached_func_data->callback;
-
-	callback(tag_detached_func_data->user_data);
 }
 
 /* internal funcion */
@@ -515,23 +459,24 @@ net_nfc_target_info_s *net_nfc_client_tag_get_client_target_info(void)
 	return client_target_info;
 }
 
+#if 0
 API net_nfc_error_e net_nfc_client_tag_is_tag_connected(
 		net_nfc_client_tag_is_tag_connected_completed callback,
 		void *user_data)
 {
-	TagFuncData *func_data;
+	NetNfcCallback *func_data;
 
 	if (tag_proxy == NULL)
-		return NET_NFC_UNKNOWN_ERROR;
+		return NET_NFC_NOT_INITIALIZED;
 
 	/* prevent executing daemon when nfc is off */
 	if (net_nfc_client_manager_is_activated() == false) {
 		return NET_NFC_INVALID_STATE;
 	}
 
-	func_data = g_new0(TagFuncData, 1);
+	func_data = g_try_new0(NetNfcCallback, 1);
 	if (func_data == NULL)
-		return NET_NFC_UNKNOWN_ERROR;
+		return NET_NFC_ALLOC_FAIL;
 
 	func_data->callback = (gpointer)callback;
 	func_data->user_data = user_data;
@@ -544,61 +489,84 @@ API net_nfc_error_e net_nfc_client_tag_is_tag_connected(
 
 	return NET_NFC_OK;
 }
+#endif
 
 API net_nfc_error_e net_nfc_client_tag_is_tag_connected_sync(
 		net_nfc_target_type_e *dev_type)
 {
-	net_nfc_target_type_e out_dev_type;
-
-	gboolean out_is_connected = FALSE;
-
+	net_nfc_target_info_s *info;
+	net_nfc_error_e out_result = NET_NFC_OK;
+	net_nfc_target_type_e out_dev_type = NET_NFC_UNKNOWN_TARGET;
+	gboolean out_is_connected = false;
 	GError *error = NULL;
+
+	if (tag_proxy == NULL)
+		return NET_NFC_NOT_INITIALIZED;
 
 	/* prevent executing daemon when nfc is off */
 	if (net_nfc_client_manager_is_activated() == false) {
 		return NET_NFC_INVALID_STATE;
 	}
 
-	if (net_nfc_gdbus_tag_call_is_tag_connected_sync(tag_proxy,
-				net_nfc_client_gdbus_get_privilege(),
-				&out_is_connected,
-				(gint *)&out_dev_type,
-				NULL,
-				&error) == FALSE)
-	{
-		DEBUG_ERR_MSG("Can not get is_tag_connected result: %s",
-				error->message);
-		g_error_free(error);
-		return NET_NFC_UNKNOWN_ERROR;
+	info = net_nfc_client_tag_get_client_target_info();
+	if (info == NULL) {
+		/* try to request target information from server */
+		if (net_nfc_gdbus_tag_call_is_tag_connected_sync(tag_proxy,
+					net_nfc_client_gdbus_get_privilege(),
+					&out_is_connected,
+					(gint *)&out_dev_type,
+					NULL,
+					&error) == FALSE)
+		{
+			DEBUG_ERR_MSG("Can not get is_tag_connected result: %s",
+					error->message);
+			g_error_free(error);
+
+			out_result = NET_NFC_IPC_FAIL;
+		}
+
+		if (out_is_connected == true) {
+			if (dev_type)
+				*dev_type = out_dev_type;
+
+			out_result = NET_NFC_OK;
+		} else {
+			out_result = NET_NFC_NOT_CONNECTED;
+		}
+	} else {
+		/* target was connected */
+		if (dev_type != NULL) {
+			*dev_type = info->devType;
+		}
+
+		out_result = NET_NFC_OK;
 	}
 
-	if (dev_type)
-		*dev_type = out_dev_type;
-
-	if (out_is_connected == FALSE)
-		return NET_NFC_NOT_CONNECTED;
-
-	return NET_NFC_OK;
+	return out_result;
 }
 
+#if 0
 API net_nfc_error_e net_nfc_client_tag_get_current_tag_info(
 		net_nfc_client_tag_get_current_tag_info_completed callback,
 		void *user_data)
 {
-	TagFuncData *func_data;
+	NetNfcCallback *func_data;
 
 	if (tag_proxy == NULL)
-		return NET_NFC_UNKNOWN_ERROR;
+		return NET_NFC_NOT_INITIALIZED;
 
 	/* prevent executing daemon when nfc is off */
 	if (net_nfc_client_manager_is_activated() == false) {
 		return NET_NFC_INVALID_STATE;
 	}
 
-	func_data = g_new0(TagFuncData, 1);
+	func_data = g_try_new0(NetNfcCallback, 1);
+	if (func_data == NULL) {
+		return NET_NFC_ALLOC_FAIL;
+	}
+
 	func_data->callback = (gpointer)callback;
 	func_data->user_data = user_data;
-
 
 	net_nfc_gdbus_tag_call_get_current_tag_info(tag_proxy,
 			net_nfc_client_gdbus_get_privilege(),
@@ -608,96 +576,109 @@ API net_nfc_error_e net_nfc_client_tag_get_current_tag_info(
 
 	return NET_NFC_OK;
 }
+#endif
 
 API net_nfc_error_e net_nfc_client_tag_get_current_tag_info_sync(
 		net_nfc_target_info_h *info)
 {
-	net_nfc_target_type_e out_dev_type;
-	gboolean out_is_connected = FALSE;
-	gboolean out_is_ndef_supported;
-	guchar out_ndef_card_state;
-	guint out_handle;
-	guint out_max_data_size;
-	guint out_actual_data_size;
-	guint out_number_of_keys;
-	GVariant *out_target_info_values;
-	GVariant *out_raw_data;
-
-	net_nfc_target_info_s *info_s = NULL;
-
+	net_nfc_error_e out_result = NET_NFC_OK;
+	net_nfc_target_type_e out_dev_type = NET_NFC_UNKNOWN_TARGET;
+	gboolean out_is_connected = false;
+	gboolean out_is_ndef_supported = false;
+	guchar out_ndef_card_state = 0;
+	guint out_handle = 0;
+	guint out_max_data_size = 0;
+	guint out_actual_data_size = 0;
+	guint out_number_of_keys = 0;
+	GVariant *out_target_info_values = NULL;
+	GVariant *out_raw_data = NULL;
 	GError *error = NULL;
 
 	if (tag_proxy == NULL)
-		return NET_NFC_UNKNOWN_ERROR;
+		return NET_NFC_NOT_INITIALIZED;
 
 	/* prevent executing daemon when nfc is off */
 	if (net_nfc_client_manager_is_activated() == false) {
 		return NET_NFC_INVALID_STATE;
 	}
 
-	if (net_nfc_gdbus_tag_call_get_current_tag_info_sync(tag_proxy,
-				net_nfc_client_gdbus_get_privilege(),
-				&out_is_connected,
-				&out_handle,
-				(gint *)&out_dev_type,
-				&out_is_ndef_supported,
-				&out_ndef_card_state,
-				&out_max_data_size,
-				&out_actual_data_size,
-				&out_number_of_keys,
-				&out_target_info_values,
-				&out_raw_data,
-				NULL,
-				&error) == FALSE)
-	{
-		DEBUG_ERR_MSG("Can no get current_tag_info result: %s",
-				error->message);
+	if (net_nfc_client_tag_get_client_target_info() == NULL) {
+		/* try to request target information from server */
+		if (net_nfc_gdbus_tag_call_get_current_tag_info_sync(tag_proxy,
+					net_nfc_client_gdbus_get_privilege(),
+					&out_is_connected,
+					&out_handle,
+					(gint *)&out_dev_type,
+					&out_is_ndef_supported,
+					&out_ndef_card_state,
+					&out_max_data_size,
+					&out_actual_data_size,
+					&out_number_of_keys,
+					&out_target_info_values,
+					&out_raw_data,
+					NULL,
+					&error) == FALSE)
+		{
+			DEBUG_ERR_MSG("Can no get current_tag_info result: %s",
+					error->message);
+			g_error_free(error);
 
-		g_error_free(error);
-		return NET_NFC_UNKNOWN_ERROR;
+			out_result = NET_NFC_IPC_FAIL;
+		}
+
+		if (out_is_connected == true) {
+			if (tag_check_filter(out_dev_type) == true) {
+				tag_get_target_info(out_handle,
+						out_dev_type,
+						out_is_ndef_supported,
+						out_ndef_card_state,
+						out_max_data_size,
+						out_actual_data_size,
+						out_number_of_keys,
+						out_target_info_values,
+						out_raw_data,
+						&client_target_info);
+
+				out_result = NET_NFC_OK;
+			} else {
+				INFO_MSG("The detected target is filtered out");
+
+				out_result = NET_NFC_NOT_CONNECTED;
+			}
+		} else {
+			out_result = NET_NFC_NOT_CONNECTED;
+		}
+	} else {
+		out_result = NET_NFC_OK;
 	}
 
-	if (out_is_connected == FALSE)
-		return NET_NFC_NOT_CONNECTED;
+	if (out_result == NET_NFC_OK && info != NULL) {
+		*info = client_target_info;
+	}
 
-	/* TODO : do something */
-	if (info == NULL)
-		return NET_NFC_OK;
-
-	if(tag_check_filter(out_dev_type) == FALSE)
-		DEBUG_CLIENT_MSG("The detected target is filtered out");
-
-	tag_get_target_info(out_handle,
-			out_dev_type,
-			out_is_ndef_supported,
-			out_ndef_card_state,
-			out_max_data_size,
-			out_actual_data_size,
-			out_number_of_keys,
-			out_target_info_values,
-			out_raw_data,
-			&info_s);
-
-	*info = info_s;
-
-	return NET_NFC_OK;
+	return out_result;
 }
 
+#if 0
 API net_nfc_error_e net_nfc_client_tag_get_current_target_handle(
 		net_nfc_client_tag_get_current_target_handle_completed callback,
 		void *user_data)
 {
-	TagFuncData *func_data;
+	NetNfcCallback *func_data;
 
 	if (tag_proxy == NULL)
-		return NET_NFC_UNKNOWN_ERROR;
+		return NET_NFC_NOT_INITIALIZED;
 
 	/* prevent executing daemon when nfc is off */
 	if (net_nfc_client_manager_is_activated() == false) {
 		return NET_NFC_INVALID_STATE;
 	}
 
-	func_data = g_new0(TagFuncData, 1);
+	func_data = g_try_new0(NetNfcCallback, 1);
+	if (func_data == NULL) {
+		return NET_NFC_ALLOC_FAIL;
+	}
+
 	func_data->callback = (gpointer)callback;
 	func_data->user_data = user_data;
 
@@ -709,86 +690,95 @@ API net_nfc_error_e net_nfc_client_tag_get_current_target_handle(
 
 	return NET_NFC_OK;
 }
+#endif
 
 API net_nfc_error_e net_nfc_client_tag_get_current_target_handle_sync(
 		net_nfc_target_handle_h *handle)
 {
-	net_nfc_target_type_e out_dev_type;
-	gboolean out_is_connected = FALSE;
-	guint out_handle;
+	net_nfc_target_info_s *info;
+	net_nfc_error_e result;
+	net_nfc_target_type_e out_dev_type = NET_NFC_UNKNOWN_TARGET;
+	gboolean out_is_connected = false;
+	guint out_handle = 0;
 	GError *error = NULL;
 
 	if (tag_proxy == NULL)
-		return NET_NFC_UNKNOWN_ERROR;
+		return NET_NFC_NOT_INITIALIZED;
 
 	/* prevent executing daemon when nfc is off */
 	if (net_nfc_client_manager_is_activated() == false) {
 		return NET_NFC_INVALID_STATE;
 	}
 
-	if (net_nfc_gdbus_tag_call_get_current_target_handle_sync(tag_proxy,
-				net_nfc_client_gdbus_get_privilege(),
-				&out_is_connected,
-				&out_handle,
-				(gint *)&out_dev_type,
-				NULL,
-				&error) == FALSE)
-	{
-		DEBUG_ERR_MSG("Can no get current_target_handle result: %s",
-				error->message);
+	info = net_nfc_client_tag_get_client_target_info();
+	if (info == NULL) {
+		if (net_nfc_gdbus_tag_call_get_current_target_handle_sync(
+					tag_proxy,
+					net_nfc_client_gdbus_get_privilege(),
+					&out_is_connected,
+					&out_handle,
+					(gint *)&out_dev_type,
+					NULL,
+					&error) == FALSE)
+		{
+			DEBUG_ERR_MSG("Can no get current_target_handle result: %s",
+					error->message);
+			g_error_free(error);
 
-		g_error_free(error);
-		return NET_NFC_UNKNOWN_ERROR;
+			result = NET_NFC_IPC_FAIL;
+		}
+
+		if (out_is_connected == true) {
+			if (handle)
+				*handle = GUINT_TO_POINTER(out_handle);
+
+			result = NET_NFC_OK;
+		} else {
+			result = NET_NFC_NOT_CONNECTED;
+		}
+	} else if (info->devType == NET_NFC_NFCIP1_INITIATOR ||
+			info->devType == NET_NFC_NFCIP1_TARGET) {
+		if (handle)
+			*handle = info->handle;
+
+		result = NET_NFC_OK;
+	} else {
+		result = NET_NFC_NOT_CONNECTED;
 	}
 
-	if (out_is_connected == FALSE)
-		return NET_NFC_NOT_CONNECTED;
-
-	if (handle)
-		*handle = GUINT_TO_POINTER(out_handle);
-
-	return NET_NFC_OK;
+	return result;
 }
 
 API void net_nfc_client_tag_set_tag_discovered(
-		net_nfc_client_tag_tag_discovered callback,
-		void *user_data)
+		net_nfc_client_tag_tag_discovered callback, void *user_data)
 {
-	if (tag_discovered_func_data == NULL)
-		tag_discovered_func_data = g_new0(TagFuncData, 1);
+	if (callback == NULL)
+		return;
 
-	tag_discovered_func_data->callback = (gpointer) callback;
-	tag_discovered_func_data->user_data = user_data;
+	tag_discovered_func_data.callback = (gpointer)callback;
+	tag_discovered_func_data.user_data = user_data;
 }
 
 API void net_nfc_client_tag_unset_tag_discovered(void)
 {
-	if (tag_discovered_func_data)
-	{
-		g_free(tag_discovered_func_data);
-		tag_discovered_func_data = NULL;
-	}
-
+	tag_discovered_func_data.callback = NULL;
+	tag_discovered_func_data.user_data = NULL;
 }
 
 API void net_nfc_client_tag_set_tag_detached(
-		net_nfc_client_tag_tag_detached callback,
-		void *user_data)
+		net_nfc_client_tag_tag_detached callback, void *user_data)
 {
-	if (tag_detached_func_data == NULL)
-		tag_detached_func_data = g_new0(TagFuncData, 1);
+	if (callback == NULL)
+		return;
 
-	tag_detached_func_data->callback = (gpointer) callback;
-	tag_detached_func_data->user_data = user_data;
+	tag_detached_func_data.callback = (gpointer)callback;
+	tag_detached_func_data.user_data = user_data;
 }
 
 API void net_nfc_client_tag_unset_tag_detached(void)
 {
-	if (tag_detached_func_data)
-	{
-		g_free(tag_detached_func_data);
-		tag_detached_func_data = NULL;
-	}
+	tag_detached_func_data.callback = NULL;
+	tag_detached_func_data.user_data = NULL;
 }
 
 API void net_nfc_client_tag_set_filter(net_nfc_event_filter_e filter)
@@ -846,26 +836,17 @@ net_nfc_error_e net_nfc_client_tag_init(void)
 
 void net_nfc_client_tag_deinit(void)
 {
+	client_filter = NET_NFC_ALL_ENABLE;
+
+	net_nfc_release_tag_info((net_nfc_target_info_h)client_target_info);
+	client_target_info = NULL;
+
+	net_nfc_client_tag_unset_tag_discovered();
+	net_nfc_client_tag_unset_tag_detached();
+
 	if (tag_proxy)
 	{
 		g_object_unref(tag_proxy);
 		tag_proxy = NULL;
 	}
-
-	if (tag_discovered_func_data)
-	{
-		g_free(tag_discovered_func_data);
-		tag_discovered_func_data = NULL;
-	}
-
-	if (tag_detached_func_data)
-	{
-		g_free(tag_detached_func_data);
-		tag_detached_func_data = NULL;
-	}
-
-	net_nfc_release_tag_info((net_nfc_target_info_h)client_target_info);
-	client_target_info = NULL;
-
-	client_filter = NET_NFC_ALL_ENABLE;
 }

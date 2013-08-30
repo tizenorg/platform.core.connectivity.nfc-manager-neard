@@ -40,20 +40,12 @@ static void transceive_data_call(GObject *source_object,
 		GAsyncResult *res,
 		gpointer user_data);
 
-typedef struct _TransceiveFuncData TransceiveFuncData;
-
-struct _TransceiveFuncData
-{
-	gpointer transceive_send_callback;
-	gpointer transceive_send_data;
-};
-
 static GVariant *transceive_data_to_transceive_variant(
 		net_nfc_target_type_e devType,
 		data_s *data)
 {
-	GVariant *variant = NULL;
-	data_s transceive_info = {NULL,};
+	data_s transceive_info = { NULL, };
+	GVariant *variant;
 
 	if (data == NULL)
 	{
@@ -67,7 +59,7 @@ static GVariant *transceive_data_to_transceive_variant(
 	case NET_NFC_MIFARE_1K_PICC :
 	case NET_NFC_MIFARE_4K_PICC :
 	case NET_NFC_MIFARE_ULTRA_PICC :
-		if(net_nfc_util_alloc_data(&transceive_info,
+		if (net_nfc_util_alloc_data(&transceive_info,
 					data->length + 2) == true)
 		{
 			memcpy(transceive_info.buffer,
@@ -87,7 +79,7 @@ static GVariant *transceive_data_to_transceive_variant(
 			return NULL;
 		}
 
-		if(net_nfc_util_alloc_data(&transceive_info, 9) == true)
+		if (net_nfc_util_alloc_data(&transceive_info, 9) == true)
 		{
 			memcpy(transceive_info.buffer,
 					data->buffer,
@@ -96,7 +88,6 @@ static GVariant *transceive_data_to_transceive_variant(
 					transceive_info.buffer,
 					transceive_info.length);
 		}
-
 		break;
 
 	default :
@@ -118,95 +109,72 @@ static GVariant *transceive_data_to_transceive_variant(
 }
 
 static void transceive_data_call(GObject *source_object,
-		GAsyncResult *res,
-		gpointer user_data)
+		GAsyncResult *res, gpointer user_data)
 {
-	TransceiveFuncData *func_data;
-
+	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
 	net_nfc_error_e out_result = NET_NFC_OK;
+	GVariant *out_data = NULL;
 	GError *error = NULL;
 
-	GVariant *out_data = NULL;
+	g_assert(user_data != NULL);
 
-	data_s resp = {NULL,};
-
-	if(net_nfc_gdbus_transceive_call_transceive_data_finish(
+	if (net_nfc_gdbus_transceive_call_transceive_data_finish(
 				NET_NFC_GDBUS_TRANSCEIVE(source_object),
 				(gint *)&out_result,
 				&out_data,
 				res,
 				&error) == FALSE)
 	{
-		out_result = NET_NFC_UNKNOWN_ERROR;
-
 		DEBUG_ERR_MSG("Can not finish transceive: %s", error->message);
 		g_error_free(error);
+
+		out_result = NET_NFC_IPC_FAIL;
 	}
 
-	func_data = (TransceiveFuncData*) user_data;
-	if(func_data == NULL)
+	if (func_data->callback != NULL)
 	{
-		DEBUG_ERR_MSG("can not get TransceiveFuncData");
-		return;
+		data_s resp = { NULL, };
+
+		net_nfc_util_gdbus_variant_to_data_s(out_data, &resp);
+
+		((nfc_transceive_data_callback)func_data->callback)(
+			out_result,
+			&resp,
+			func_data->user_data);
+
+		net_nfc_util_free_data(&resp);
 	}
-
-	if(func_data->transceive_send_callback == NULL)
-	{
-		DEBUG_CLIENT_MSG("callback function is not avaiilable");
-		g_free(func_data);
-		return;
-	}
-
-	net_nfc_util_gdbus_variant_to_data_s(out_data, &resp);
-
-	((nfc_transceive_data_callback)func_data->transceive_send_callback)(
-		out_result,
-		&resp,
-		func_data->transceive_send_data);
-
-	net_nfc_util_free_data(&resp);
 
 	g_free(func_data);
 }
 
 static void transceive_call(GObject *source_object,
-		GAsyncResult *res,
-		gpointer user_data)
+		GAsyncResult *res, gpointer user_data)
 {
-	TransceiveFuncData *func_data;
-
+	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
 	net_nfc_error_e out_result = NET_NFC_OK;
 	GError *error = NULL;
 
-	if(net_nfc_gdbus_transceive_call_transceive_finish(
+	g_assert(user_data != NULL);
+
+	if (net_nfc_gdbus_transceive_call_transceive_finish(
 				NET_NFC_GDBUS_TRANSCEIVE(source_object),
 				(gint *)&out_result,
 				res,
 				&error) == FALSE)
 	{
-		out_result = NET_NFC_UNKNOWN_ERROR;
-
 		DEBUG_ERR_MSG("Can not finish transceive: %s", error->message);
 		g_error_free(error);
+
+		out_result = NET_NFC_IPC_FAIL;
 	}
 
-	func_data = (TransceiveFuncData*) user_data;
-	if(func_data == NULL)
+	if (func_data->callback != NULL)
 	{
-		DEBUG_ERR_MSG("can not get TransceiveFuncData");
-		return;
+		((nfc_transceive_callback)func_data->callback)(
+			out_result,
+			func_data->user_data);
 	}
-
-	if(func_data->transceive_send_callback == NULL)
-	{
-		DEBUG_CLIENT_MSG("callback function is not avaiilable");
-		g_free(func_data);
-		return;
-	}
-
-	((nfc_transceive_callback)func_data->transceive_send_callback)(
-		out_result,
-		func_data->transceive_send_data);
 
 	g_free(func_data);
 }
@@ -214,19 +182,17 @@ static void transceive_call(GObject *source_object,
 API net_nfc_error_e net_nfc_client_transceive(net_nfc_target_handle_h handle,
 		data_h rawdata, nfc_transceive_callback callback, void *user_data)
 {
-	net_nfc_target_info_s *target_info = NULL;
-	data_s *data = (data_s *)rawdata;
-
-	GVariant *arg_data = NULL;
-	TransceiveFuncData *funcdata = NULL;
+	net_nfc_target_info_s *target_info;
+	NetNfcCallback *funcdata;
+	GVariant *arg_data;
 
 	if (transceive_proxy == NULL)
 	{
 		DEBUG_ERR_MSG("Can not get TransceiveProxy");
-		return NET_NFC_UNKNOWN_ERROR;
+
+		return NET_NFC_NOT_INITIALIZED;
 	}
 
-	DEBUG_CLIENT_MSG("send reqeust :: transceive = [%p]", handle);
 
 	if (handle == NULL || rawdata == NULL)
 		return NET_NFC_NULL_PARAMETER;
@@ -236,23 +202,27 @@ API net_nfc_error_e net_nfc_client_transceive(net_nfc_target_handle_h handle,
 		return NET_NFC_INVALID_STATE;
 	}
 
-	if (net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
-
-	/* fill trans information struct */
 	target_info = net_nfc_client_tag_get_client_target_info();
+	if (target_info == NULL || target_info->handle == NULL)
+		return NET_NFC_NOT_CONNECTED;
 
-	if (target_info == NULL)
-		return NET_NFC_OPERATION_FAIL;
+	DEBUG_CLIENT_MSG("send request :: transceive = [%p]", handle);
 
-	arg_data = transceive_data_to_transceive_variant(target_info->devType, data);
-	if (arg_data == NULL)
-		return NET_NFC_OPERATION_FAIL;
+	arg_data = transceive_data_to_transceive_variant(target_info->devType,
+			rawdata);
+	if (arg_data == NULL) {
+		return NET_NFC_INVALID_PARAM;
+	}
 
-	funcdata = g_new0(TransceiveFuncData, 1);
+	funcdata = g_try_new0(NetNfcCallback, 1);
+	if (funcdata == NULL) {
+		g_variant_unref(arg_data);
 
-	funcdata->transceive_send_callback = (gpointer)callback;
-	funcdata->transceive_send_data = user_data;
+		return NET_NFC_ALLOC_FAIL;
+	}
+
+	funcdata->callback = (gpointer)callback;
+	funcdata->user_data = user_data;
 
 	net_nfc_gdbus_transceive_call_transceive(transceive_proxy,
 			GPOINTER_TO_UINT(handle),
@@ -269,19 +239,16 @@ API net_nfc_error_e net_nfc_client_transceive(net_nfc_target_handle_h handle,
 API net_nfc_error_e net_nfc_client_transceive_data(net_nfc_target_handle_h handle,
 		data_h rawdata, nfc_transceive_data_callback callback, void *user_data)
 {
-	net_nfc_target_info_s *target_info = NULL;
-	data_s *data = (data_s *)rawdata;
-
-	GVariant *arg_data = NULL;
-	TransceiveFuncData *funcdata = NULL;
+	net_nfc_target_info_s *target_info;
+	NetNfcCallback *funcdata;
+	GVariant *arg_data;
 
 	if (transceive_proxy == NULL)
 	{
 		DEBUG_ERR_MSG("Can not get TransceiveProxy");
-		return NET_NFC_UNKNOWN_ERROR;
-	}
 
-	DEBUG_CLIENT_MSG("send reqeust :: transceive = [%p]", handle);
+		return NET_NFC_NOT_INITIALIZED;
+	}
 
 	if (handle == NULL || rawdata == NULL)
 		return NET_NFC_NULL_PARAMETER;
@@ -291,23 +258,27 @@ API net_nfc_error_e net_nfc_client_transceive_data(net_nfc_target_handle_h handl
 		return NET_NFC_INVALID_STATE;
 	}
 
-	if (net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
-
-	/* fill trans information struct */
 	target_info = net_nfc_client_tag_get_client_target_info();
+	if (target_info == NULL || target_info->handle == NULL)
+		return NET_NFC_NOT_CONNECTED;
 
-	if (target_info == NULL)
-		return NET_NFC_OPERATION_FAIL;
+	DEBUG_CLIENT_MSG("send request :: transceive = [%p]", handle);
 
-	arg_data = transceive_data_to_transceive_variant(target_info->devType, data);
-	if (arg_data == NULL)
-		return NET_NFC_OPERATION_FAIL;
+	arg_data = transceive_data_to_transceive_variant(target_info->devType,
+			rawdata);
+	if (arg_data == NULL) {
+		return NET_NFC_INVALID_PARAM;
+	}
 
-	funcdata = g_new0(TransceiveFuncData, 1);
+	funcdata = g_try_new0(NetNfcCallback, 1);
+	if (funcdata == NULL) {
+		g_variant_unref(arg_data);
 
-	funcdata->transceive_send_callback = (gpointer)callback;
-	funcdata->transceive_send_data = user_data;
+		return NET_NFC_ALLOC_FAIL;
+	}
+
+	funcdata->callback = (gpointer)callback;
+	funcdata->user_data = user_data;
 
 	net_nfc_gdbus_transceive_call_transceive_data(transceive_proxy,
 			GPOINTER_TO_UINT(handle),
@@ -324,44 +295,38 @@ API net_nfc_error_e net_nfc_client_transceive_data(net_nfc_target_handle_h handl
 API net_nfc_error_e net_nfc_client_transceive_sync(net_nfc_target_handle_h handle,
 		data_h rawdata)
 {
-	net_nfc_target_info_s *target_info = NULL;
-	data_s *data = (data_s *)rawdata;
-
+	net_nfc_target_info_s *target_info;
+	net_nfc_error_e out_result = NET_NFC_OK;
 	GError *error = NULL;
-	GVariant *arg_data = NULL;
+	GVariant *arg_data;
 
-	net_nfc_error_e out_result;
+	if (handle == NULL || rawdata == NULL)
+		return NET_NFC_NULL_PARAMETER;
 
 	if (transceive_proxy == NULL)
 	{
 		DEBUG_ERR_MSG("Can not get TransceiveProxy");
-		return NET_NFC_UNKNOWN_ERROR;
+
+		return NET_NFC_NOT_INITIALIZED;
 	}
-
-	DEBUG_CLIENT_MSG("send reqeust :: transceive = [%p]", handle);
-
-	if (handle == NULL || rawdata == NULL)
-		return NET_NFC_NULL_PARAMETER;
 
 	/* prevent executing daemon when nfc is off */
 	if (net_nfc_client_manager_is_activated() == false) {
 		return NET_NFC_INVALID_STATE;
 	}
 
-	if (net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
-
-	/* fill trans information struct */
 	target_info = net_nfc_client_tag_get_client_target_info();
+	if (target_info == NULL || target_info->handle == NULL)
+		return NET_NFC_NOT_CONNECTED;
 
-	if (target_info == NULL)
-		return NET_NFC_OPERATION_FAIL;
+	DEBUG_CLIENT_MSG("send request :: transceive = [%p]", handle);
 
-	arg_data = transceive_data_to_transceive_variant(target_info->devType, data);
+	arg_data = transceive_data_to_transceive_variant(target_info->devType,
+			rawdata);
 	if (arg_data == NULL)
-		return NET_NFC_OPERATION_FAIL;
+		return NET_NFC_ALLOC_FAIL;
 
-	if(net_nfc_gdbus_transceive_call_transceive_sync(transceive_proxy,
+	if (net_nfc_gdbus_transceive_call_transceive_sync(transceive_proxy,
 				GPOINTER_TO_UINT(handle),
 				target_info->devType,
 				arg_data,
@@ -372,9 +337,9 @@ API net_nfc_error_e net_nfc_client_transceive_sync(net_nfc_target_handle_h handl
 	{
 		DEBUG_ERR_MSG("Transceive (sync call) failed: %s",
 				error->message);
-
 		g_error_free(error);
-		return NET_NFC_UNKNOWN_ERROR;
+
+		out_result = NET_NFC_IPC_FAIL;
 	}
 
 	return out_result;
@@ -383,43 +348,37 @@ API net_nfc_error_e net_nfc_client_transceive_sync(net_nfc_target_handle_h handl
 API net_nfc_error_e net_nfc_client_transceive_data_sync(
 		net_nfc_target_handle_h handle, data_h rawdata, data_h *response)
 {
-	net_nfc_target_info_s *target_info = NULL;
-	data_s *data = (data_s *)rawdata;
-
-	GError *error = NULL;
-	GVariant *arg_data = NULL;
-	GVariant *out_data = NULL;
-
+	net_nfc_target_info_s *target_info;
 	net_nfc_error_e out_result = NET_NFC_OK;
+	GVariant *out_data = NULL;
+	GError *error = NULL;
+	GVariant *arg_data;
+
+	if (handle == NULL || rawdata == NULL)
+		return NET_NFC_NULL_PARAMETER;
 
 	if (transceive_proxy == NULL)
 	{
 		DEBUG_ERR_MSG("Can not get TransceiveProxy");
-		return NET_NFC_UNKNOWN_ERROR;
+
+		return NET_NFC_NOT_INITIALIZED;
 	}
-
-	DEBUG_CLIENT_MSG("send reqeust :: transceive = [%p]", handle);
-
-	if (handle == NULL || rawdata == NULL)
-		return NET_NFC_NULL_PARAMETER;
 
 	/* prevent executing daemon when nfc is off */
 	if (net_nfc_client_manager_is_activated() == false) {
 		return NET_NFC_INVALID_STATE;
 	}
 
-	if (net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
-
-	/* fill trans information struct */
 	target_info = net_nfc_client_tag_get_client_target_info();
+	if (target_info == NULL || target_info->handle == NULL)
+		return NET_NFC_NOT_CONNECTED;
 
-	if (target_info == NULL)
-		return NET_NFC_OPERATION_FAIL;
+	DEBUG_CLIENT_MSG("send request :: transceive = [%p]", handle);
 
-	arg_data = transceive_data_to_transceive_variant(target_info->devType, data);
+	arg_data = transceive_data_to_transceive_variant(target_info->devType,
+			rawdata);
 	if (arg_data == NULL)
-		return NET_NFC_OPERATION_FAIL;
+		return NET_NFC_ALLOC_FAIL;
 
 	if (net_nfc_gdbus_transceive_call_transceive_data_sync(
 				transceive_proxy,
@@ -435,7 +394,8 @@ API net_nfc_error_e net_nfc_client_transceive_data_sync(
 		DEBUG_ERR_MSG("Transceive (sync call) failed: %s",
 				error->message);
 		g_error_free(error);
-		return NET_NFC_UNKNOWN_ERROR;
+
+		out_result = NET_NFC_IPC_FAIL;
 	}
 
 	if (response && out_data != NULL)
@@ -478,7 +438,7 @@ net_nfc_error_e net_nfc_client_transceive_init(void)
 
 void net_nfc_client_transceive_deinit(void)
 {
-	if(transceive_proxy)
+	if (transceive_proxy)
 	{
 		g_object_unref(transceive_proxy);
 		transceive_proxy = NULL;

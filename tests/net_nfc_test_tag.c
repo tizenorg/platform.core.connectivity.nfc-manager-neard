@@ -21,15 +21,15 @@
 #include "net_nfc_test_tag.h"
 
 static void run_next_callback(gpointer user_data);
-
+#if 0
 static gchar *tag_type_to_string(net_nfc_target_type_e dev_type);
-
+#endif
 static void print_is_tag_connected(net_nfc_target_type_e dev_type);
 
 static void print_get_current_tag_info(net_nfc_target_info_h info);
 
 static void print_get_current_target_handle(net_nfc_target_handle_h handle);
-
+#if 0
 static void is_tag_connected_completed(net_nfc_error_e result,
 		net_nfc_target_type_e dev_type,
 		void *user_data);
@@ -41,7 +41,7 @@ static void get_current_tag_info_completed(net_nfc_error_e result,
 static void get_current_target_handle_completed(net_nfc_error_e result,
 		net_nfc_target_handle_h handle,
 		void *user_data);
-
+#endif
 static void tag_detached(void *user_data);
 
 static void tag_discovered(net_nfc_target_info_h info,
@@ -61,7 +61,7 @@ static void run_next_callback(gpointer user_data)
 		callback();
 	}
 }
-
+#if 0
 static gchar *tag_type_to_string(net_nfc_target_type_e dev_type)
 {
 	switch(dev_type)
@@ -107,7 +107,7 @@ static gchar *tag_type_to_string(net_nfc_target_type_e dev_type)
 	}
 	return "Invalid Target";
 }
-
+#endif
 static void print_is_tag_connected(net_nfc_target_type_e dev_type)
 {
 	if (global_info)
@@ -165,7 +165,7 @@ static void tag_detached(void *user_data)
 {
 	g_print("TagDetached\n");
 }
-
+#if 0
 static void is_tag_connected_completed(net_nfc_error_e result,
 		net_nfc_target_type_e dev_type,
 		void *user_data)
@@ -205,7 +205,7 @@ static void get_current_target_handle_completed(net_nfc_error_e result,
 
 	run_next_callback(user_data);
 }
-
+#endif
 
 static void tag_discovered(net_nfc_target_info_h info,
 		void *user_data)
@@ -218,7 +218,7 @@ static void tag_discovered(net_nfc_target_info_h info,
 }
 
 
-
+#if 0
 void net_nfc_test_tag_is_tag_connected(gpointer data,
 		gpointer user_data)
 {
@@ -240,7 +240,7 @@ void net_nfc_test_tag_get_current_target_handle(gpointer data,
 			get_current_target_handle_completed,
 			user_data);
 }
-
+#endif
 void net_nfc_test_tag_is_tag_connected_sync(gpointer data,
 		gpointer user_data)
 {

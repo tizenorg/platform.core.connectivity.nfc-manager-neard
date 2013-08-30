@@ -21,7 +21,7 @@
 typedef void (* nfc_transceive_callback)(net_nfc_error_e result,
 		void *user_data);
 
-typedef void (* nfc_transceive_data_callback)(net_nfc_error_e result,
+typedef void (*nfc_transceive_data_callback)(net_nfc_error_e result,
 		data_h data,
 		void *user_data);
 

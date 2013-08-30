@@ -45,9 +45,7 @@ static void _init_smack()
 		if (cookie_len > 0) {
 			cookie = g_new0(uint8_t, cookie_len);
 			if (cookie != NULL) {
-				if (security_server_request_cookie(
-							(char *)cookie,
-							cookie_len) < 0) {
+				if (security_server_request_cookie((char*)cookie, cookie_len) < 0) {
 					g_free(cookie);
 					cookie = NULL;
 				}

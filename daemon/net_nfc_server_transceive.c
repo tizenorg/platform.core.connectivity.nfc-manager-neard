@@ -61,9 +61,10 @@ struct _TransceiveSendData
 
 static void transceive_data_thread_func(gpointer user_data)
 {
-	TransceiveSendData *transceive_data = user_data;
-	net_nfc_target_handle_s *handle = GUINT_TO_POINTER(transceive_data->transceive_handle);
-	net_nfc_error_e result;
+	TransceiveSendData *transceive_data = (TransceiveSendData*)user_data;
+	net_nfc_target_handle_s *handle =
+		(net_nfc_target_handle_s *)transceive_data->transceive_handle;
+	net_nfc_error_e result = NET_NFC_OK;
 	data_s *data = NULL;
 	GVariant *resp_data = NULL;
 
@@ -180,8 +181,9 @@ static gboolean transceive_data_handle(NetNfcGDbusTransceive *transceive,
 
 static void transceive_thread_func(gpointer user_data)
 {
-	TransceiveSendData *transceive_data = user_data;
-	net_nfc_target_handle_s *handle = GUINT_TO_POINTER(transceive_data->transceive_handle);
+	TransceiveSendData *transceive_data = (TransceiveSendData *)user_data;
+	net_nfc_target_handle_s *handle =
+		(net_nfc_target_handle_s *)transceive_data->transceive_handle;
 	net_nfc_error_e result = NET_NFC_OK;
 	data_s *data = NULL;
 

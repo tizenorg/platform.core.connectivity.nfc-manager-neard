@@ -310,9 +310,10 @@
       Set
     -->
     <method name="Set">
-      <arg type="b" name="state" direction="in" />
+      <arg type="i" name="state" direction="in" />
       <arg type="i" name="focus_state" direction="in" />
       <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
     </method>
 
     <!--
@@ -320,7 +321,8 @@
     -->
     <method name="Get">
       <arg type="a(y)" name="privilege" direction="in" />
-      <arg type="b" name="state" direction="out" />
+      <arg type="i" name="result" direction="out" />
+      <arg type="i" name="state" direction="out" />
     </method>
   </interface>
 

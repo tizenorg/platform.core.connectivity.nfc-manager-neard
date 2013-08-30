@@ -19,7 +19,7 @@
 #include <glib.h>
 
 #include "net_nfc_target_info.h"
-
+#if 0
 void net_nfc_test_tag_is_tag_connected(gpointer data,
 		gpointer user_data);
 
@@ -28,7 +28,7 @@ void net_nfc_test_tag_get_current_tag_info(gpointer data,
 
 void net_nfc_test_tag_get_current_target_handle(gpointer data,
 		gpointer user_data);
-
+#endif
 void net_nfc_test_tag_is_tag_connected_sync(gpointer data,
 		gpointer user_data);
 

@@ -67,7 +67,7 @@ static void p2p_device_detached(GObject *source_object,
 	if (p2p_signal_handler.p2p_device_detached_cb)
 	{
 		p2p_signal_handler.p2p_device_detached_cb(
-			p2p_signal_handler.p2p_device_detached_data);
+				p2p_signal_handler.p2p_device_detached_data);
 	}
 
 	/*llcp client function to close all socket needs to be implemented*/
@@ -123,7 +123,7 @@ static void p2p_call_send(GObject *source_object, GAsyncResult *res,
 				res,
 				&error) == FALSE)
 	{
-		out_result = NET_NFC_UNKNOWN_ERROR;
+		out_result = NET_NFC_IPC_FAIL;
 
 		DEBUG_ERR_MSG("Can not finish p2p send: %s", error->message);
 		g_error_free(error);
@@ -141,8 +141,8 @@ static void p2p_call_send(GObject *source_object, GAsyncResult *res,
 }
 
 
-API net_nfc_error_e net_nfc_client_p2p_send(net_nfc_target_handle_s *handle,
-		data_s *data, net_nfc_client_p2p_send_completed callback, void *user_data)
+API net_nfc_error_e net_nfc_client_p2p_send(net_nfc_target_handle_h handle,
+		data_h data, net_nfc_client_p2p_send_completed callback, void *user_data)
 {
 	GVariant *arg_data;
 	NetNfcCallback *func_data;
@@ -170,21 +170,21 @@ API net_nfc_error_e net_nfc_client_p2p_send(net_nfc_target_handle_s *handle,
 	arg_data = net_nfc_util_gdbus_data_to_variant(data);
 
 	net_nfc_gdbus_p2p_call_send(p2p_proxy,
-		0 /* FIXME */,
-		arg_data,
-		GPOINTER_TO_UINT(handle),
-		net_nfc_client_gdbus_get_privilege(),
-		NULL,
-		p2p_call_send,
-		func_data);
+			0 /* FIXME */,
+			arg_data,
+			GPOINTER_TO_UINT(handle),
+			net_nfc_client_gdbus_get_privilege(),
+			NULL,
+			p2p_call_send,
+			func_data);
 
 	return NET_NFC_OK;
 }
 
 
 
-API net_nfc_error_e net_nfc_client_p2p_send_sync(net_nfc_target_handle_s *handle,
-	data_s *data)
+API net_nfc_error_e net_nfc_client_p2p_send_sync(net_nfc_target_handle_h handle,
+		data_h data)
 {
 	GVariant *arg_data;
 	GError *error = NULL;
@@ -206,13 +206,13 @@ API net_nfc_error_e net_nfc_client_p2p_send_sync(net_nfc_target_handle_s *handle
 	arg_data = net_nfc_util_gdbus_data_to_variant(data);
 
 	if (net_nfc_gdbus_p2p_call_send_sync(p2p_proxy,
-		0 /* FIXME */,
-		arg_data,
-		GPOINTER_TO_UINT(handle),
-		net_nfc_client_gdbus_get_privilege(),
-		(gint *)&out_result,
-		NULL,
-		&error) == FALSE)
+				0 /* FIXME */,
+				arg_data,
+				GPOINTER_TO_UINT(handle),
+				net_nfc_client_gdbus_get_privilege(),
+				(gint *)&out_result,
+				NULL,
+				&error) == FALSE)
 	{
 		DEBUG_ERR_MSG("p2p send (sync call) failed: %s",
 				error->message);
@@ -228,6 +228,9 @@ API net_nfc_error_e net_nfc_client_p2p_send_sync(net_nfc_target_handle_s *handle
 API void net_nfc_client_p2p_set_device_discovered(
 		net_nfc_client_p2p_device_discovered callback, void *user_data)
 {
+	if (callback == NULL)
+		return;
+
 	p2p_signal_handler.p2p_device_discovered_cb = callback;
 	p2p_signal_handler.p2p_device_discovered_data = user_data;
 }
@@ -236,6 +239,9 @@ API void net_nfc_client_p2p_set_device_discovered(
 API void net_nfc_client_p2p_set_device_detached(
 		net_nfc_client_p2p_device_detached callback, void *user_data)
 {
+	if (callback == NULL)
+		return;
+
 	p2p_signal_handler.p2p_device_detached_cb = callback;
 	p2p_signal_handler.p2p_device_detached_data = user_data;
 }
@@ -244,6 +250,9 @@ API void net_nfc_client_p2p_set_device_detached(
 API void net_nfc_client_p2p_set_data_received(
 		net_nfc_client_p2p_data_received callback, void *user_data)
 {
+	if (callback == NULL)
+		return;
+
 	p2p_signal_handler.p2p_data_received_cb = callback;
 	p2p_signal_handler.p2p_data_received_data = user_data;
 }

@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "net_nfc_gdbus.h"
 #include "net_nfc_debug_internal.h"
+#include "net_nfc_gdbus.h"
 #include "net_nfc_server_common.h"
 #include "net_nfc_server_context.h"
 #include "net_nfc_server_system_handler.h"
@@ -24,7 +24,7 @@ static NetNfcGDbusPopup *popup_skeleton = NULL;
 
 static gboolean popup_handle_set(NetNfcGDbusPopup *popup_manager,
 		GDBusMethodInvocation *invocation,
-		gboolean state,
+		int state,
 		gint focus_state,
 		GVariant *smack_privilege,
 		gpointer user_data);
@@ -36,7 +36,7 @@ static gboolean popup_handle_get(NetNfcGDbusPopup *popup_manager,
 
 static gboolean popup_handle_set(NetNfcGDbusPopup *popup_manager,
 		GDBusMethodInvocation *invocation,
-		gboolean state,
+		gint state,
 		gint focus_state,
 		GVariant *smack_privilege,
 		gpointer user_data)
@@ -58,7 +58,7 @@ static gboolean popup_handle_set(NetNfcGDbusPopup *popup_manager,
 			g_dbus_method_invocation_get_sender(invocation),
 			state, focus_state);
 
-	net_nfc_gdbus_popup_complete_set(popup_manager, invocation);
+	net_nfc_gdbus_popup_complete_set(popup_manager, invocation, NET_NFC_OK);
 
 	return TRUE;
 }
@@ -86,7 +86,8 @@ static gboolean popup_handle_get(NetNfcGDbusPopup *popup_manager,
 	state = net_nfc_server_gdbus_get_launch_state(
 			g_dbus_method_invocation_get_sender(invocation));
 
-	net_nfc_gdbus_popup_complete_get(popup_manager, invocation, state);
+	net_nfc_gdbus_popup_complete_get(popup_manager, invocation,
+			NET_NFC_OK, state);
 
 	return TRUE;
 }
@@ -127,8 +128,8 @@ gboolean net_nfc_server_system_handler_init(GDBusConnection *connection)
 		DEBUG_ERR_MSG("Can not skeleton_export %s", error->message);
 
 		g_error_free(error);
-		g_object_unref(popup_skeleton);
-		popup_skeleton = NULL;
+
+		net_nfc_server_system_handler_deinit();
 	}
 
 	return result;
@@ -136,10 +137,9 @@ gboolean net_nfc_server_system_handler_init(GDBusConnection *connection)
 
 void net_nfc_server_system_handler_deinit(void)
 {
-	if(popup_skeleton)
+	if (popup_skeleton)
 	{
 		g_object_unref(popup_skeleton);
 		popup_skeleton = NULL;
 	}
-
 }

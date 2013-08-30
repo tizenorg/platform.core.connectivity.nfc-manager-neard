@@ -43,9 +43,9 @@ struct _ManagerActivationData
 
 static NetNfcGDbusManager *manager_skeleton = NULL;
 
-static gboolean manager_active(void);
+static net_nfc_error_e manager_active(void);
 
-static gboolean manager_deactive(void);
+static net_nfc_error_e manager_deactive(void);
 
 static void manager_handle_active_thread_func(gpointer user_data);
 
@@ -65,15 +65,15 @@ static void manager_active_thread_func(gpointer user_data);
 
 
 /* reimplementation of net_nfc_service_init()*/
-static gboolean manager_active(void)
+static net_nfc_error_e manager_active(void)
 {
 	net_nfc_error_e result;
 
 	if (net_nfc_controller_is_ready(&result) == false)
 	{
-		DEBUG_ERR_MSG("%s failed [%d]",
-				"net_nfc_cotroller_is_ready", result);
-		return FALSE;
+		DEBUG_ERR_MSG("net_nfc_controller_is_ready failed [%d]", result);
+
+		return result;
 	}
 
 	result = net_nfc_server_se_change_se(SECURE_ELEMENT_TYPE_UICC);
@@ -90,34 +90,34 @@ static gboolean manager_active(void)
 	if (net_nfc_controller_configure_discovery(
 				NET_NFC_DISCOVERY_MODE_START,
 				NET_NFC_ALL_ENABLE,
-				&result) == false)
+				&result) == TRUE)
 	{
-		DEBUG_ERR_MSG("%s is failed %d",
-				"net_nfc_controller_configure_discovery",
-				result);
-		return FALSE;
+		/* vconf on */
+		if (vconf_set_bool(VCONFKEY_NFC_STATE, TRUE) != 0)
+		{
+			DEBUG_ERR_MSG("vconf_set_bool is failed");
+
+			result = NET_NFC_OPERATION_FAIL;
+		}
+	}
+	else
+	{
+		DEBUG_ERR_MSG("net_nfc_controller_configure_discovery is failed, [%d]", result);
 	}
 
-	/* vconf on */
-	if (vconf_set_bool(VCONFKEY_NFC_STATE, TRUE) != 0)
-	{
-		DEBUG_ERR_MSG("%s is failed", "vconf_set_bool");
-		return FALSE;
-	}
-
-	return TRUE;
+	return result;
 }
 
 /* reimplementation of net_nfc_service_deinit()*/
-static gboolean manager_deactive(void)
+static net_nfc_error_e manager_deactive(void)
 {
 	net_nfc_error_e result;
 
 	if (net_nfc_controller_is_ready(&result) == false)
 	{
-		DEBUG_ERR_MSG("%s failed [%d]",
-				"net_nfc_cotroller_is_ready", result);
-		return FALSE;
+		DEBUG_ERR_MSG("net_nfc_controller_is_ready failed [%d]", result);
+
+		return result;
 	}
 
 	/* unregister all services */
@@ -128,28 +128,27 @@ static gboolean manager_deactive(void)
 	if (net_nfc_controller_configure_discovery(
 				NET_NFC_DISCOVERY_MODE_STOP,
 				NET_NFC_ALL_DISABLE,
-				&result) == false)
+				&result) == TRUE)
 	{
-		DEBUG_ERR_MSG("%s is failed %d",
-				"net_nfc_controller_configure_discovery",
-				result);
-		return FALSE;
+		/* vconf off */
+		if (vconf_set_bool(VCONFKEY_NFC_STATE, FALSE) != 0)
+		{
+			DEBUG_ERR_MSG("vconf_set_bool is failed");
+
+			result = NET_NFC_OPERATION_FAIL;
+		}
+	}
+	else
+	{
+		DEBUG_ERR_MSG("net_nfc_controller_configure_discovery is failed, [%d]", result);
 	}
 
-	/* vconf off */
-	if (vconf_set_bool(VCONFKEY_NFC_STATE, FALSE) != 0)
-	{
-		DEBUG_ERR_MSG("%s is failed", "vconf_set_bool");
-		return FALSE;
-	}
-
-	return TRUE;
+	return result;
 }
 
 static void manager_handle_active_thread_func(gpointer user_data)
 {
 	ManagerActivationData *data = (ManagerActivationData *)user_data;
-	gboolean ret;
 	net_nfc_error_e result;
 
 	g_assert(data != NULL);
@@ -157,25 +156,21 @@ static void manager_handle_active_thread_func(gpointer user_data)
 	g_assert(data->invocation != NULL);
 
 	if (data->is_active)
-		ret = manager_active();
+		result = manager_active();
 	else
-		ret = manager_deactive();
-	if (ret == TRUE)
-	{
-		result = NET_NFC_OK;
-		INFO_MSG("nfc %s", data->is_active ? "activated" : "deactivated");
-
-		net_nfc_gdbus_manager_emit_activated(data->manager,
-						data->is_active);
-	}
-	else
-	{
-		result = NET_NFC_OPERATION_FAIL;
-	}
+		result = manager_deactive();
 
 	net_nfc_gdbus_manager_complete_set_active(data->manager,
-						data->invocation,
-						result);
+			data->invocation,
+			result);
+
+	if (result == NET_NFC_OK) {
+		INFO_MSG("nfc %s", data->is_active ?
+				"activated" : "deactivated");
+
+		net_nfc_gdbus_manager_emit_activated(data->manager,
+				data->is_active);
+	}
 
 	g_object_unref(data->invocation);
 	g_object_unref(data->manager);
@@ -184,7 +179,7 @@ static void manager_handle_active_thread_func(gpointer user_data)
 
 	/* shutdown process if it doesn't need */
 	if (data->is_active == false &&
-		net_nfc_server_gdbus_is_server_busy() == false) {
+			net_nfc_server_gdbus_is_server_busy() == false) {
 
 		net_nfc_server_controller_deinit();
 	}
@@ -230,7 +225,7 @@ static gboolean manager_handle_set_active(NetNfcGDbusManager *manager,
 	data->is_active = arg_is_active;
 
 	result = net_nfc_server_controller_async_queue_push(
-		manager_handle_active_thread_func, data);
+			manager_handle_active_thread_func, data);
 	if (result == FALSE)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
@@ -280,7 +275,7 @@ static void manager_active_thread_func(gpointer user_data)
 {
 	ManagerActivationData *data =
 		(ManagerActivationData *)user_data;
-	gboolean ret;
+	net_nfc_error_e ret;
 
 	g_assert(data != NULL);
 
@@ -288,10 +283,10 @@ static void manager_active_thread_func(gpointer user_data)
 		ret = manager_active();
 	else
 		ret = manager_deactive();
-	if (ret == TRUE)
+	if (ret == NET_NFC_OK)
 	{
 		INFO_MSG("nfc %s",
-			data->is_active ? "activated" : "deactivated");
+				data->is_active ? "activated" : "deactivated");
 
 		net_nfc_gdbus_manager_emit_activated(data->manager, data->is_active);
 	}

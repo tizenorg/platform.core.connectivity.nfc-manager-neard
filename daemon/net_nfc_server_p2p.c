@@ -20,6 +20,7 @@
 #include "net_nfc_server_controller.h"
 #include "net_nfc_gdbus.h"
 #include "net_nfc_server_common.h"
+#include "net_nfc_server_tag.h"
 #include "net_nfc_server_context.h"
 #include "net_nfc_server_process_snep.h"
 #include "net_nfc_server_p2p.h"
@@ -32,7 +33,7 @@ struct _P2pSendData
 	NetNfcGDbusP2p *p2p;
 	GDBusMethodInvocation *invocation;
 	gint32 type;
-	net_nfc_target_handle_s *p2p_handle;
+	guint32 p2p_handle;
 	data_s data;
 };
 
@@ -58,7 +59,7 @@ static void p2p_send_data_thread_func(gpointer user_data)
 	g_assert(p2p_data->invocation != NULL);
 
 	result = net_nfc_server_snep_default_client_start(
-			p2p_data->p2p_handle,
+			GUINT_TO_POINTER(p2p_data->p2p_handle),
 			SNEP_REQ_PUT,
 			&p2p_data->data,
 			-1,
@@ -116,7 +117,7 @@ static gboolean p2p_handle_send(NetNfcGDbusP2p *p2p,
 	data->p2p = g_object_ref(p2p);
 	data->invocation = g_object_ref(invocation);
 	data->type = arg_type;
-	data->p2p_handle = GUINT_TO_POINTER(handle);
+	data->p2p_handle = handle;
 	net_nfc_util_gdbus_variant_to_data_s(arg_data, &data->data);
 
 	result = net_nfc_server_controller_async_queue_push(
@@ -188,6 +189,9 @@ void net_nfc_server_p2p_detached(void)
 	}
 
 	DEBUG_ERR_MSG("p2p detached signal");
+
+	/* release target information */
+	net_nfc_server_free_target_info();
 
 	net_nfc_gdbus_p2p_emit_detached(p2p_skeleton);
 }
