@@ -832,7 +832,15 @@ static TestData test_data[] = {
 		"SystemHandler",
 		"SetLaunchPopState",
 		net_nfc_test_sys_handler_set_launch_popup_state,
-		net_nfc_test_sys_handler_set_launch_popup_state,
+		net_nfc_test_sys_handler_set_launch_popup_state_sync,
+		"Set launch popup state"
+	},
+
+	{
+		"SystemHandler",
+		"SetLaunchPopStateForce",
+		net_nfc_test_sys_handler_set_launch_popup_state_force,
+		net_nfc_test_sys_handler_set_launch_popup_state_force_sync,
 		"Set launch popup state"
 	},
 

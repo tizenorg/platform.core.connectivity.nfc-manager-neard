@@ -37,19 +37,44 @@ static void run_next_callback(gpointer user_data)
 	}
 }
 
-/********************** Function Calls ******************************/
+static void sys_handler_cb(net_nfc_error_e result,
+				void *user_data)
+{
+	g_print("sys_handler_cb Set popup state completed %d\n", result);
 
+	run_next_callback(user_data);
+}
+
+/********************** Function Calls ******************************/
 void net_nfc_test_sys_handler_set_launch_popup_state(gpointer data,
-		gpointer user_data)
+				gpointer user_data)
 {
 	net_nfc_error_e result;
 	int enable = 1;
 
-	result = net_nfc_client_sys_handler_set_launch_popup_state(enable);
+	result = net_nfc_client_sys_handler_set_state(enable,sys_handler_cb,user_data);
 
 	if(result != NET_NFC_OK)
 	{
 		g_print("System handler set launch popup state failed: %d\n", result);
+		return;
+	}
+
+	g_print("System handler set launch popup state success: %d\n", result);
+}
+
+
+void net_nfc_test_sys_handler_set_launch_popup_state_sync(gpointer data,
+				gpointer user_data)
+{
+	net_nfc_error_e result;
+
+	result = net_nfc_client_sys_handler_set_state_sync(NET_NFC_LAUNCH_APP_SELECT);
+
+	if(result != NET_NFC_OK)
+	{
+		g_print("System handler set launch popup state failed: %d\n", result);
+		return;
 	}
 	else
 	{
@@ -58,6 +83,45 @@ void net_nfc_test_sys_handler_set_launch_popup_state(gpointer data,
 
 	run_next_callback(user_data);
 }
+
+void net_nfc_test_sys_handler_set_launch_popup_state_force(gpointer data,
+				gpointer user_data)
+{
+	net_nfc_error_e result;
+	int enable = 1;
+
+	result = net_nfc_client_sys_handler_set_state_force(enable,sys_handler_cb,user_data);
+
+	if(result != NET_NFC_OK)
+	{
+		g_print("net_nfc_test_sys_handler_set_launch_popup_state_force failed: %d\n", result);
+		return;
+	}
+
+	g_print("net_nfc_test_sys_handler_set_launch_popup_state_force success: %d\n", result);
+}
+
+
+void net_nfc_test_sys_handler_set_launch_popup_state_force_sync(gpointer data,
+				gpointer user_data)
+{
+	net_nfc_error_e result;
+
+	result = net_nfc_client_sys_handler_set_state_force_sync(NET_NFC_LAUNCH_APP_SELECT);
+
+	if(result != NET_NFC_OK)
+	{
+		g_print("System handler set launch popup state failed: %d\n", result);
+		return;
+	}
+	else
+	{
+		g_print("System handler set launch popup state success: %d\n", result);
+	}
+
+	run_next_callback(user_data);
+}
+
 
 void net_nfc_test_sys_handler_get_launch_popup_state(gpointer data,
 		gpointer user_data)
