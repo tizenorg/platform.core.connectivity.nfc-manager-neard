@@ -471,13 +471,6 @@ typedef struct _net_nfc_request_receive_from_socket_t
 	net_nfc_data_s data;
 } net_nfc_request_receive_from_socket_t;
 
-// data exchanger
-typedef struct _net_nfc_exchanger_data_s
-{
-	net_nfc_exchanger_data_type_e type;
-	data_s binary_data; /*  this can be binary data */
-} net_nfc_exchanger_data_s;
-
 // these are messages for response
 
 typedef void (*target_detection_listener_cb)(void *data, void *user_param);

@@ -596,9 +596,7 @@ API net_nfc_error_e net_nfc_client_ndef_make_read_only_sync(
 }
 
 API net_nfc_error_e net_nfc_client_ndef_format(net_nfc_target_handle_h handle,
-		data_h key,
-		net_nfc_client_ndef_format_completed callback,
-		void *user_data)
+		data_h key, net_nfc_client_ndef_format_completed callback, void *user_data)
 {
 	NdefFuncData *func_data;
 	GVariant *arg_data = NULL;
@@ -621,12 +619,7 @@ API net_nfc_error_e net_nfc_client_ndef_format(net_nfc_target_handle_h handle,
 	if (key == NULL)
 		arg_data = net_nfc_util_gdbus_buffer_to_variant(NULL, 0);
 	else
-	{
-		data_s *key_s;
-
-		key_s = (data_s *)key;
-		arg_data = net_nfc_util_gdbus_data_to_variant(key_s);
-	}
+		arg_data = net_nfc_util_gdbus_data_to_variant((data_s *)key);
 
 	if (arg_data == NULL)
 		return NET_NFC_INVALID_PARAM;
@@ -636,7 +629,7 @@ API net_nfc_error_e net_nfc_client_ndef_format(net_nfc_target_handle_h handle,
 	func_data->callback = (gpointer)callback;
 	func_data->user_data = user_data;
 
-	net_nfc_gdbus_ndef_call_format(ndef_proxy ,
+	net_nfc_gdbus_ndef_call_format(ndef_proxy,
 			GPOINTER_TO_UINT(handle),
 			arg_data,
 			net_nfc_client_gdbus_get_privilege(),
@@ -648,8 +641,7 @@ API net_nfc_error_e net_nfc_client_ndef_format(net_nfc_target_handle_h handle,
 }
 
 API net_nfc_error_e net_nfc_client_ndef_format_sync(
-		net_nfc_target_handle_h handle,
-		data_h key)
+		net_nfc_target_handle_h handle, data_h key)
 {
 	GVariant *arg_data = NULL;
 	GError *error = NULL;
@@ -673,12 +665,7 @@ API net_nfc_error_e net_nfc_client_ndef_format_sync(
 	if (key == NULL)
 		arg_data = net_nfc_util_gdbus_buffer_to_variant(NULL, 0);
 	else
-	{
-		data_s *key_s;
-
-		key_s = (data_s *)key;
-		arg_data = net_nfc_util_gdbus_data_to_variant(key_s);
-	}
+		arg_data = net_nfc_util_gdbus_data_to_variant((data_s *)key);
 
 	if (arg_data == NULL)
 		return NET_NFC_INVALID_PARAM;

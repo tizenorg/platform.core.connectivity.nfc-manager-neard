@@ -37,32 +37,32 @@ net_nfc_error_e net_nfc_util_free_record(ndef_record_s *record)
 	return NET_NFC_OK;
 }
 
-net_nfc_error_e net_nfc_util_create_record(net_nfc_record_tnf_e recordType, data_s *typeName, data_s *id, data_s *payload, ndef_record_s **record)
+net_nfc_error_e net_nfc_util_create_record(net_nfc_record_tnf_e recordType,
+		const data_s *typeName, const data_s *id, const data_s *payload,
+		ndef_record_s **record)
 {
 	ndef_record_s *record_temp = NULL;
 
 	if (typeName == NULL || payload == NULL || record == NULL)
-	{
 		return NET_NFC_NULL_PARAMETER;
-	}
 
 	if (recordType < NET_NFC_RECORD_EMPTY || recordType > NET_NFC_RECORD_UNCHAGNED)
-	{
 		return NET_NFC_OUT_OF_BOUND;
-	}
 
 	/* empty_tag */
 	if (recordType == NET_NFC_RECORD_EMPTY)
 	{
-		if ((typeName->buffer != NULL) || (payload->buffer != NULL) || (id->buffer != NULL) || (typeName->length != 0) || (payload->length != 0) || (id->length != 0))
+		if ((typeName->buffer != NULL) || (payload->buffer != NULL)
+				|| (id->buffer != NULL) || (typeName->length != 0) || (payload->length != 0)
+				|| (id->length != 0))
+		{
 			return NET_NFC_NULL_PARAMETER;
+		}
 	}
 
 	_net_nfc_util_alloc_mem(record_temp, sizeof(ndef_record_s));
 	if (record_temp == NULL)
-	{
 		return NET_NFC_ALLOC_FAIL;
-	}
 
 	// set type name and length and  TNF field
 	record_temp->TNF = recordType;

@@ -20,16 +20,8 @@
 
 #include "net_nfc_typedef_internal.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 gboolean net_nfc_client_tag_is_connected(void);
 
-net_nfc_target_info_s *net_nfc_client_tag_get_client_target_info(void);
-
-#ifdef __cplusplus
-}
-#endif
+net_nfc_target_info_s* net_nfc_client_tag_get_client_target_info(void);
 
 #endif //__NET_NFC_CLIENT_TAG_INTERNAL_H__

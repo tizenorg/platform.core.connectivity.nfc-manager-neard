@@ -40,7 +40,7 @@ void _activation_complete_cb(net_nfc_message_e message, net_nfc_error_e result,
 			fprintf(stdout, "failed to power on (%d)\n\n", result);
 
 		net_nfc_unset_response_callback();
-		net_nfc_deinitialize();
+		net_nfc_client_deinitialize();
 		g_main_loop_quit(main_loop);
 		break;
 
@@ -51,7 +51,7 @@ void _activation_complete_cb(net_nfc_message_e message, net_nfc_error_e result,
 			fprintf(stdout, "failed to power off (%d)\n\n", result);
 
 		net_nfc_unset_response_callback();
-		net_nfc_deinitialize();
+		net_nfc_client_deinitialize();
 		g_main_loop_quit(main_loop);
 		break;
 
@@ -652,7 +652,7 @@ int main(int argc, char *argv[])
 
 				main_loop = g_main_new(true);
 
-				net_nfc_initialize();
+				net_nfc_client_initialize();
 				net_nfc_set_response_callback(_activation_complete_cb, NULL);
 				net_nfc_set_state(true, NULL);
 
@@ -682,7 +682,7 @@ int main(int argc, char *argv[])
 
 				main_loop = g_main_new(true);
 
-				net_nfc_initialize();
+				net_nfc_client_initialize();
 				net_nfc_set_response_callback(_activation_complete_cb, NULL);
 				net_nfc_set_state(false, NULL);
 
@@ -700,7 +700,7 @@ int main(int argc, char *argv[])
 		break;
 
 	case OPERATION_SET_SE :
-		net_nfc_initialize();
+		net_nfc_client_initialize();
 
 		if (strcmp(file_name, "SIM1") == 0) {
 			net_nfc_set_secure_element_type(NET_NFC_SE_TYPE_UICC, NULL);

@@ -21,19 +21,20 @@
 #include "net_nfc_client_context.h"
 #include "net_nfc_client_manager.h"
 
+#define DEACTIVATE_DELAY	500 /* ms */
+
 typedef struct _ManagerFuncData ManagerFuncData;
 
 struct _ManagerFuncData
 {
 	gpointer callback;
 	gpointer user_data;
+	net_nfc_error_e result;
 };
 
 static NetNfcGDbusManager *manager_proxy = NULL;
 static gboolean activation_is_running = FALSE;
-
-static ManagerFuncData *activated_func_data = NULL;
-
+static ManagerFuncData activated_func_data;
 static int is_activated = -1;
 
 static void manager_call_set_active_callback(GObject *source_object,
@@ -50,162 +51,155 @@ static void manager_activated(NetNfcGDbusManager *manager,
 		gpointer user_data);
 
 
+static gboolean _set_activate_time_elapsed_callback(gpointer user_data)
+{
+	ManagerFuncData *func_data = (ManagerFuncData *)user_data;
+
+	g_assert(func_data != NULL);
+
+	if (func_data != NULL) {
+		net_nfc_client_manager_set_active_completed callback =
+			(net_nfc_client_manager_set_active_completed)func_data->callback;
+
+		callback(func_data->result, func_data->user_data);
+	}
+
+	g_free(func_data);
+
+	return false;
+}
+
 static void manager_call_set_active_callback(GObject *source_object,
 		GAsyncResult *res,
 		gpointer user_data)
 {
-	ManagerFuncData *func_data;
-
+	ManagerFuncData *func_data = (ManagerFuncData *)user_data;
 	net_nfc_error_e result = NET_NFC_OK;
 	GError *error = NULL;
 
-	net_nfc_client_manager_set_active_completed callback;
-	gpointer data;
+	g_assert(user_data != NULL);
 
 	activation_is_running = FALSE;
 
-	if (net_nfc_gdbus_manager_call_set_active_finish(
-				NET_NFC_GDBUS_MANAGER(source_object),
-				res,
-				&error) == FALSE)
+	if (net_nfc_gdbus_manager_call_set_active_finish(NET_NFC_GDBUS_MANAGER(source_object),
+				&result, res, &error) == FALSE)
 	{
-		result = NET_NFC_UNKNOWN_ERROR;
-
-		DEBUG_ERR_MSG("Can not finish call_set_active: %s",
-				error->message);
+		DEBUG_ERR_MSG("Can not finish call_set_active: %s", error->message);
 		g_error_free(error);
+
+		result = NET_NFC_IPC_FAIL;
 	}
 
-	func_data = user_data;
-	if (func_data == NULL)
-		return;
+	func_data->result = result;
 
-	if (func_data->callback == NULL)
+	if (is_activated == false)
 	{
-		g_free(func_data);
-		return;
+		//TODO : wait several times
+		g_timeout_add(DEACTIVATE_DELAY,
+				_set_activate_time_elapsed_callback,
+				func_data);
 	}
-
-
-	callback = (net_nfc_client_manager_set_active_completed)
-		func_data->callback;
-	data = func_data->user_data;
-
-	callback(result, data);
-
-	g_free(func_data);
+	else
+	{
+		g_main_context_invoke(NULL,
+				_set_activate_time_elapsed_callback,
+				func_data);
+	}
 }
 
 static void manager_call_get_server_state_callback(GObject *source_object,
 		GAsyncResult *res,
 		gpointer user_data)
 {
-	ManagerFuncData *func_data;
-
+	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
 	net_nfc_error_e result = NET_NFC_OK;
-	guint out_state;
+	guint out_state = 0;
 	GError *error = NULL;
 
-	net_nfc_client_manager_get_server_state_completed callback;
-	gpointer data;
+	g_assert(user_data != NULL);
 
 	if (net_nfc_gdbus_manager_call_get_server_state_finish(
 				NET_NFC_GDBUS_MANAGER(source_object),
+				&result,
 				&out_state,
 				res,
 				&error) == FALSE)
 	{
-
-		result = NET_NFC_UNKNOWN_ERROR;
-
 		DEBUG_ERR_MSG("Can not finish get_server_state: %s",
 				error->message);
 		g_error_free(error);
+
+		result = NET_NFC_IPC_FAIL;
 	}
 
-	func_data = user_data;
-	if (func_data == NULL)
-		return;
-
-	if (func_data->callback == NULL)
+	if (func_data->callback != NULL)
 	{
-		g_free(func_data);
-		return;
+		net_nfc_client_manager_get_server_state_completed callback =
+			(net_nfc_client_manager_get_server_state_completed)func_data->callback;
+
+		callback(result, out_state, func_data->user_data);
 	}
-
-	callback = (net_nfc_client_manager_get_server_state_completed)
-		func_data->callback;
-	data = func_data->user_data;
-
-	callback(result, out_state, data);
 
 	g_free(func_data);
 }
 
-
-static void manager_activated(NetNfcGDbusManager *manager,
-		gboolean activated,
-		gpointer user_data)
+static gboolean _activated_time_elapsed_callback(gpointer user_data)
 {
-	bool state = false;
+	net_nfc_client_manager_activated callback =
+		(net_nfc_client_manager_activated)activated_func_data.callback;
 
+	callback(is_activated, activated_func_data.user_data);
+
+	return false;
+}
+
+static void manager_activated(NetNfcGDbusManager *manager, gboolean activated,
+	gpointer user_data)
+{
 	INFO_MSG(">>> SIGNAL arrived");
 	DEBUG_CLIENT_MSG("activated %d", activated);
 
 	/* update current state */
 	is_activated = (int)activated;
 
-	if (activated_func_data == NULL)
-		return;
-
-	if (activated == TRUE)
-		state = true;
-
-	if (activated_func_data->callback)
+	if (activated_func_data.callback != NULL)
 	{
-		net_nfc_client_manager_activated callback;
-		gpointer user_data;
-
-		callback = (net_nfc_client_manager_activated)
-			(activated_func_data->callback);
-		user_data = activated_func_data->user_data;
-
-		callback(state, user_data);
+		if (is_activated == false)
+		{
+			/* FIXME : wait several times */
+			g_timeout_add(DEACTIVATE_DELAY, _activated_time_elapsed_callback, NULL);
+		}
+		else
+		{
+			g_main_context_invoke(NULL, _activated_time_elapsed_callback, NULL);
+		}
 	}
 }
 
 API void net_nfc_client_manager_set_activated(
-		net_nfc_client_manager_activated callback,
-		void *user_data)
+		net_nfc_client_manager_activated callback, void *user_data)
 {
-	if (activated_func_data == NULL)
-		activated_func_data = g_new0(ManagerFuncData, 1);
+	if (callback == NULL)
+		return;
 
-	activated_func_data->callback = (gpointer)callback;
-	activated_func_data->user_data = user_data;
+	activated_func_data.callback = callback;
+	activated_func_data.user_data = user_data;
 }
 
 API void net_nfc_client_manager_unset_activated(void)
 {
-	if (activated_func_data == NULL)
-	{
-		DEBUG_ERR_MSG("manager_func_data is not initialized");
-		return;
-	}
-
-	g_free(activated_func_data);
-	activated_func_data = NULL;
+	activated_func_data.callback = NULL;
+	activated_func_data.user_data = NULL;
 }
 
 API net_nfc_error_e net_nfc_client_manager_set_active(int state,
-		net_nfc_client_manager_set_active_completed callback,
-		void *user_data)
+		net_nfc_client_manager_set_active_completed callback, void *user_data)
 {
 	gboolean active = FALSE;
 	ManagerFuncData *func_data;
 
 	if (manager_proxy == NULL)
-		return NET_NFC_UNKNOWN_ERROR;
+		return NET_NFC_NOT_INITIALIZED;
 
 	/* allow this function even nfc is off */
 
@@ -214,9 +208,9 @@ API net_nfc_error_e net_nfc_client_manager_set_active(int state,
 
 	activation_is_running = TRUE;
 
-	func_data = g_new0(ManagerFuncData, 1);
+	func_data = g_try_new0(ManagerFuncData, 1);
 	if (func_data == NULL)
-		return NET_NFC_UNKNOWN_ERROR;
+		return NET_NFC_ALLOC_FAIL;
 
 	func_data->callback = (gpointer)callback;
 	func_data->user_data = user_data;
@@ -236,45 +230,47 @@ API net_nfc_error_e net_nfc_client_manager_set_active(int state,
 
 API net_nfc_error_e net_nfc_client_manager_set_active_sync(int state)
 {
+	net_nfc_error_e out_result = NET_NFC_OK;
 	GError *error = NULL;
 
 	if (manager_proxy == NULL)
-		return NET_NFC_UNKNOWN_ERROR;
+		return NET_NFC_NOT_INITIALIZED;
 
 	/* allow this function even nfc is off */
 
 	if (net_nfc_gdbus_manager_call_set_active_sync(manager_proxy,
 				(gboolean)state,
 				net_nfc_client_gdbus_get_privilege(),
+				&out_result,
 				NULL,
 				&error) == FALSE)
 	{
 		DEBUG_CLIENT_MSG("can not call SetActive: %s",
 				error->message);
 		g_error_free(error);
-		return NET_NFC_UNKNOWN_ERROR;
+
+		out_result = NET_NFC_IPC_FAIL;
 	}
 
-	return NET_NFC_OK;
+	return out_result;
 }
 
 API net_nfc_error_e net_nfc_client_manager_get_server_state(
-		net_nfc_client_manager_get_server_state_completed callback,
-		void *user_data)
+		net_nfc_client_manager_get_server_state_completed callback, void *user_data)
 {
-	ManagerFuncData *func_data;
+	NetNfcCallback *func_data;
 
 	if (manager_proxy == NULL)
-		return NET_NFC_UNKNOWN_ERROR;
+		return NET_NFC_NOT_INITIALIZED;
 
 	/* prevent executing daemon when nfc is off */
 	if (net_nfc_client_manager_is_activated() == false) {
 		return NET_NFC_INVALID_STATE;
 	}
 
-	func_data = g_new0(ManagerFuncData, 1);
+	func_data = g_try_new0(NetNfcCallback, 1);
 	if (func_data == NULL)
-		return NET_NFC_UNKNOWN_ERROR;
+		return NET_NFC_ALLOC_FAIL;
 
 	func_data->callback = (gpointer) callback;
 	func_data->user_data = user_data;
@@ -291,11 +287,17 @@ API net_nfc_error_e net_nfc_client_manager_get_server_state(
 API net_nfc_error_e net_nfc_client_manager_get_server_state_sync(
 		unsigned int *state)
 {
+	net_nfc_error_e out_result = NET_NFC_OK;
+	guint out_state = 0;
 	GError *error = NULL;
-	guint out_state;
+
+	if (state == NULL)
+		return NET_NFC_NULL_PARAMETER;
+
+	*state = 0;
 
 	if (manager_proxy == NULL)
-		return NET_NFC_UNKNOWN_ERROR;
+		return NET_NFC_NOT_INITIALIZED;
 
 	/* prevent executing daemon when nfc is off */
 	if (net_nfc_client_manager_is_activated() == false) {
@@ -304,20 +306,23 @@ API net_nfc_error_e net_nfc_client_manager_get_server_state_sync(
 
 	if (net_nfc_gdbus_manager_call_get_server_state_sync(manager_proxy,
 				net_nfc_client_gdbus_get_privilege(),
+				&out_result,
 				&out_state,
 				NULL,
-				&error) == FALSE)
+				&error) == TRUE)
+	{
+		*state = out_state;
+	}
+	else
 	{
 		DEBUG_CLIENT_MSG("can not call GetServerState: %s",
 				error->message);
 		g_error_free(error);
 
-		return NET_NFC_UNKNOWN_ERROR;
+		out_result = NET_NFC_IPC_FAIL;
 	}
 
-	*state = out_state;
-	return NET_NFC_OK;
-
+	return out_result;
 }
 
 net_nfc_error_e net_nfc_client_manager_init(void)
@@ -327,6 +332,7 @@ net_nfc_error_e net_nfc_client_manager_init(void)
 	if (manager_proxy)
 	{
 		DEBUG_CLIENT_MSG("Already initialized");
+
 		return NET_NFC_OK;
 	}
 
@@ -342,6 +348,7 @@ net_nfc_error_e net_nfc_client_manager_init(void)
 	{
 		DEBUG_ERR_MSG("Can not create proxy : %s", error->message);
 		g_error_free(error);
+
 		return NET_NFC_UNKNOWN_ERROR;
 	}
 
@@ -357,12 +364,6 @@ void net_nfc_client_manager_deinit(void)
 	{
 		g_object_unref(manager_proxy);
 		manager_proxy = NULL;
-	}
-
-	if (activated_func_data)
-	{
-		g_free(activated_func_data);
-		activated_func_data = NULL;
 	}
 }
 

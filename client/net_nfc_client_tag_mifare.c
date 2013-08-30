@@ -63,17 +63,12 @@ API net_nfc_error_e net_nfc_client_mifare_authenticate_with_keyA(
 		void *user_data)
 {
 	net_nfc_target_info_s* target_info = NULL;
-
 	data_s *key;
 	data_s rawdata;
-
 	data_h UID = NULL;
-
 	uint8_t* send_buffer = NULL;
 	uint8_t* temp = NULL;
-
 	int send_buffer_length = 0;
-
 	uint8_t sector_to_block = 0;
 
 
@@ -193,20 +188,15 @@ API net_nfc_error_e net_nfc_client_mifare_authenticate_with_keyB(
 		void *callback,
 		void *user_data)
 {
-	net_nfc_target_info_s* target_info = NULL;
-
+	net_nfc_target_info_s *target_info = NULL;
 	data_s *key;
 	data_s rawdata;
-
 	data_h UID = NULL;
-
 	uint8_t* send_buffer = NULL;
 	uint8_t* temp = NULL;
-
 	int send_buffer_length = 0;
-
 	uint8_t sector_to_block = 0;
-
+	net_nfc_error_e result;
 
 	if (handle == NULL || auth_key == NULL)
 		return NET_NFC_NULL_PARAMETER;
@@ -303,10 +293,7 @@ API net_nfc_error_e net_nfc_client_mifare_authenticate_with_keyB(
 	rawdata.buffer = send_buffer;
 	rawdata.length = send_buffer_length;
 
-	net_nfc_error_e result = net_nfc_client_transceive(handle,
-			(data_h)&rawdata,
-			callback,
-			user_data);
+	result = net_nfc_client_transceive(handle, (data_h)&rawdata, callback, user_data);
 
 	if (send_buffer != NULL)
 		_net_nfc_util_free_mem(send_buffer);
@@ -315,16 +302,11 @@ API net_nfc_error_e net_nfc_client_mifare_authenticate_with_keyB(
 }
 
 API net_nfc_error_e net_nfc_client_mifare_read(net_nfc_target_handle_h handle,
-		uint8_t addr,
-		void *callback,
-		void *user_data)
+		uint8_t addr, void *callback, void *user_data)
 {
-	net_nfc_target_info_s* target_info = NULL;
-
+	net_nfc_target_info_s *target_info = NULL;
 	data_s rawdata;
-
-	uint8_t send_buffer[4] = { 0 };
-
+	uint8_t send_buffer[4] = {0};
 
 	if (handle == NULL)
 		return NET_NFC_NULL_PARAMETER;
@@ -373,14 +355,11 @@ API net_nfc_error_e net_nfc_client_mifare_write_block(
 		void *callback,
 		void *user_data)
 {
-	net_nfc_target_info_s* target_info = NULL;
-
+	net_nfc_target_info_s *target_info = NULL;
 	data_s rawdata;
-
 	uint8_t* send_buffer = NULL;
-
 	uint32_t send_buffer_length = 0;
-
+	net_nfc_error_e result;
 
 	if (handle == NULL)
 		return NET_NFC_NULL_PARAMETER;
@@ -430,9 +409,7 @@ API net_nfc_error_e net_nfc_client_mifare_write_block(
 			*temp = addr;
 			temp++;
 
-			memcpy(temp,
-					((data_s*)data)->buffer,
-					MIFARE_PAGE_SIZE);
+			memcpy(temp, ((data_s*)data)->buffer, MIFARE_PAGE_SIZE);
 
 		}
 		else
@@ -521,10 +498,7 @@ API net_nfc_error_e net_nfc_client_mifare_write_block(
 	rawdata.buffer = send_buffer;
 	rawdata.length = send_buffer_length;
 
-	net_nfc_error_e result = net_nfc_client_transceive(handle,
-			(data_h)&rawdata,
-			callback,
-			user_data);
+	result = net_nfc_client_transceive(handle, (data_h)&rawdata, callback, user_data);
 
 	if (send_buffer != NULL)
 		_net_nfc_util_free_mem(send_buffer);
@@ -539,11 +513,11 @@ API net_nfc_error_e net_nfc_client_mifare_write_page(
 		void *callback,
 		void *user_data)
 {
-	net_nfc_target_info_s* target_info = NULL;
-
+	net_nfc_target_info_s *target_info = NULL;
 	uint8_t* send_buffer = NULL;
-
 	uint32_t send_buffer_length = 0;
+	net_nfc_error_e result;
+	data_s rawdata;
 
 	if (handle == NULL)
 		return NET_NFC_NULL_PARAMETER;
@@ -680,15 +654,10 @@ API net_nfc_error_e net_nfc_client_mifare_write_page(
 
 	net_nfc_util_compute_CRC(CRC_A, send_buffer, send_buffer_length);
 
-	data_s rawdata;
-
 	rawdata.buffer = send_buffer;
 	rawdata.length = send_buffer_length;
 
-	net_nfc_error_e result = net_nfc_client_transceive(handle,
-			(data_h)&rawdata,
-			callback,
-			user_data);
+	result = net_nfc_client_transceive(handle, (data_h)&rawdata, callback, user_data);
 
 	if (send_buffer != NULL)
 		_net_nfc_util_free_mem(send_buffer);
@@ -696,13 +665,14 @@ API net_nfc_error_e net_nfc_client_mifare_write_page(
 	return result;
 }
 
-API net_nfc_error_e net_nfc_client_mifare_increment(net_nfc_target_handle_h handle,
+API net_nfc_error_e net_nfc_client_mifare_increment(
+		net_nfc_target_handle_h handle,
 		uint8_t addr,
 		int value,
 		void *callback,
 		void *user_data)
 {
-	net_nfc_target_info_s* target_info = NULL;
+	net_nfc_target_info_s *target_info = NULL;
 
 	data_s rawdata;
 
@@ -749,13 +719,14 @@ API net_nfc_error_e net_nfc_client_mifare_increment(net_nfc_target_handle_h hand
 			user_data);
 }
 
-API net_nfc_error_e net_nfc_client_mifare_decrement(net_nfc_target_handle_h handle,
+API net_nfc_error_e net_nfc_client_mifare_decrement(
+		net_nfc_target_handle_h handle,
 		uint8_t addr,
 		int value,
 		void *callback,
 		void *user_data)
 {
-	net_nfc_target_info_s* target_info = NULL;
+	net_nfc_target_info_s *target_info = NULL;
 
 	data_s rawdata;
 
@@ -803,14 +774,10 @@ API net_nfc_error_e net_nfc_client_mifare_decrement(net_nfc_target_handle_h hand
 }
 
 API net_nfc_error_e net_nfc_client_mifare_transfer(net_nfc_target_handle_h handle,
-		uint8_t addr,
-		void *callback,
-		void *user_data)
+		uint8_t addr, void *callback, void *user_data)
 {
-	net_nfc_target_info_s* target_info = NULL;
-
+	net_nfc_target_info_s *target_info = NULL;
 	data_s rawdata;
-
 	uint8_t send_buffer[4] = { 0 };
 
 	if (handle == NULL)
@@ -845,14 +812,10 @@ API net_nfc_error_e net_nfc_client_mifare_transfer(net_nfc_target_handle_h handl
 }
 
 API net_nfc_error_e net_nfc_client_mifare_restore(net_nfc_target_handle_h handle,
-		uint8_t addr,
-		void *callback,
-		void *user_data)
+		uint8_t addr, void *callback, void *user_data)
 {
-	net_nfc_target_info_s* target_info = NULL;
-
+	net_nfc_target_info_s *target_info = NULL;
 	data_s rawdata;
-
 	uint8_t send_buffer[4] = { 0 };
 
 	if (handle == NULL)

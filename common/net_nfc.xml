@@ -11,6 +11,7 @@
     <method name="SetActive">
       <arg type="b" name="is_active" direction="in" />
       <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
     </method>
 
     <!--
@@ -18,9 +19,9 @@
     -->
     <method name="GetServerState">
       <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
       <arg type="u" name="state" direction="out" />
     </method>
-
 
     <!--
       Activated
@@ -334,6 +335,15 @@
     </method>
 
     <!--
+      SetCardEmulation
+    -->
+    <method name="SetCardEmulation">
+      <arg type="i" name="mode" direction="in" />
+      <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
+    </method>
+
+    <!--
       OpenSecureElement
     -->
     <method name="OpenSecureElement">
@@ -431,7 +441,7 @@
       <arg type="u" name="handle" direction="in" />
       <arg type="i" name="type" direction="in" />
       <arg type="a(y)" name="privilege" direction="in" />
-      <arg type="i" name="event" direction="out" />
+      <arg type="i" name="result" direction="out" />
       <arg type="i" name="carrier_type" direction="out" />
       <arg type="a(y)" name="handover_data" direction="out" />
     </method>

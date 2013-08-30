@@ -137,7 +137,6 @@ static void controller_target_detected_cb(void *info,
 	_net_nfc_util_free_mem(info);
 }
 
-/* FIXME : net_nfc_dispatcher_queue_push() need to be removed */
 static void controller_se_transaction_cb(void *info,
 		void *user_context)
 {
@@ -162,7 +161,6 @@ static void controller_se_transaction_cb(void *info,
 	}
 }
 
-/* FIXME : net_nfc_dispatcher_queue_push() need to be removed */
 static void controller_llcp_event_cb(void *info,
 		void *user_context)
 {
@@ -382,9 +380,13 @@ void net_nfc_server_controller_init(void)
 #ifndef ESE_ALWAYS_ON
 void net_nfc_server_controller_deinit(void)
 {
-	net_nfc_server_controller_async_queue_push(
-			controller_deinit_thread_func,
-			NULL);
+	int ret;
+
+	ret = net_nfc_server_controller_async_queue_push(controller_deinit_thread_func, NULL);
+	if (FALSE == ret)
+	{
+		DEBUG_ERR_MSG("Failed to push onto the queue");
+	}
 }
 #endif
 

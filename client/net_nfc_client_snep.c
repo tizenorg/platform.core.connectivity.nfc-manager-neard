@@ -344,8 +344,7 @@ API net_nfc_error_e net_nfc_client_snep_send_client_request_sync(
 }
 #endif
 API net_nfc_error_e net_nfc_client_snep_stop_service_sync(
-		net_nfc_target_handle_h target,
-		net_nfc_snep_handle_h service)
+		net_nfc_target_handle_h target, net_nfc_snep_handle_h service)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	GError *error = NULL;

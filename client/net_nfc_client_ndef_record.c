@@ -157,12 +157,11 @@ API uint8_t net_nfc_get_record_il(uint8_t flag)
 	return ((flag >> 3) & 0x01);
 }
 
-API net_nfc_error_e net_nfc_create_text_string_from_text_record(ndef_record_h record, char** buffer)
+API net_nfc_error_e net_nfc_create_text_string_from_text_record(
+		ndef_record_h record, char** buffer)
 {
 	if (record == NULL || buffer == NULL)
-	{
 		return NET_NFC_ALLOC_FAIL;
-	}
 
 	data_h payload;
 	data_h rec_type;
@@ -200,12 +199,11 @@ API net_nfc_error_e net_nfc_create_text_string_from_text_record(ndef_record_h re
 	return NET_NFC_OK;
 }
 
-API net_nfc_error_e net_nfc_get_languange_code_string_from_text_record(ndef_record_h record, char** lang_code_str)
+API net_nfc_error_e net_nfc_get_languange_code_string_from_text_record(
+		ndef_record_h record, char** lang_code_str)
 {
 	if (record == NULL || lang_code_str == NULL)
-	{
 		return NET_NFC_ALLOC_FAIL;
-	}
 
 	data_h payload;
 	data_h rec_type;
@@ -244,12 +242,11 @@ API net_nfc_error_e net_nfc_get_languange_code_string_from_text_record(ndef_reco
 	return NET_NFC_OK;
 }
 
-API net_nfc_error_e net_nfc_get_encoding_type_from_text_record(ndef_record_h record, net_nfc_encode_type_e * encoding)
+API net_nfc_error_e net_nfc_get_encoding_type_from_text_record(
+		ndef_record_h record, net_nfc_encode_type_e * encoding)
 {
 	if (record == NULL || encoding == NULL)
-	{
 		return NET_NFC_NULL_PARAMETER;
-	}
 
 	data_h payload;
 	data_h rec_type;
@@ -270,19 +267,16 @@ API net_nfc_error_e net_nfc_get_encoding_type_from_text_record(ndef_record_h rec
 		int controllbyte = buffer_temp[0];
 
 		if ((controllbyte & 0x80) == 0x80)
-		{
 			*encoding = NET_NFC_ENCODE_UTF_16;
-		}
 		else
-		{
 			*encoding = NET_NFC_ENCODE_UTF_8;
-		}
 	}
 
 	return NET_NFC_OK;
 }
 
-API net_nfc_error_e net_nfc_create_uri_string_from_uri_record(ndef_record_h record, char **uri)
+API net_nfc_error_e net_nfc_create_uri_string_from_uri_record(
+		ndef_record_h record, char **uri)
 {
 	return net_nfc_util_create_uri_string_from_uri_record((ndef_record_s *)record, uri);
 }

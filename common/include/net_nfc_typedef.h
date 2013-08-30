@@ -226,33 +226,6 @@ typedef enum
 	NET_NFC_MESSAGE_SET_CARD_EMULATION,
 } net_nfc_message_e;
 
-typedef enum
-{
-	NET_NFC_UNKNOWN_TARGET = 0x00U,
-
-	/* Specific PICC Devices */
-
-	NET_NFC_GENERIC_PICC,
-	NET_NFC_ISO14443_A_PICC,
-	NET_NFC_ISO14443_4A_PICC,
-	NET_NFC_ISO14443_3A_PICC,
-	NET_NFC_MIFARE_MINI_PICC,
-	NET_NFC_MIFARE_1K_PICC,
-	NET_NFC_MIFARE_4K_PICC,
-	NET_NFC_MIFARE_ULTRA_PICC,
-	NET_NFC_MIFARE_DESFIRE_PICC,
-	NET_NFC_ISO14443_B_PICC,
-	NET_NFC_ISO14443_4B_PICC,
-	NET_NFC_ISO14443_BPRIME_PICC,
-	NET_NFC_FELICA_PICC,
-	NET_NFC_JEWEL_PICC,
-	NET_NFC_ISO15693_PICC,
-
-	/* NFC-IP1 Device Types */
-	NET_NFC_NFCIP1_TARGET,
-	NET_NFC_NFCIP1_INITIATOR,
-
-} net_nfc_target_type_e;
 
 /**
  Card states for nfc tag
@@ -368,6 +341,33 @@ typedef enum
 
 typedef enum
 {
+	NET_NFC_UNKNOWN_TARGET = 0x00U,
+
+	/* Specific PICC Devices */
+
+	NET_NFC_GENERIC_PICC,
+	NET_NFC_ISO14443_A_PICC,
+	NET_NFC_ISO14443_4A_PICC,
+	NET_NFC_ISO14443_3A_PICC,
+	NET_NFC_MIFARE_MINI_PICC,
+	NET_NFC_MIFARE_1K_PICC,
+	NET_NFC_MIFARE_4K_PICC,
+	NET_NFC_MIFARE_ULTRA_PICC,
+	NET_NFC_MIFARE_DESFIRE_PICC,
+	NET_NFC_ISO14443_B_PICC,
+	NET_NFC_ISO14443_4B_PICC,
+	NET_NFC_ISO14443_BPRIME_PICC,
+	NET_NFC_FELICA_PICC,
+	NET_NFC_JEWEL_PICC,
+	NET_NFC_ISO15693_PICC,
+
+	/* NFC-IP1 Device Types */
+	NET_NFC_NFCIP1_TARGET,
+	NET_NFC_NFCIP1_INITIATOR,
+} net_nfc_target_type_e;
+
+typedef enum
+{
 	NET_NFC_LLCP_SOCKET_TYPE_CONNECTIONORIENTED,
 	NET_NFC_LLCP_SOCKET_TYPE_CONNECTIONLESS,
 } net_nfc_socket_type_e;
@@ -414,23 +414,7 @@ typedef void (*net_nfc_internal_se_response_cb)(net_nfc_message_e message,
 typedef void (* net_nfc_set_activation_completed_cb)(net_nfc_error_e error,
 		void *user_data);
 
-// for data exchanger
-
-typedef enum
-{
-	NET_NFC_EXCHANGER_DATA_REQUESTED = 0x00,
-	NET_NFC_EXCHANGER_TRANSFER_COMPLETED,
-	NET_NFC_EXCHANGER_TRANSFER_FAILED,
-} net_nfc_exchanger_event_e;
-
-typedef enum
-{
-	NET_NFC_EXCHANGER_RAW,
-} net_nfc_exchanger_data_type_e;
-
-typedef struct _net_nfc_exchanger_data_s *net_nfc_exchanger_data_h;
-
-typedef net_nfc_exchanger_data_h (*net_nfc_exchanger_cb)(net_nfc_exchanger_event_e event, void *user_param);
+// handover
 
 typedef enum
 {

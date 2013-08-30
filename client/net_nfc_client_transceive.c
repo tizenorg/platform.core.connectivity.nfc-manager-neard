@@ -212,9 +212,7 @@ static void transceive_call(GObject *source_object,
 }
 
 API net_nfc_error_e net_nfc_client_transceive(net_nfc_target_handle_h handle,
-		data_h rawdata,
-		nfc_transceive_callback callback,
-		void *user_data)
+		data_h rawdata, nfc_transceive_callback callback, void *user_data)
 {
 	net_nfc_target_info_s *target_info = NULL;
 	data_s *data = (data_s *)rawdata;
@@ -247,8 +245,7 @@ API net_nfc_error_e net_nfc_client_transceive(net_nfc_target_handle_h handle,
 	if (target_info == NULL)
 		return NET_NFC_OPERATION_FAIL;
 
-	arg_data = transceive_data_to_transceive_variant(target_info->devType,
-			data);
+	arg_data = transceive_data_to_transceive_variant(target_info->devType, data);
 	if (arg_data == NULL)
 		return NET_NFC_OPERATION_FAIL;
 
@@ -270,9 +267,7 @@ API net_nfc_error_e net_nfc_client_transceive(net_nfc_target_handle_h handle,
 }
 
 API net_nfc_error_e net_nfc_client_transceive_data(net_nfc_target_handle_h handle,
-		data_h rawdata,
-		nfc_transceive_data_callback callback,
-		void *user_data)
+		data_h rawdata, nfc_transceive_data_callback callback, void *user_data)
 {
 	net_nfc_target_info_s *target_info = NULL;
 	data_s *data = (data_s *)rawdata;
@@ -305,8 +300,7 @@ API net_nfc_error_e net_nfc_client_transceive_data(net_nfc_target_handle_h handl
 	if (target_info == NULL)
 		return NET_NFC_OPERATION_FAIL;
 
-	arg_data = transceive_data_to_transceive_variant(target_info->devType,
-			data);
+	arg_data = transceive_data_to_transceive_variant(target_info->devType, data);
 	if (arg_data == NULL)
 		return NET_NFC_OPERATION_FAIL;
 
@@ -363,8 +357,7 @@ API net_nfc_error_e net_nfc_client_transceive_sync(net_nfc_target_handle_h handl
 	if (target_info == NULL)
 		return NET_NFC_OPERATION_FAIL;
 
-	arg_data = transceive_data_to_transceive_variant(target_info->devType,
-			data);
+	arg_data = transceive_data_to_transceive_variant(target_info->devType, data);
 	if (arg_data == NULL)
 		return NET_NFC_OPERATION_FAIL;
 
@@ -388,9 +381,7 @@ API net_nfc_error_e net_nfc_client_transceive_sync(net_nfc_target_handle_h handl
 }
 
 API net_nfc_error_e net_nfc_client_transceive_data_sync(
-		net_nfc_target_handle_h handle,
-		data_h rawdata,
-		data_h *response)
+		net_nfc_target_handle_h handle, data_h rawdata, data_h *response)
 {
 	net_nfc_target_info_s *target_info = NULL;
 	data_s *data = (data_s *)rawdata;
@@ -426,8 +417,7 @@ API net_nfc_error_e net_nfc_client_transceive_data_sync(
 	if (target_info == NULL)
 		return NET_NFC_OPERATION_FAIL;
 
-	arg_data = transceive_data_to_transceive_variant(target_info->devType,
-			data);
+	arg_data = transceive_data_to_transceive_variant(target_info->devType, data);
 	if (arg_data == NULL)
 		return NET_NFC_OPERATION_FAIL;
 

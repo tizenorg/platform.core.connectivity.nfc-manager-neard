@@ -36,10 +36,9 @@
 #define JEWEL_TAG_KEY	"UID"
 
 API net_nfc_error_e net_nfc_client_jewel_read_id(net_nfc_target_handle_h handle,
-		nfc_transceive_data_callback callback,
-		void *user_data)
+		nfc_transceive_data_callback callback, void *user_data)
 {
-	net_nfc_target_info_s* target_info = NULL;
+	net_nfc_target_info_s *target_info = NULL;
 
 	data_s rawdata;
 
@@ -77,12 +76,9 @@ API net_nfc_error_e net_nfc_client_jewel_read_id(net_nfc_target_handle_h handle,
 }
 
 API net_nfc_error_e net_nfc_client_jewel_read_byte(net_nfc_target_handle_h handle,
-		uint8_t block,
-		uint8_t byte,
-		nfc_transceive_data_callback callback,
-		void *user_data)
+		uint8_t block, uint8_t byte, nfc_transceive_data_callback callback, void *user_data)
 {
-	net_nfc_target_info_s* target_info = NULL;
+	net_nfc_target_info_s *target_info = NULL;
 
 	data_s rawdata;
 
@@ -148,10 +144,9 @@ API net_nfc_error_e net_nfc_client_jewel_read_byte(net_nfc_target_handle_h handl
 }
 
 API net_nfc_error_e net_nfc_client_jewel_read_all(net_nfc_target_handle_h handle,
-		nfc_transceive_data_callback callback,
-		void *user_data)
+		nfc_transceive_data_callback callback, void *user_data)
 {
-	net_nfc_target_info_s* target_info = NULL;
+	net_nfc_target_info_s *target_info = NULL;
 
 	data_s rawdata;
 
@@ -220,12 +215,9 @@ API net_nfc_error_e net_nfc_client_jewel_write_with_erase(
 		nfc_transceive_callback callback,
 		void *user_data)
 {
-	net_nfc_target_info_s* target_info = NULL;
-
+	net_nfc_target_info_s *target_info = NULL;
 	data_s rawdata;
-
 	data_h UID = NULL;
-
 	uint8_t send_buffer[9] = {0x00, };
 
 	if(handle == NULL)
@@ -288,7 +280,7 @@ API net_nfc_error_e net_nfc_client_jewel_write_with_no_erase(
 		nfc_transceive_callback callback,
 		void *user_data)
 {
-	net_nfc_target_info_s* target_info = NULL;
+	net_nfc_target_info_s *target_info = NULL;
 
 	data_s rawdata;
 

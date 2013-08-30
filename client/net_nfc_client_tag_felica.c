@@ -222,9 +222,7 @@ API net_nfc_error_e net_nfc_client_felica_request_response(
 	send_buffer[0] = 0xA;
 	send_buffer[1] = FELICA_CMD_REQ_RESPONSE;
 
-	memcpy(send_buffer + 2,
-			((data_s*)IDm)->buffer,
-			((data_s*)IDm)->length);
+	memcpy(send_buffer + 2, ((data_s*)IDm)->buffer, ((data_s*)IDm)->length);
 
 	DEBUG_MSG_PRINT_BUFFER(send_buffer, 10);
 
@@ -493,7 +491,6 @@ API net_nfc_error_e net_nfc_client_felica_request_system_code(
 
 	if (((data_s*)IDm)->length != 8)
 		return NET_NFC_OUT_OF_BOUND;
-
 
 	send_buffer[0] = 0xA;
 	send_buffer[1] = FELICA_CMD_REQ_SYSTEM_CODE;

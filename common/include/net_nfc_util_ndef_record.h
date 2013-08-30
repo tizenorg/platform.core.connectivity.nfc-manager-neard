@@ -21,7 +21,9 @@
 /*
  create record structure with basic info
  */
-net_nfc_error_e net_nfc_util_create_record(net_nfc_record_tnf_e recordType, data_s *typeName, data_s *id, data_s *payload, ndef_record_s **record);
+net_nfc_error_e net_nfc_util_create_record(net_nfc_record_tnf_e recordType,
+		const data_s *typeName, const data_s *id, const data_s *payload,
+		ndef_record_s **record);
 
 /*
  create text type record

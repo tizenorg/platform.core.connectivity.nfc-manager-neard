@@ -934,9 +934,7 @@ void ndef_tool_display_discovered_tag(net_nfc_target_info_h target)
 void ndef_tool_display_discovered_target(net_nfc_target_handle_h handle)
 {
 	if (handle == NULL)
-	{
 		return;
-	}
 
 	fprintf(stdout, "\n************* Target discovered *************\n");
 	fprintf(stdout, "Target Type : P2P Target (NFCIP1) (%d)\n", NET_NFC_NFCIP1_TARGET);

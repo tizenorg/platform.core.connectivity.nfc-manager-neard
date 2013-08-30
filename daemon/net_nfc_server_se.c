@@ -22,7 +22,6 @@
 #include "net_nfc_util_internal.h"
 #include "net_nfc_util_gdbus_internal.h"
 #include "net_nfc_gdbus.h"
-#include "net_nfc_server.h"
 #include "net_nfc_server_common.h"
 #include "net_nfc_server_context.h"
 #include "net_nfc_server_manager.h"
@@ -61,6 +60,15 @@ struct _ServerSeData
 	guint event;
 };
 
+typedef struct _SeSetCardEmul SeSetCardEmul;
+
+struct _SeSetCardEmul
+{
+	NetNfcGDbusSecureElement *object;
+	GDBusMethodInvocation *invocation;
+	gint mode;
+};
+
 typedef struct _SeDataSeType SeDataSeType;
 
 struct _SeDataSeType
@@ -77,7 +85,7 @@ struct _SeDataHandle
 {
 	NetNfcGDbusSecureElement *object;
 	GDBusMethodInvocation *invocation;
-	net_nfc_target_handle_s* handle;
+	net_nfc_target_handle_s *handle;
 };
 
 typedef struct _SeDataApdu SeDataApdu;
@@ -86,7 +94,7 @@ struct _SeDataApdu
 {
 	NetNfcGDbusSecureElement *object;
 	GDBusMethodInvocation *invocation;
-	net_nfc_target_handle_s* handle;
+	net_nfc_target_handle_s *handle;
 	GVariant *data;
 };
 
@@ -158,8 +166,7 @@ static void net_nfc_server_se_set_se_mode(uint8_t mode)
 /* eSE functions */
 static bool net_nfc_server_se_is_ese_handle(net_nfc_target_handle_s *handle)
 {
-	return (gdbus_ese_handle != NULL &&
-			gdbus_ese_handle == handle);
+	return (gdbus_ese_handle != NULL && gdbus_ese_handle == handle);
 }
 
 static void net_nfc_server_se_set_current_ese_handle(
@@ -171,8 +178,8 @@ static void net_nfc_server_se_set_current_ese_handle(
 static net_nfc_target_handle_s *net_nfc_server_se_open_ese()
 {
 	if (gdbus_ese_handle == NULL) {
-		net_nfc_error_e result;
-		net_nfc_target_handle_s *handle;
+		net_nfc_error_e result = NET_NFC_OK;
+		net_nfc_target_handle_s *handle = NULL;
 
 		if (net_nfc_controller_secure_element_open(
 					SECURE_ELEMENT_TYPE_ESE,
@@ -244,7 +251,7 @@ static void _se_uicc_status_noti_cb(TapiHandle *handle,
 	case TAPI_SIM_STATUS_SIM_INIT_COMPLETED :
 		if (gdbus_se_setting.busy == true)
 		{
-			net_nfc_error_e result;
+			net_nfc_error_e result = NET_NFC_OK;
 
 			DEBUG_SERVER_MSG("TAPI_SIM_STATUS_SIM_INIT_COMPLETED");
 
@@ -517,7 +524,7 @@ static void se_close_secure_element_thread_func(gpointer user_data)
 	/* shutdown process if it doesn't need */
 	if (net_nfc_server_manager_get_active() == false &&
 			net_nfc_server_gdbus_is_server_busy() == false) {
-		net_nfc_manager_quit();
+		net_nfc_server_controller_deinit();
 	}
 }
 
@@ -543,7 +550,7 @@ static gboolean se_handle_close_secure_element(
 		return FALSE;
 	}
 
-	data = g_new0(SeDataHandle, 1);
+	data = g_try_new0(SeDataHandle, 1);
 	if (data == NULL)
 	{
 		DEBUG_ERR_MSG("Memory allocation failed");
@@ -556,7 +563,7 @@ static gboolean se_handle_close_secure_element(
 
 	data->object = g_object_ref(object);
 	data->invocation = g_object_ref(invocation);
-	data->handle = (net_nfc_target_handle_s *)arg_handle;
+	data->handle = GUINT_TO_POINTER(arg_handle);
 
 	result = net_nfc_server_controller_async_queue_push(
 			se_close_secure_element_thread_func, data);
@@ -578,9 +585,9 @@ static gboolean se_handle_close_secure_element(
 static void se_get_atr_thread_func(gpointer user_data)
 {
 	SeDataHandle *detail = (SeDataHandle *)user_data;
+	net_nfc_error_e result = NET_NFC_OK;
 	data_s *atr = NULL;
 	GVariant *data;
-	net_nfc_error_e result;
 
 	g_assert(detail != NULL);
 	g_assert(detail->object != NULL);
@@ -643,7 +650,7 @@ static gboolean se_handle_get_atr(
 		return FALSE;
 	}
 
-	data = g_new0(SeDataHandle, 1);
+	data = g_try_new0(SeDataHandle, 1);
 	if (data == NULL)
 	{
 		DEBUG_ERR_MSG("Memory allocation failed");
@@ -656,7 +663,7 @@ static gboolean se_handle_get_atr(
 
 	data->object = g_object_ref(object);
 	data->invocation = g_object_ref(invocation);
-	data->handle = (net_nfc_target_handle_s *)arg_handle;
+	data->handle = GUINT_TO_POINTER(arg_handle);
 
 	result = net_nfc_server_controller_async_queue_push(
 			se_get_atr_thread_func, data);
@@ -706,7 +713,7 @@ static void se_open_secure_element_thread_func(gpointer user_data)
 		net_nfc_server_se_set_se_type(SECURE_ELEMENT_TYPE_UICC);
 		net_nfc_server_se_set_se_mode(SECURE_ELEMENT_OFF_MODE);
 #endif
-		handle = (net_nfc_target_handle_s *)_se_uicc_open();
+		handle = _se_uicc_open();
 		if (handle != NULL)
 		{
 			result = NET_NFC_OK;
@@ -788,7 +795,7 @@ static gboolean se_handle_open_secure_element(
 		return FALSE;
 	}
 
-	data = g_new0(SeDataSeType, 1);
+	data = g_try_new0(SeDataSeType, 1);
 	if (data == NULL)
 	{
 		DEBUG_ERR_MSG("Memory allocation failed");
@@ -825,9 +832,8 @@ static void se_send_apdu_thread_func(gpointer user_data)
 	SeDataApdu *detail = (SeDataApdu *)user_data;
 	data_s apdu_data = { NULL, 0 };
 	data_s *response = NULL;
-	net_nfc_error_e result;
+	net_nfc_error_e result = NET_NFC_OK;
 	GVariant *rspdata = NULL;
-	bool ret;
 
 	g_assert(detail != NULL);
 	g_assert(detail->object != NULL);
@@ -841,13 +847,8 @@ static void se_send_apdu_thread_func(gpointer user_data)
 	}
 	else if (net_nfc_server_se_is_ese_handle(detail->handle) == true)
 	{
-		ret = net_nfc_controller_secure_element_send_apdu(detail->handle,
-			&apdu_data, &response, &result);
-		if (false == ret)
-		{
-			DEBUG_ERR_MSG("net_nfc_controller_secure_element_send_apdu() Failed");
-			return;
-		}
+		net_nfc_controller_secure_element_send_apdu(detail->handle,
+				&apdu_data, &response, &result);
 	}
 	else
 	{
@@ -901,7 +902,7 @@ static gboolean se_handle_send_apdu(
 		return FALSE;
 	}
 
-	data = g_new0(SeDataApdu, 1);
+	data = g_try_new0(SeDataApdu, 1);
 	if (data == NULL)
 	{
 		DEBUG_ERR_MSG("Memory allocation failed");
@@ -914,7 +915,7 @@ static gboolean se_handle_send_apdu(
 
 	data->object = g_object_ref(object);
 	data->invocation = g_object_ref(invocation);
-	data->handle = (net_nfc_target_handle_s *)arg_handle;
+	data->handle = GUINT_TO_POINTER(arg_handle);
 	data->data = g_variant_ref(apdudata);
 
 	result = net_nfc_server_controller_async_queue_push(
@@ -926,6 +927,118 @@ static gboolean se_handle_send_apdu(
 				"can not push to controller thread");
 
 		g_variant_unref(data->data);
+
+		g_object_unref(data->object);
+		g_object_unref(data->invocation);
+
+		g_free(data);
+	}
+
+	return result;
+}
+
+static void _se_set_card_emulation_thread_func(gpointer user_data)
+{
+	SeSetCardEmul *data = (SeSetCardEmul *)user_data;
+	net_nfc_error_e result = NET_NFC_OK;
+
+	g_assert(data != NULL);
+	g_assert(data->object != NULL);
+	g_assert(data->invocation != NULL);
+
+	if (data->mode == NET_NFC_CARD_EMELATION_ENABLE)
+	{
+		net_nfc_controller_set_secure_element_mode(
+				net_nfc_server_se_get_se_mode(),
+				SECURE_ELEMENT_VIRTUAL_MODE,
+				&result);
+		if (result == NET_NFC_OK)
+		{
+			DEBUG_SERVER_MSG("changed to CARD EMULATION ON");
+
+			net_nfc_server_se_set_se_mode(
+					SECURE_ELEMENT_VIRTUAL_MODE);
+		}
+		else
+		{
+			DEBUG_ERR_MSG("CARD EMULATION ON fail [%d]", result);
+		}
+	}
+	else if (data->mode == NET_NFC_CARD_EMULATION_DISABLE)
+	{
+		net_nfc_controller_set_secure_element_mode(
+				net_nfc_server_se_get_se_mode(),
+				SECURE_ELEMENT_OFF_MODE,
+				&result);
+		if (result == NET_NFC_OK)
+		{
+			DEBUG_SERVER_MSG("changed to CARD EMULATION OFF");
+
+			net_nfc_server_se_set_se_mode(SECURE_ELEMENT_OFF_MODE);
+		}
+		else
+		{
+			DEBUG_ERR_MSG("CARD EMULATION OFF fail [%d]", result);
+		}
+	}
+	else
+	{
+		result = NET_NFC_INVALID_PARAM;
+	}
+
+	net_nfc_gdbus_secure_element_complete_set_card_emulation(data->object,
+			data->invocation, result);
+
+	g_object_unref(data->invocation);
+	g_object_unref(data->object);
+
+	g_free(data);
+}
+
+static gboolean _se_handle_set_card_emulation(
+		NetNfcGDbusSecureElement *object,
+		GDBusMethodInvocation *invocation,
+		gint arg_mode,
+		GVariant *smack_privilege)
+{
+	SeSetCardEmul *data;
+	gboolean result;
+
+	INFO_MSG(">>> REQUEST from [%s]",
+			g_dbus_method_invocation_get_sender(invocation));
+
+	/* check privilege and update client context */
+	if (net_nfc_server_gdbus_check_privilege(invocation,
+				smack_privilege,
+				"nfc-manager",
+				"w") == false) {
+		DEBUG_ERR_MSG("permission denied, and finished request");
+
+		return FALSE;
+	}
+
+	data = g_try_new0(SeSetCardEmul, 1);
+	if (data == NULL)
+	{
+		DEBUG_ERR_MSG("Memory allocation failed");
+		g_dbus_method_invocation_return_dbus_error(invocation,
+				"org.tizen.NetNfcService.AllocationError",
+				"Can not allocate memory");
+
+		return FALSE;
+	}
+
+	data->object = g_object_ref(object);
+	data->invocation = g_object_ref(invocation);
+	data->mode = arg_mode;
+
+	result = net_nfc_server_controller_async_queue_push(
+			_se_set_card_emulation_thread_func, data);
+	if (result == FALSE)
+	{
+		g_dbus_method_invocation_return_dbus_error(invocation,
+				"org.tizen.NetNfcService.Se.ThreadError",
+				"can not push to controller thread");
 
 		g_object_unref(data->object);
 		g_object_unref(data->invocation);
@@ -987,7 +1100,7 @@ static gboolean se_handle_set(
 		return FALSE;
 	}
 
-	data = g_new0(SeDataSeType, 1);
+	data = g_try_new0(SeDataSeType, 1);
 	if (data == NULL)
 	{
 		DEBUG_ERR_MSG("Memory allocation failed");
@@ -1036,6 +1149,11 @@ gboolean net_nfc_server_se_init(GDBusConnection *connection)
 			"handle-set",
 			G_CALLBACK(se_handle_set),
 			NULL);
+	g_signal_connect(se_skeleton,
+			"handle-set-card-emulation",
+			G_CALLBACK(_se_handle_set_card_emulation),
+			NULL);
+
 	g_signal_connect(se_skeleton,
 			"handle-open-secure-element",
 			G_CALLBACK(se_handle_open_secure_element),
@@ -1087,10 +1205,10 @@ void net_nfc_server_se_deinit(void)
 
 static void se_detected_thread_func(gpointer user_data)
 {
-	net_nfc_target_handle_s *handle;
-	uint32_t devType;
-	GVariant *data;
-	net_nfc_error_e result;
+	net_nfc_target_handle_s *handle = NULL;
+	uint32_t devType = 0;
+	GVariant *data = NULL;
+	net_nfc_error_e result = NET_NFC_OK;
 
 	g_assert(user_data != NULL);
 
@@ -1189,7 +1307,7 @@ void net_nfc_server_se_transaction_received(void *info)
 		(net_nfc_request_se_event_t *)info;
 	ServerSeData *detail;
 
-	detail = g_new0(ServerSeData, 1);
+	detail = g_try_new0(ServerSeData, 1);
 	if (detail != NULL) {
 		detail->event = se_event->request_type;
 

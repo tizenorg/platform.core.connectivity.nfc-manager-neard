@@ -114,15 +114,11 @@ static void _p2p_send_cb(net_nfc_target_handle_h handle, void *user_data)
 
 	fprintf(stdout, "\nsending...\n\n");
 
-	net_nfc_exchanger_data_h data_handle;
-	data_h rawdata;
+	data_s *rawdata;
 
 	net_nfc_create_rawdata_from_ndef_message((ndef_message_h)context->user_param, &rawdata);
-	net_nfc_create_exchanger_data(&data_handle,  rawdata);
+	/* FIXME */
 	net_nfc_free_data(rawdata);
-
-	net_nfc_send_exchanger_data(data_handle, handle, user_data);
-	net_nfc_free_exchanger_data(data_handle);
 }
 
 static void _handover_completed_cb(net_nfc_error_e result,
@@ -293,7 +289,7 @@ static void _initialize_tag_context(response_context_t *context)
 {
 	int ret = 0;
 
-	ret = net_nfc_initialize();
+	ret = net_nfc_client_initialize();
 	if (ret == NET_NFC_OK)
 	{
 		net_nfc_set_response_callback(_nfc_response_cb, (void *)context);
@@ -310,7 +306,7 @@ static void _release_tag_context(void)
 {
 	net_nfc_unset_response_callback();
 
-	net_nfc_deinitialize();
+	net_nfc_client_deinitialize();
 }
 
 int ndef_tool_read_ndef_from_tag(const char *file)
@@ -515,7 +511,7 @@ int ndef_tool_send_apdu(const char *apdu)
 	if (buffer != NULL)
 	{
 		length = _convert_string_to_hex(apdu, buffer, length);
-		if (length > 0)
+		if (0 < length)
 		{
 			response_context.type = length;
 			response_context.user_param = (void *)buffer;

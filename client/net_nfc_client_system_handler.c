@@ -35,12 +35,10 @@ struct _PopupFuncData
 static NetNfcGDbusPopup *popup_proxy = NULL;
 static int popup_state = 0;
 
-static void popup_set_active_callback(GObject *source_object,
-		GAsyncResult *res,
+static void popup_set_active_callback(GObject *source_object, GAsyncResult *res,
 		gpointer user_data);
 
-static void popup_set_active_callback(GObject *source_object,
-		GAsyncResult *res,
+static void popup_set_active_callback(GObject *source_object, GAsyncResult *res,
 		gpointer user_data)
 {
 	PopupFuncData *func_data;
@@ -84,8 +82,7 @@ static void popup_set_active_callback(GObject *source_object,
 }
 
 API net_nfc_error_e net_nfc_client_sys_handler_set_state(int state,
-		net_nfc_client_popup_set_state_callback callback,
-		void *user_data)
+		net_nfc_client_popup_set_state_callback callback, void *user_data)
 {
 	gboolean active = FALSE;
 	PopupFuncData *func_data;
