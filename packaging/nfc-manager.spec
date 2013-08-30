@@ -1,6 +1,6 @@
 Name:       nfc-manager
 Summary:    NFC framework manager
-Version: 0.1.0
+Version: 0.1.1
 Release:    0
 Group:      Network & Connectivity/NFC
 License:    Flora Software License
