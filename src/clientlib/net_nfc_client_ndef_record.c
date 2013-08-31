@@ -164,9 +164,7 @@ NET_NFC_EXPORT_API uint8_t net_nfc_get_record_sr(uint8_t flag)
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_create_text_string_from_text_record(ndef_record_h record, char** buffer)
 {
 	if (record == NULL || buffer == NULL)
-	{
 		return NET_NFC_ALLOC_FAIL;
-	}
 
 	data_h payload;
 	data_h rec_type;
@@ -182,8 +180,12 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_create_text_string_from_text_record(n
 
 	if (net_nfc_get_record_payload(record, &payload) == NET_NFC_OK)
 	{
-		uint8_t* buffer_temp = net_nfc_get_data_buffer(payload);
+		uint8_t *buffer_temp;
 		uint32_t buffer_length = net_nfc_get_data_length(payload);
+
+		buffer_temp = net_nfc_get_data_buffer(payload);
+		if (NULL == buffer_temp)
+			return NET_NFC_NO_DATA_FOUND;
 
 		int controllbyte = buffer_temp[0];
 		int lang_code_length = controllbyte & 0x3F;
@@ -225,8 +227,12 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_languange_code_string_from_text_r
 
 	if (net_nfc_get_record_payload(record, &payload) == NET_NFC_OK)
 	{
-		uint8_t* buffer_temp = net_nfc_get_data_buffer(payload);
-		char * buffer = NULL;
+		char *buffer = NULL;
+		uint8_t *buffer_temp;
+
+		buffer_temp = net_nfc_get_data_buffer(payload);
+		if (NULL == buffer_temp)
+			return NET_NFC_NO_DATA_FOUND;
 
 		int controllbyte = buffer_temp[0];
 		int lang_code_length = controllbyte & 0x3F;
@@ -269,7 +275,11 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_encoding_type_from_text_record(nd
 
 	if (net_nfc_get_record_payload(record, &payload) == NET_NFC_OK)
 	{
-		uint8_t* buffer_temp = net_nfc_get_data_buffer(payload);
+		uint8_t *buffer_temp;
+
+		buffer_temp = net_nfc_get_data_buffer(payload);
+		if (NULL == buffer_temp)
+			return NET_NFC_NO_DATA_FOUND;
 
 		int controllbyte = buffer_temp[0];
 

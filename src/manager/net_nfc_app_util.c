@@ -84,7 +84,6 @@ net_nfc_error_e net_nfc_app_util_process_ndef(data_s *data)
 	char uri[2048] = { 0, };
 #endif
 	int ret = 0;
-	int disable = 0;
 
 	if (data == NULL || data->buffer == NULL || data->length == 0)
 	{
