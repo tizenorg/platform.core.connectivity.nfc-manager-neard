@@ -1,6 +1,6 @@
 Name:       nfc-manager
 Summary:    NFC framework manager
-Version: 0.1.1
+Version: 0.1.2
 Release:    0
 Group:      Network & Connectivity/NFC
 License:    Flora Software License
@@ -32,7 +32,6 @@ BuildRequires: gettext-tools
 Requires(post):   /sbin/ldconfig
 Requires(post):   /usr/bin/vconftool
 Requires(postun): /sbin/ldconfig
-Requires:         nfc-common-lib = %{version}
 Requires:         nfc-client-lib = %{version}
 
 
@@ -44,29 +43,19 @@ Tizen NFC framework manager.
 %setup -q
 cp %{SOURCE1001} .
 
-%package -n nfc-common-lib
-Summary:    NFC common library
-Group:      Network & Connectivity/Development
 
-
-%description -n nfc-common-lib
-NFC Common library.
-
-
-%package -n nfc-common-lib-devel
+%package -n nfc-common-devel
 Summary:    NFC common library (devel)
 Group:      Network & Connectivity/Development
-Requires:   nfc-common-lib = %{version}
 
 
-%description -n nfc-common-lib-devel
-NFC manager common library for internal development.
+%description -n nfc-common-devel
+NFC manager common header for internal development.
 
 
 %package -n nfc-client-lib
 Summary:    NFC client library
 Group:      Network & Connectivity/NFC
-Requires:   nfc-common-lib = %{version}
 
 
 %description -n nfc-client-lib
@@ -116,7 +105,6 @@ if [ $1 == 1 ]; then
     systemctl restart %{name}.service
 fi
 
-%post -n nfc-common-lib -p /sbin/ldconfig
 
 %post -n nfc-client-lib
 /sbin/ldconfig
@@ -133,7 +121,6 @@ if [ $1 == 0 ]; then
 fi
 systemctl daemon-reload
 
-%postun -n nfc-common-lib -p /sbin/ldconfig
 
 %postun -n nfc-client-lib -p /sbin/ldconfig
 
@@ -166,16 +153,8 @@ systemctl daemon-reload
 %{_includedir}/nfc/*.h
 
 
-%files -n nfc-common-lib
-%manifest %{name}.manifest
+%files -n nfc-common-devel
 %defattr(-,root,root,-)
-%{_libdir}/libnfc-common.so.*
-%license LICENSE.Flora
-
-
-%files -n nfc-common-lib-devel
-%defattr(-,root,root,-)
-%{_libdir}/libnfc-common.so
 %{_libdir}/pkgconfig/nfc-common.pc
 %{_includedir}/nfc-common/*.h
 

@@ -314,6 +314,8 @@ int main(int argc, char *argv[])
 	GOptionContext *option_context;
 	GError *error = NULL;
 
+	net_nfc_change_log_tag();
+
 	option_context = g_option_context_new("Nfc manager");
 	g_option_context_add_main_entries(option_context, option_entries, NULL);
 

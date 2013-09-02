@@ -73,9 +73,7 @@ static const char *schema[] =
 static uint8_t *bt_addr = NULL;
 
 /* for log tag */
-#define NET_NFC_MANAGER_NAME "nfc-manager-daemon"
 static const char *log_tag = LOG_CLIENT_TAG;
-extern char *__progname;
 FILE *nfc_log_file;
 
 const char *net_nfc_get_log_tag()
@@ -83,16 +81,9 @@ const char *net_nfc_get_log_tag()
 	return log_tag;
 }
 
-void __attribute__ ((constructor)) lib_init()
+void net_nfc_change_log_tag()
 {
-	if (__progname != NULL && strncmp(__progname, NET_NFC_MANAGER_NAME, strlen(NET_NFC_MANAGER_NAME)) == 0)
-	{
-		log_tag = LOG_SERVER_TAG;
-	}
-}
-
-void __attribute__ ((destructor)) lib_fini()
-{
+	log_tag = LOG_SERVER_TAG;
 }
 
 void net_nfc_manager_init_log()

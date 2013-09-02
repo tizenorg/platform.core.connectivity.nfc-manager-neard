@@ -4,8 +4,8 @@ libdir=@LIB_INSTALL_DIR@
 includedir=@INCLUDE_INSTALL_DIR@/@NFC_COMMON@
 
 Name: @NFC_COMMON@
-Description: NFC Common Library
+Description: NFC Common Headers
 Version: @FULLVER@
 Requires:
-Libs: -L${libdir} -l@NFC_COMMON@
+Libs:
 Cflags: -I${includedir}
