@@ -68,6 +68,8 @@ static void manager_active_thread_func(gpointer user_data);
 static net_nfc_error_e manager_active(void)
 {
 	net_nfc_error_e result;
+	int ret;
+	int se_type;
 
 	if (net_nfc_controller_is_ready(&result) == false)
 	{
@@ -76,7 +78,13 @@ static net_nfc_error_e manager_active(void)
 		return result;
 	}
 
-	result = net_nfc_server_se_change_se(SECURE_ELEMENT_TYPE_UICC);
+	/* keep_SE_select_value */
+	ret = vconf_get_int(VCONFKEY_NFC_SE_TYPE, &se_type);
+	if (ret == 0)
+	{
+		DEBUG_SERVER_MSG("manager_active  se_type [%d]",se_type);
+		result = net_nfc_server_se_change_se(se_type);
+	}
 
 	/* register default snep server */
 	net_nfc_server_snep_default_server_register();
@@ -123,7 +131,25 @@ static net_nfc_error_e manager_deactive(void)
 	/* unregister all services */
 	net_nfc_server_llcp_unregister_all();
 
-	result = net_nfc_server_se_change_se(SECURE_ELEMENT_TYPE_INVALID);
+   /* keep_SE_select_value do not need to update vconf and gdbus_se_setting */
+//	result = net_nfc_server_se_change_se(SECURE_ELEMENT_TYPE_INVALID);
+
+	{
+		net_nfc_error_e result_ese, result_uicc;
+
+		/*turn off ESE*/
+		net_nfc_controller_set_secure_element_mode(
+			SECURE_ELEMENT_TYPE_ESE,
+			SECURE_ELEMENT_OFF_MODE,
+			&result_ese);
+
+		/*turn off UICC*/
+		net_nfc_controller_set_secure_element_mode(
+			SECURE_ELEMENT_TYPE_UICC,
+			SECURE_ELEMENT_OFF_MODE,
+			&result_uicc);
+
+	}
 
 	if (net_nfc_controller_configure_discovery(
 				NET_NFC_DISCOVERY_MODE_STOP,

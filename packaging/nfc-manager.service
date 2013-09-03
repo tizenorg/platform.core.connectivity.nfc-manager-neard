@@ -1,10 +1,11 @@
 [Unit]
 Description=NFC manager
-After=tizen-boot.target telephony.service
+After=system-server.service
+Requires=system-server.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/nfc-manager-daemon --dbus
+ExecStart=/usr/bin/nfc-manager-daemon --daemon
 KillSignal=SIGKILL
 
 [Install]

@@ -57,12 +57,10 @@ static gboolean _set_activate_time_elapsed_callback(gpointer user_data)
 
 	g_assert(func_data != NULL);
 
-	if (func_data != NULL) {
-		net_nfc_client_manager_set_active_completed callback =
-			(net_nfc_client_manager_set_active_completed)func_data->callback;
+	net_nfc_client_manager_set_active_completed callback =
+		(net_nfc_client_manager_set_active_completed)func_data->callback;
 
-		callback(func_data->result, func_data->user_data);
-	}
+	callback(func_data->result, func_data->user_data);
 
 	g_free(func_data);
 
@@ -91,6 +89,7 @@ static void manager_call_set_active_callback(GObject *source_object,
 	}
 
 	func_data->result = result;
+	net_nfc_client_get_nfc_state(&is_activated);
 
 	if (is_activated == false)
 	{

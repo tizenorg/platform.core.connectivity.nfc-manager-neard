@@ -125,7 +125,7 @@ static void snep_send_client_request(GObject *source_object,
 					message, user_param);
 		}
 
-		g_object_unref(parameter);
+		g_variant_unref(parameter);
 	}
 }
 
@@ -156,8 +156,6 @@ API net_nfc_error_e net_nfc_client_snep_start_server(
 			GPOINTER_TO_UINT(callback),
 			GPOINTER_TO_UINT(user_data));
 
-	g_object_ref(parameter);
-
 	if (net_nfc_gdbus_snep_call_server_start_sync(snep_proxy,
 				GPOINTER_TO_UINT(target),
 				sap,
@@ -171,7 +169,7 @@ API net_nfc_error_e net_nfc_client_snep_start_server(
 		DEBUG_ERR_MSG("snep server(sync call) failed: %s",
 				error->message);
 		g_error_free(error);
-		g_object_unref(parameter);
+		g_variant_unref(parameter);
 
 		result = NET_NFC_UNKNOWN_ERROR;
 	}
@@ -206,8 +204,6 @@ API net_nfc_error_e net_nfc_client_snep_start_client(
 			GPOINTER_TO_UINT(callback),
 			GPOINTER_TO_UINT(user_data));
 
-	g_object_ref(parameter);
-
 	if (net_nfc_gdbus_snep_call_client_start_sync(snep_proxy,
 				GPOINTER_TO_UINT(target),
 				sap,
@@ -221,7 +217,7 @@ API net_nfc_error_e net_nfc_client_snep_start_client(
 		DEBUG_ERR_MSG("snep client(sync call) failed: %s",
 				error->message);
 		g_error_free(error);
-		g_object_unref(parameter);
+		g_variant_unref(parameter);
 
 		result = NET_NFC_UNKNOWN_ERROR;
 	}
@@ -260,8 +256,6 @@ API net_nfc_error_e net_nfc_client_snep_send_client_request(
 			GPOINTER_TO_UINT(callback),
 			GPOINTER_TO_UINT(user_data),
 			GPOINTER_TO_UINT(target));
-
-	g_object_ref(parameter);
 
 	ndef_msg = snep_message_to_variant(msg);
 

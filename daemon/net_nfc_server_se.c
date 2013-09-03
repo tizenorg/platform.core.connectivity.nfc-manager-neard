@@ -252,29 +252,37 @@ static void _se_uicc_status_noti_cb(TapiHandle *handle,
 		if (gdbus_se_setting.busy == true)
 		{
 			net_nfc_error_e result = NET_NFC_OK;
+			int ret;
+			int se_type;
 
 			DEBUG_SERVER_MSG("TAPI_SIM_STATUS_SIM_INIT_COMPLETED");
 
 			gdbus_se_setting.busy = false;
 
-			net_nfc_controller_set_secure_element_mode(
-					SECURE_ELEMENT_TYPE_UICC,
-					SECURE_ELEMENT_VIRTUAL_MODE, &result);
-			if (result == NET_NFC_OK) {
-				DEBUG_SERVER_MSG(
-						"changed to SECURE_ELEMENT_TYPE_UICC");
-				net_nfc_server_se_set_se_type(
-						SECURE_ELEMENT_TYPE_UICC);
-				net_nfc_server_se_set_se_mode(
-						SECURE_ELEMENT_VIRTUAL_MODE);
-				if (vconf_set_int(VCONFKEY_NFC_SE_TYPE,
-							VCONFKEY_NFC_SE_TYPE_UICC) != 0) {
-					DEBUG_ERR_MSG("vconf_set_int failed");
+			/* keep_SE_select_value */
+			ret = vconf_get_int(VCONFKEY_NFC_SE_TYPE, &se_type);
+			if (ret == 0)
+			{
+				if (se_type == SECURE_ELEMENT_TYPE_UICC)
+				{
+					net_nfc_controller_set_secure_element_mode(
+							SECURE_ELEMENT_TYPE_UICC,
+							SECURE_ELEMENT_VIRTUAL_MODE, &result);
+					if (result == NET_NFC_OK) {
+						DEBUG_SERVER_MSG(
+								"changed to SECURE_ELEMENT_TYPE_UICC");
+						net_nfc_server_se_set_se_type(
+								SECURE_ELEMENT_TYPE_UICC);
+						net_nfc_server_se_set_se_mode(
+								SECURE_ELEMENT_VIRTUAL_MODE);
+					} else {
+						DEBUG_ERR_MSG(
+								"SECURE_ELEMENT_TYPE_UICC, SECURE_ELEMENT_VIRTUAL_MODE failed [%d]",
+								result);
+					}
+
+
 				}
-			} else {
-				DEBUG_ERR_MSG(
-						"SECURE_ELEMENT_TYPE_UICC, SECURE_ELEMENT_VIRTUAL_MODE failed [%d]",
-						result);
 			}
 		}
 		break;

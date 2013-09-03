@@ -2816,7 +2816,7 @@ static void llcp_simple_listen_cb(net_nfc_llcp_socket_t socket,
 				simple_data->user_data);
 	}
 
-	g_free(simple_data);
+	/* 'simple_data' will be freed in socket error callback */
 }
 
 static void llcp_simple_connect_cb(net_nfc_llcp_socket_t socket,
@@ -2842,7 +2842,7 @@ static void llcp_simple_connect_cb(net_nfc_llcp_socket_t socket,
 				simple_data->user_data);
 	}
 
-	g_free(simple_data);
+	/* 'simple_data' will be freed in socket error callback */
 }
 
 static void llcp_simple_server_error_cb(net_nfc_llcp_socket_t socket,

@@ -109,10 +109,10 @@ fi
 %post -n nfc-client-lib
 /sbin/ldconfig
 vconftool set -t bool db/nfc/feature 0 -u 5000 -f
-vconftool set -t int db/nfc/se_type 0 -u 5000 -f
 vconftool set -t bool db/nfc/predefined_item_state 0 -u 5000 -f
 vconftool set -t string db/nfc/predefined_item "None" -u 5000 -f
 vconftool set -t bool db/nfc/enable 0 -u 5000 -f
+vconftool set -t int db/nfc/se_type 0 -u 5000 -f
 
 %postun
 /sbin/ldconfig
