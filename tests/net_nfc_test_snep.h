@@ -21,36 +21,36 @@
 
 
 void net_nfc_test_snep_set_tag_discovered(gpointer data,
-			gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_snep_start_server(gpointer data,
-			gpointer user_data);
+		gpointer user_data);
+
+void net_nfc_test_snep_server(gpointer data,
+		gpointer user_data);
+
+void net_nfc_test_snep_set_p2p_device_discovered(gpointer data,
+		gpointer user_data);
 
 void net_nfc_test_snep_start_server_sync(gpointer data,
-			gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_snep_start_client(gpointer data,
-			gpointer user_data);
-
-void net_nfc_test_snep_start_client_sync(gpointer data,
-			gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_snep_send_client_request(gpointer data,
-			gpointer user_data);
-
-void net_nfc_test_snep_send_client_request_sync(gpointer data,
-			gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_snep_register_server(gpointer data,
-			gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_snep_unregister_server(gpointer data,
-			gpointer user_data);
+		gpointer user_data);
 
-void net_nfc_test_snep_stop_service(gpointer data,
-			gpointer user_data);
+void net_nfc_test_snep_register_unregister_server(gpointer data,
+		gpointer user_data);
 
 void net_nfc_test_snep_stop_service_sync(gpointer data,
-			gpointer user_data);
+		gpointer user_data);
 #endif
 

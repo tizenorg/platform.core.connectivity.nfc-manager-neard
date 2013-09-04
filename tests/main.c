@@ -68,7 +68,7 @@ static TestData test_data[] = {
 		"Client",
 		"ClientInitialize",
 		net_nfc_test_initialize,
-		net_nfc_test_initialize,
+		NULL,
 		"Start Client Initialization"
 	},
 
@@ -76,7 +76,7 @@ static TestData test_data[] = {
 		"Client",
 		"ClientDeinitialize",
 		net_nfc_test_deinitialize,
-		net_nfc_test_deinitialize,
+		NULL,
 		"Start Client Deinitialization"
 	},
 
@@ -84,7 +84,7 @@ static TestData test_data[] = {
 		"Client",
 		"ClientIsNfcSupported",
 		net_nfc_test_is_nfc_supported,
-		net_nfc_test_is_nfc_supported,
+		NULL,
 		"Get is nfc supported"
 	},
 
@@ -92,7 +92,7 @@ static TestData test_data[] = {
 		"Client",
 		"ClientGetNfcState",
 		net_nfc_test_get_nfc_state,
-		net_nfc_test_get_nfc_state,
+		NULL,
 		"Get nfc state"
 	},
 #if 0
@@ -123,7 +123,7 @@ static TestData test_data[] = {
 		"Tag",
 		"TagDiscovered",		/* waiting for signal */
 		net_nfc_test_tag_set_tag_discovered,
-		net_nfc_test_tag_set_tag_discovered,
+		NULL,
 		"Waiting for TagDiscoved signal"
 	},
 
@@ -131,7 +131,7 @@ static TestData test_data[] = {
 		"Tag",
 		"SetFilter",
 		net_nfc_test_tag_set_filter,
-		net_nfc_test_tag_set_filter,
+		NULL,
 		"Set Tag filter"
 	},
 
@@ -139,7 +139,7 @@ static TestData test_data[] = {
 		"Tag",
 		"GetFilter",
 		net_nfc_test_tag_get_filter,
-		net_nfc_test_tag_get_filter,
+		NULL,
 		"Get Tag filter"
 	},
 
@@ -148,7 +148,7 @@ static TestData test_data[] = {
 		"Tag",
 		"TagDetached",		/* waiting for signal */
 		net_nfc_test_tag_set_tag_detached,
-		net_nfc_test_tag_set_tag_detached,
+		NULL,
 		"Waiting for TagDetached signal"
 	},
 
@@ -197,7 +197,7 @@ static TestData test_data[] = {
 		"p2p",
 		"Discovered", 		/* waiting for signal*/
 		net_nfc_test_p2p_set_device_discovered,
-		net_nfc_test_p2p_set_device_discovered,
+		NULL,
 		"Waiting for  Device Discovered Signal"
 	},
 
@@ -205,7 +205,7 @@ static TestData test_data[] = {
 		"p2p",
 		"Detached", 		/* waiting for signal*/
 		net_nfc_test_p2p_set_device_detached,
-		net_nfc_test_p2p_set_device_detached,
+		NULL,
 		"Waiting for  Device Detached Signal"
 	},
 
@@ -213,7 +213,7 @@ static TestData test_data[] = {
 		"p2p",
 		"Received", 		/* waiting for signal*/
 		net_nfc_test_p2p_set_data_received,
-		net_nfc_test_p2p_set_data_received,
+		NULL,
 		"Waiting for Device Data Received Signal"
 	},
 
@@ -246,7 +246,7 @@ static TestData test_data[] = {
 		"Handover",
 		"GetCarrierType",
 		net_nfc_test_handover_get_alternative_carrier_type,
-		net_nfc_test_handover_get_alternative_carrier_type,
+		NULL,
 		"Get Handover Carrier Type"
 
 	},
@@ -255,7 +255,7 @@ static TestData test_data[] = {
 		"Handover",
 		"HandleCarrierData",
 		net_nfc_test_handover_handle_alternative_carrier_data,
-		net_nfc_test_handover_handle_alternative_carrier_data,
+		NULL,
 		"Create/Free Handover Carrier Data"
 
 	},
@@ -264,7 +264,7 @@ static TestData test_data[] = {
 		"JewelTag",
 		"ReadId",
 		net_nfc_test_tag_jewel_read_id,
-		net_nfc_test_tag_jewel_read_id,
+		NULL,
 		"Jewel Read id"
 
 	},
@@ -273,7 +273,7 @@ static TestData test_data[] = {
 		"JewelTag",
 		"ReadByte",
 		net_nfc_test_tag_jewel_read_byte,
-		net_nfc_test_tag_jewel_read_byte,
+		NULL,
 		"Jewel Read Byte"
 
 	},
@@ -282,7 +282,7 @@ static TestData test_data[] = {
 		"JewelTag",
 		"ReadAll",
 		net_nfc_test_tag_jewel_read_all,
-		net_nfc_test_tag_jewel_read_all,
+		NULL,
 		"Jewel Read All"
 
 	},
@@ -291,7 +291,7 @@ static TestData test_data[] = {
 		"JewelTag",
 		"WriteWithErase",
 		net_nfc_test_tag_jewel_write_with_erase,
-		net_nfc_test_tag_jewel_write_with_erase,
+		NULL,
 		"Jewel Write With Erase"
 
 	},
@@ -300,7 +300,7 @@ static TestData test_data[] = {
 		"JewelTag",
 		"WriteWithNoErase",
 		net_nfc_test_tag_jewel_write_with_no_erase,
-		net_nfc_test_tag_jewel_write_with_no_erase,
+		NULL,
 		"Jewel Write With No Erase"
 
 	},
@@ -309,7 +309,7 @@ static TestData test_data[] = {
 		"MifareTag",
 		"Read",
 		net_nfc_test_tag_mifare_read,
-		net_nfc_test_tag_mifare_read,
+		NULL,
 		"Read Mifare Tag"
 	},
 
@@ -317,7 +317,7 @@ static TestData test_data[] = {
 		"MifareTag",
 		"WriteBlock",
 		net_nfc_test_tag_mifare_write_block,
-		net_nfc_test_tag_mifare_write_block,
+		NULL,
 		"Write data block"
 	},
 
@@ -325,7 +325,7 @@ static TestData test_data[] = {
 		"MifareTag",
 		"WritePage",
 		net_nfc_test_tag_mifare_write_page,
-		net_nfc_test_tag_mifare_write_page,
+		NULL,
 		"Write Page Data"
 	},
 
@@ -333,7 +333,7 @@ static TestData test_data[] = {
 		"MifareTag",
 		"Increment",
 		net_nfc_test_tag_mifare_increment,
-		net_nfc_test_tag_mifare_increment,
+		NULL,
 		"Increment block value"
 	},
 
@@ -341,7 +341,7 @@ static TestData test_data[] = {
 		"MifareTag",
 		"Decrement",
 		net_nfc_test_tag_mifare_decrement,
-		net_nfc_test_tag_mifare_decrement,
+		NULL,
 		"Decrement block value"
 	},
 
@@ -349,7 +349,7 @@ static TestData test_data[] = {
 		"MifareTag",
 		"Transfer",
 		net_nfc_test_tag_mifare_transfer,
-		net_nfc_test_tag_mifare_transfer,
+		NULL,
 		" Data Transfer"
 	},
 
@@ -357,7 +357,7 @@ static TestData test_data[] = {
 		"MifareTag",
 		"Restore",
 		net_nfc_test_tag_mifare_restore,
-		net_nfc_test_tag_mifare_restore,
+		NULL,
 		"Data Restore"
 	},
 
@@ -365,7 +365,7 @@ static TestData test_data[] = {
 		"MifareTag",
 		"AuthKeyA",
 		net_nfc_test_tag_mifare_authenticate_with_keyA,
-		net_nfc_test_tag_mifare_authenticate_with_keyA,
+		NULL,
 		"Authenticate with key A"
 	},
 
@@ -373,7 +373,7 @@ static TestData test_data[] = {
 		"MifareTag",
 		"AuthKeyB",
 		net_nfc_test_tag_mifare_authenticate_with_keyB,
-		net_nfc_test_tag_mifare_authenticate_with_keyB,
+		NULL,
 		"Authenticate with key B"
 	},
 
@@ -381,7 +381,7 @@ static TestData test_data[] = {
 		"FelicaTag",
 		"FelicaPoll",
 		net_nfc_test_felica_poll,
-		net_nfc_test_felica_poll,
+		NULL,
 		"Felica Poll"
 	},
 
@@ -389,7 +389,7 @@ static TestData test_data[] = {
 		"FelicaTag",
 		"FelicaRequestService",
 		net_nfc_test_felica_request_service,
-		net_nfc_test_felica_request_service,
+		NULL,
 		"Felica Request Service"
 	},
 
@@ -397,7 +397,7 @@ static TestData test_data[] = {
 		"FelicaTag",
 		"FelicaRequestResponse",
 		net_nfc_test_felica_request_response,
-		net_nfc_test_felica_request_response,
+		NULL,
 		"Felica Request Response"
 	},
 
@@ -405,7 +405,7 @@ static TestData test_data[] = {
 		"FelicaTag",
 		"FelicaReadWithoutEncryption",
 		net_nfc_test_felica_read_without_encryption,
-		net_nfc_test_felica_read_without_encryption,
+		NULL,
 		"Felica Read Without Encryption"
 	},
 
@@ -413,7 +413,7 @@ static TestData test_data[] = {
 		"FelicaTag",
 		"FelicaWriteWithoutEncryption",
 		net_nfc_test_felica_write_without_encryption,
-		net_nfc_test_felica_write_without_encryption,
+		NULL,
 		"Felica Write Without Encryption"
 	},
 
@@ -421,7 +421,7 @@ static TestData test_data[] = {
 		"FelicaTag",
 		"FelicaRequestSystemCode",
 		net_nfc_test_felica_request_system_code,
-		net_nfc_test_felica_request_system_code,
+		NULL,
 		"Felica Request System Code"
 	},
 
@@ -429,7 +429,7 @@ static TestData test_data[] = {
 		"llcp",
 		"CreateSocket",
 		net_nfc_test_llcp_create_socket,
-		net_nfc_test_llcp_create_socket,
+		NULL,
 		"Create a LLCP socket"
 	},
 
@@ -461,7 +461,7 @@ static TestData test_data[] = {
 		"llcp",
 		"GetConfigWKS",
 		net_nfc_test_llcp_get_config_wks,
-		net_nfc_test_llcp_get_config_wks,
+		NULL,
 		"Get the Config of WKS"
 	},
 
@@ -470,7 +470,7 @@ static TestData test_data[] = {
 		"llcp",
 		"GetConfigLTO",
 		net_nfc_test_llcp_get_config_lto,
-		net_nfc_test_llcp_get_config_lto,
+		NULL,
 		"Get the Config of LTO"
 	},
 
@@ -479,7 +479,7 @@ static TestData test_data[] = {
 		"llcp",
 		"GetConfigMIU",
 		net_nfc_test_llcp_get_config_miu,
-		net_nfc_test_llcp_get_config_miu,
+		NULL,
 		"Get the Config of MIU"
 	},
 
@@ -487,7 +487,7 @@ static TestData test_data[] = {
 		"llcp",
 		"GetConfigOption",
 		net_nfc_test_llcp_get_config_option,
-		net_nfc_test_llcp_get_config_option,
+		NULL,
 		"Get the Config Option Type"
 	},
 
@@ -495,7 +495,7 @@ static TestData test_data[] = {
 		"llcp",
 		"SetConfigWKS",
 		net_nfc_test_llcp_set_config_wks,
-		net_nfc_test_llcp_set_config_wks,
+		NULL,
 		"Set the Config for WKS"
 	},
 
@@ -504,7 +504,7 @@ static TestData test_data[] = {
 		"llcp",
 		"SetConfigLTO",
 		net_nfc_test_llcp_set_config_lto,
-		net_nfc_test_llcp_set_config_lto,
+		NULL,
 		"Set the Config for LTO"
 	},
 
@@ -513,7 +513,7 @@ static TestData test_data[] = {
 		"llcp",
 		"SetConfigMIU",
 		net_nfc_test_llcp_set_config_miu,
-		net_nfc_test_llcp_set_config_miu,
+		NULL,
 		"Set the Config for MIU"
 	},
 
@@ -521,7 +521,7 @@ static TestData test_data[] = {
 		"llcp",
 		"SetConfigOption",
 		net_nfc_test_llcp_set_config_option,
-		net_nfc_test_llcp_set_config_option,
+		NULL,
 		"Set the Config Option Type"
 	},
 
@@ -529,7 +529,7 @@ static TestData test_data[] = {
 		"llcp",
 		"FreeConfig",
 		net_nfc_test_llcp_free_config,
-		net_nfc_test_llcp_free_config,
+		NULL,
 		"Clear the llcp configuration options"
 	},
 
@@ -538,7 +538,7 @@ static TestData test_data[] = {
 		"llcp",
 		"CreateCustomSocketOption",
 		net_nfc_test_llcp_create_custom_socket_option,
-		net_nfc_test_llcp_create_custom_socket_option,
+		NULL,
 		"Create Custom Socket Option"
 	},
 
@@ -546,7 +546,7 @@ static TestData test_data[] = {
 		"llcp",
 		"CreateDefaultSocketOption",
 		net_nfc_test_llcp_create_default_socket_option,
-		net_nfc_test_llcp_create_default_socket_option,
+		NULL,
 		"Create Default Socket Option"
 	},
 
@@ -555,7 +555,7 @@ static TestData test_data[] = {
 		"llcp",
 		"GetLocalSocketOption",
 		net_nfc_test_llcp_get_local_socket_option,
-		net_nfc_test_llcp_get_local_socket_option,
+		NULL,
 		"Get Local Socket Option"
 	},
 
@@ -564,7 +564,7 @@ static TestData test_data[] = {
 		"llcp",
 		"GetLocalSocketMIU",
 		net_nfc_test_llcp_get_socket_option_miu,
-		net_nfc_test_llcp_get_socket_option_miu,
+		NULL,
 		"Get Local Socket MIU"
 	},
 
@@ -573,7 +573,7 @@ static TestData test_data[] = {
 		"llcp",
 		"GetLocalSocketRW",
 		net_nfc_test_llcp_get_socket_option_rw,
-		net_nfc_test_llcp_get_socket_option_rw,
+		NULL,
 		"Get Local Socket RW"
 	},
 
@@ -582,7 +582,7 @@ static TestData test_data[] = {
 		"llcp",
 		"GetLocalSocketOptionType",
 		net_nfc_test_llcp_get_socket_option_type,
-		net_nfc_test_llcp_get_socket_option_type,
+		NULL,
 		"Get Local Socket Option Type"
 	},
 
@@ -590,7 +590,7 @@ static TestData test_data[] = {
 		"llcp",
 		"SetLocalSocketMIU",
 		net_nfc_test_llcp_set_socket_option_miu,
-		net_nfc_test_llcp_set_socket_option_miu,
+		NULL,
 		"Set Local Socket MIU"
 	},
 
@@ -599,7 +599,7 @@ static TestData test_data[] = {
 		"llcp",
 		"SetLocalSocketRW",
 		net_nfc_test_llcp_set_socket_option_rw,
-		net_nfc_test_llcp_set_socket_option_rw,
+		NULL,
 		"Set Local Socket RW"
 	},
 
@@ -608,7 +608,7 @@ static TestData test_data[] = {
 		"llcp",
 		"SetLocalSocketOptionType",
 		net_nfc_test_llcp_set_socket_option_type,
-		net_nfc_test_llcp_set_socket_option_type,
+		NULL,
 		"Set Local Socket Option Type"
 	},
 
@@ -616,7 +616,7 @@ static TestData test_data[] = {
 		"llcp",
 		"FreeSocketOption",
 		net_nfc_test_llcp_free_socket_option,
-		net_nfc_test_llcp_free_socket_option,
+		NULL,
 		"Free Socket Option"
 	},
 
@@ -688,7 +688,7 @@ static TestData test_data[] = {
 		"llcp",
 		"DisconnectOtherSockets",
 		net_nfc_test_llcp_disconnect_server,
-		net_nfc_test_llcp_disconnect_server,
+		NULL,
 		"Disconnects the Server and Accepted sockets"
 	},
 
@@ -696,8 +696,16 @@ static TestData test_data[] = {
 		"snep",
 		"SNEPTagDiscovery",
 		net_nfc_test_snep_set_tag_discovered,
-		net_nfc_test_snep_set_tag_discovered,
+		NULL,
 		"Discovers the tag/target before starting SNEP operation"
+	},
+
+	{
+		"snep",
+		"SNEPP2PDeviceDiscovery",
+		net_nfc_test_snep_set_p2p_device_discovered,
+		NULL,
+		"Discover the P2P device for snep operation"
 	},
 
 	{
@@ -712,7 +720,7 @@ static TestData test_data[] = {
 		"snep",
 		"StartSNEPClient",
 		net_nfc_test_snep_start_client,
-		net_nfc_test_snep_start_client_sync,
+		NULL,
 		"Starts the SNEP client"
 	},
 
@@ -720,7 +728,7 @@ static TestData test_data[] = {
 		"snep",
 		"SendClientRequest",
 		net_nfc_test_snep_send_client_request,
-		net_nfc_test_snep_send_client_request_sync,
+		NULL,
 		"Sends the SNEP client Request"
 	},
 
@@ -728,7 +736,7 @@ static TestData test_data[] = {
 		"snep",
 		"RegisterServer",
 		net_nfc_test_snep_register_server,
-		net_nfc_test_snep_register_server,
+		NULL,
 		"Registers the SNEP server"
 	},
 
@@ -736,8 +744,24 @@ static TestData test_data[] = {
 		"snep",
 		"UnRegisterServer",
 		net_nfc_test_snep_unregister_server,
-		net_nfc_test_snep_unregister_server,
+		NULL,
 		"UnRegisters the SNEP server"
+	},
+
+	{
+		"snep",
+		"ServerRegisterUnregister",
+		net_nfc_test_snep_register_unregister_server,
+		NULL,
+		"Registers and UnRegisters the SNEP server"
+	},
+
+	{
+		"snep",
+		"StopService",
+		net_nfc_test_snep_stop_service_sync,
+		NULL,
+		"Registers and UnRegisters the SNEP server"
 	},
 
 	{
@@ -784,7 +808,7 @@ static TestData test_data[] = {
 		"SE",
 		"SetEventCallback",
 		net_nfc_test_se_set_event_cb,
-		net_nfc_test_se_set_event_cb,
+		NULL,
 		"Set event callback"
 	},
 
@@ -792,7 +816,7 @@ static TestData test_data[] = {
 		"SE",
 		"UnsetEventCallback",
 		net_nfc_test_se_unset_event_cb,
-		net_nfc_test_se_unset_event_cb,
+		NULL,
 		"Unset event callback"
 	},
 
@@ -800,7 +824,7 @@ static TestData test_data[] = {
 		"SE",
 		"SetDetectionCallback",
 		net_nfc_test_se_set_ese_detection_cb,
-		net_nfc_test_se_set_ese_detection_cb,
+		NULL,
 		"Set detection callback"
 	},
 
@@ -808,7 +832,7 @@ static TestData test_data[] = {
 		"SE",
 		"UnsetDetectionCallback",
 		net_nfc_test_se_unset_ese_detection_cb,
-		net_nfc_test_se_unset_ese_detection_cb,
+		NULL,
 		"Unset detection callback"
 	},
 
@@ -816,7 +840,7 @@ static TestData test_data[] = {
 		"SE",
 		"SetTransactionCallback",
 		net_nfc_test_se_set_transaction_event_cb,
-		net_nfc_test_se_set_transaction_event_cb,
+		NULL,
 		"Set transaction  callback"
 	},
 
@@ -824,7 +848,7 @@ static TestData test_data[] = {
 		"SE",
 		"UnsetTransactionCallback",
 		net_nfc_test_se_unset_transaction_event_cb,
-		net_nfc_test_se_unset_transaction_event_cb,
+		NULL,
 		"Unset transaction callback"
 	},
 
@@ -848,7 +872,7 @@ static TestData test_data[] = {
 		"SystemHandler",
 		"GetLaunchPopState",
 		net_nfc_test_sys_handler_get_launch_popup_state,
-		net_nfc_test_sys_handler_get_launch_popup_state,
+		NULL,
 		"Get launch popup state"
 	},
 
