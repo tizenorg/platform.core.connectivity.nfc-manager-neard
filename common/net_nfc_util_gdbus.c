@@ -22,6 +22,7 @@
 #include "net_nfc_debug_internal.h"
 #include "net_nfc_util_internal.h"
 #include "net_nfc_util_gdbus_internal.h"
+#include "net_nfc_util_ndef_message.h"
 
 void net_nfc_util_gdbus_variant_to_buffer(GVariant *variant, uint8_t **buffer,
 		size_t *length)
@@ -174,4 +175,74 @@ GVariant *net_nfc_util_gdbus_data_to_variant(const data_s *data)
 	{
 		return net_nfc_util_gdbus_buffer_to_variant(NULL, 0);
 	}
+}
+
+ndef_message_s *net_nfc_util_gdbus_variant_to_ndef_message(GVariant *variant)
+{
+	ndef_message_s *message = NULL;
+	data_s data = { NULL, 0 };
+
+	if (variant == NULL)
+		return NULL;
+
+	net_nfc_util_gdbus_variant_to_data_s(variant, &data);
+
+	if (data.buffer && data.length > 0)
+	{
+		ndef_message_s *temp = NULL;
+
+		if (net_nfc_util_create_ndef_message(&temp) == NET_NFC_OK) {
+			if (net_nfc_util_convert_rawdata_to_ndef_message(
+						&data, temp) == NET_NFC_OK) {
+				message = temp;
+			} else {
+				DEBUG_ERR_MSG("net_nfc_create_ndef_message_from_rawdata failed");
+
+				net_nfc_util_free_ndef_message(temp);
+			}
+		} else {
+			DEBUG_ERR_MSG("net_nfc_util_create_ndef_message failed");
+		}
+
+		net_nfc_util_free_data(&data);
+	}
+
+	return message;
+}
+
+GVariant *net_nfc_util_gdbus_ndef_message_to_variant(
+		const ndef_message_s *message)
+{
+	GVariant *variant = NULL;
+	data_s *data = NULL;
+	size_t length;
+
+	length = net_nfc_util_get_ndef_message_length(
+			(ndef_message_s *)message);
+	if (length > 0) {
+		data_s temp = { NULL, 0 };
+
+		if (net_nfc_util_alloc_data(&temp, length) == true) {
+			if (net_nfc_util_convert_ndef_message_to_rawdata(
+						(ndef_message_s *)message,
+						&temp) == NET_NFC_OK) {
+				data = &temp;
+			} else {
+				DEBUG_ERR_MSG("can not convert ndef_message to rawdata");
+
+				net_nfc_util_free_data(&temp);
+			}
+		} else {
+			DEBUG_ERR_MSG("net_nfc_util_alloc_data failed");
+		}
+	} else {
+		DEBUG_ERR_MSG("message length is 0");
+	}
+
+	variant = net_nfc_util_gdbus_data_to_variant(data);
+
+	if (data != NULL)
+		net_nfc_util_free_data(data);
+
+	return variant;
 }

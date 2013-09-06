@@ -30,11 +30,6 @@ static NetNfcGDbusSnep *snep_proxy = NULL;
 
 /*******************************************************************/
 
-static GVariant *snep_message_to_variant(ndef_message_h message);
-
-static ndef_message_h snep_variant_to_message(GVariant *variant);
-
-/*********************************************************************/
 
 static void snep_send_client_request(GObject *source_object,
 		GAsyncResult *res,
@@ -42,55 +37,21 @@ static void snep_send_client_request(GObject *source_object,
 
 /*********************************************************************/
 
-static GVariant *snep_message_to_variant(ndef_message_h message)
-{
-	data_h data = NULL;
-	GVariant *variant = NULL;
-
-	if (net_nfc_create_rawdata_from_ndef_message(message,
-				&data) != NET_NFC_OK)
-	{
-		DEBUG_ERR_MSG("can not convert ndef_message to rawdata");
-		return NULL;
-	}
-
-	variant = net_nfc_util_gdbus_data_to_variant((data_s *)data);
-
-	net_nfc_free_data(data);
-
-	return variant;
-}
-
-static ndef_message_h snep_variant_to_message(GVariant *variant)
-{
-	data_s data = { NULL, };
-	ndef_message_h message = NULL;
-
-	net_nfc_util_gdbus_variant_to_data_s(variant, &data);
-
-	if (data.buffer && data.length > 0)
-	{
-		if (net_nfc_create_ndef_message_from_rawdata(&message, &data)
-				!= NET_NFC_OK)
-		{
-			DEBUG_ERR_MSG("memory alloc fail...");
-		}
-
-		net_nfc_util_free_data(&data);
-	}
-
-	return message;
-}
 
 static void snep_send_client_request(GObject *source_object,
 		GAsyncResult *res,
 		gpointer user_data)
 {
 	GVariant *parameter = (GVariant *)user_data;
-	GError *error = NULL;
 	net_nfc_error_e out_result;
 	net_nfc_snep_type_t out_type;
 	GVariant *out_data;
+	GError *error = NULL;
+	net_nfc_client_snep_event_cb callback;
+	void *user_param;
+	net_nfc_snep_handle_h handle;
+
+	g_assert(parameter != NULL);
 
 	if (net_nfc_gdbus_snep_call_client_request_finish(
 				NET_NFC_GDBUS_SNEP(source_object),
@@ -104,29 +65,25 @@ static void snep_send_client_request(GObject *source_object,
 				error->message);
 		g_error_free(error);
 
-		out_result = NET_NFC_UNKNOWN_ERROR;
+		out_result = NET_NFC_IPC_FAIL;
 	}
 
-	if (parameter != NULL) {
-		net_nfc_client_snep_event_cb callback;
-		void *user_param;
-		net_nfc_snep_handle_h handle;
+	g_variant_get(parameter, "(uuu)",
+			(guint *)&callback,
+			(guint *)&user_param,
+			(guint *)&handle);
+
+	if (callback != NULL) {
 		ndef_message_h message = NULL;
 
-		g_variant_get(parameter, "(uuu)",
-				(guint *)&callback,
-				(guint *)&user_param,
-				(guint *)&handle);
+		message = net_nfc_util_gdbus_variant_to_ndef_message(out_data);
 
-		if (callback != NULL) {
-			message = snep_variant_to_message(out_data);
-
-			callback(handle, out_type, out_result,
-					message, user_param);
-		}
-
-		g_variant_unref(parameter);
+		callback(handle, out_type, out_result,
+				message, user_param);
+		net_nfc_free_ndef_message(message);
 	}
+
+	g_variant_unref(parameter);
 }
 
 API net_nfc_error_e net_nfc_client_snep_start_server(
@@ -144,7 +101,7 @@ API net_nfc_error_e net_nfc_client_snep_start_server(
 	{
 		DEBUG_ERR_MSG("Can not get Snep Proxy");
 
-		return NET_NFC_UNKNOWN_ERROR;
+		return NET_NFC_NOT_INITIALIZED;
 	}
 
 	/* prevent executing daemon when nfc is off */
@@ -169,9 +126,10 @@ API net_nfc_error_e net_nfc_client_snep_start_server(
 		DEBUG_ERR_MSG("snep server(sync call) failed: %s",
 				error->message);
 		g_error_free(error);
-		g_variant_unref(parameter);
 
-		result = NET_NFC_UNKNOWN_ERROR;
+		result = NET_NFC_IPC_FAIL;
+
+		g_variant_unref(parameter);
 	}
 
 	return result;
@@ -192,7 +150,7 @@ API net_nfc_error_e net_nfc_client_snep_start_client(
 	{
 		DEBUG_ERR_MSG("Can not get Snep Proxy");
 
-		return NET_NFC_UNKNOWN_ERROR;
+		return NET_NFC_NOT_INITIALIZED;
 	}
 
 	/* prevent executing daemon when nfc is off */
@@ -217,9 +175,10 @@ API net_nfc_error_e net_nfc_client_snep_start_client(
 		DEBUG_ERR_MSG("snep client(sync call) failed: %s",
 				error->message);
 		g_error_free(error);
-		g_variant_unref(parameter);
 
-		result = NET_NFC_UNKNOWN_ERROR;
+		result = NET_NFC_IPC_FAIL;
+
+		g_variant_unref(parameter);
 	}
 
 	return result;
@@ -257,7 +216,7 @@ API net_nfc_error_e net_nfc_client_snep_send_client_request(
 			GPOINTER_TO_UINT(user_data),
 			GPOINTER_TO_UINT(target));
 
-	ndef_msg = snep_message_to_variant(msg);
+	ndef_msg = net_nfc_util_gdbus_ndef_message_to_variant(msg);
 
 	net_nfc_gdbus_snep_call_client_request(snep_proxy,
 			GPOINTER_TO_UINT(target),
@@ -284,10 +243,13 @@ API net_nfc_error_e net_nfc_client_snep_send_client_request_sync(
 	net_nfc_error_e result;
 	guint type;
 
-	if (target == NULL || msg == NULL)
+	if (target == NULL || msg == NULL
+			|| resp_type == NULL || response == NULL)
 	{
 		return NET_NFC_NULL_PARAMETER;
 	}
+
+	*response = NULL;
 
 	if (snep_proxy == NULL)
 	{
@@ -296,7 +258,7 @@ API net_nfc_error_e net_nfc_client_snep_send_client_request_sync(
 		return NET_NFC_NOT_INITIALIZED;
 	}
 
-	arg_msg = snep_message_to_variant(msg);
+	arg_msg = net_nfc_util_gdbus_ndef_message_to_variant(msg);
 
 	if (net_nfc_gdbus_snep_call_client_request_sync(snep_proxy,
 				GPOINTER_TO_UINT(target),
@@ -307,18 +269,7 @@ API net_nfc_error_e net_nfc_client_snep_send_client_request_sync(
 				resp_type,
 				&resp_msg,
 				NULL,
-				&error) == FALSE)
-	{
-		DEBUG_ERR_MSG(" send client request (sync call) failed: %s",
-				error->message);
-		g_error_free(error);
-
-		return NET_NFC_IPC_FAIL;
-	}
-
-	*response = NULL;
-
-	if (result == NET_NFC_OK)
+				&error) == TRUE)
 	{
 		data_s ndef_data = { NULL, };
 
@@ -332,6 +283,14 @@ API net_nfc_error_e net_nfc_client_snep_send_client_request_sync(
 
 			net_nfc_util_free_data(&ndef_data);
 		}
+	}
+	else
+	{
+		DEBUG_ERR_MSG(" send client request (sync call) failed: %s",
+				error->message);
+		g_error_free(error);
+
+		return NET_NFC_IPC_FAIL;
 	}
 
 	return result;
@@ -373,7 +332,7 @@ API net_nfc_error_e net_nfc_client_snep_stop_service_sync(
 				error->message);
 		g_error_free(error);
 
-		return NET_NFC_IPC_FAIL;
+		result = NET_NFC_IPC_FAIL;
 	}
 
 	return result;
@@ -408,14 +367,18 @@ static void _snep_event_cb(NetNfcGDbusSnep *object,
 
 		if (callback != NULL)
 		{
-			ndef_message_h message =
-				snep_variant_to_message(arg_ndef_msg);
+			ndef_message_h message;
+
+			message = net_nfc_util_gdbus_variant_to_ndef_message(
+					arg_ndef_msg);
 
 			callback(GUINT_TO_POINTER(arg_handle),
 					arg_event,
 					arg_result,
 					message,
 					user_data);
+
+			net_nfc_free_ndef_message(message);
 		}
 
 		if (arg_event == NET_NFC_LLCP_UNREGISTERED) {
@@ -437,7 +400,7 @@ API net_nfc_error_e net_nfc_client_snep_register_server(const char *san,
 	{
 		DEBUG_ERR_MSG("Can not get Snep Proxy");
 
-		return NET_NFC_UNKNOWN_ERROR;
+		return NET_NFC_NOT_INITIALIZED;
 	}
 
 	/* prevent executing daemon when nfc is off */
@@ -461,9 +424,10 @@ API net_nfc_error_e net_nfc_client_snep_register_server(const char *san,
 		DEBUG_ERR_MSG("snep register server(sync call) failed: %s",
 				error->message);
 		g_error_free(error);
-		g_variant_unref(parameter);
 
-		result = NET_NFC_UNKNOWN_ERROR;
+		result = NET_NFC_IPC_FAIL;
+
+		g_variant_unref(parameter);
 	}
 
 	return result;
@@ -479,7 +443,7 @@ API net_nfc_error_e net_nfc_client_snep_unregister_server(const char *san,
 	{
 		DEBUG_ERR_MSG("Can not get Snep Proxy");
 
-		return NET_NFC_UNKNOWN_ERROR;
+		return NET_NFC_NOT_INITIALIZED;
 	}
 
 	/* prevent executing daemon when nfc is off */
@@ -499,7 +463,7 @@ API net_nfc_error_e net_nfc_client_snep_unregister_server(const char *san,
 				error->message);
 		g_error_free(error);
 
-		result = NET_NFC_UNKNOWN_ERROR;
+		result = NET_NFC_IPC_FAIL;
 	}
 
 	return result;

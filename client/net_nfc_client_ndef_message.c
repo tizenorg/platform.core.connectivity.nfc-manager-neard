@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <linux/limits.h>
 
 #include "net_nfc_debug_internal.h"
 #include "net_nfc_util_internal.h"
@@ -121,10 +122,10 @@ API net_nfc_error_e net_nfc_free_ndef_message(ndef_message_h ndef_message)
 API net_nfc_error_e net_nfc_get_ndef_message_record_count(
 		ndef_message_h ndef_message, int *count)
 {
+	ndef_message_s *msg = (ndef_message_s *)ndef_message;
+
 	if (ndef_message == NULL || count == NULL)
 		return NET_NFC_NULL_PARAMETER;
-
-	ndef_message_s *msg = (ndef_message_s *)ndef_message;
 
 	*count = msg->recordCount;
 
@@ -165,7 +166,7 @@ API net_nfc_error_e net_nfc_retrieve_current_ndef_message(
 		ndef_message_h* ndef_message)
 {
 	net_nfc_error_e result = NET_NFC_UNKNOWN_ERROR;
-	char file_path[1024] = {0};
+	char file_path[PATH_MAX] = { 0, };
 	FILE *fp = NULL;
 
 	if (ndef_message == NULL)
@@ -187,29 +188,37 @@ API net_nfc_error_e net_nfc_retrieve_current_ndef_message(
 
 		if (size > 0)
 		{
-			uint8_t *buffer = NULL;
+			data_s data = { NULL, 0 };
 
-			_net_nfc_util_alloc_mem(buffer, size);
-			if (buffer != NULL)
+			if (net_nfc_util_alloc_data(&data, size) == true)
 			{
+				int current;
+				size_t offset = 0;
 				/* read fully */
-				if ((size = fread(buffer, 1, size, fp)) > 0)
-				{
-					data_h data = NULL;
-					if ((result = net_nfc_create_data(&data, buffer, size)) == NET_NFC_OK)
-					{
-						result = net_nfc_create_ndef_message_from_rawdata(ndef_message, data);
+				do {
+					current = fread(data.buffer + offset, 1,
+							data.length - offset, fp);
+					if (current > 0)
+						offset += current;
+					else
+						break;
+				} while (offset < data.length);
 
-						net_nfc_free_data(data);
-					}
+				if (offset == data.length) {
+					result = net_nfc_create_ndef_message_from_rawdata(ndef_message, &data);
+				} else {
+					DEBUG_ERR_MSG("failed to read ndef message");
 				}
-
-				_net_nfc_util_free_mem(buffer);
+				net_nfc_util_free_data(&data);
+			}
+			else
+			{
+				result = NET_NFC_ALLOC_FAIL;
 			}
 		}
 		else
 		{
-			result = NET_NFC_ALLOC_FAIL;
+			result = NET_NFC_NO_NDEF_MESSAGE;
 		}
 
 		fclose(fp);

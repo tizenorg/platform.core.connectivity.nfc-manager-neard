@@ -28,8 +28,13 @@ data_s *net_nfc_util_gdbus_variant_to_data(GVariant *variant);
 void net_nfc_util_gdbus_variant_to_data_s(GVariant *variant, data_s *data);
 
 GVariant *net_nfc_util_gdbus_buffer_to_variant(const uint8_t *buffer,
-	size_t length);
+		size_t length);
 
 GVariant *net_nfc_util_gdbus_data_to_variant(const data_s *data);
+
+ndef_message_s *net_nfc_util_gdbus_variant_to_ndef_message(GVariant *variant);
+
+GVariant *net_nfc_util_gdbus_ndef_message_to_variant(
+		const ndef_message_s *message);
 
 #endif //__NET_NFC_UTIL_GDBUS_INTERNAL_H__

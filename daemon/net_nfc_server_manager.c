@@ -131,23 +131,23 @@ static net_nfc_error_e manager_deactive(void)
 	/* unregister all services */
 	net_nfc_server_llcp_unregister_all();
 
-   /* keep_SE_select_value do not need to update vconf and gdbus_se_setting */
-//	result = net_nfc_server_se_change_se(SECURE_ELEMENT_TYPE_INVALID);
+	/* keep_SE_select_value do not need to update vconf and gdbus_se_setting */
+	//	result = net_nfc_server_se_change_se(SECURE_ELEMENT_TYPE_INVALID);
 
 	{
 		net_nfc_error_e result_ese, result_uicc;
 
 		/*turn off ESE*/
 		net_nfc_controller_set_secure_element_mode(
-			SECURE_ELEMENT_TYPE_ESE,
-			SECURE_ELEMENT_OFF_MODE,
-			&result_ese);
+				SECURE_ELEMENT_TYPE_ESE,
+				SECURE_ELEMENT_OFF_MODE,
+				&result_ese);
 
 		/*turn off UICC*/
 		net_nfc_controller_set_secure_element_mode(
-			SECURE_ELEMENT_TYPE_UICC,
-			SECURE_ELEMENT_OFF_MODE,
-			&result_uicc);
+				SECURE_ELEMENT_TYPE_UICC,
+				SECURE_ELEMENT_OFF_MODE,
+				&result_uicc);
 
 	}
 
@@ -196,6 +196,8 @@ static void manager_handle_active_thread_func(gpointer user_data)
 
 		net_nfc_gdbus_manager_emit_activated(data->manager,
 				data->is_active);
+	} else {
+		DEBUG_ERR_MSG("activation change failed, [%d]", result);
 	}
 
 	g_object_unref(data->invocation);
@@ -318,7 +320,7 @@ static void manager_active_thread_func(gpointer user_data)
 	}
 	else
 	{
-		DEBUG_ERR_MSG("can not set activation");
+		DEBUG_ERR_MSG("activation change failed, [%d]", ret);
 	}
 
 	g_free(data);

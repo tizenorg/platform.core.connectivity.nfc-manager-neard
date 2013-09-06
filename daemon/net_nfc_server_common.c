@@ -220,37 +220,32 @@ static void controller_init_thread_func(gpointer user_data)
 
 	if (net_nfc_controller_init(&result) == false)
 	{
-		DEBUG_ERR_MSG("%s failed [%d]",
-				"net_nfc_controller_init",
-				result);
+		DEBUG_ERR_MSG("net_nfc_controller_init failed, [%d]", result);
 
 		net_nfc_manager_quit();
 		return;
 	}
 
-	DEBUG_SERVER_MSG("%s success [%d]",
-			"net_nfc_controller_init",
-			result);
+	INFO_MSG("net_nfc_controller_init success, [%d]", result);
 
 	if (net_nfc_controller_register_listener(controller_target_detected_cb,
 				controller_se_transaction_cb,
 				controller_llcp_event_cb,
 				&result) == false)
 	{
-		DEBUG_ERR_MSG("%s failed [%d]",
-				"net_nfc_contorller_register_listener",
+		DEBUG_ERR_MSG("net_nfc_contorller_register_listener failed [%d]",
 				result);
 	}
-	else
+	INFO_MSG("net_nfc_contorller_register_listener success");
+
+	result = net_nfc_server_llcp_set_config(NULL);
+	if (result != NET_NFC_OK)
 	{
-		DEBUG_SERVER_MSG("%s success !!",
-				"net_nfc_contorller_register_listener");
+		DEBUG_ERR_MSG("net_nfc_server_llcp_set config failed, [%d]",
+				result);
 	}
 
-	if (net_nfc_server_llcp_set_config(NULL) == NET_NFC_OK)
-		DEBUG_SERVER_MSG("llcp is enabled !!");
-	else
-		DEBUG_ERR_MSG("net_nfc_server_llcp_set config failed");
+	INFO_MSG("net_nfc_server_llcp_set_config success");
 }
 
 #ifndef ESE_ALWAYS_ON
@@ -258,23 +253,22 @@ static void controller_deinit_thread_func(gpointer user_data)
 {
 	net_nfc_error_e result;
 
-	net_nfc_controller_configure_discovery(NET_NFC_DISCOVERY_MODE_CONFIG,
-			NET_NFC_ALL_DISABLE,
-			&result);
+	if (net_nfc_controller_configure_discovery(NET_NFC_DISCOVERY_MODE_CONFIG,
+				NET_NFC_ALL_DISABLE,
+				&result) == false) {
+
+		DEBUG_ERR_MSG("net_nfc_controller_configure_discovery failed, [%d]", result);
+	}
 
 	net_nfc_server_free_target_info();
 
 	if (net_nfc_controller_deinit() == false)
 	{
-		DEBUG_ERR_MSG("%s is failed %d",
-				"net_nfc_controller_deinit",
-				result);
+		DEBUG_ERR_MSG("net_nfc_controller_deinit failed, [%d]", result);
 		return;
 	}
 
-	DEBUG_SERVER_MSG("%s success [%d]",
-			"net_nfc_controller_deinit",
-			result);
+	INFO_MSG("net_nfc_controller_deinit success");
 
 	net_nfc_manager_quit();
 }

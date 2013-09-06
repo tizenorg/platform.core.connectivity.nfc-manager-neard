@@ -28,7 +28,7 @@ typedef void (*net_nfc_se_set_card_emulation_cb)(net_nfc_error_e result,
 		void *user_data);
 
 typedef void (*net_nfc_se_open_se_cb)(net_nfc_error_e result,
-	net_nfc_target_handle_h handle, void *user_data);
+		net_nfc_target_handle_h handle, void *user_data);
 
 typedef void (*net_nfc_se_close_se_cb)(net_nfc_error_e result, void *user_data);
 
@@ -63,7 +63,7 @@ net_nfc_error_e net_nfc_client_se_get_secure_element_type(void *user_data);
 
 
 net_nfc_error_e net_nfc_client_se_get_secure_element_type_sync(
-		gint *se_type);
+		net_nfc_se_type_e *se_type);
 
 net_nfc_error_e net_nfc_set_card_emulation_mode(
 		net_nfc_card_emulation_mode_t mode,
