@@ -29,6 +29,12 @@
 #include "net_nfc_server_util.h"
 #include "net_nfc_server_se.h"
 
+enum
+{
+	SE_UICC_UNAVAILABLE = -1,
+	SE_UICC_ON_PROGRESS = 0,
+	SE_UICC_READY = 1,
+};
 
 typedef struct _nfc_se_setting_t
 {
@@ -50,6 +56,7 @@ static net_nfc_server_se_setting_t gdbus_se_setting;
 static TapiHandle *gdbus_uicc_handle;
 static net_nfc_target_handle_s *gdbus_ese_handle;
 
+static int gdbus_uicc_ready;
 /* server_side */
 typedef struct _ServerSeData ServerSeData;
 
@@ -217,25 +224,51 @@ static net_nfc_error_e net_nfc_server_se_close_ese()
 	return result;
 }
 
-
-/* UICC functions */
-static TelSimCardStatus_t _se_uicc_check_state(TapiHandle *handle)
+static void _se_uicc_enable_card_emulation()
 {
-	TelSimCardStatus_t state = TAPI_SIM_STATUS_UNKNOWN;
-	int b_card_changed = 0;
-	int error;
+	net_nfc_error_e result;
 
-	error = tel_get_sim_init_info(handle,
-			&state,
-			&b_card_changed);
-	if (error != 0)
-	{
-		DEBUG_ERR_MSG("error = [%d]", error);
+	/*turn off ESE*/
+	net_nfc_controller_set_secure_element_mode(
+			SECURE_ELEMENT_TYPE_ESE,
+			SECURE_ELEMENT_OFF_MODE,
+			&result);
+
+	/*turn on UICC*/
+	net_nfc_controller_set_secure_element_mode(
+			SECURE_ELEMENT_TYPE_UICC,
+			SECURE_ELEMENT_VIRTUAL_MODE,
+			&result);
+	if (result == NET_NFC_OK) {
+		INFO_MSG("card emulation changed to SECURE_ELEMENT_TYPE_UICC");
+
+		net_nfc_server_se_set_se_type(SECURE_ELEMENT_TYPE_UICC);
+		net_nfc_server_se_set_se_mode(SECURE_ELEMENT_VIRTUAL_MODE);
+
+		if (vconf_set_int(VCONFKEY_NFC_SE_TYPE,
+					VCONFKEY_NFC_SE_TYPE_UICC) < 0) {
+			DEBUG_ERR_MSG("vconf_set_int failed");
+		}
+	} else {
+		DEBUG_ERR_MSG("net_nfc_controller_set_secure_element_mode failed, [%d]",
+				result);
 	}
+}
 
-	DEBUG_SERVER_MSG("current sim init state = [%d]", state);
+static void _se_uicc_prepare(void)
+{
+	char **cpList;
 
-	return state;
+	cpList = tel_get_cp_name_list();
+	if (cpList != NULL) {
+		gdbus_uicc_handle = tel_init(cpList[0]);
+		if (gdbus_uicc_handle != NULL) {
+		} else {
+			DEBUG_ERR_MSG("tel_init() failed");
+		}
+	} else {
+		DEBUG_ERR_MSG("tel_get_cp_name_list() failed");
+	}
 }
 
 static void _se_uicc_status_noti_cb(TapiHandle *handle,
@@ -249,47 +282,35 @@ static void _se_uicc_status_noti_cb(TapiHandle *handle,
 
 	switch (*status) {
 	case TAPI_SIM_STATUS_SIM_INIT_COMPLETED :
-		if (gdbus_se_setting.busy == true)
-		{
-			net_nfc_error_e result = NET_NFC_OK;
-			int ret;
-			int se_type;
+		gdbus_uicc_ready = SE_UICC_READY;
 
-			DEBUG_SERVER_MSG("TAPI_SIM_STATUS_SIM_INIT_COMPLETED");
+		_se_uicc_prepare();
+
+		if (gdbus_se_setting.busy == true &&
+				net_nfc_server_se_get_se_type() == SECURE_ELEMENT_TYPE_UICC) {
 
 			gdbus_se_setting.busy = false;
 
-			/* keep_SE_select_value */
-			ret = vconf_get_int(VCONFKEY_NFC_SE_TYPE, &se_type);
-			if (ret == 0)
-			{
-				if (se_type == SECURE_ELEMENT_TYPE_UICC)
-				{
-					net_nfc_controller_set_secure_element_mode(
-							SECURE_ELEMENT_TYPE_UICC,
-							SECURE_ELEMENT_VIRTUAL_MODE, &result);
-					if (result == NET_NFC_OK) {
-						DEBUG_SERVER_MSG(
-								"changed to SECURE_ELEMENT_TYPE_UICC");
-						net_nfc_server_se_set_se_type(
-								SECURE_ELEMENT_TYPE_UICC);
-						net_nfc_server_se_set_se_mode(
-								SECURE_ELEMENT_VIRTUAL_MODE);
-					} else {
-						DEBUG_ERR_MSG(
-								"SECURE_ELEMENT_TYPE_UICC, SECURE_ELEMENT_VIRTUAL_MODE failed [%d]",
-								result);
-					}
-
-
-				}
-			}
+			_se_uicc_enable_card_emulation();
 		}
 		break;
 
 	case TAPI_SIM_STATUS_CARD_REMOVED :
 		DEBUG_SERVER_MSG("TAPI_SIM_STATUS_CARD_REMOVED");
-		/* do something */
+		gdbus_uicc_ready = SE_UICC_UNAVAILABLE;
+
+		if (net_nfc_server_se_get_se_type() == SECURE_ELEMENT_TYPE_UICC) {
+			net_nfc_error_e result;
+
+			/*turn off UICC*/
+			net_nfc_controller_set_secure_element_mode(
+					SECURE_ELEMENT_TYPE_UICC,
+					SECURE_ELEMENT_OFF_MODE,
+					&result);
+
+			net_nfc_server_se_set_se_type(SECURE_ELEMENT_TYPE_INVALID);
+			net_nfc_server_se_set_se_mode(SECURE_ELEMENT_OFF_MODE);
+		}
 		break;
 
 	default:
@@ -299,47 +320,31 @@ static void _se_uicc_status_noti_cb(TapiHandle *handle,
 
 static void _se_uicc_init(void)
 {
-	char **cpList;
-
-	cpList = tel_get_cp_name_list();
-	if (cpList != NULL) {
-		gdbus_uicc_handle = tel_init(cpList[0]);
-		if (gdbus_uicc_handle != NULL) {
-			tel_register_noti_event(gdbus_uicc_handle,
-					TAPI_NOTI_SIM_STATUS,
-					_se_uicc_status_noti_cb,
-					NULL);
-
-		} else {
-			DEBUG_ERR_MSG("tel_init() failed");
-		}
-	} else {
-		DEBUG_ERR_MSG("tel_get_cp_name_list() failed");
-	}
+	_se_uicc_prepare();
+	tel_register_noti_event(gdbus_uicc_handle,
+			TAPI_NOTI_SIM_STATUS,
+			_se_uicc_status_noti_cb,
+			NULL);
 }
 
 static void _se_uicc_deinit()
 {
-	tel_deregister_noti_event(gdbus_uicc_handle,
-			TAPI_NOTI_SIM_STATUS);
+	if (gdbus_uicc_handle != NULL) {
+		tel_deregister_noti_event(gdbus_uicc_handle,
+				TAPI_NOTI_SIM_STATUS);
 
-	tel_deinit(gdbus_uicc_handle);
+		tel_deinit(gdbus_uicc_handle);
 
-	gdbus_uicc_handle = NULL;
+		gdbus_uicc_handle = NULL;
+	}
 }
-
 
 static net_nfc_target_handle_s* _se_uicc_open()
 {
 	net_nfc_target_handle_s *result = NULL;
 
-	if (gdbus_uicc_handle != NULL) {
-		TelSimCardStatus_t status;
-
-		status = _se_uicc_check_state(gdbus_uicc_handle);
-		if (status == TAPI_SIM_STATUS_SIM_INIT_COMPLETED) {
-			result = (net_nfc_target_handle_s *)gdbus_uicc_handle;
-		}
+	if (gdbus_uicc_ready == SE_UICC_READY && gdbus_uicc_handle != NULL) {
+		result = (net_nfc_target_handle_s *)gdbus_uicc_handle;
 	}
 
 	return result;
@@ -347,7 +352,8 @@ static net_nfc_target_handle_s* _se_uicc_open()
 
 static bool _se_is_uicc_handle(net_nfc_target_handle_s *handle)
 {
-	return (gdbus_uicc_handle != NULL &&
+	return (gdbus_uicc_ready == SE_UICC_READY &&
+			gdbus_uicc_handle != NULL &&
 			(TapiHandle *)handle == gdbus_uicc_handle);
 }
 
@@ -356,6 +362,28 @@ static void _se_uicc_close(net_nfc_target_handle_s *handle)
 }
 
 /* SE Functions */
+net_nfc_error_e net_nfc_server_se_disable_card_emulation()
+{
+	net_nfc_error_e result;
+
+	net_nfc_server_se_set_se_type(SECURE_ELEMENT_TYPE_INVALID);
+	net_nfc_server_se_set_se_mode(SECURE_ELEMENT_OFF_MODE);
+
+	/*turn off ESE*/
+	net_nfc_controller_set_secure_element_mode(
+			SECURE_ELEMENT_TYPE_ESE,
+			SECURE_ELEMENT_OFF_MODE,
+			&result);
+
+	/*turn off UICC*/
+	net_nfc_controller_set_secure_element_mode(
+			SECURE_ELEMENT_TYPE_UICC,
+			SECURE_ELEMENT_OFF_MODE,
+			&result);
+
+	return NET_NFC_OK;
+}
+
 net_nfc_error_e net_nfc_server_se_change_se(uint8_t type)
 {
 	net_nfc_error_e result = NET_NFC_OK;
@@ -363,45 +391,17 @@ net_nfc_error_e net_nfc_server_se_change_se(uint8_t type)
 	switch (type) {
 	case SECURE_ELEMENT_TYPE_UICC :
 		if (gdbus_se_setting.busy == false) {
-			TelSimCardStatus_t state;
+			if (gdbus_uicc_ready == SE_UICC_READY) {
+				_se_uicc_enable_card_emulation();
+			} else if (gdbus_uicc_ready == SE_UICC_ON_PROGRESS) {
+				INFO_MSG("waiting for uicc initializing complete...");
 
-			/*turn off ESE*/
-			net_nfc_controller_set_secure_element_mode(
-					SECURE_ELEMENT_TYPE_ESE,
-					SECURE_ELEMENT_OFF_MODE,
-					&result);
-
-			state = _se_uicc_check_state(gdbus_uicc_handle);
-			if (state == TAPI_SIM_STATUS_SIM_INIT_COMPLETED ||
-					state == TAPI_SIM_STATUS_CARD_NOT_PRESENT ||
-					state == TAPI_SIM_STATUS_CARD_REMOVED) {
-				/*turn on UICC*/
-				net_nfc_controller_set_secure_element_mode(
-						SECURE_ELEMENT_TYPE_UICC,
-						SECURE_ELEMENT_VIRTUAL_MODE, &result);
-				if (result == NET_NFC_OK) {
-					DEBUG_SERVER_MSG(
-							"changed to SECURE_ELEMENT_TYPE_UICC");
-
-					net_nfc_server_se_set_se_type(
-							SECURE_ELEMENT_TYPE_UICC);
-					net_nfc_server_se_set_se_mode(
-							SECURE_ELEMENT_VIRTUAL_MODE);
-
-					if (vconf_set_int(
-								VCONFKEY_NFC_SE_TYPE,
-								VCONFKEY_NFC_SE_TYPE_UICC) != 0)
-					{
-						DEBUG_ERR_MSG("vconf_set_int failed");
-					}
-				} else {
-					DEBUG_ERR_MSG("SECURE_ELEMENT_TYPE_UICC, SECURE_ELEMENT_VIRTUAL_MODE failed [%d]",
-							result);
-				}
-			} else {
-				DEBUG_SERVER_MSG("UICC is not ready. waiting UICC event");
+				net_nfc_server_se_set_se_type(SECURE_ELEMENT_TYPE_UICC);
+				net_nfc_server_se_set_se_mode(SECURE_ELEMENT_VIRTUAL_MODE);
 
 				gdbus_se_setting.busy = true;
+			} else {
+				result = NET_NFC_NOT_SUPPORTED;
 			}
 		} else {
 			DEBUG_SERVER_MSG("Previous request is processing.");
@@ -424,7 +424,7 @@ net_nfc_error_e net_nfc_server_se_change_se(uint8_t type)
 				&result);
 
 		if (result == NET_NFC_OK) {
-			DEBUG_SERVER_MSG("changed to SECURE_ELEMENT_TYPE_ESE");
+			INFO_MSG("card emulation changed to SECURE_ELEMENT_TYPE_ESE");
 
 			net_nfc_server_se_set_se_type(SECURE_ELEMENT_TYPE_ESE);
 			net_nfc_server_se_set_se_mode(SECURE_ELEMENT_VIRTUAL_MODE);
@@ -434,45 +434,18 @@ net_nfc_error_e net_nfc_server_se_change_se(uint8_t type)
 				DEBUG_ERR_MSG("vconf_set_int failed");
 			}
 		} else {
-			DEBUG_ERR_MSG("SECURE_ELEMENT_TYPE_ESE, SECURE_ELEMENT_VIRTUAL_MODE failed [%d]", result);
+			DEBUG_ERR_MSG("net_nfc_controller_set_secure_element_mode failed, [%d]", result);
 		}
 		break;
 
 	default:
-		{
-			net_nfc_error_e result_ese, result_uicc;
+		result = net_nfc_server_se_disable_card_emulation();
+		if (result == NET_NFC_OK){
+			INFO_MSG("card emulation turned off");
 
-			net_nfc_server_se_set_se_type(
-					SECURE_ELEMENT_TYPE_INVALID);
-			net_nfc_server_se_set_se_mode(SECURE_ELEMENT_OFF_MODE);
-
-			/*turn off ESE*/
-			net_nfc_controller_set_secure_element_mode(
-					SECURE_ELEMENT_TYPE_ESE,
-					SECURE_ELEMENT_OFF_MODE,
-					&result_ese);
-
-			/*turn off UICC*/
-			net_nfc_controller_set_secure_element_mode(
-					SECURE_ELEMENT_TYPE_UICC,
-					SECURE_ELEMENT_OFF_MODE,
-					&result_uicc);
-
-			if (result_ese != NET_NFC_INVALID_HANDLE
-					&& result_uicc != NET_NFC_INVALID_HANDLE) {
-				DEBUG_SERVER_MSG("SE off all");
-				if (vconf_set_int(VCONFKEY_NFC_SE_TYPE,
-							VCONFKEY_NFC_SE_TYPE_NONE) != 0) {
-					DEBUG_ERR_MSG("vconf_set_int failed");
-				}
-
-				result = NET_NFC_OK;
-			}
-			else
-			{
-				DEBUG_ERR_MSG("ALL OFF failed, ese [%d], uicc [%d]",result_ese, result_uicc);
-
-				result = NET_NFC_INVALID_HANDLE;
+			if (vconf_set_int(VCONFKEY_NFC_SE_TYPE,
+						VCONFKEY_NFC_SE_TYPE_NONE) != 0) {
+				DEBUG_ERR_MSG("vconf_set_int failed");
 			}
 		}
 		break;

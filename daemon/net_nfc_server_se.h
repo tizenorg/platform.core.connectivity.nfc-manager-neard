@@ -29,6 +29,8 @@ uint8_t net_nfc_server_se_get_se_mode();
 
 net_nfc_error_e net_nfc_server_se_change_se(uint8_t type);
 
+net_nfc_error_e net_nfc_server_se_disable_card_emulation();
+
 /***************************************************************/
 
 gboolean net_nfc_server_se_init(GDBusConnection *connection);

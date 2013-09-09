@@ -132,24 +132,7 @@ static net_nfc_error_e manager_deactive(void)
 	net_nfc_server_llcp_unregister_all();
 
 	/* keep_SE_select_value do not need to update vconf and gdbus_se_setting */
-	//	result = net_nfc_server_se_change_se(SECURE_ELEMENT_TYPE_INVALID);
-
-	{
-		net_nfc_error_e result_ese, result_uicc;
-
-		/*turn off ESE*/
-		net_nfc_controller_set_secure_element_mode(
-				SECURE_ELEMENT_TYPE_ESE,
-				SECURE_ELEMENT_OFF_MODE,
-				&result_ese);
-
-		/*turn off UICC*/
-		net_nfc_controller_set_secure_element_mode(
-				SECURE_ELEMENT_TYPE_UICC,
-				SECURE_ELEMENT_OFF_MODE,
-				&result_uicc);
-
-	}
+	result = net_nfc_server_se_disable_card_emulation();
 
 	if (net_nfc_controller_configure_discovery(
 				NET_NFC_DISCOVERY_MODE_STOP,
