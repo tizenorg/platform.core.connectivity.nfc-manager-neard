@@ -36,6 +36,7 @@ static NetNfcGDbusManager *manager_proxy = NULL;
 static gboolean activation_is_running = FALSE;
 static ManagerFuncData activated_func_data;
 static int is_activated = -1;
+static guint timeout_id[2];
 
 static void manager_call_set_active_callback(GObject *source_object,
 		GAsyncResult *res,
@@ -54,11 +55,13 @@ static void manager_activated(NetNfcGDbusManager *manager,
 static gboolean _set_activate_time_elapsed_callback(gpointer user_data)
 {
 	ManagerFuncData *func_data = (ManagerFuncData *)user_data;
+	net_nfc_client_manager_set_active_completed callback;
 
 	g_assert(func_data != NULL);
 
-	net_nfc_client_manager_set_active_completed callback =
-		(net_nfc_client_manager_set_active_completed)func_data->callback;
+	timeout_id[0] = 0;
+
+	callback = (net_nfc_client_manager_set_active_completed)func_data->callback;
 
 	callback(func_data->result, func_data->user_data);
 
@@ -94,7 +97,7 @@ static void manager_call_set_active_callback(GObject *source_object,
 	if (is_activated == false)
 	{
 		//TODO : wait several times
-		g_timeout_add(DEACTIVATE_DELAY,
+		timeout_id[0] = g_timeout_add(DEACTIVATE_DELAY,
 				_set_activate_time_elapsed_callback,
 				func_data);
 	}
@@ -147,13 +150,15 @@ static gboolean _activated_time_elapsed_callback(gpointer user_data)
 	net_nfc_client_manager_activated callback =
 		(net_nfc_client_manager_activated)activated_func_data.callback;
 
+	timeout_id[1] = 0;
+
 	callback(is_activated, activated_func_data.user_data);
 
 	return false;
 }
 
 static void manager_activated(NetNfcGDbusManager *manager, gboolean activated,
-	gpointer user_data)
+		gpointer user_data)
 {
 	INFO_MSG(">>> SIGNAL arrived");
 	DEBUG_CLIENT_MSG("activated %d", activated);
@@ -166,7 +171,8 @@ static void manager_activated(NetNfcGDbusManager *manager, gboolean activated,
 		if (is_activated == false)
 		{
 			/* FIXME : wait several times */
-			g_timeout_add(DEACTIVATE_DELAY, _activated_time_elapsed_callback, NULL);
+			timeout_id[1] = g_timeout_add(DEACTIVATE_DELAY,
+					_activated_time_elapsed_callback, NULL);
 		}
 		else
 		{
@@ -361,6 +367,15 @@ void net_nfc_client_manager_deinit(void)
 {
 	if (manager_proxy)
 	{
+		int i;
+
+		for (i = 0; i < 2; i++) {
+			if (timeout_id[i] > 0) {
+				g_source_remove(timeout_id[i]);
+				timeout_id[i] = 0;
+			}
+		}
+
 		g_object_unref(manager_proxy);
 		manager_proxy = NULL;
 	}
