@@ -363,6 +363,15 @@
     </method>
 
     <!--
+      Get
+    -->
+    <method name="Get">
+      <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
+      <arg type="i" name="type" direction="out" />
+    </method>
+
+    <!--
       SetCardEmulation
     -->
     <method name="SetCardEmulation">

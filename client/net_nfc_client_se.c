@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <vconf.h>
 
 #include "net_nfc_typedef_internal.h"
 #include "net_nfc_debug_internal.h"
@@ -160,7 +161,7 @@ static void set_secure_element(GObject *source_object,
 		gpointer user_data)
 {
 	SeFuncData *func_data = (SeFuncData *)user_data;
-	net_nfc_error_e result;
+	net_nfc_error_e result = NET_NFC_OK;
 	GError *error = NULL;
 
 	g_assert(user_data != NULL);
@@ -189,6 +190,41 @@ static void set_secure_element(GObject *source_object,
 	g_free(func_data);
 }
 
+static void get_secure_element(GObject *source_object,
+		GAsyncResult *res,
+		gpointer user_data)
+{
+	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
+	net_nfc_error_e result = NET_NFC_OK;
+	gint type = 0;
+	GError *error = NULL;
+
+	g_assert(user_data != NULL);
+
+	if (net_nfc_gdbus_secure_element_call_get_finish(se_proxy,
+				&result,
+				&type,
+				res,
+				&error) == FALSE)
+	{
+		DEBUG_ERR_MSG("Could not set secure element: %s",
+				error->message);
+
+		g_error_free(error);
+
+		result = NET_NFC_IPC_FAIL;
+	}
+
+	if (func_data->callback != NULL)
+	{
+		net_nfc_se_get_se_cb se_callback =
+			(net_nfc_se_get_se_cb)func_data->callback;
+
+		se_callback(result, type, func_data->user_data);
+	}
+
+	g_free(func_data);
+}
 
 static void _set_card_emulation_cb(GObject *source_object,
 		GAsyncResult *res,
@@ -454,6 +490,86 @@ API net_nfc_error_e net_nfc_client_se_set_secure_element_type_sync(
 		result = NET_NFC_IPC_FAIL;
 	}
 
+	return result;
+}
+
+API net_nfc_error_e net_nfc_client_se_get_secure_element_type(
+		net_nfc_se_get_se_cb callback,
+		void *user_data)
+{
+	NetNfcCallback *func_data;
+
+	if (se_proxy == NULL)
+	{
+		DEBUG_ERR_MSG("Can not get se_proxy");
+
+		return NET_NFC_NOT_INITIALIZED;
+	}
+
+	/* prevent executing daemon when nfc is off */
+	if (net_nfc_client_manager_is_activated() == false) {
+		return NET_NFC_INVALID_STATE;
+	}
+
+	func_data = g_try_new0(NetNfcCallback, 1);
+	if (func_data == NULL)
+		return NET_NFC_ALLOC_FAIL;
+
+	func_data->callback = (gpointer)callback;
+	func_data->user_data = user_data;
+
+	net_nfc_gdbus_secure_element_call_get(
+			se_proxy,
+			net_nfc_client_gdbus_get_privilege(),
+			NULL,
+			get_secure_element,
+			func_data);
+
+	return NET_NFC_OK;
+}
+
+API net_nfc_error_e net_nfc_client_se_get_secure_element_type_sync(
+		net_nfc_se_type_e *se_type)
+{
+	net_nfc_error_e result = NET_NFC_OK;
+	gint type;
+#if 0
+	GError *error = NULL;
+#endif
+	if (se_proxy == NULL)
+	{
+		DEBUG_ERR_MSG("Can not get se_proxy");
+
+		return NET_NFC_NOT_INITIALIZED;
+	}
+
+	/* prevent executing daemon when nfc is off */
+	if (net_nfc_client_manager_is_activated() == false) {
+		return NET_NFC_INVALID_STATE;
+	}
+#if 1
+	if (vconf_get_int(VCONFKEY_NFC_SE_TYPE, &type) == 0) {
+		*se_type = type;
+	} else {
+		result = NET_NFC_OPERATION_FAIL;
+	}
+#else
+	if (net_nfc_gdbus_secure_element_call_get_sync(
+				se_proxy,
+				net_nfc_client_gdbus_get_privilege(),
+				&result,
+				(gint)&type,
+				NULL,
+				&error) == true) {
+		*se_type = type;
+	} else {
+		DEBUG_ERR_MSG("Set secure element failed: %s", error->message);
+
+		g_error_free(error);
+
+		result = NET_NFC_IPC_FAIL;
+	}
+#endif
 	return result;
 }
 

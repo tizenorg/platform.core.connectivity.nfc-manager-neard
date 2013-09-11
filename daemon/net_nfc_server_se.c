@@ -57,6 +57,7 @@ static TapiHandle *gdbus_uicc_handle;
 static net_nfc_target_handle_s *gdbus_ese_handle;
 
 static int gdbus_uicc_ready;
+
 /* server_side */
 typedef struct _ServerSeData ServerSeData;
 
@@ -1113,6 +1114,78 @@ static gboolean se_handle_set(
 	return result;
 }
 
+static void se_get_data_thread_func(gpointer user_data)
+{
+	SeDataSeType *data = (SeDataSeType *)user_data;
+	net_nfc_error_e result = NET_NFC_OK;
+
+	g_assert(data != NULL);
+	g_assert(data->object != NULL);
+	g_assert(data->invocation != NULL);
+
+	net_nfc_gdbus_secure_element_complete_get(data->object,
+			data->invocation,
+			net_nfc_server_se_get_se_type(),
+			result);
+
+	g_object_unref(data->invocation);
+	g_object_unref(data->object);
+
+	g_free(data);
+}
+
+static gboolean se_handle_get(
+		NetNfcGDbusSecureElement *object,
+		GDBusMethodInvocation *invocation,
+		GVariant *smack_privilege)
+{
+	SeDataSeType *data;
+	gboolean result;
+
+	INFO_MSG(">>> REQUEST from [%s]",
+			g_dbus_method_invocation_get_sender(invocation));
+
+	/* check privilege and update client context */
+	if (net_nfc_server_gdbus_check_privilege(invocation,
+				smack_privilege,
+				"nfc-manager",
+				"r") == false) {
+		DEBUG_ERR_MSG("permission denied, and finished request");
+
+		return FALSE;
+	}
+
+	data = g_try_new0(SeDataSeType, 1);
+	if (data == NULL)
+	{
+		DEBUG_ERR_MSG("Memory allocation failed");
+		g_dbus_method_invocation_return_dbus_error(invocation,
+				"org.tizen.NetNfcService.AllocationError",
+				"Can not allocate memory");
+
+		return FALSE;
+	}
+
+	data->object = g_object_ref(object);
+	data->invocation = g_object_ref(invocation);
+
+	result = net_nfc_server_controller_async_queue_push(
+			se_get_data_thread_func, data);
+	if (result == FALSE)
+	{
+		g_dbus_method_invocation_return_dbus_error(invocation,
+				"org.tizen.NetNfcService.Se.ThreadError",
+				"can not push to controller thread");
+
+		g_object_unref(data->object);
+		g_object_unref(data->invocation);
+
+		g_free(data);
+	}
+
+	return result;
+}
+
 gboolean net_nfc_server_se_init(GDBusConnection *connection)
 {
 	GError *error = NULL;
@@ -1130,6 +1203,12 @@ gboolean net_nfc_server_se_init(GDBusConnection *connection)
 			"handle-set",
 			G_CALLBACK(se_handle_set),
 			NULL);
+
+	g_signal_connect(se_skeleton,
+			"handle-get",
+			G_CALLBACK(se_handle_get),
+			NULL);
+
 	g_signal_connect(se_skeleton,
 			"handle-set-card-emulation",
 			G_CALLBACK(_se_handle_set_card_emulation),

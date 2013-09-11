@@ -24,6 +24,11 @@ typedef void (*net_nfc_se_set_se_cb)(
 		net_nfc_error_e result,
 		void *user_data);
 
+typedef void (*net_nfc_se_get_se_cb)(
+		net_nfc_error_e result,
+		net_nfc_se_type_e se_type,
+		void *user_data);
+
 typedef void (*net_nfc_se_set_card_emulation_cb)(net_nfc_error_e result,
 		void *user_data);
 
@@ -59,8 +64,8 @@ net_nfc_error_e net_nfc_client_se_set_secure_element_type_sync(
 		net_nfc_se_type_e se_type);
 
 
-net_nfc_error_e net_nfc_client_se_get_secure_element_type(void *user_data);
-
+net_nfc_error_e net_nfc_client_se_get_secure_element_type(
+		net_nfc_se_get_se_cb callback, void *user_data);
 
 net_nfc_error_e net_nfc_client_se_get_secure_element_type_sync(
 		net_nfc_se_type_e *se_type);
@@ -74,36 +79,32 @@ net_nfc_error_e net_nfc_set_card_emulation_mode_sync(
 		net_nfc_card_emulation_mode_t mode);
 
 net_nfc_error_e net_nfc_client_se_open_internal_secure_element(
-		net_nfc_se_type_e se_type, net_nfc_se_open_se_cb callback, void *user_data);
-
+		net_nfc_se_type_e se_type,
+		net_nfc_se_open_se_cb callback,
+		void *user_data);
 
 net_nfc_error_e net_nfc_client_se_open_internal_secure_element_sync(
 		net_nfc_se_type_e se_type, net_nfc_target_handle_h *handle);
 
-
 net_nfc_error_e net_nfc_client_se_close_internal_secure_element(
-		net_nfc_target_handle_h handle, net_nfc_se_close_se_cb callback, void *user_data);
-
+		net_nfc_target_handle_h handle,
+		net_nfc_se_close_se_cb callback,
+		void *user_data);
 
 net_nfc_error_e net_nfc_client_se_close_internal_secure_element_sync(
 		net_nfc_target_handle_h handle);
 
-
 net_nfc_error_e net_nfc_client_se_get_atr(net_nfc_target_handle_h handle,
 		net_nfc_se_get_atr_cb callback, void *user_data);
-
 
 net_nfc_error_e net_nfc_client_se_get_atr_sync(net_nfc_target_handle_h handle,
 		data_h *atr);
 
-
 net_nfc_error_e net_nfc_client_se_send_apdu(net_nfc_target_handle_h handle,
 		data_h apdu_data, net_nfc_se_send_apdu_cb callback, void *user_data);
 
-
 net_nfc_error_e net_nfc_client_se_send_apdu_sync(
 		net_nfc_target_handle_h handle, data_h apdu_data, data_h *response);
-
 
 /************* Secure Element CallBack Register/Deregister functions*************/
 
