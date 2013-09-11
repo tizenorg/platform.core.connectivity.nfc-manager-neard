@@ -427,22 +427,6 @@ static TestData test_data[] = {
 
 	{
 		"llcp",
-		"CreateSocket",
-		net_nfc_test_llcp_create_socket,
-		NULL,
-		"Create a LLCP socket"
-	},
-
-	{
-		"llcp",
-		"CloseSocket",
-		net_nfc_test_llcp_close_socket,
-		net_nfc_test_llcp_close_socket_sync,
-		"Close the socket"
-	},
-
-	{
-		"llcp",
 		"SetDefaultConfig",
 		net_nfc_test_llcp_default_config,
 		net_nfc_test_llcp_default_config_sync,

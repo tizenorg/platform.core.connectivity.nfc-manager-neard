@@ -161,56 +161,111 @@ static void controller_se_transaction_cb(void *info,
 	}
 }
 
-static void controller_llcp_event_cb(void *info,
-		void *user_context)
+static void _controller_llcp_event_cb(gpointer user_data)
 {
-	net_nfc_request_llcp_msg_t *req_llcp_msg;
-	net_nfc_request_msg_t *req_msg;
+	net_nfc_request_llcp_msg_t *req_msg =
+		(net_nfc_request_llcp_msg_t *)user_data;
 
-	if (info == NULL)
+	if (req_msg == NULL)
 	{
 		DEBUG_ERR_MSG("can not get llcp_event info");
+
 		return;
 	}
-
-	req_llcp_msg = (net_nfc_request_llcp_msg_t *)info;
-	req_llcp_msg->user_param = (uint32_t) user_context;
-
-	req_msg = (net_nfc_request_msg_t *)req_llcp_msg;
 
 	switch (req_msg->request_type)
 	{
 	case NET_NFC_MESSAGE_SERVICE_LLCP_DEACTIVATED:
-		net_nfc_server_llcp_deactivated(req_msg);
+		net_nfc_server_llcp_deactivated(NULL);
 		break;
+
 	case NET_NFC_MESSAGE_SERVICE_LLCP_LISTEN:
-		net_nfc_server_llcp_listen(req_msg);
+		{
+			net_nfc_request_listen_socket_t *msg =
+				(net_nfc_request_listen_socket_t *)user_data;
+
+			net_nfc_controller_llcp_incoming_cb(msg->client_socket,
+					msg->result, NULL, (void *)req_msg->user_param);
+		}
 		break;
+
 	case NET_NFC_MESSAGE_SERVICE_LLCP_SOCKET_ERROR:
 	case NET_NFC_MESSAGE_SERVICE_LLCP_SOCKET_ACCEPTED_ERROR:
-		net_nfc_server_llcp_socket_error(req_msg);
+		net_nfc_controller_llcp_socket_error_cb(
+				req_msg->llcp_socket,
+				req_msg->result,
+				NULL,
+				(void *)req_msg->user_param);
 		break;
+
 	case NET_NFC_MESSAGE_SERVICE_LLCP_SEND:
 	case NET_NFC_MESSAGE_SERVICE_LLCP_SEND_TO:
-		net_nfc_server_llcp_send(req_msg);
+		net_nfc_controller_llcp_sent_cb(
+				req_msg->llcp_socket,
+				req_msg->result,
+				NULL,
+				(void *)req_msg->user_param);
 		break;
+
 	case NET_NFC_MESSAGE_SERVICE_LLCP_RECEIVE:
-		net_nfc_server_llcp_receive(req_msg);
+		{
+			net_nfc_request_receive_socket_t *msg =
+				(net_nfc_request_receive_socket_t *)user_data;
+			data_s data = { msg->data.buffer, msg->data.length };
+
+			net_nfc_controller_llcp_received_cb(msg->client_socket,
+					msg->result,
+					&data,
+					(void *)req_msg->user_param);
+		}
 		break;
+
 	case NET_NFC_MESSAGE_SERVICE_LLCP_RECEIVE_FROM:
-		net_nfc_server_llcp_receive_from(req_msg);
+		{
+			net_nfc_request_receive_from_socket_t *msg =
+				(net_nfc_request_receive_from_socket_t *)user_data;
+			data_s data = { msg->data.buffer, msg->data.length };
+
+			/* FIXME : pass sap */
+			net_nfc_controller_llcp_received_cb(msg->client_socket,
+					msg->result,
+					&data,
+					(void *)req_msg->user_param);
+		}
 		break;
+
 	case NET_NFC_MESSAGE_SERVICE_LLCP_CONNECT:
 	case NET_NFC_MESSAGE_SERVICE_LLCP_CONNECT_SAP:
-		net_nfc_server_llcp_connect(req_msg);
+		net_nfc_controller_llcp_connected_cb(
+				req_msg->llcp_socket,
+				req_msg->result,
+				NULL,
+				(void *)req_msg->user_param);
 		break;
+
 	case NET_NFC_MESSAGE_SERVICE_LLCP_DISCONNECT:
-		net_nfc_server_llcp_disconnect(req_msg);
+		net_nfc_controller_llcp_disconnected_cb(
+				req_msg->llcp_socket,
+				req_msg->result,
+				NULL,
+				(void *)req_msg->user_param);
 		break;
-	case NET_NFC_MESSAGE_SERVICE_LLCP_ACCEPT: /* currently not used */
-		break;
+
 	default:
 		break;
+	}
+
+	/* FIXME : should be removed when plugins would be fixed*/
+	_net_nfc_util_free_mem(req_msg);
+}
+
+/* FIXME : net_nfc_dispatcher_queue_push() need to be removed */
+static void controller_llcp_event_cb(void *info, void *user_context)
+{
+	if(net_nfc_server_controller_async_queue_push(
+				_controller_llcp_event_cb, info) == FALSE)
+	{
+		DEBUG_ERR_MSG("Failed to push onto the queue");
 	}
 }
 
@@ -236,6 +291,7 @@ static void controller_init_thread_func(gpointer user_data)
 		DEBUG_ERR_MSG("net_nfc_contorller_register_listener failed [%d]",
 				result);
 	}
+
 	INFO_MSG("net_nfc_contorller_register_listener success");
 
 	result = net_nfc_server_llcp_set_config(NULL);
@@ -284,16 +340,15 @@ static void restart_polling_loop_thread_func(gpointer user_data)
 
 	if (vconf_get_bool(VCONFKEY_NFC_STATE, &state) != 0)
 		DEBUG_ERR_MSG("%s does not exist", "VCONFKEY_NFC_STATE");
+
 	if (state == 0)
 		return;
 
 	if (vconf_get_int(VCONFKEY_PM_STATE, &pm_state) != 0)
 		DEBUG_ERR_MSG("%s does not exist", "VCONFKEY_PM_STATE");
 
-
 	DEBUG_SERVER_MSG("net_nfc_service_restart_polling, state = [%d]",
 			pm_state);
-
 
 	if (pm_state == VCONFKEY_PM_STATE_NORMAL)
 	{
@@ -393,6 +448,7 @@ gboolean net_nfc_server_controller_async_queue_push(
 	if(controller_async_queue == NULL)
 	{
 		DEBUG_ERR_MSG("controller_async_queue is not initialized");
+
 		return FALSE;
 	}
 

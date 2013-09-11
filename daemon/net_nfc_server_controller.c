@@ -648,7 +648,7 @@ static gint _compare_socket_info(gconstpointer a, gconstpointer b)
 	return result;
 }
 
-socket_info_t *_get_socket_info(net_nfc_llcp_socket_t socket)
+static socket_info_t* _get_socket_info(net_nfc_llcp_socket_t socket)
 {
 	socket_info_t *result;
 	GSList *item;
@@ -664,7 +664,7 @@ socket_info_t *_get_socket_info(net_nfc_llcp_socket_t socket)
 	return result;
 }
 
-socket_info_t* _add_socket_info(net_nfc_llcp_socket_t socket)
+static socket_info_t* _add_socket_info(net_nfc_llcp_socket_t socket)
 {
 	socket_info_t *result;
 

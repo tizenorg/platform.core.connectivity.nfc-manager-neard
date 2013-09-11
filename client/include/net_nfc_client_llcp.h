@@ -25,6 +25,12 @@ typedef void (*net_nfc_client_llcp_listen_completed) (net_nfc_error_e result,
 		net_nfc_llcp_socket_t client_socket,
 		void *user_data);
 
+typedef void (*net_nfc_client_llcp_accept_completed)(net_nfc_error_e result,
+		void *user_data);
+
+typedef void (*net_nfc_client_llcp_reject_completed)(net_nfc_error_e result,
+		void *user_data);
+
 typedef void (*net_nfc_client_llcp_connect_completed) (net_nfc_error_e result,
 		net_nfc_llcp_socket_t client_socket,
 		void *user_data);
@@ -35,11 +41,9 @@ typedef void (*net_nfc_client_llcp_connect_sap_completed) (
 		void *user_data);
 
 typedef void (*net_nfc_client_llcp_send_completed) (net_nfc_error_e result,
-		net_nfc_llcp_socket_t client_socket,
 		void *user_data);
 
 typedef void (*net_nfc_client_llcp_send_to_completed) (net_nfc_error_e result,
-		net_nfc_llcp_socket_t client_socket,
 		void *user_data);
 
 typedef void (*net_nfc_client_llcp_receive_completed) (net_nfc_error_e result,
@@ -53,20 +57,19 @@ typedef void (*net_nfc_client_llcp_receive_from_completed) (
 		void *user_data);
 
 typedef void (*net_nfc_client_llcp_close_completed) (net_nfc_error_e result,
-		net_nfc_llcp_socket_t client_socket,
 		void *user_data);
 
 typedef void (*net_nfc_client_llcp_disconnect_completed)(net_nfc_error_e result,
-		net_nfc_llcp_socket_t client_socket, void *user_data);
+		void *user_data);
 
 net_nfc_error_e net_nfc_client_llcp_config(net_nfc_llcp_config_info_h config,
 		net_nfc_client_llcp_config_completed callback, void *user_data);
 
 net_nfc_error_e net_nfc_client_llcp_config_sync
-					(net_nfc_llcp_config_info_h config);
+(net_nfc_llcp_config_info_h config);
 
 net_nfc_error_e net_nfc_client_llcp_get_config
-					(net_nfc_llcp_config_info_h *config);
+(net_nfc_llcp_config_info_h *config);
 
 net_nfc_error_e net_nfc_client_llcp_listen(net_nfc_llcp_socket_t socket,
 		const char *service_name,
@@ -78,6 +81,18 @@ net_nfc_error_e net_nfc_client_llcp_listen_sync(net_nfc_llcp_socket_t socket,
 		const char *service_name,
 		sap_t sap,
 		net_nfc_llcp_socket_t *out_socket);
+
+net_nfc_error_e net_nfc_client_llcp_accept(net_nfc_llcp_socket_t socket,
+		net_nfc_client_llcp_accept_completed callback,
+		void *user_data);
+
+net_nfc_error_e net_nfc_client_llcp_accept_sync(net_nfc_llcp_socket_t socket);
+
+net_nfc_error_e net_nfc_client_llcp_reject(net_nfc_llcp_socket_t socket,
+		net_nfc_client_llcp_reject_completed callback,
+		void *user_data);
+
+net_nfc_error_e net_nfc_client_llcp_reject_sync(net_nfc_llcp_socket_t socket);
 
 net_nfc_error_e net_nfc_client_llcp_connect(net_nfc_llcp_socket_t socket,
 		const char *service_name,
@@ -94,8 +109,7 @@ net_nfc_error_e net_nfc_client_llcp_send(net_nfc_llcp_socket_t socket,
 		void *user_data);
 
 net_nfc_error_e net_nfc_client_llcp_send_sync(net_nfc_llcp_socket_t socket,
-		data_h data,
-		net_nfc_llcp_socket_t *out_socket);
+		data_h data);
 
 net_nfc_error_e net_nfc_client_llcp_send_to(net_nfc_llcp_socket_t socket,
 		sap_t sap,
@@ -104,9 +118,7 @@ net_nfc_error_e net_nfc_client_llcp_send_to(net_nfc_llcp_socket_t socket,
 		void *user_data);
 
 net_nfc_error_e net_nfc_client_llcp_send_to_sync(net_nfc_llcp_socket_t socket,
-		sap_t sap,
-		data_h data,
-		net_nfc_llcp_socket_t *out_socket);
+		sap_t sap, data_h data);
 
 net_nfc_error_e net_nfc_client_llcp_receive(net_nfc_llcp_socket_t socket,
 		size_t request_length,
@@ -123,24 +135,22 @@ net_nfc_error_e net_nfc_client_llcp_receive_from(net_nfc_llcp_socket_t socket,
 		void *user_data);
 
 net_nfc_error_e net_nfc_client_llcp_receive_from_sync(net_nfc_llcp_socket_t socket,
-		 size_t request_length,
-		 sap_t *out_sap,
-		 data_h *out_data);
+		size_t request_length,
+		sap_t *out_sap,
+		data_h *out_data);
 
 net_nfc_error_e net_nfc_client_llcp_close(net_nfc_llcp_socket_t socket,
 		net_nfc_client_llcp_close_completed callback,
 		void *user_data);
 
-net_nfc_error_e net_nfc_client_llcp_close_sync(net_nfc_llcp_socket_t socket,
-		net_nfc_llcp_socket_t *out_socket);
+net_nfc_error_e net_nfc_client_llcp_close_sync(net_nfc_llcp_socket_t socket);
 
 net_nfc_error_e net_nfc_client_llcp_disconnect(net_nfc_llcp_socket_t socket,
 		net_nfc_client_llcp_disconnect_completed callback,
 		void *user_data);
 
 net_nfc_error_e net_nfc_client_llcp_disconnect_sync(
-		net_nfc_llcp_socket_t socket,
-		net_nfc_llcp_socket_t *out_socket);
+		net_nfc_llcp_socket_t socket);
 
 void net_nfc_client_llcp_create_socket(net_nfc_llcp_socket_t *socket,
 		net_nfc_llcp_socket_option_h option);

@@ -194,7 +194,4 @@ bool net_nfc_test_sim(void);
 bool net_nfc_controller_eedata_register_set(net_nfc_error_e *result,
 		uint32_t mode, uint32_t reg_id, data_s *data);
 
-socket_info_t *_get_socket_info(net_nfc_llcp_socket_t socket);
-socket_info_t *_add_socket_info(net_nfc_llcp_socket_t socket);
-
 #endif //__NET_NFC_SERVER_CONTROLLER_H__

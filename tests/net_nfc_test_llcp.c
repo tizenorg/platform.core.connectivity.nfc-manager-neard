@@ -24,8 +24,6 @@
 
 static net_nfc_llcp_socket_t server_test_socket;
 static net_nfc_llcp_socket_t client_test_socket;
-net_nfc_llcp_socket_option_h test_option = NULL;
-
 
 static net_nfc_llcp_config_info_h llcp_config = NULL;
 static net_nfc_llcp_config_info_h llcp_config_sync = NULL;
@@ -130,10 +128,8 @@ static void llcp_connect_sap_cb(net_nfc_error_e result,
 
 
 static void llcp_send_socket_cb(net_nfc_error_e result,
-		net_nfc_llcp_socket_t client_socket,
 		void *user_data)
 {
-	g_print("llcp_send_socket_cb	Completed %d\n", client_socket);
 	g_print("llcp_send_socket_cb	Completed %d\n", result);
 
 	run_next_callback(user_data);
@@ -141,10 +137,8 @@ static void llcp_send_socket_cb(net_nfc_error_e result,
 }
 
 static void llcp_send_to_socket_cb(net_nfc_error_e result,
-		net_nfc_llcp_socket_t client_socket,
 		void *user_data)
 {
-	g_print("llcp_send_to_socket_cb Completed %d\n", client_socket);
 	g_print("llcp_send_to_socket_cb Completed %d\n", result);
 
 	run_next_callback(user_data);
@@ -152,23 +146,11 @@ static void llcp_send_to_socket_cb(net_nfc_error_e result,
 }
 
 static void llcp_disconnect_socket_cb(net_nfc_error_e result,
-		net_nfc_llcp_socket_t client_socket,
 		void *user_data)
 {
-	g_print("llcp_send_to_socket_cb Completed %d\n", client_socket);
 	g_print("llcp_send_to_socket_cb Completed %d\n", result);
 
 	run_next_callback(user_data);
-
-}
-
-static void llcp_close_completed_cb(net_nfc_error_e result,
-		net_nfc_llcp_socket_t client_socket,
-		void *user_data)
-{
-
-	g_print("llcp_close_completed_cb Completed %d\n", client_socket);
-	g_print("llcp_close_completed_cb Completed %d\n", result);
 
 }
 
@@ -292,29 +274,29 @@ void net_nfc_test_llcp_get_local_config(gpointer data,
 
 /*commented because remote config API is not available*/
 /*
-	void net_nfc_test_llcp_get_remote_config(gpointer data,
-	gpointer user_data)
-	{
-	net_nfc_llcp_config_info_h local_config;
-	net_nfc_error_e result;
+   void net_nfc_test_llcp_get_remote_config(gpointer data,
+   gpointer user_data)
+   {
+   net_nfc_llcp_config_info_h local_config;
+   net_nfc_error_e result;
 
-	result = net_nfc_client_llcp_get_local_config(&local_config);
+   result = net_nfc_client_llcp_get_local_config(&local_config);
 
-	if(result != NET_NFC_OK)
-	{
-	g_print(" llcp create custom config failed: %d\n", result);
-	run_next_callback(user_data);
-	return;
+   if(result != NET_NFC_OK)
+   {
+   g_print(" llcp create custom config failed: %d\n", result);
+   run_next_callback(user_data);
+   return;
 
-	}
+   }
 
-	g_print(" net_nfc_test_llcp_get_local_config: %d\n", local_config->miu);
-	g_print("net_nfc_test_llcp_get_local_config: %d\n", local_config->wks);
-	g_print(" net_nfc_test_llcp_get_local_config: %d\n", local_config->lto);
-	g_print("net_nfc_test_llcp_get_local_config: %d\n", local_config->option);
+   g_print(" net_nfc_test_llcp_get_local_config: %d\n", local_config->miu);
+   g_print("net_nfc_test_llcp_get_local_config: %d\n", local_config->wks);
+   g_print(" net_nfc_test_llcp_get_local_config: %d\n", local_config->lto);
+   g_print("net_nfc_test_llcp_get_local_config: %d\n", local_config->option);
 
-	}
-	*/
+   }
+   */
 
 void net_nfc_test_llcp_get_config_miu(gpointer data,
 		gpointer user_data)
@@ -538,9 +520,10 @@ void net_nfc_test_llcp_free_config(gpointer data,
 void net_nfc_test_llcp_create_custom_socket_option(gpointer data,
 		gpointer user_data)
 {
+	net_nfc_llcp_socket_option_h option;
 	net_nfc_error_e result;
 
-	result = net_nfc_client_llcp_create_socket_option(&test_option,
+	result = net_nfc_client_llcp_create_socket_option(&option,
 			128,
 			1,
 			NET_NFC_LLCP_SOCKET_TYPE_CONNECTIONORIENTED);
@@ -561,9 +544,10 @@ void net_nfc_test_llcp_create_custom_socket_option(gpointer data,
 void net_nfc_test_llcp_create_default_socket_option(gpointer data,
 		gpointer user_data)
 {
+	net_nfc_llcp_socket_option_h option;
 	net_nfc_error_e result;
 
-	result = net_nfc_client_llcp_create_socket_option_default(&test_option);
+	result = net_nfc_client_llcp_create_socket_option_default(&option);
 
 	if(result != NET_NFC_OK)
 	{
@@ -581,9 +565,9 @@ void net_nfc_test_llcp_get_local_socket_option(gpointer data,
 		gpointer user_data)
 {
 	net_nfc_error_e result;
-	net_nfc_llcp_socket_option_h option_local;
+	net_nfc_llcp_socket_option_h option;
 
-	result = net_nfc_client_llcp_get_local_socket_option(client_test_socket,&option_local);
+	result = net_nfc_client_llcp_get_local_socket_option(client_test_socket,&option);
 
 	if(result != NET_NFC_OK)
 	{
@@ -592,9 +576,9 @@ void net_nfc_test_llcp_get_local_socket_option(gpointer data,
 		return;
 	}
 
-	g_print(" net_nfc_test_llcp_get_local_socket_option: %d\n", option_local->miu);
-	g_print("net_nfc_test_llcp_get_local_socket_option: %d\n", option_local->rw);
-	g_print(" net_nfc_test_llcp_get_local_socket_option: %d\n", option_local->type);
+	g_print(" net_nfc_test_llcp_get_local_socket_option: %d\n", option->miu);
+	g_print("net_nfc_test_llcp_get_local_socket_option: %d\n", option->rw);
+	g_print(" net_nfc_test_llcp_get_local_socket_option: %d\n", option->type);
 
 	run_next_callback(user_data);
 }
@@ -602,10 +586,11 @@ void net_nfc_test_llcp_get_local_socket_option(gpointer data,
 void net_nfc_test_llcp_get_socket_option_miu(gpointer data,
 		gpointer user_data)
 {
+	net_nfc_llcp_socket_option_s option;
 	net_nfc_error_e result;
 	uint16_t miu;
 
-	result = net_nfc_client_llcp_get_socket_option_miu(test_option,&miu);
+	result = net_nfc_client_llcp_get_socket_option_miu(&option,&miu);
 
 	if(result != NET_NFC_OK)
 	{
@@ -623,10 +608,11 @@ void net_nfc_test_llcp_get_socket_option_miu(gpointer data,
 void net_nfc_test_llcp_set_socket_option_miu(gpointer data,
 		gpointer user_data)
 {
+	net_nfc_llcp_socket_option_s option;
 	net_nfc_error_e result;
 	uint16_t miu = 128;
 
-	result = net_nfc_client_llcp_set_socket_option_miu(test_option,miu);
+	result = net_nfc_client_llcp_set_socket_option_miu(&option,miu);
 
 	if(result != NET_NFC_OK)
 	{
@@ -642,10 +628,11 @@ void net_nfc_test_llcp_set_socket_option_miu(gpointer data,
 void net_nfc_test_llcp_get_socket_option_rw(gpointer data,
 		gpointer user_data)
 {
+	net_nfc_llcp_socket_option_s option;
 	net_nfc_error_e result;
 	uint8_t rw;
 
-	result = net_nfc_client_llcp_get_socket_option_rw(test_option,&rw);
+	result = net_nfc_client_llcp_get_socket_option_rw(&option,&rw);
 
 	if(result != NET_NFC_OK)
 	{
@@ -662,10 +649,11 @@ void net_nfc_test_llcp_get_socket_option_rw(gpointer data,
 void net_nfc_test_llcp_set_socket_option_rw(gpointer data,
 		gpointer user_data)
 {
+	net_nfc_llcp_socket_option_s option;
 	net_nfc_error_e result;
 	uint8_t rw = 1;
 
-	result = net_nfc_client_llcp_set_socket_option_rw(test_option,rw);
+	result = net_nfc_client_llcp_set_socket_option_rw(&option,rw);
 
 	if(result != NET_NFC_OK)
 	{
@@ -681,10 +669,11 @@ void net_nfc_test_llcp_set_socket_option_rw(gpointer data,
 void net_nfc_test_llcp_get_socket_option_type(gpointer data,
 		gpointer user_data)
 {
+	net_nfc_llcp_socket_option_s option;
 	net_nfc_error_e result;
 	net_nfc_socket_type_e type;
 
-	result = net_nfc_client_llcp_get_socket_option_type(test_option,&type);
+	result = net_nfc_client_llcp_get_socket_option_type(&option,&type);
 
 	if(result != NET_NFC_OK)
 	{
@@ -701,10 +690,11 @@ void net_nfc_test_llcp_get_socket_option_type(gpointer data,
 void net_nfc_test_llcp_set_socket_option_type(gpointer data,
 		gpointer user_data)
 {
+	net_nfc_llcp_socket_option_s option;
 	net_nfc_error_e result;
 	net_nfc_socket_type_e type = NET_NFC_LLCP_SOCKET_TYPE_CONNECTIONORIENTED;
 
-	result = net_nfc_client_llcp_set_socket_option_type(test_option,type);
+	result = net_nfc_client_llcp_set_socket_option_type(&option,type);
 
 	if(result != NET_NFC_OK)
 	{
@@ -720,9 +710,10 @@ void net_nfc_test_llcp_set_socket_option_type(gpointer data,
 void net_nfc_test_llcp_free_socket_option(gpointer data,
 		gpointer user_data)
 {
+	net_nfc_llcp_socket_option_s option;
 	net_nfc_error_e result;
 
-	result = net_nfc_client_llcp_free_socket_option(test_option);
+	result = net_nfc_client_llcp_free_socket_option(&option);
 
 	if(result != NET_NFC_OK)
 	{
@@ -869,44 +860,6 @@ void net_nfc_test_llcp_receive_from_sync(gpointer data,
 }
 
 
-void net_nfc_test_llcp_create_socket(gpointer data,
-		gpointer user_data)
-{
-
-	net_nfc_client_llcp_create_socket(&client_test_socket, NULL);
-
-	g_print(" net_nfc_test_llcp_create_socket  finished\n");
-
-}
-
-
-void net_nfc_test_llcp_close_socket(gpointer data,
-		gpointer user_data)
-{
-	net_nfc_error_e result;
-
-	result = net_nfc_client_llcp_close(client_test_socket,
-			llcp_close_completed_cb,
-			user_data);
-
-	g_print(" net_nfc_test_llcp_close_socket %d\n",result);
-
-}
-
-
-void net_nfc_test_llcp_close_socket_sync(gpointer data,
-		gpointer user_data)
-{
-	net_nfc_llcp_socket_t out_socket;
-	net_nfc_error_e result;
-
-	result = net_nfc_client_llcp_close_sync(client_test_socket,
-			&out_socket);
-
-	g_print(" net_nfc_test_llcp_close_socket %d\n",result);
-
-}
-
 
 void net_nfc_test_llcp_connect(gpointer data,
 		gpointer user_data)
@@ -1018,20 +971,17 @@ void net_nfc_test_llcp_send(gpointer func_data,
 
 }
 
-
 void net_nfc_test_llcp_send_sync(gpointer func_data,
 		gpointer user_data)
 {
 	net_nfc_error_e result;
 	data_h data;
 	char * str = "Client message: Hello, server!";
-	net_nfc_llcp_socket_t out_socket;
 
 	net_nfc_create_data (&data, (const uint8_t*)str ,strlen (str) + 1);
 
 	result = net_nfc_client_llcp_send_sync(client_test_socket,
-			data,
-			&out_socket);
+			data);
 
 	if(result != NET_NFC_OK)
 	{
@@ -1040,7 +990,7 @@ void net_nfc_test_llcp_send_sync(gpointer func_data,
 		return;
 	}
 
-	g_print(" net_nfc_test_llcp_send_sync out_socket: %d\n", out_socket);
+	g_print(" net_nfc_test_llcp_send_sync success\n");
 	run_next_callback(user_data);
 
 }
@@ -1076,14 +1026,12 @@ void net_nfc_test_llcp_send_to_sync(gpointer func_data,
 	net_nfc_error_e result;
 	data_h data;
 	char * str = "Client message: Hello, server!";
-	net_nfc_llcp_socket_t out_socket;
 
 	net_nfc_create_data (&data, (const uint8_t*)str ,strlen (str) + 1);
 
 	result = net_nfc_client_llcp_send_to_sync(client_test_socket,
 			16,
-			data,
-			&out_socket);
+			data);
 
 	if(result != NET_NFC_OK)
 	{
@@ -1092,7 +1040,7 @@ void net_nfc_test_llcp_send_to_sync(gpointer func_data,
 		return;
 	}
 
-	g_print(" net_nfc_test_llcp_send_to_sync out_socket: %d\n", out_socket);
+	g_print(" net_nfc_test_llcp_send_to_sync success\n");
 	run_next_callback(user_data);
 
 }
@@ -1129,7 +1077,6 @@ void net_nfc_test_llcp_disconnect_server(gpointer func_data,
 		g_print(" net_nfc_test_llcp_disconnect accepted_socket failed: %d\n", result);
 		return;
 	}
-
 }
 
 
@@ -1137,10 +1084,8 @@ void net_nfc_test_llcp_disconnect_sync(gpointer func_data,
 		gpointer user_data)
 {
 	net_nfc_error_e result;
-	net_nfc_llcp_socket_t out_socket;
 
-	result = net_nfc_client_llcp_disconnect_sync(client_test_socket,
-			&out_socket);
+	result = net_nfc_client_llcp_disconnect_sync(client_test_socket);
 
 	if(result != NET_NFC_OK)
 	{
@@ -1149,10 +1094,6 @@ void net_nfc_test_llcp_disconnect_sync(gpointer func_data,
 		return;
 	}
 
-	g_print(" net_nfc_test_llcp_disconnect_sync out_socket: %d\n", out_socket);
+	g_print(" net_nfc_test_llcp_disconnect_sync success\n");
 	run_next_callback(user_data);
-
 }
-
-
-

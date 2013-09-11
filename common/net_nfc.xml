@@ -140,6 +140,7 @@
     <method name="Config">
       <arg type="(qqyy)" name="config" direction="in" />
       <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
     </method>
     <!--
       Listen
@@ -147,15 +148,34 @@
     <method name="Listen">
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="client_socket" direction="in" />
-      <arg type="u" name="oal_socket" direction="in" />
       <arg type="q" name="miu" direction="in" />
       <arg type="y" name="rw" direction="in" />
       <arg type="i" name="type" direction="in" />
       <arg type="y" name="sap" direction="in" />
       <arg type="s" name="service_name" direction="in" />
       <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
       <arg type="u" name="client_socket" direction="out" />
-      <arg type="u" name="oal_socket" direction="out" />
+    </method>
+
+    <!--
+      Accept
+    -->
+    <method name="Accept">
+      <arg type="u" name="handle" direction="in" />
+      <arg type="u" name="client_socket" direction="in" />
+      <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
+    </method>
+
+    <!--
+      Reject
+    -->
+    <method name="Reject">
+      <arg type="u" name="handle" direction="in" />
+      <arg type="u" name="client_socket" direction="in" />
+      <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
     </method>
 
     <!--
@@ -164,14 +184,13 @@
     <method name="Connect">
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="client_socket" direction="in" />
-      <arg type="u" name="oal_socket" direction="in" />
       <arg type="q" name="miu" direction="in" />
       <arg type="y" name="rw" direction="in" />
       <arg type="i" name="type" direction="in" />
       <arg type="s" name="service_name" direction="in" />
       <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
       <arg type="u" name="client_socket" direction="out" />
-      <arg type="u" name="oal_socket" direction="out" />
     </method>
 
     <!--
@@ -180,14 +199,13 @@
     <method name="ConnectSap">
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="client_socket" direction="in" />
-      <arg type="u" name="oal_socket" direction="in" />
       <arg type="q" name="miu" direction="in" />
       <arg type="y" name="rw" direction="in" />
       <arg type="i" name="type" direction="in" />
       <arg type="y" name="sap" direction="in" />
       <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
       <arg type="u" name="client_socket" direction="out" />
-      <arg type="u" name="oal_socket" direction="out" />
     </method>
 
     <!--
@@ -196,9 +214,9 @@
     <method name="Send">
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="client_socket" direction="in" />
-      <arg type="u" name="oal_socket" direction="in" />
       <arg type="a(y)" name="data" direction="in" />
       <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
       <arg type="u" name="client_socket" direction="out" />
     </method>
 
@@ -208,10 +226,10 @@
     <method name="SendTo">
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="client_socket" direction="in" />
-      <arg type="u" name="oal_socket" direction="in" />
       <arg type="y" name="sap" direction="in" />
       <arg type="a(y)" name="data" direction="in" />
       <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
       <arg type="u" name="client_socket" direction="out" />
     </method>
 
@@ -221,9 +239,9 @@
     <method name="Receive">
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="client_socket" direction="in" />
-      <arg type="u" name="oal_socket" direction="in" />
       <arg type="u" name="request_length" direction="in" />
       <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
       <arg type="a(y)" name="data" direction="out" />
     </method>
 
@@ -233,9 +251,9 @@
     <method name="ReceiveFrom">
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="client_socket" direction="in" />
-      <arg type="u" name="oal_socket" direction="in" />
       <arg type="u" name="request_length" direction="in" />
       <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
       <arg type="y" name="sap" direction="out" />
       <arg type="a(y)" name="data" direction="out" />
     </method>
@@ -246,8 +264,8 @@
     <method name="Close">
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="client_socket" direction="in" />
-      <arg type="u" name="oal_socket" direction="in" />
       <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
       <arg type="u" name="client_socket" direction="out" />
     </method>
 
@@ -257,8 +275,8 @@
     <method name="Disconnect">
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="client_socket" direction="in" />
-      <arg type="u" name="oal_socket" direction="in" />
       <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
       <arg type="u" name="client_socket" direction="out" />
     </method>
 
@@ -268,8 +286,16 @@
     <signal name="Error">
       <arg type="u" name="handle" />
       <arg type="u" name="client_socket" />
-      <arg type="u" name="oal_socket" />
       <arg type="i" name="error" />
+    </signal>
+
+    <!--
+      Incoming
+    -->
+    <signal name="Incoming">
+      <arg type="u" name="handle" />
+      <arg type="u" name="client_socket" />
+      <arg type="u" name="incoming_socket" />
     </signal>
   </interface>
 

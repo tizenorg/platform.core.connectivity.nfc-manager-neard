@@ -86,25 +86,10 @@ gboolean net_nfc_server_llcp_init(GDBusConnection *connection);
 void net_nfc_server_llcp_deinit(void);
 
 /* server side */
-void net_nfc_server_llcp_deactivated(net_nfc_request_msg_t *req_msg);
+void net_nfc_server_llcp_deactivated(gpointer user_data);
 
-void net_nfc_server_llcp_listen(net_nfc_request_msg_t *req_msg);
-
-void net_nfc_server_llcp_socket_error(net_nfc_request_msg_t *req_msg);
-
-void net_nfc_server_llcp_socket_accepted_error(net_nfc_request_msg_t *req_msg);
-
-void net_nfc_server_llcp_send(net_nfc_request_msg_t *req_msg);
-
-void net_nfc_server_llcp_receive(net_nfc_request_msg_t *req_msg);
-
-void net_nfc_server_llcp_receive_from(net_nfc_request_msg_t *req_msg);
-
-void net_nfc_server_llcp_connect(net_nfc_request_msg_t *req_msg);
-
-void net_nfc_server_llcp_disconnect(net_nfc_request_msg_t *req_msg);
-
-net_nfc_error_e net_nfc_server_llcp_set_config(net_nfc_llcp_config_info_s *config);
+net_nfc_error_e net_nfc_server_llcp_set_config(
+		net_nfc_llcp_config_info_s *config);
 
 guint16 net_nfc_server_llcp_get_miu(void);
 

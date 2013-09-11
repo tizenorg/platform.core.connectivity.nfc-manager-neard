@@ -1533,7 +1533,7 @@ static void _net_nfc_server_snep_client_recv_cb(net_nfc_error_e result,
 
 
 static void _net_nfc_server_snep_client_do_job(
-	net_nfc_server_snep_context_t *context)
+		net_nfc_server_snep_context_t *context)
 {
 	if (context->state == NET_NFC_LLCP_IDLE &&
 			g_queue_is_empty(&context->queue) == false) {
@@ -1872,8 +1872,6 @@ static net_nfc_error_e _net_nfc_server_default_client_cb_(
 
 		net_nfc_server_p2p_data_sent(result,
 				context->user_param);
-
-		_net_nfc_util_free_mem(context);
 		break;
 
 	default :

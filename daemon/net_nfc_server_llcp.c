@@ -15,20 +15,20 @@
  */
 #include <pmapi.h>/*for pm lock*/
 
+#include "net_nfc_debug_internal.h"
+#include "net_nfc_util_internal.h"
+#include "net_nfc_util_gdbus_internal.h"
 #include "net_nfc_gdbus.h"
-#include "net_nfc_server_common.h"
-#include "net_nfc_server_p2p.h"
-#include "net_nfc_server_llcp.h"
 
+#include "net_nfc_server_controller.h"
+#include "net_nfc_server_common.h"
+#include "net_nfc_server_context.h"
+#include "net_nfc_server_tag.h"
+#include "net_nfc_server_llcp.h"
+#include "net_nfc_server_p2p.h"
 #include "net_nfc_server_process_snep.h"
 #include "net_nfc_server_process_npp.h"
 #include "net_nfc_server_process_handover.h"
-#include "net_nfc_server_tag.h"
-
-#include "net_nfc_debug_internal.h"
-#include "net_nfc_server_controller.h"
-#include "net_nfc_util_gdbus_internal.h"
-#include "net_nfc_server_context.h"
 
 /* default llcp configurations */
 #define NET_NFC_LLCP_MIU	128
@@ -45,6 +45,18 @@ static net_nfc_llcp_config_info_s llcp_config =
 	NET_NFC_LLCP_LTO,
 	NET_NFC_LLCP_OPT,
 };
+
+
+typedef struct _llcp_client_data
+{
+	GDBusConnection *connection;
+	char *id;
+	net_nfc_target_handle_h handle;
+	net_nfc_llcp_socket_t socket;
+	void *user_data;
+}
+llcp_client_data;
+
 
 typedef struct _LlcpData LlcpData;
 
@@ -76,12 +88,22 @@ struct _LlcpListenData
 
 	guint32 handle;
 	guint32 client_socket;
-	guint32 oal_socket;
 	guint16 miu;
 	guint8 rw;
 	guint type;
 	guint sap;
 	gchar *service_name;
+};
+
+typedef struct _LlcpAcceptData LlcpAcceptData;
+
+struct _LlcpAcceptData
+{
+	NetNfcGDbusLlcp *llcp;
+	GDBusMethodInvocation *invocation;
+
+	guint handle;
+	guint client_socket;
 };
 
 typedef struct _LlcpConnectData LlcpConnectData;
@@ -93,7 +115,6 @@ struct _LlcpConnectData
 
 	guint32 handle;
 	guint32 client_socket;
-	guint32 oal_socket;
 	guint16 miu;
 	guint8 rw;
 	guint type;
@@ -109,7 +130,6 @@ struct _LlcpConnectSapData
 
 	guint32 handle;
 	guint32 client_socket;
-	guint32 oal_socket;
 	guint16 miu;
 	guint8 rw;
 	guint type;
@@ -125,9 +145,8 @@ struct _LlcpSendData
 
 	guint32 handle;
 	guint32 client_socket;
-	guint32 oal_socket;
 
-	data_s *data;
+	data_s data;
 };
 
 typedef struct _LlcpSendToData LlcpSendToData;
@@ -139,10 +158,9 @@ struct _LlcpSendToData
 
 	guint32 handle;
 	guint32 client_socket;
-	guint32 oal_socket;
 	guint8 sap;
 
-	data_s *data;
+	data_s data;
 };
 
 typedef struct _LlcpReceiveData LlcpReceiveData;
@@ -154,7 +172,6 @@ struct _LlcpReceiveData
 
 	guint32 handle;
 	guint32 client_socket;
-	guint32 oal_socket;
 	guint32 req_length;
 };
 
@@ -167,7 +184,6 @@ struct _LlcpCloseData
 
 	guint32 handle;
 	guint32 client_socket;
-	guint32 oal_socket;
 };
 
 typedef struct _LlcpDisconnectData LlcpDisconnectData;
@@ -179,16 +195,6 @@ struct _LlcpDisconnectData
 
 	guint32 handle;
 	guint32 client_socket;
-	guint32 oal_socket;
-};
-
-/* server_side */
-typedef struct _ServerLlcpData ServerLlcpData;
-
-struct _ServerLlcpData
-{
-	NetNfcGDbusLlcp *llcp;
-	net_nfc_request_msg_t *req_msg;
 };
 
 typedef struct _LlcpSimpleData LlcpSimpleData;
@@ -203,17 +209,13 @@ struct _LlcpSimpleData
 	gpointer user_data;
 };
 
-
-static void llcp_add_async_queue(net_nfc_request_msg_t *req_msg,
-		net_nfc_server_controller_func func);
-
 static void llcp_socket_error_cb(net_nfc_llcp_socket_t socket,
 		net_nfc_error_e result,
 		data_s *data,
 		void *extra,
 		void *user_param);
 
-static void llcp_listen_cb(net_nfc_llcp_socket_t socket,
+static void llcp_incoming_cb(net_nfc_llcp_socket_t socket,
 		net_nfc_error_e result,
 		data_s *data,
 		void *extra,
@@ -232,6 +234,12 @@ static void llcp_connect_cb(net_nfc_llcp_socket_t socket,
 		void *user_param);
 
 static void llcp_send_cb(net_nfc_llcp_socket_t socket,
+		net_nfc_error_e result,
+		data_s *data,
+		void *extra,
+		void *user_param);
+
+static void llcp_send_to_cb(net_nfc_llcp_socket_t socket,
 		net_nfc_error_e result,
 		data_s *data,
 		void *extra,
@@ -260,6 +268,10 @@ static void llcp_handle_config_thread_func(gpointer user_data);
 
 static void llcp_handle_listen_thread_func(gpointer user_data);
 
+static void llcp_handle_accept_thread_func(gpointer user_data);
+
+static void llcp_handle_reject_thread_func(gpointer user_data);
+
 static void llcp_handle_connect_thread_func(gpointer user_data);
 
 static void llcp_handle_connect_sap_thread_func(gpointer user_data);
@@ -287,7 +299,6 @@ static gboolean llcp_handle_listen(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		guint16 arg_miu,
 		guint8 arg_rw,
 		gint32 arg_type,
@@ -300,7 +311,6 @@ static gboolean llcp_handle_connect(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		guint16 arg_miu,
 		guint8 arg_rw,
 		gint32 arg_type,
@@ -312,7 +322,6 @@ static gboolean llcp_handle_connect_sap(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		guint16 arg_miu,
 		guint8 arg_rw,
 		gint32 arg_type,
@@ -324,7 +333,6 @@ static gboolean llcp_handle_send(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		GVariant *arg_data,
 		GVariant *smack_privilege,
 		gpointer user_data);
@@ -333,7 +341,6 @@ static gboolean llcp_handle_send_to(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		guint8 arg_sap,
 		GVariant *arg_data,
 		GVariant *smack_privilege,
@@ -343,7 +350,6 @@ static gboolean llcp_handle_receive(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		guint32 arg_req_length,
 		GVariant *smack_privilege,
 		gpointer user_data);
@@ -352,7 +358,6 @@ static gboolean llcp_handle_receive_from(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		guint32 arg_req_length,
 		GVariant *smack_privilege,
 		gpointer user_data);
@@ -361,7 +366,6 @@ static gboolean llcp_handle_close(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		GVariant *smack_privilege,
 		gpointer user_data);
 
@@ -369,27 +373,9 @@ static gboolean llcp_handle_disconnect(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		GVariant *smack_privilege,
 		gpointer user_data);
 
-
-/* server side */
-static void llcp_deactivated_thread_func(gpointer user_data);
-
-static void llcp_listen_thread_func(gpointer user_data);
-
-static void llcp_socket_error_thread_func(gpointer user_data);
-
-static void llcp_send_thread_func(gpointer user_data);
-
-static void llcp_receive_thread_func(gpointer user_data);
-
-static void llcp_receive_from_thread_func(gpointer user_data);
-
-static void llcp_connect_thread_func(gpointer user_data);
-
-static void llcp_disconnect_thread_func(gpointer user_data);
 
 /* simple */
 static void llcp_simple_socket_error_cb(net_nfc_llcp_socket_t socket,
@@ -410,12 +396,6 @@ static void llcp_simple_connect_cb(net_nfc_llcp_socket_t socket,
 		void *extra,
 		void *user_param);
 
-static void llcp_simple_server_error_cb(net_nfc_llcp_socket_t socket,
-		net_nfc_error_e result,
-		data_s *data,
-		void *extra,
-		void *user_param);
-
 static void llcp_simple_send_cb(net_nfc_llcp_socket_t socket,
 		net_nfc_error_e result,
 		data_s *data,
@@ -429,101 +409,60 @@ static void llcp_simple_receive_cb(net_nfc_llcp_socket_t socket,
 		void *user_param);
 
 
-static void llcp_add_async_queue(net_nfc_request_msg_t *req_msg,
-		net_nfc_server_controller_func func)
-{
-	ServerLlcpData *data = NULL;
-
-	if (llcp_skeleton == NULL)
-	{
-		DEBUG_ERR_MSG("%s is not initialized",
-				"net_nfc_server_llcp");
-		return;
-	}
-
-	if (req_msg == NULL)
-	{
-		DEBUG_ERR_MSG("req msg is null");
-	}
-
-	data = g_new0(ServerLlcpData, 1);
-	if(data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
-		return;
-	}
-	data->llcp = g_object_ref(llcp_skeleton);
-	data->req_msg = req_msg;
-
-	if (net_nfc_server_controller_async_queue_push(func, data) == FALSE)
-	{
-		DEBUG_ERR_MSG("can not push to controller thread");
-
-		if (data)
-		{
-			g_object_unref(data->llcp);
-			g_free(data->req_msg);
-			g_free(data);
-		}
-	}
-}
-
 static void llcp_socket_error_cb(net_nfc_llcp_socket_t socket,
 		net_nfc_error_e result,
 		data_s *data,
 		void *extra,
 		void *user_param)
 {
-	LlcpData *llcp_data;
+	llcp_client_data *client_data = (llcp_client_data *)user_param;
+	GError *error = NULL;
 
-	llcp_data = (LlcpData *)user_param;
-
-	if (llcp_data->invocation)
-	{
-		g_dbus_method_invocation_return_dbus_error(
-				llcp_data->invocation,
-				"org.tizen.NetNfcService.SocketError",
-				"socket error");
-
-		g_object_unref(llcp_data->invocation);
+	if (g_dbus_connection_emit_signal(
+				client_data->connection,
+				client_data->id,
+				"/org/tizen/NetNfcService/Llcp",
+				"org.tizen.NetNfcService.Llcp",
+				"Error",
+				g_variant_new("(uui)",
+					GPOINTER_TO_UINT(client_data->handle),
+					socket,
+					result),
+				&error) == false) {
+		if (error != NULL && error->message != NULL) {
+			DEBUG_ERR_MSG("g_dbus_connection_emit_signal failed : %s", error->message);
+		} else {
+			DEBUG_ERR_MSG("g_dbus_connection_emit_signal failed");
+		}
 	}
-
-	if (llcp_data->llcp)
-		g_object_unref(llcp_data->llcp);
-
-	g_free(llcp_data);
 }
 
-static void llcp_listen_cb(net_nfc_llcp_socket_t socket,
+static void llcp_incoming_cb(net_nfc_llcp_socket_t socket,
 		net_nfc_error_e result,
 		data_s *data,
 		void *extra,
 		void *user_param)
 {
-	LlcpListenData *llcp_data;
+	llcp_client_data *client_data = (llcp_client_data *)user_param;
+	GError *error = NULL;
 
-	llcp_data = (LlcpListenData *)user_param;
-
-	if (llcp_data == NULL)
-		return;
-
-	if (llcp_data->llcp)
-	{
-
-		if (llcp_data->invocation)
-		{
-			net_nfc_gdbus_llcp_complete_listen(llcp_data->llcp,
-					llcp_data->invocation,
-					llcp_data->client_socket,
-					socket);
-			g_object_unref(llcp_data->invocation);
+	if (g_dbus_connection_emit_signal(
+				client_data->connection,
+				client_data->id,
+				"/org/tizen/NetNfcService/Llcp",
+				"org.tizen.NetNfcService.Llcp",
+				"Incoming",
+				g_variant_new("(uuu)",
+					GPOINTER_TO_UINT(client_data->handle),
+					client_data->socket,
+					socket),
+				&error) == false) {
+		if (error != NULL && error->message != NULL) {
+			DEBUG_ERR_MSG("g_dbus_connection_emit_signal failed : %s", error->message);
+		} else {
+			DEBUG_ERR_MSG("g_dbus_connection_emit_signal failed");
 		}
-
-		g_object_unref(llcp_data->llcp);
 	}
-
-	g_free(llcp_data->service_name);
-	g_free(llcp_data);
 }
 
 static void llcp_connect_by_url_cb(net_nfc_llcp_socket_t socket,
@@ -532,29 +471,22 @@ static void llcp_connect_by_url_cb(net_nfc_llcp_socket_t socket,
 		void *extra,
 		void *user_param)
 {
-	LlcpConnectData *llcp_data;
+	LlcpConnectData *llcp_data = (LlcpConnectData *)user_param;
 
-	llcp_data = (LlcpConnectData *)user_param;
+	g_assert(llcp_data != NULL);
+	g_assert(llcp_data->llcp != NULL);
+	g_assert(llcp_data->invocation != NULL);
 
-	if (llcp_data == NULL)
-		return;
-
-	if (llcp_data->llcp)
-	{
-
-		if (llcp_data->invocation)
-		{
-			net_nfc_gdbus_llcp_complete_connect(llcp_data->llcp,
-					llcp_data->invocation,
-					llcp_data->client_socket,
-					socket);
-			g_object_unref(llcp_data->invocation);
-		}
-
-		g_object_unref(llcp_data->llcp);
-	}
+	net_nfc_gdbus_llcp_complete_connect(llcp_data->llcp,
+			llcp_data->invocation,
+			result,
+			socket);
 
 	g_free(llcp_data->service_name);
+
+	g_object_unref(llcp_data->invocation);
+	g_object_unref(llcp_data->llcp);
+
 	g_free(llcp_data);
 }
 
@@ -564,28 +496,20 @@ static void llcp_connect_cb(net_nfc_llcp_socket_t socket,
 		void *extra,
 		void *user_param)
 {
-	LlcpConnectSapData *llcp_data;
+	LlcpConnectSapData *llcp_data = (LlcpConnectSapData *)user_param;
 
-	llcp_data = (LlcpConnectSapData *)user_param;
+	g_assert(llcp_data != NULL);
+	g_assert(llcp_data->llcp != NULL);
+	g_assert(llcp_data->invocation != NULL);
 
-	if (llcp_data == NULL)
-		return;
+	net_nfc_gdbus_llcp_complete_connect_sap(
+			llcp_data->llcp,
+			llcp_data->invocation,
+			result,
+			socket);
 
-	if (llcp_data->llcp)
-	{
-
-		if (llcp_data->invocation)
-		{
-			net_nfc_gdbus_llcp_complete_connect_sap(
-					llcp_data->llcp,
-					llcp_data->invocation,
-					llcp_data->client_socket,
-					socket);
-			g_object_unref(llcp_data->invocation);
-		}
-
-		g_object_unref(llcp_data->llcp);
-	}
+	g_object_unref(llcp_data->invocation);
+	g_object_unref(llcp_data->llcp);
 
 	g_free(llcp_data);
 }
@@ -596,27 +520,48 @@ static void llcp_send_cb(net_nfc_llcp_socket_t socket,
 		void *extra,
 		void *user_param)
 {
-	LlcpData *llcp_data;
+	LlcpSendData *llcp_data = (LlcpSendData *)user_param;
 
-	llcp_data = (LlcpData *)user_param;
+	g_assert(llcp_data != NULL);
+	g_assert(llcp_data->llcp != NULL);
+	g_assert(llcp_data->invocation != NULL);
 
-	if (llcp_data == NULL)
-		return;
+	net_nfc_gdbus_llcp_complete_send(
+			llcp_data->llcp,
+			llcp_data->invocation,
+			result,
+			socket);
 
-	if (llcp_data->llcp)
-	{
+	net_nfc_util_free_data(&llcp_data->data);
 
-		if (llcp_data->invocation)
-		{
-			net_nfc_gdbus_llcp_complete_send(
-					llcp_data->llcp,
-					llcp_data->invocation,
-					socket);
-			g_object_unref(llcp_data->invocation);
-		}
+	g_object_unref(llcp_data->invocation);
+	g_object_unref(llcp_data->llcp);
 
-		g_object_unref(llcp_data->llcp);
-	}
+	g_free(llcp_data);
+}
+
+static void llcp_send_to_cb(net_nfc_llcp_socket_t socket,
+		net_nfc_error_e result,
+		data_s *data,
+		void *extra,
+		void *user_param)
+{
+	LlcpSendToData *llcp_data = (LlcpSendToData *)user_param;
+
+	g_assert(llcp_data != NULL);
+	g_assert(llcp_data->llcp != NULL);
+	g_assert(llcp_data->invocation != NULL);
+
+	net_nfc_gdbus_llcp_complete_send_to(
+			llcp_data->llcp,
+			llcp_data->invocation,
+			result,
+			socket);
+
+	net_nfc_util_free_data(&llcp_data->data);
+
+	g_object_unref(llcp_data->invocation);
+	g_object_unref(llcp_data->llcp);
 
 	g_free(llcp_data);
 }
@@ -627,30 +572,22 @@ static void llcp_receive_cb(net_nfc_llcp_socket_t socket,
 		void *extra,
 		void *user_param)
 {
-	LlcpData *llcp_data;
+	LlcpReceiveData *llcp_data = (LlcpReceiveData *)user_param;
+	GVariant *variant;
 
-	llcp_data = (LlcpData *)user_param;
+	g_assert(llcp_data != NULL);
+	g_assert(llcp_data->llcp != NULL);
+	g_assert(llcp_data->invocation != NULL);
 
-	if (llcp_data == NULL)
-		return;
+	variant = net_nfc_util_gdbus_data_to_variant(data);
+	net_nfc_gdbus_llcp_complete_receive(
+			llcp_data->llcp,
+			llcp_data->invocation,
+			result,
+			variant);
 
-	if (llcp_data->llcp)
-	{
-		if (llcp_data->invocation)
-		{
-			GVariant *variant;
-
-			variant = net_nfc_util_gdbus_data_to_variant(data);
-			net_nfc_gdbus_llcp_complete_receive(
-					llcp_data->llcp,
-					llcp_data->invocation,
-					variant);
-
-			g_object_unref(llcp_data->invocation);
-		}
-
-		g_object_unref(llcp_data->llcp);
-	}
+	g_object_unref(llcp_data->invocation);
+	g_object_unref(llcp_data->llcp);
 
 	g_free(llcp_data);
 }
@@ -661,32 +598,23 @@ static void llcp_receive_from_cb(net_nfc_llcp_socket_t socket,
 		void *extra,
 		void *user_param)
 {
-	LlcpData *llcp_data;
+	LlcpReceiveData *llcp_data = (LlcpReceiveData *)user_param;
+	GVariant *variant;
 
-	llcp_data = (LlcpData *)user_param;
+	g_assert(llcp_data != NULL);
+	g_assert(llcp_data->llcp != NULL);
+	g_assert(llcp_data->invocation != NULL);
 
-	if (llcp_data == NULL)
-		return;
+	variant = net_nfc_util_gdbus_data_to_variant(data);
+	net_nfc_gdbus_llcp_complete_receive_from(
+			llcp_data->llcp,
+			llcp_data->invocation,
+			result,
+			(guint8) (int)extra,
+			variant);
 
-	if (llcp_data->llcp)
-	{
-
-		if (llcp_data->invocation)
-		{
-			GVariant *variant;
-
-			variant = net_nfc_util_gdbus_data_to_variant(data);
-			net_nfc_gdbus_llcp_complete_receive_from(
-					llcp_data->llcp,
-					llcp_data->invocation,
-					(guint8) (int)extra,
-					variant);
-
-			g_object_unref(llcp_data->invocation);
-		}
-
-		g_object_unref(llcp_data->llcp);
-	}
+	g_object_unref(llcp_data->invocation);
+	g_object_unref(llcp_data->llcp);
 
 	g_free(llcp_data);
 }
@@ -698,28 +626,20 @@ static void llcp_disconnect_cb(net_nfc_llcp_socket_t socket,
 		void *extra,
 		void *user_param)
 {
-	LlcpData *llcp_data;
+	LlcpDisconnectData *llcp_data = (LlcpDisconnectData *)user_param;
 
-	llcp_data = (LlcpData *)user_param;
+	g_assert(llcp_data != NULL);
+	g_assert(llcp_data->llcp != NULL);
+	g_assert(llcp_data->invocation != NULL);
 
-	if (llcp_data == NULL)
-		return;
+	net_nfc_gdbus_llcp_complete_disconnect(
+			llcp_data->llcp,
+			llcp_data->invocation,
+			result,
+			socket);
 
-	if (llcp_data->llcp)
-	{
-
-		if (llcp_data->invocation)
-		{
-			net_nfc_gdbus_llcp_complete_disconnect(
-					llcp_data->llcp,
-					llcp_data->invocation,
-					socket);
-
-			g_object_unref(llcp_data->invocation);
-		}
-
-		g_object_unref(llcp_data->llcp);
-	}
+	g_object_unref(llcp_data->invocation);
+	g_object_unref(llcp_data->llcp);
 
 	g_free(llcp_data);
 }
@@ -727,114 +647,55 @@ static void llcp_disconnect_cb(net_nfc_llcp_socket_t socket,
 
 static void llcp_handle_config_thread_func(gpointer user_data)
 {
+	LlcpConfigData *data = (LlcpConfigData *)user_data;
+	net_nfc_error_e result;
 	net_nfc_llcp_config_info_s config;
-	LlcpConfigData *data = user_data;
 
-	if (data == NULL)
-	{
-		DEBUG_ERR_MSG("can not get LlcpConfigData");
-		return;
-	}
-
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.ConfigError",
-					"can not get llcp");
-
-			g_object_unref(data->invocation);
-		}
-		g_free(data);
-
-		return;
-	}
+	g_assert(data != NULL);
+	g_assert(data->llcp != NULL);
+	g_assert(data->invocation != NULL);
 
 	config.miu = data->miu;
 	config.wks = data->wks;
 	config.lto = data->lto;
 	config.option = data->option;
 
-	if (net_nfc_server_llcp_set_config(&config) != NET_NFC_OK)
-	{
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.ConfigError",
-					"can not get llcp");
+	result = net_nfc_server_llcp_set_config(&config);
 
-			g_object_unref(data->invocation);
-		}
+	net_nfc_gdbus_llcp_complete_config(data->llcp,
+			data->invocation,
+			result);
 
-		g_object_unref(data->llcp);
-		g_free(data);
-		return;
-	}
-
-	if (data->invocation)
-	{
-		net_nfc_gdbus_llcp_complete_config(data->llcp,
-				data->invocation);
-
-		g_object_unref(data->invocation);
-	}
-
+	g_object_unref(data->invocation);
 	g_object_unref(data->llcp);
-	g_free(data);
 
-	return;
+	g_free(data);
 }
 
 static void llcp_handle_listen_thread_func(gpointer user_data)
 {
-	LlcpListenData *data;
-	LlcpData *error_data;
+	LlcpListenData *data = (LlcpListenData *)user_data;
+	llcp_client_data *client_data;
 
 	net_nfc_llcp_socket_t socket = -1;
-	net_nfc_error_e result = NET_NFC_OK;
+	net_nfc_error_e result;
 
-	data = (LlcpListenData *)user_data;
+	g_assert(data != NULL);
+	g_assert(data->llcp != NULL);
+	g_assert(data->invocation != NULL);
 
-	if (data == NULL)
-	{
-		DEBUG_ERR_MSG("can not get LlcpListenData");
-		return;
+	client_data = g_try_new0(llcp_client_data, 1);
+	if (client_data == NULL) {
+		result = NET_NFC_ALLOC_FAIL;
+
+		goto ERROR;
 	}
 
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.ListenError",
-					"can not get llcp");
-
-			g_object_unref(data->invocation);
-		}
-
-		g_free(data->service_name);
-		g_free(data);
-
-		return;
-	}
-
-	error_data = g_new0(LlcpData, 1);
-	if(error_data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
-		g_dbus_method_invocation_return_dbus_error(data->invocation,
-				"org.tizen.NetNfcService.AllocationError",
-				"Can not allocate memory");
-		return;
-	}
-	error_data->llcp = g_object_ref(data->llcp);
-	error_data->invocation = g_object_ref(data->invocation);
+	client_data->connection = g_dbus_method_invocation_get_connection(
+			data->invocation);
+	client_data->id = g_strdup(
+			g_dbus_method_invocation_get_sender(data->invocation));
+	client_data->handle = (net_nfc_target_handle_h)data->handle;
 
 	if (net_nfc_controller_llcp_create_socket(&socket,
 				data->type,
@@ -842,142 +703,167 @@ static void llcp_handle_listen_thread_func(gpointer user_data)
 				data->rw,
 				&result,
 				llcp_socket_error_cb,
-				error_data) == false)
+				client_data) == false)
 	{
-		DEBUG_ERR_MSG("%s fiailed [%d]",
-				"net_nfc_controller_llcp_create_socket" ,result);
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_create_socket failed [%d]", result);
 
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.ListenError",
-					"can not create socket");
-
-			g_object_unref(data->invocation);
-		}
-
-		g_object_unref(data->llcp);
-
-		g_free(data->service_name);
-		g_free(data);
-
-		g_free(error_data);
-
-		return;
+		goto ERROR;
 	}
+
+	client_data->socket = socket;
 
 	if (net_nfc_controller_llcp_bind(socket,
 				data->sap,
 				&result) == false)
 	{
-		DEBUG_ERR_MSG("%s fiailed [%d]",
-				"net_nfc_controller_llcp_create_socket" ,result);
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_bind failed [%d]", result);
 
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.ListenError",
-					"can not bind socket");
-
-			g_object_unref(data->invocation);
-		}
-
-		g_object_unref(data->llcp);
-
-		g_free(data->service_name);
-		g_free(data);
-
-		g_free(error_data);
-
-		if (socket != -1)
-			net_nfc_controller_llcp_socket_close(socket, &result);
-
-		return;
+		goto ERROR;
 	}
-
-	DEBUG_SERVER_MSG("OAL socket in Listen : %d\n", socket);
 
 	if (net_nfc_controller_llcp_listen(GUINT_TO_POINTER(data->handle),
 				(uint8_t *)data->service_name,
 				socket,
 				&result,
-				llcp_listen_cb,
-				data) == false)
+				llcp_incoming_cb,
+				client_data) == false)
 	{
-		DEBUG_ERR_MSG("%s failed [%d]",
-				"net_nfc_controller_llcp_listen",
-				result);
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_listen failed [%d]", result);
 
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.ListenError",
-					"can not listen socket");
-
-			g_object_unref(data->invocation);
-		}
-
-		g_object_unref(data->llcp);
-
-		g_free(data->service_name);
-		g_free(data);
-
-		g_free(error_data);
-
-		if (socket != -1)
-			net_nfc_controller_llcp_socket_close(socket, &result);
+		goto ERROR;
 	}
+
+	net_nfc_gdbus_llcp_complete_listen(data->llcp, data->invocation,
+			result,
+			GPOINTER_TO_UINT(socket));
+
+	g_object_unref(data->invocation);
+	g_object_unref(data->llcp);
+
+	g_free(data);
+
+	return;
+
+ERROR :
+	net_nfc_gdbus_llcp_complete_listen(data->llcp, data->invocation,
+			result,
+			-1);
+
+	if (socket != -1)
+		net_nfc_controller_llcp_socket_close(socket, &result);
+
+	g_free(client_data);
+
+	g_free(data->service_name);
+
+	g_object_unref(data->invocation);
+	g_object_unref(data->llcp);
+
+	g_free(data);
 }
+
+static void llcp_handle_accept_thread_func(gpointer user_data)
+{
+	LlcpAcceptData *data = (LlcpAcceptData *)user_data;
+	llcp_client_data *client_data;
+	net_nfc_error_e result;
+
+	g_assert(data != NULL);
+	g_assert(data->llcp != NULL);
+	g_assert(data->invocation != NULL);
+
+	client_data = g_try_new0(llcp_client_data, 1);
+	if (client_data == NULL) {
+		result = NET_NFC_ALLOC_FAIL;
+
+		goto ERROR;
+	}
+
+	client_data->connection = g_dbus_method_invocation_get_connection(
+			data->invocation);
+	client_data->id = g_strdup(
+			g_dbus_method_invocation_get_sender(data->invocation));
+	client_data->handle = (net_nfc_target_handle_h)data->handle;
+	client_data->socket = data->client_socket;
+
+	if (net_nfc_controller_llcp_accept(data->client_socket, &result,
+				llcp_socket_error_cb,
+				client_data) == false) {
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_accept failed [%d]", result);
+
+		goto ERROR;
+	}
+
+	net_nfc_gdbus_llcp_complete_accept(data->llcp, data->invocation,
+			result);
+
+	g_object_unref(data->invocation);
+	g_object_unref(data->llcp);
+
+	g_free(data);
+
+	return;
+
+ERROR :
+	net_nfc_gdbus_llcp_complete_accept(data->llcp, data->invocation,
+			result);
+
+	g_free(client_data);
+
+	g_object_unref(data->invocation);
+	g_object_unref(data->llcp);
+
+	g_free(data);
+}
+
+static void llcp_handle_reject_thread_func(gpointer user_data)
+{
+	LlcpAcceptData *data = (LlcpAcceptData *)user_data;
+	net_nfc_error_e result;
+
+	g_assert(data != NULL);
+	g_assert(data->llcp != NULL);
+	g_assert(data->invocation != NULL);
+
+	if (net_nfc_controller_llcp_reject(GUINT_TO_POINTER(data->handle),
+				data->client_socket,
+				&result) == false) {
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_reject failed [%d]", result);
+	}
+
+	net_nfc_gdbus_llcp_complete_reject(data->llcp, data->invocation,
+			result);
+
+	g_object_unref(data->invocation);
+	g_object_unref(data->llcp);
+
+	g_free(data);
+}
+
 
 static void llcp_handle_connect_thread_func(gpointer user_data)
 {
-	LlcpConnectData *data;
-	LlcpData *error_data;
-
+	LlcpConnectData *data = (LlcpConnectData *)user_data;
+	llcp_client_data *client_data;
 	net_nfc_llcp_socket_t socket = -1;
-	net_nfc_error_e result = NET_NFC_OK;
+	net_nfc_error_e result;
 
-	data = (LlcpConnectData *)user_data;
+	g_assert(data != NULL);
+	g_assert(data->llcp != NULL);
+	g_assert(data->invocation != NULL);
 
-	if (data == NULL)
-	{
-		DEBUG_ERR_MSG("can not get LlcpListenData");
-		return;
+	client_data = g_try_new0(llcp_client_data, 1);
+	if (client_data == NULL) {
+		result = NET_NFC_ALLOC_FAIL;
+
+		goto ERROR;
 	}
 
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.ConnectError",
-					"can not get llcp");
-
-			g_object_unref(data->invocation);
-		}
-
-		g_free(data->service_name);
-		g_free(data);
-
-		return;
-	}
-
-	error_data = g_new0(LlcpData, 1);
-	if(error_data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
-		g_dbus_method_invocation_return_dbus_error(data->invocation,
-				"org.tizen.NetNfcService.AllocationError",
-				"Can not allocate memory");
-		return;
-	}
-	error_data->llcp = g_object_ref(data->llcp);
-	error_data->invocation = g_object_ref(data->invocation);
+	client_data->connection = g_dbus_method_invocation_get_connection(
+			data->invocation);
+	client_data->id = g_strdup(
+			g_dbus_method_invocation_get_sender(data->invocation));
+	client_data->handle = (net_nfc_target_handle_h)data->handle;
 
 	if (net_nfc_controller_llcp_create_socket(&socket,
 				data->type,
@@ -985,32 +871,14 @@ static void llcp_handle_connect_thread_func(gpointer user_data)
 				data->rw,
 				&result,
 				llcp_socket_error_cb,
-				error_data) == false)
+				client_data) == false)
 	{
-		DEBUG_ERR_MSG("%s fiailed [%d]",
-				"net_nfc_controller_llcp_create_socket" ,result);
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_create_socket failed [%d]", result);
 
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.ConnectError",
-					"can not create socket");
-
-			g_object_unref(data->invocation);
-		}
-
-		g_object_unref(data->llcp);
-
-		g_free(data->service_name);
-		g_free(data);
-
-		g_free(error_data);
-
-		return;
+		goto ERROR;
 	}
 
-	DEBUG_SERVER_MSG("OAL socket in Listen :%d", socket);
+	client_data->socket = socket;
 
 	if (net_nfc_controller_llcp_connect_by_url(
 				GUINT_TO_POINTER(data->handle),
@@ -1020,77 +888,60 @@ static void llcp_handle_connect_thread_func(gpointer user_data)
 				llcp_connect_by_url_cb,
 				data) == false)
 	{
-		DEBUG_ERR_MSG("%s failed, [%d]",
-				"net_nfc_controller_llcp_connect_by_url",
-				result);
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_listen failed [%d]", result);
 
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.ConnectError",
-					"can not listen socket");
-
-			g_object_unref(data->invocation);
-		}
-
-		g_object_unref(data->llcp);
-
-		g_free(data->service_name);
-		g_free(data);
-
-		g_free(error_data);
-
-		if (socket != -1)
-			net_nfc_controller_llcp_socket_close(socket, &result);
+		goto ERROR;
 	}
+
+	g_object_unref(data->invocation);
+	g_object_unref(data->llcp);
+
+	g_free(data);
+
+	return;
+
+ERROR :
+	net_nfc_gdbus_llcp_complete_connect(data->llcp, data->invocation,
+			result,
+			-1);
+
+	if (socket != -1)
+		net_nfc_controller_llcp_socket_close(socket, &result);
+
+	g_free(client_data);
+
+	g_free(data->service_name);
+
+	g_object_unref(data->invocation);
+	g_object_unref(data->llcp);
+
+	g_free(data);
 }
 
 static void llcp_handle_connect_sap_thread_func(gpointer user_data)
 {
-	LlcpConnectSapData *data;
-	LlcpData *error_data;
+	LlcpConnectSapData *data = (LlcpConnectSapData *)user_data;
+	llcp_client_data *client_data;
 
 	net_nfc_llcp_socket_t socket = -1;
 	net_nfc_error_e result = NET_NFC_OK;
 
-	data = (LlcpConnectSapData *)user_data;
+	g_assert(data != NULL);
+	g_assert(data->llcp != NULL);
+	g_assert(data->invocation != NULL);
 
-	if (data == NULL)
-	{
-		DEBUG_ERR_MSG("can not get LlcpConnectSapData");
-		return;
+	client_data = g_try_new0(llcp_client_data, 1);
+	if (client_data == NULL) {
+		result = NET_NFC_ALLOC_FAIL;
+
+		goto ERROR;
 	}
 
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.ConnectSapError",
-					"can not get llcp");
-
-			g_object_unref(data->invocation);
-		}
-
-		g_free(data);
-
-		return;
-	}
-
-	error_data = g_new0(LlcpData, 1);
-	if(error_data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
-		g_dbus_method_invocation_return_dbus_error(data->invocation,
-				"org.tizen.NetNfcService.AllocationError",
-				"Can not allocate memory");
-		return;
-	}
-	error_data->llcp = g_object_ref(data->llcp);
-	error_data->invocation = g_object_ref(data->invocation);
+	client_data->connection = g_dbus_method_invocation_get_connection(
+			data->invocation);
+	client_data->id = g_strdup(
+			g_dbus_method_invocation_get_sender(data->invocation));
+	client_data->handle = (net_nfc_target_handle_h)data->handle;
 
 	if (net_nfc_controller_llcp_create_socket(&socket,
 				data->type,
@@ -1098,31 +949,14 @@ static void llcp_handle_connect_sap_thread_func(gpointer user_data)
 				data->rw,
 				&result,
 				llcp_socket_error_cb,
-				error_data) == false)
+				client_data) == false)
 	{
-		DEBUG_ERR_MSG("%s fiailed [%d]",
-				"net_nfc_controller_llcp_create_socket" ,result);
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_create_socket failed [%d]", result);
 
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.ConnectSapError",
-					"can not create socket");
-
-			g_object_unref(data->invocation);
-		}
-
-		g_object_unref(data->llcp);
-
-		g_free(data);
-
-		g_free(error_data);
-
-		return;
+		goto ERROR;
 	}
 
-	DEBUG_SERVER_MSG("OAL socket in Listen :%d", socket);
+	client_data->socket = socket;
 
 	if (net_nfc_controller_llcp_connect(GUINT_TO_POINTER(data->handle),
 				socket,
@@ -1131,524 +965,214 @@ static void llcp_handle_connect_sap_thread_func(gpointer user_data)
 				llcp_connect_cb,
 				data) == false)
 	{
-		DEBUG_ERR_MSG("%s failed, [%d]",
-				"net_nfc_controller_llcp_connect",
-				result);
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_listen failed [%d]", result);
 
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.ConnectSapError",
-					"can not connect socket");
-
-			g_object_unref(data->invocation);
-		}
-
-		g_object_unref(data->llcp);
-
-		g_free(data);
-
-		g_free(error_data);
-
-		if (socket != -1)
-			net_nfc_controller_llcp_socket_close(socket, &result);
-
+		goto ERROR;
 	}
+
+	g_object_unref(data->invocation);
+	g_object_unref(data->llcp);
+
+	g_free(data);
+
+	return;
+
+ERROR :
+	net_nfc_gdbus_llcp_complete_connect_sap(data->llcp, data->invocation,
+			result,
+			-1);
+
+	if (socket != -1)
+		net_nfc_controller_llcp_socket_close(socket, &result);
+
+	g_free(client_data);
+
+	g_object_unref(data->invocation);
+	g_object_unref(data->llcp);
+
+	g_free(data);
 }
 
 static void llcp_handle_send_thread_func(gpointer user_data)
 {
-	LlcpSendData *data;
-	LlcpData *llcp_data;
+	LlcpSendData *data = (LlcpSendData *)user_data;
+	net_nfc_error_e result;
 
-	net_nfc_error_e result = NET_NFC_OK;
-
-	data = (LlcpSendData *)user_data;
-
-	if (data == NULL)
-	{
-		DEBUG_ERR_MSG("can not get LlcpSendData");
-		return;
-	}
-
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.SendError",
-					"can not get llcp");
-
-			g_object_unref(data->invocation);
-		}
-
-		if (data->data)
-		{
-			g_free(data->data->buffer);
-			g_free(data->data);
-		}
-
-		g_free(data);
-
-		return;
-	}
-
-	llcp_data = g_new0(LlcpData, 1);
-	if(llcp_data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
-		g_dbus_method_invocation_return_dbus_error(data->invocation,
-				"org.tizen.NetNfcService.AllocationError",
-				"Can not allocate memory");
-		return;
-	}
-	llcp_data->llcp = g_object_ref(data->llcp);
-	llcp_data->invocation = g_object_ref(data->invocation);
+	g_assert(data != NULL);
+	g_assert(data->llcp != NULL);
+	g_assert(data->invocation != NULL);
 
 	if (net_nfc_controller_llcp_send(GUINT_TO_POINTER(data->handle),
-				data->oal_socket,
-				data->data,
+				data->client_socket,
+				&data->data,
 				&result,
 				llcp_send_cb,
-				llcp_data) == false)
+				data) == false)
 	{
-		DEBUG_ERR_MSG("%s failed, [%d]",
-				"net_nfc_controller_llcp_send",
-				result);
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_send failed [%d]", result);
 
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.SendError",
-					"can not send socket");
+		net_nfc_gdbus_llcp_complete_send(data->llcp,
+				data->invocation,
+				result,
+				data->client_socket);
 
-			g_object_unref(data->invocation);
-		}
+		net_nfc_util_free_data(&data->data);
 
+		g_object_unref(data->invocation);
 		g_object_unref(data->llcp);
 
-		if (data->data)
-		{
-			g_free(data->data->buffer);
-			g_free(data->data);
-		}
-
 		g_free(data);
-
-		g_free(llcp_data);
-
-		return;
 	}
-
-	g_object_unref(data->llcp);
-	g_object_unref(data->invocation);
-
-	if (data->data)
-	{
-		g_free(data->data->buffer);
-		g_free(data->data);
-	}
-
-	g_free(data);
-
-	g_free(llcp_data);
 }
 
 static void llcp_handle_send_to_thread_func(gpointer user_data)
 {
-	LlcpSendToData *data;
-	LlcpData *llcp_data;
+	LlcpSendToData *data = (LlcpSendToData *)user_data;
+	net_nfc_error_e result;
 
-	net_nfc_error_e result = NET_NFC_OK;
-
-	data = (LlcpSendToData *)user_data;
-
-	if (data == NULL)
-	{
-		DEBUG_ERR_MSG("can not get LlcpSendToData");
-		return;
-	}
-
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.SendToError",
-					"can not get llcp");
-
-			g_object_unref(data->invocation);
-		}
-
-		if (data->data)
-		{
-			g_free(data->data->buffer);
-			g_free(data->data);
-		}
-
-		g_free(data);
-
-		return;
-	}
-
-	llcp_data = g_new0(LlcpData, 1);
-	if(llcp_data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
-		g_dbus_method_invocation_return_dbus_error(data->invocation,
-				"org.tizen.NetNfcService.AllocationError",
-				"Can not allocate memory");
-		return;
-	}
-	llcp_data->llcp = g_object_ref(data->llcp);
-	llcp_data->invocation = g_object_ref(data->invocation);
+	g_assert(data != NULL);
+	g_assert(data->llcp != NULL);
+	g_assert(data->invocation != NULL);
 
 	if (net_nfc_controller_llcp_send_to(GUINT_TO_POINTER(data->handle),
-				data->oal_socket,
-				data->data,
+				data->client_socket,
+				&data->data,
 				data->sap,
 				&result,
-				llcp_send_cb,
-				llcp_data) == false)
+				llcp_send_to_cb,
+				data) == false)
 	{
-		DEBUG_ERR_MSG("%s failed, [%d]",
-				"net_nfc_controller_llcp_send_to",
-				result);
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_send_to failed [%d]", result);
 
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.SendToError",
-					"can not send socket");
+		net_nfc_gdbus_llcp_complete_send_to(data->llcp,
+				data->invocation,
+				result,
+				data->client_socket);
 
-			g_object_unref(data->invocation);
-		}
+		net_nfc_util_free_data(&data->data);
 
+		g_object_unref(data->invocation);
 		g_object_unref(data->llcp);
 
-		if (data->data)
-		{
-			g_free(data->data->buffer);
-			g_free(data->data);
-		}
-
 		g_free(data);
-
-		g_free(llcp_data);
-
-		return;
 	}
-
-	g_object_unref(data->llcp);
-	g_object_unref(data->invocation);
-
-	if (data->data)
-	{
-		g_free(data->data->buffer);
-		g_free(data->data);
-	}
-
-	g_free(data);
-
-	g_free(llcp_data);
 }
 
 static void llcp_handle_receive_thread_func(gpointer user_data)
 {
-	LlcpReceiveData *data;
-	LlcpData *llcp_data;
+	LlcpReceiveData *data = (LlcpReceiveData *)user_data;
+	net_nfc_error_e result;
 
-	net_nfc_error_e result = NET_NFC_OK;
-
-	data = (LlcpReceiveData *)user_data;
-
-	if (data == NULL)
-	{
-		DEBUG_ERR_MSG("can not get LlcpReceiveData");
-		return;
-	}
-
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.ReceiveError",
-					"can not get llcp");
-
-			g_object_unref(data->invocation);
-		}
-
-		g_free(data);
-
-		return;
-	}
-
-	llcp_data = g_new0(LlcpData, 1);
-	if(llcp_data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
-		g_dbus_method_invocation_return_dbus_error(data->invocation,
-				"org.tizen.NetNfcService.AllocationError",
-				"Can not allocate memory");
-		return;
-	}
-	llcp_data->llcp = g_object_ref(data->llcp);
-	llcp_data->invocation = g_object_ref(data->invocation);
+	g_assert(data != NULL);
+	g_assert(data->llcp != NULL);
+	g_assert(data->invocation != NULL);
 
 	if (net_nfc_controller_llcp_recv(GUINT_TO_POINTER(data->handle),
-				data->oal_socket,
+				data->client_socket,
 				data->req_length,
 				&result,
 				llcp_receive_cb,
-				llcp_data) == false)
+				data) == false)
 	{
-		DEBUG_ERR_MSG("%s failed, [%d]",
-				"net_nfc_controller_llcp_receive",
-				result);
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_recv failed [%d]", result);
 
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.ReceiveError",
-					"can not receive");
+		net_nfc_gdbus_llcp_complete_receive(data->llcp,
+				data->invocation,
+				result,
+				net_nfc_util_gdbus_buffer_to_variant(NULL, 0));
 
-			g_object_unref(data->invocation);
-		}
-
+		g_object_unref(data->invocation);
 		g_object_unref(data->llcp);
+
 		g_free(data);
-
-		g_free(llcp_data);
-
-		return;
 	}
-
-	g_object_unref(data->llcp);
-	g_object_unref(data->invocation);
-
-	g_free(data);
-
-	g_free(llcp_data);
 }
 
 static void llcp_handle_receive_from_thread_func(gpointer user_data)
 {
-	LlcpReceiveData *data;
-	LlcpData *llcp_data;
+	LlcpReceiveData *data = (LlcpReceiveData *)user_data;
+	net_nfc_error_e result;
 
-	net_nfc_error_e result = NET_NFC_OK;
-
-	data = (LlcpReceiveData *)user_data;
-
-	if (data == NULL)
-	{
-		DEBUG_ERR_MSG("can not get LlcpReceiveData");
-		return;
-	}
-
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.ReceiveFromError",
-					"can not get llcp");
-
-			g_object_unref(data->invocation);
-		}
-
-		g_free(data);
-
-		return;
-	}
-
-	llcp_data = g_new0(LlcpData, 1);
-	if(llcp_data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
-		g_dbus_method_invocation_return_dbus_error(data->invocation,
-				"org.tizen.NetNfcService.AllocationError",
-				"Can not allocate memory");
-		return;
-	}
-	llcp_data->llcp = g_object_ref(data->llcp);
-	llcp_data->invocation = g_object_ref(data->invocation);
+	g_assert(data != NULL);
+	g_assert(data->llcp != NULL);
+	g_assert(data->invocation != NULL);
 
 	if (net_nfc_controller_llcp_recv_from(GUINT_TO_POINTER(data->handle),
-				data->oal_socket,
+				data->client_socket,
 				data->req_length,
 				&result,
 				llcp_receive_from_cb,
-				llcp_data) == false)
+				data) == false)
 	{
-		DEBUG_ERR_MSG("%s failed, [%d]",
-				"net_nfc_controller_llcp_receive",
-				result);
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_recv_from failed [%d]", result);
 
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.ReceiveFromError",
-					"can not receive");
+		net_nfc_gdbus_llcp_complete_receive_from(data->llcp,
+				data->invocation,
+				result,
+				-1,
+				net_nfc_util_gdbus_buffer_to_variant(NULL, 0));
 
-			g_object_unref(data->invocation);
-		}
-
+		g_object_unref(data->invocation);
 		g_object_unref(data->llcp);
+
 		g_free(data);
-
-		g_free(llcp_data);
-
-		return;
 	}
-
-	g_object_unref(data->llcp);
-	g_object_unref(data->invocation);
-
-	g_free(data);
-
-	g_free(llcp_data);
 }
 
 static void llcp_handle_close_thread_func(gpointer user_data)
 {
-	LlcpCloseData *data;
+	LlcpCloseData *data = (LlcpCloseData *)user_data;
+	net_nfc_error_e result;
 
-	net_nfc_error_e result = NET_NFC_OK;
+	g_assert(data != NULL);
+	g_assert(data->llcp != NULL);
+	g_assert(data->invocation != NULL);
 
-	data = (LlcpCloseData *)user_data;
-
-	if (data == NULL)
-	{
-		DEBUG_ERR_MSG("can not get LlcpCloseData");
-		return;
-	}
-
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.CloseError",
-					"can not get llcp");
-
-			g_object_unref(data->invocation);
-		}
-
-		g_free(data);
-
-		return;
-	}
-
-	net_nfc_controller_llcp_socket_close(data->oal_socket,
-			&result);
+	net_nfc_controller_llcp_socket_close(data->client_socket, &result);
 
 	net_nfc_gdbus_llcp_complete_close(data->llcp,
 			data->invocation,
+			result,
 			data->client_socket);
 }
 
 static void llcp_handle_disconnect_thread_func(gpointer user_data)
 {
-	LlcpDisconnectData *data;
-	LlcpData *llcp_data;
-	int ret_val = 0;
+	LlcpDisconnectData *data = (LlcpDisconnectData *)user_data;
+	net_nfc_error_e result;
 
-	net_nfc_error_e result = NET_NFC_OK;
+	g_assert(data != NULL);
+	g_assert(data->llcp != NULL);
+	g_assert(data->invocation != NULL);
 
-	data = (LlcpDisconnectData *)user_data;
-
-	if (data == NULL)
+	if (GUINT_TO_POINTER(data->handle) == 0)
 	{
-		DEBUG_ERR_MSG("can not get LlcpDisconnectData");
-		return;
-	}
+		int ret_val;
 
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.DisconnectError",
-					"can not get llcp");
-
-			g_object_unref(data->invocation);
-		}
-
-		g_free(data);
-
-		return;
-	}
-
-	if(GUINT_TO_POINTER(data->handle) == 0)
-	{
 		net_nfc_server_free_target_info();
 		ret_val = pm_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
 		DEBUG_SERVER_MSG("net_nfc_controller_disconnect pm_unlock_state"
 				"[%d]!!", ret_val);
 	}
 
-	llcp_data = g_new0(LlcpData, 1);
-	if(llcp_data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
-		return;
-	}
-	llcp_data->llcp = g_object_ref(data->llcp);
-	llcp_data->invocation = g_object_ref(data->invocation);
-
 	if (net_nfc_controller_llcp_disconnect(GUINT_TO_POINTER(data->handle),
-				data->oal_socket,
+				data->client_socket,
 				&result,
 				llcp_disconnect_cb,
-				llcp_data) == false)
+				data) == false)
 	{
-		DEBUG_ERR_MSG("%s failed, [%d]",
-				"net_nfc_controller_llcp_receive",
-				result);
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_disconnect failed [%d]", result);
 
-		if (data->invocation)
-		{
-			g_dbus_method_invocation_return_dbus_error(
-					data->invocation,
-					"org.tizen.NetNfcService.DisconnectError",
-					"can not disconnect socket");
+		net_nfc_gdbus_llcp_complete_disconnect(data->llcp,
+				data->invocation,
+				result,
+				data->client_socket);
 
-			g_object_unref(data->invocation);
-		}
-
+		g_object_unref(data->invocation);
 		g_object_unref(data->llcp);
+
 		g_free(data);
-
-		g_free(llcp_data);
-
-		return;
 	}
-
-	g_object_unref(data->llcp);
-	g_object_unref(data->invocation);
-
-	g_free(data);
-
-	g_free(llcp_data);
 }
 
 
@@ -1658,6 +1182,7 @@ static gboolean llcp_handle_config(NetNfcGDbusLlcp *llcp,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
+	gboolean result;
 	LlcpConfigData *data;
 
 	INFO_MSG(">>> REQUEST from [%s]",
@@ -1670,18 +1195,18 @@ static gboolean llcp_handle_config(NetNfcGDbusLlcp *llcp,
 				"w") == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 
-		return TRUE;
+		return FALSE;
 	}
 
-	data = g_new0(LlcpConfigData, 1);
-	if(data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+	data = g_try_new0(LlcpConfigData, 1);
+	if (data == NULL) {
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
+
 		return FALSE;
 	}
+
 	data->llcp = g_object_ref(llcp);
 	data->invocation = g_object_ref(invocation);
 
@@ -1692,29 +1217,28 @@ static gboolean llcp_handle_config(NetNfcGDbusLlcp *llcp,
 			&data->lto,
 			&data->option);
 
-	if (net_nfc_server_controller_async_queue_push(
-				llcp_handle_config_thread_func,
-				data) == FALSE)
+	result = net_nfc_server_controller_async_queue_push(
+			llcp_handle_config_thread_func,
+			data);
+	if (result == FALSE)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.ThreadError",
+				"org.tizen.NetNfcService.Llcp.ThreadError",
 				"can not push to controller thread");
-		g_object_unref(data->llcp);
+
 		g_object_unref(data->invocation);
+		g_object_unref(data->llcp);
 
 		g_free(data);
-
-		return FALSE;
 	}
 
-	return TRUE;
+	return result;
 }
 
 static gboolean llcp_handle_listen(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		guint16 arg_miu,
 		guint8 arg_rw,
 		gint32 arg_type,
@@ -1723,6 +1247,7 @@ static gboolean llcp_handle_listen(NetNfcGDbusLlcp *llcp,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
+	gboolean result;
 	LlcpListenData *data;
 
 	INFO_MSG(">>> REQUEST from [%s]",
@@ -1735,54 +1260,162 @@ static gboolean llcp_handle_listen(NetNfcGDbusLlcp *llcp,
 				"rw") == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 
-		return TRUE;
+		return FALSE;
 	}
 
-	data = g_new0(LlcpListenData, 1);
-	if(data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+	data = g_try_new0(LlcpListenData, 1);
+	if (data == NULL) {
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
+
 		return FALSE;
 	}
+
 	data->llcp = g_object_ref(llcp);
 	data->invocation = g_object_ref(invocation);
 	data->handle = arg_handle;
 	data->client_socket = arg_client_socket;
-	data->oal_socket = arg_oal_socket;
 	data->miu = arg_miu;
 	data->rw = arg_rw;
 	data->type = arg_type;
 	data->sap = arg_sap;
 	data->service_name = g_strdup(arg_service_name);
 
-	if (net_nfc_server_controller_async_queue_push(
-				llcp_handle_listen_thread_func,
-				data) == FALSE)
+	result = net_nfc_server_controller_async_queue_push(
+			llcp_handle_listen_thread_func,
+			data);
+	if (result == FALSE)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.ThreadError",
+				"org.tizen.NetNfcService.Llcp.ThreadError",
 				"can not push to controller thread");
 
-		g_object_unref(data->llcp);
-		g_object_unref(data->invocation);
-
 		g_free(data->service_name);
+
+		g_object_unref(data->invocation);
+		g_object_unref(data->llcp);
+
 		g_free(data);
+	}
+
+	return result;
+}
+
+static gboolean llcp_handle_accept(NetNfcGDbusLlcp *llcp,
+		GDBusMethodInvocation *invocation,
+		guint32 arg_handle,
+		guint32 arg_client_socket,
+		GVariant *smack_privilege,
+		gpointer user_data)
+{
+	gboolean result;
+	LlcpAcceptData *data;
+
+	INFO_MSG(">>> REQUEST from [%s]",
+			g_dbus_method_invocation_get_sender(invocation));
+
+	/* check privilege and update client context */
+	if (net_nfc_server_gdbus_check_privilege(invocation,
+				smack_privilege,
+				"nfc-manager::p2p",
+				"rw") == false) {
+		DEBUG_ERR_MSG("permission denied, and finished request");
 
 		return FALSE;
 	}
 
-	return TRUE;
+	data = g_try_new0(LlcpAcceptData, 1);
+	if (data == NULL) {
+		g_dbus_method_invocation_return_dbus_error(invocation,
+				"org.tizen.NetNfcService.Llcp.MemoryError",
+				"Out of memory");
+
+		return FALSE;
+	}
+
+	data->llcp = g_object_ref(llcp);
+	data->invocation = g_object_ref(invocation);
+	data->handle = arg_handle;
+	data->client_socket = arg_client_socket;
+
+	result = net_nfc_server_controller_async_queue_push(
+			llcp_handle_accept_thread_func,
+			data);
+	if (result == FALSE)
+	{
+		g_dbus_method_invocation_return_dbus_error(invocation,
+				"org.tizen.NetNfcService.Llcp.ThreadError",
+				"can not push to controller thread");
+
+		g_object_unref(data->invocation);
+		g_object_unref(data->llcp);
+
+		g_free(data);
+	}
+
+	return result;
+}
+
+static gboolean llcp_handle_reject(NetNfcGDbusLlcp *llcp,
+		GDBusMethodInvocation *invocation,
+		guint32 arg_handle,
+		guint32 arg_client_socket,
+		GVariant *smack_privilege,
+		gpointer user_data)
+{
+	gboolean result;
+	LlcpAcceptData *data;
+
+	INFO_MSG(">>> REQUEST from [%s]",
+			g_dbus_method_invocation_get_sender(invocation));
+
+	/* check privilege and update client context */
+	if (net_nfc_server_gdbus_check_privilege(invocation,
+				smack_privilege,
+				"nfc-manager::p2p",
+				"rw") == false) {
+		DEBUG_ERR_MSG("permission denied, and finished request");
+
+		return FALSE;
+	}
+
+	data = g_try_new0(LlcpAcceptData, 1);
+	if (data == NULL) {
+		g_dbus_method_invocation_return_dbus_error(invocation,
+				"org.tizen.NetNfcService.Llcp.MemoryError",
+				"Out of memory");
+
+		return FALSE;
+	}
+
+	data->llcp = g_object_ref(llcp);
+	data->invocation = g_object_ref(invocation);
+	data->handle = arg_handle;
+	data->client_socket = arg_client_socket;
+
+	result = net_nfc_server_controller_async_queue_push(
+			llcp_handle_reject_thread_func,
+			data);
+	if (result == FALSE)
+	{
+		g_dbus_method_invocation_return_dbus_error(invocation,
+				"org.tizen.NetNfcService.Llcp.ThreadError",
+				"can not push to controller thread");
+
+		g_object_unref(data->invocation);
+		g_object_unref(data->llcp);
+
+		g_free(data);
+	}
+
+	return result;
 }
 
 static gboolean llcp_handle_connect(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		guint16 arg_miu,
 		guint8 arg_rw,
 		gint32 arg_type,
@@ -1790,6 +1423,7 @@ static gboolean llcp_handle_connect(NetNfcGDbusLlcp *llcp,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
+	gboolean result;
 	LlcpConnectData *data;
 
 	INFO_MSG(">>> REQUEST from [%s]",
@@ -1802,53 +1436,51 @@ static gboolean llcp_handle_connect(NetNfcGDbusLlcp *llcp,
 				"rw") == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 
-		return TRUE;
+		return FALSE;
 	}
 
-	data = g_new0(LlcpConnectData, 1);
-	if(data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+	data = g_try_new0(LlcpConnectData, 1);
+	if (data == NULL) {
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
+
 		return FALSE;
 	}
+
 	data->llcp = g_object_ref(llcp);
 	data->invocation = g_object_ref(invocation);
 	data->handle = arg_handle;
 	data->client_socket = arg_client_socket;
-	data->oal_socket = arg_oal_socket;
 	data->miu = arg_miu;
 	data->rw = arg_rw;
 	data->type = arg_type;
 	data->service_name = g_strdup(arg_service_name);
 
-	if (net_nfc_server_controller_async_queue_push(
-				llcp_handle_connect_thread_func,
-				data) == FALSE)
+	result = net_nfc_server_controller_async_queue_push(
+			llcp_handle_connect_thread_func,
+			data);
+	if (result == FALSE)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.ThreadError",
+				"org.tizen.NetNfcService.Llcp.ThreadError",
 				"can not push to controller thread");
 
-		g_object_unref(data->llcp);
-		g_object_unref(data->invocation);
-
 		g_free(data->service_name);
-		g_free(data);
 
-		return FALSE;
+		g_object_unref(data->invocation);
+		g_object_unref(data->llcp);
+
+		g_free(data);
 	}
 
-	return TRUE;
+	return result;
 }
 
 static gboolean llcp_handle_connect_sap(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		guint16 arg_miu,
 		guint8 arg_rw,
 		gint32 arg_type,
@@ -1856,6 +1488,7 @@ static gboolean llcp_handle_connect_sap(NetNfcGDbusLlcp *llcp,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
+	gboolean result;
 	LlcpConnectSapData *data;
 
 	INFO_MSG(">>> REQUEST from [%s]",
@@ -1868,56 +1501,54 @@ static gboolean llcp_handle_connect_sap(NetNfcGDbusLlcp *llcp,
 				"rw") == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 
-		return TRUE;
+		return FALSE;
 	}
 
-	data = g_new0(LlcpConnectSapData, 1);
-	if(data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+	data = g_try_new0(LlcpConnectSapData, 1);
+	if (data == NULL) {
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
+
 		return FALSE;
 	}
+
 	data->llcp = g_object_ref(llcp);
 	data->invocation = g_object_ref(invocation);
 	data->handle = arg_handle;
 	data->client_socket = arg_client_socket;
-	data->oal_socket = arg_oal_socket;
 	data->miu = arg_miu;
 	data->rw = arg_rw;
 	data->type = arg_type;
 	data->sap = arg_sap;
 
-	if(net_nfc_server_controller_async_queue_push(
-				llcp_handle_connect_sap_thread_func,
-				data) == FALSE)
+	result = net_nfc_server_controller_async_queue_push(
+			llcp_handle_connect_sap_thread_func,
+			data);
+	if (result == FALSE)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.ThreadError",
+				"org.tizen.NetNfcService.Llcp.ThreadError",
 				"can not push to controller thread");
 
-		g_object_unref(data->llcp);
 		g_object_unref(data->invocation);
+		g_object_unref(data->llcp);
 
 		g_free(data);
-
-		return FALSE;
 	}
 
-	return TRUE;
+	return result;
 }
 
 static gboolean llcp_handle_send(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		GVariant *arg_data,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
+	gboolean result;
 	LlcpSendData *data;
 
 	INFO_MSG(">>> REQUEST from [%s]",
@@ -1930,61 +1561,55 @@ static gboolean llcp_handle_send(NetNfcGDbusLlcp *llcp,
 				"w") == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 
-		return TRUE;
+		return FALSE;
 	}
 
-	data = g_new0(LlcpSendData, 1);
-	if(data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+	data = g_try_new0(LlcpSendData, 1);
+	if (data == NULL) {
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
+
 		return FALSE;
 	}
+
 	data->llcp = g_object_ref(llcp);
 	data->invocation = g_object_ref(invocation);
 	data->handle = arg_handle;
 	data->client_socket = arg_client_socket;
-	data->oal_socket = arg_oal_socket;
 
-	data->data = net_nfc_util_gdbus_variant_to_data(arg_data);
+	net_nfc_util_gdbus_variant_to_data_s(arg_data, &data->data);
 
-	if (net_nfc_server_controller_async_queue_push(
-				llcp_handle_send_thread_func,
-				data) == FALSE)
+	result = net_nfc_server_controller_async_queue_push(
+			llcp_handle_send_thread_func,
+			data);
+	if (result == FALSE)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.ThreadError",
+				"org.tizen.NetNfcService.Llcp.ThreadError",
 				"can not push to controller thread");
 
-		g_object_unref(data->llcp);
-		g_object_unref(data->invocation);
+		net_nfc_util_free_data(&data->data);
 
-		if (data->data != NULL)
-		{
-			g_free(data->data->buffer);
-			g_free(data->data);
-		}
+		g_object_unref(data->invocation);
+		g_object_unref(data->llcp);
 
 		g_free(data);
-
-		return FALSE;
 	}
 
-	return TRUE;
+	return result;
 }
 
 static gboolean llcp_handle_send_to(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		guint8 arg_sap,
 		GVariant *arg_data,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
+	gboolean result;
 	LlcpSendToData *data;
 
 	INFO_MSG(">>> REQUEST from [%s]",
@@ -1997,61 +1622,55 @@ static gboolean llcp_handle_send_to(NetNfcGDbusLlcp *llcp,
 				"rw") == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 
-		return TRUE;
+		return FALSE;
 	}
 
-	data = g_new0(LlcpSendToData, 1);
-	if(data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+	data = g_try_new0(LlcpSendToData, 1);
+	if (data == NULL) {
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
+
 		return FALSE;
 	}
+
 	data->llcp = g_object_ref(llcp);
 	data->invocation = g_object_ref(invocation);
 	data->handle = arg_handle;
 	data->client_socket = arg_client_socket;
-	data->oal_socket = arg_oal_socket;
 	data->sap = arg_sap;
 
-	data->data = net_nfc_util_gdbus_variant_to_data(arg_data);
+	net_nfc_util_gdbus_variant_to_data_s(arg_data, &data->data);
 
-	if(net_nfc_server_controller_async_queue_push(
-				llcp_handle_send_to_thread_func,
-				data) == FALSE)
+	result = net_nfc_server_controller_async_queue_push(
+			llcp_handle_send_to_thread_func,
+			data);
+	if (result == FALSE)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.ThreadError",
+				"org.tizen.NetNfcService.Llcp.ThreadError",
 				"can not push to controller thread");
 
-		g_object_unref(data->llcp);
-		g_object_unref(data->invocation);
+		net_nfc_util_free_data(&data->data);
 
-		if (data->data != NULL)
-		{
-			g_free(data->data->buffer);
-			g_free(data->data);
-		}
+		g_object_unref(data->invocation);
+		g_object_unref(data->llcp);
 
 		g_free(data);
-
-		return FALSE;
 	}
 
-	return TRUE;
+	return result;
 }
 
 static gboolean llcp_handle_receive(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		guint32 arg_req_length,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
+	gboolean result;
 	LlcpReceiveData *data;
 
 	INFO_MSG(">>> REQUEST from [%s]",
@@ -2064,53 +1683,51 @@ static gboolean llcp_handle_receive(NetNfcGDbusLlcp *llcp,
 				"w") == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 
-		return TRUE;
+		return FALSE;
 	}
 
-	data = g_new0(LlcpReceiveData, 1);
-	if(data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+	data = g_try_new0(LlcpReceiveData, 1);
+	if (data == NULL) {
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
+
 		return FALSE;
 	}
+
 	data->llcp = g_object_ref(llcp);
 	data->invocation = g_object_ref(invocation);
 	data->handle = arg_handle;
 	data->client_socket = arg_client_socket;
-	data->oal_socket = arg_oal_socket;
 	data->req_length = arg_req_length;
 
-	if(net_nfc_server_controller_async_queue_push(
-				llcp_handle_receive_thread_func,
-				data) == FALSE)
+	result = net_nfc_server_controller_async_queue_push(
+			llcp_handle_receive_thread_func,
+			data);
+	if (result == FALSE)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.ThreadError",
+				"org.tizen.NetNfcService.Llcp.ThreadError",
 				"can not push to controller thread");
 
-		g_object_unref(data->llcp);
 		g_object_unref(data->invocation);
+		g_object_unref(data->llcp);
 
 		g_free(data);
-
-		return FALSE;
 	}
 
-	return TRUE;
+	return result;
 }
 
 static gboolean llcp_handle_receive_from(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		guint32 arg_req_length,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
+	gboolean result;
 	LlcpReceiveData *data;
 
 	INFO_MSG(">>> REQUEST from [%s]",
@@ -2123,52 +1740,50 @@ static gboolean llcp_handle_receive_from(NetNfcGDbusLlcp *llcp,
 				"w") == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 
-		return TRUE;
+		return FALSE;
 	}
 
-	data = g_new0(LlcpReceiveData, 1);
-	if(data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+	data = g_try_new0(LlcpReceiveData, 1);
+	if (data == NULL) {
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
+
 		return FALSE;
 	}
+
 	data->llcp = g_object_ref(llcp);
 	data->invocation = g_object_ref(invocation);
 	data->handle = arg_handle;
 	data->client_socket = arg_client_socket;
-	data->oal_socket = arg_oal_socket;
 	data->req_length = arg_req_length;
 
-	if(net_nfc_server_controller_async_queue_push(
-				llcp_handle_receive_from_thread_func,
-				data) == FALSE)
+	result = net_nfc_server_controller_async_queue_push(
+			llcp_handle_receive_from_thread_func,
+			data);
+	if (result == FALSE)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.ThreadError",
+				"org.tizen.NetNfcService.Llcp.ThreadError",
 				"can not push to controller thread");
 
-		g_object_unref(data->llcp);
 		g_object_unref(data->invocation);
+		g_object_unref(data->llcp);
 
 		g_free(data);
-
-		return FALSE;
 	}
 
-	return TRUE;
+	return result;
 }
 
 static gboolean llcp_handle_close(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
+	gboolean result;
 	LlcpCloseData *data;
 
 	INFO_MSG(">>> REQUEST from [%s]",
@@ -2181,51 +1796,49 @@ static gboolean llcp_handle_close(NetNfcGDbusLlcp *llcp,
 				"w") == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 
-		return TRUE;
+		return FALSE;
 	}
 
-	data = g_new0(LlcpCloseData, 1);
-	if(data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+	data = g_try_new0(LlcpCloseData, 1);
+	if (data == NULL) {
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
+
 		return FALSE;
 	}
+
 	data->llcp = g_object_ref(llcp);
 	data->invocation = g_object_ref(invocation);
 	data->handle = arg_handle;
 	data->client_socket = arg_client_socket;
-	data->oal_socket = arg_oal_socket;
 
-	if (net_nfc_server_controller_async_queue_push(
-				llcp_handle_close_thread_func,
-				data) == FALSE)
+	result = net_nfc_server_controller_async_queue_push(
+			llcp_handle_close_thread_func,
+			data);
+	if (result == FALSE)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.ThreadError",
+				"org.tizen.NetNfcService.Llcp.ThreadError",
 				"can not push to controller thread");
 
 		g_object_unref(data->llcp);
 		g_object_unref(data->invocation);
 
 		g_free(data);
-
-		return FALSE;
 	}
 
-	return TRUE;
+	return result;
 }
 
 static gboolean llcp_handle_disconnect(NetNfcGDbusLlcp *llcp,
 		GDBusMethodInvocation *invocation,
 		guint32 arg_handle,
 		guint32 arg_client_socket,
-		guint32 arg_oal_socket,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
+	gboolean result;
 	LlcpDisconnectData *data;
 
 	INFO_MSG(">>> REQUEST from [%s]",
@@ -2238,90 +1851,46 @@ static gboolean llcp_handle_disconnect(NetNfcGDbusLlcp *llcp,
 				"w") == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 
-		return TRUE;
+		return FALSE;
 	}
 
-	data = g_new0(LlcpDisconnectData, 1);
-	if(data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+	data = g_try_new0(LlcpDisconnectData, 1);
+	if (data == NULL) {
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
+
 		return FALSE;
 	}
+
 	data->llcp = g_object_ref(llcp);
 	data->invocation = g_object_ref(invocation);
 	data->handle = arg_handle;
 	data->client_socket = arg_client_socket;
-	data->oal_socket = arg_oal_socket;
 
-	if (net_nfc_server_controller_async_queue_push(
-				llcp_handle_disconnect_thread_func,
-				data) == FALSE)
+	result = net_nfc_server_controller_async_queue_push(
+			llcp_handle_disconnect_thread_func,
+			data);
+	if (result == FALSE)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.ThreadError",
+				"org.tizen.NetNfcService.Llcp.ThreadError",
 				"can not push to controller thread");
 
-		g_object_unref(data->llcp);
 		g_object_unref(data->invocation);
+		g_object_unref(data->llcp);
 
 		g_free(data);
-
-		return FALSE;
 	}
 
-	return TRUE;
+	return result;
 }
 
-
-static void llcp_deactivated_thread_func(gpointer user_data)
+void net_nfc_server_llcp_deactivated(gpointer user_data)
 {
-	ServerLlcpData *data;
+	net_nfc_target_handle_s *handle = (net_nfc_target_handle_s *)user_data;
 
-	net_nfc_request_llcp_msg_t *req_llcp_msg;
-	net_nfc_target_handle_s *handle;
-
-	data = (ServerLlcpData *)user_data;
-
-	if (data == NULL)
-	{
-		DEBUG_ERR_MSG("can not get ServerLlcpData");
-
-		return;
-	}
-
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-
-		g_free(data->req_msg);
-		g_free(data);
-
-		return;
-	}
-
-	if (data->req_msg == NULL)
-	{
-		DEBUG_ERR_MSG("can not get request msg");
-
-		g_object_unref(data->llcp);
-		g_free(data);
-
-		return;
-	}
-
-	req_llcp_msg = (net_nfc_request_llcp_msg_t *)data->req_msg;
-
-	handle = (net_nfc_target_handle_s*)req_llcp_msg->user_param;
-	if (handle == NULL)
-	{
-		DEBUG_SERVER_MSG(
-				"the target ID = [0x%p] was not connected before."
-				"current device may be a TARGET", handle);
-	}
-	else
+	if (handle != NULL)
 	{
 		net_nfc_error_e result = NET_NFC_OK;
 
@@ -2339,436 +1908,13 @@ static void llcp_deactivated_thread_func(gpointer user_data)
 
 		net_nfc_server_set_state(NET_NFC_SERVER_IDLE);
 	}
+	else
+	{
+		DEBUG_SERVER_MSG("the target was disconnected");
+	}
 
 	/* send p2p detatch */
 	net_nfc_server_p2p_detached();
-
-	g_object_unref(data->llcp);
-
-	g_free(data->req_msg);
-	g_free(data);
-}
-
-static void llcp_listen_thread_func(gpointer user_data)
-{
-	ServerLlcpData *data;
-
-	socket_info_t *info = NULL;
-	net_nfc_request_listen_socket_t *listen_socket;
-
-	data = (ServerLlcpData *)user_data;
-
-	if (data == NULL)
-	{
-		DEBUG_ERR_MSG("can not get ServerLlcpData");
-		return;
-	}
-
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-
-		g_free(data->req_msg);
-		g_free(data);
-
-		return;
-	}
-
-	if (data->req_msg == NULL)
-	{
-		DEBUG_ERR_MSG("can not get request msg");
-
-		g_object_unref(data->llcp);
-		g_free(data);
-
-		return;
-	}
-
-	listen_socket = (net_nfc_request_listen_socket_t *)data->req_msg;
-
-	info = (socket_info_t *)listen_socket->user_param;
-	info = _get_socket_info(info->socket);
-
-	if (info != NULL)
-	{
-		if (_add_socket_info(listen_socket->client_socket) != NULL)
-		{
-			if (info->work_cb != NULL)
-			{
-				info->work_cb(listen_socket->client_socket,
-						listen_socket->result, NULL, NULL,info->work_param);
-			}
-		}
-		else
-		{
-			DEBUG_ERR_MSG("_net_nfc_util_alloc_mem failed");
-		}
-	}
-
-	g_object_unref(data->llcp);
-
-	g_free(data->req_msg);
-	g_free(data);
-}
-
-static void llcp_socket_error_thread_func(gpointer user_data)
-{
-	ServerLlcpData *data;
-
-	net_nfc_request_llcp_msg_t *req_llcp_msg;
-	net_nfc_llcp_param_t *param;
-
-	data = (ServerLlcpData *)user_data;
-
-	if (data == NULL)
-	{
-		DEBUG_ERR_MSG("can not get ServerLlcpData");
-		return;
-	}
-
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-
-		g_free(data->req_msg);
-		g_free(data);
-
-		return;
-	}
-
-	if (data->req_msg == NULL)
-	{
-		DEBUG_ERR_MSG("can not get request msg");
-
-		g_object_unref(data->llcp);
-		g_free(data);
-
-		return;
-	}
-
-	req_llcp_msg = (net_nfc_request_llcp_msg_t *)data->req_msg;
-	param = (net_nfc_llcp_param_t *)req_llcp_msg->user_param;
-
-	if (param)
-	{
-		if (param->cb)
-		{
-			param->cb(req_llcp_msg->llcp_socket,
-					req_llcp_msg->result,
-					NULL,
-					NULL,
-					param->user_param);
-		}
-
-		g_free(param);
-	}
-
-	g_object_unref(data->llcp);
-
-	g_free(data->req_msg);
-	g_free(data);
-}
-
-static void llcp_send_thread_func(gpointer user_data)
-{
-	ServerLlcpData *data;
-
-	net_nfc_request_llcp_msg_t *req_llcp_msg;
-	net_nfc_llcp_param_t *param;
-
-	data = (ServerLlcpData *)user_data;
-
-	if (data == NULL)
-	{
-		DEBUG_ERR_MSG("can not get ServerLlcpData");
-
-		return;
-	}
-
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-
-		g_free(data->req_msg);
-		g_free(data);
-
-		return;
-	}
-
-	if (data->req_msg == NULL)
-	{
-		DEBUG_ERR_MSG("can not get request msg");
-
-		g_object_unref(data->llcp);
-		g_free(data);
-
-		return;
-	}
-
-	req_llcp_msg = (net_nfc_request_llcp_msg_t *)data->req_msg;
-	param = (net_nfc_llcp_param_t *)req_llcp_msg->user_param;
-
-	if (param)
-	{
-		if (param->cb)
-		{
-			param->cb(param->socket,
-					req_llcp_msg->result,
-					NULL,
-					NULL,
-					param->user_param);
-		}
-
-		g_free(param);
-	}
-
-	g_object_unref(data->llcp);
-
-	g_free(data->req_msg);
-	g_free(data);
-}
-
-static void llcp_receive_thread_func(gpointer user_data)
-{
-	ServerLlcpData *data;
-
-	net_nfc_request_receive_socket_t *req_receive_socket;
-	net_nfc_llcp_param_t *param;
-
-	data = (ServerLlcpData *)user_data;
-
-	if (data == NULL)
-	{
-		DEBUG_ERR_MSG("can not get ServerLlcpData");
-
-		return;
-	}
-
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-
-		g_free(data->req_msg);
-		g_free(data);
-
-		return;
-	}
-
-	if (data->req_msg == NULL)
-	{
-		DEBUG_ERR_MSG("can not get request msg");
-
-		g_object_unref(data->llcp);
-		g_free(data);
-
-		return;
-	}
-
-	req_receive_socket = (net_nfc_request_receive_socket_t *)data->req_msg;
-	param = (net_nfc_llcp_param_t *)req_receive_socket->user_param;
-
-	if (param)
-	{
-		if (param->cb)
-		{
-			param->cb(param->socket,
-					req_receive_socket->result,
-					&param->data,
-					NULL,
-					param->user_param);
-		}
-
-		if (param->data.buffer)
-			g_free(param->data.buffer);
-
-		g_free(param);
-	}
-
-	g_object_unref(data->llcp);
-
-	g_free(data->req_msg);
-	g_free(data);
-}
-
-static void llcp_receive_from_thread_func(gpointer user_data)
-{
-	ServerLlcpData *data;
-
-	net_nfc_request_receive_from_socket_t *req_receive_from_socket;
-	net_nfc_llcp_param_t *param;
-
-	data = (ServerLlcpData *)user_data;
-
-	if (data == NULL)
-	{
-		DEBUG_ERR_MSG("can not get ServerLlcpData");
-
-		return;
-	}
-
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-
-		g_free(data->req_msg);
-		g_free(data);
-
-		return;
-	}
-
-	if (data->req_msg == NULL)
-	{
-		DEBUG_ERR_MSG("can not get request msg");
-
-		g_object_unref(data->llcp);
-		g_free(data);
-
-		return;
-	}
-
-	req_receive_from_socket = (net_nfc_request_receive_from_socket_t *)
-		data->req_msg;
-	param = (net_nfc_llcp_param_t *)req_receive_from_socket->user_param;
-
-	if (param)
-	{
-		if (param->cb)
-		{
-			param->cb(param->socket,
-					req_receive_from_socket->result,
-					&param->data,
-					(void *)(int)req_receive_from_socket->sap,
-					param->user_param);
-		}
-
-		if (param->data.buffer)
-			g_free(param->data.buffer);
-
-		g_free(param);
-	}
-
-	g_object_unref(data->llcp);
-
-	g_free(data->req_msg);
-	g_free(data);
-}
-
-static void llcp_connect_thread_func(gpointer user_data)
-{
-	ServerLlcpData *data;
-
-	net_nfc_request_llcp_msg_t *req_llcp_msg;
-	net_nfc_llcp_param_t *param;
-
-	data = (ServerLlcpData *)user_data;
-
-	if (data == NULL)
-	{
-		DEBUG_ERR_MSG("can not get ServerLlcpData");
-
-		return;
-	}
-
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-
-		g_free(data->req_msg);
-		g_free(data);
-
-		return;
-	}
-
-	if (data->req_msg == NULL)
-	{
-		DEBUG_ERR_MSG("can not get request msg");
-
-		g_object_unref(data->llcp);
-		g_free(data);
-
-		return;
-	}
-
-	req_llcp_msg = (net_nfc_request_llcp_msg_t *)data->req_msg;
-	param = (net_nfc_llcp_param_t *)req_llcp_msg->user_param;
-
-	if (param)
-	{
-		if (param->cb)
-		{
-			param->cb(param->socket,
-					req_llcp_msg->result,
-					NULL,
-					NULL,
-					param->user_param);
-		}
-
-		g_free(param);
-	}
-
-	g_object_unref(data->llcp);
-
-	g_free(data->req_msg);
-	g_free(data);
-}
-
-static void llcp_disconnect_thread_func(gpointer user_data)
-{
-	ServerLlcpData *data;
-
-	net_nfc_request_llcp_msg_t *req_llcp_msg;
-	net_nfc_llcp_param_t *param;
-
-	data = (ServerLlcpData *)user_data;
-
-	if (data == NULL)
-	{
-		DEBUG_ERR_MSG("can not get ServerLlcpData");
-
-		return;
-	}
-
-	if (data->llcp == NULL)
-	{
-		DEBUG_ERR_MSG("can not get llcp");
-
-		g_free(data->req_msg);
-		g_free(data);
-
-		return;
-	}
-
-	if (data->req_msg == NULL)
-	{
-		DEBUG_ERR_MSG("can not get request msg");
-
-		g_object_unref(data->llcp);
-		g_free(data);
-
-		return;
-	}
-
-	req_llcp_msg = (net_nfc_request_llcp_msg_t *)data->req_msg;
-	param = (net_nfc_llcp_param_t *)req_llcp_msg->user_param;
-
-	if (param)
-	{
-		if (param->cb)
-		{
-			param->cb(param->socket,
-					req_llcp_msg->result,
-					NULL,
-					NULL,
-					param->user_param);
-		}
-
-		g_free(param);
-	}
-
-	g_object_unref(data->llcp);
-
-	g_free(data->req_msg);
-	g_free(data);
 }
 
 static void llcp_simple_socket_error_cb(net_nfc_llcp_socket_t socket,
@@ -2777,9 +1923,9 @@ static void llcp_simple_socket_error_cb(net_nfc_llcp_socket_t socket,
 		void *extra,
 		void *user_param)
 {
-	LlcpSimpleData *simple_data;
+	LlcpSimpleData *simple_data = (LlcpSimpleData *)user_param;
 
-	simple_data = (LlcpSimpleData *)user_param;
+	g_assert(simple_data != NULL);
 
 	if (simple_data->error_callback)
 	{
@@ -2799,9 +1945,9 @@ static void llcp_simple_listen_cb(net_nfc_llcp_socket_t socket,
 		void *extra,
 		void *user_param)
 {
-	LlcpSimpleData *simple_data;
+	LlcpSimpleData *simple_data = (LlcpSimpleData *)user_param;
 
-	simple_data = (LlcpSimpleData *)user_param;
+	g_assert(simple_data != NULL);
 
 	if (result != NET_NFC_OK) {
 		DEBUG_ERR_MSG("listen socket failed, [%d]", result);
@@ -2825,9 +1971,9 @@ static void llcp_simple_connect_cb(net_nfc_llcp_socket_t socket,
 		void *extra,
 		void *user_param)
 {
-	LlcpSimpleData *simple_data;
+	LlcpSimpleData *simple_data = (LlcpSimpleData *)user_param;
 
-	simple_data = (LlcpSimpleData *)user_param;
+	g_assert(simple_data != NULL);
 
 	if (result != NET_NFC_OK) {
 		DEBUG_ERR_MSG("connect socket failed, [%d]", result);
@@ -2845,37 +1991,15 @@ static void llcp_simple_connect_cb(net_nfc_llcp_socket_t socket,
 	/* 'simple_data' will be freed in socket error callback */
 }
 
-static void llcp_simple_server_error_cb(net_nfc_llcp_socket_t socket,
-		net_nfc_error_e result,
-		data_s *data,
-		void *extra,
-		void *user_param)
-{
-	LlcpSimpleData *simple_data;
-
-	simple_data = (LlcpSimpleData *)user_param;
-
-	if (simple_data->error_callback)
-	{
-		simple_data->error_callback(result,
-				simple_data->handle,
-				socket,
-				data,
-				simple_data->user_data);
-	}
-
-	g_free(simple_data);
-}
-
 static void llcp_simple_send_cb(net_nfc_llcp_socket_t socket,
 		net_nfc_error_e result,
 		data_s *data,
 		void *extra,
 		void *user_param)
 {
-	LlcpSimpleData *simple_data;
+	LlcpSimpleData *simple_data = (LlcpSimpleData *)user_param;
 
-	simple_data = (LlcpSimpleData *)user_param;
+	g_assert(simple_data != NULL);
 
 	if (simple_data->callback)
 	{
@@ -2895,9 +2019,9 @@ static void llcp_simple_receive_cb(net_nfc_llcp_socket_t socket,
 		void *extra,
 		void *user_param)
 {
-	LlcpSimpleData *simple_data;
+	LlcpSimpleData *simple_data = (LlcpSimpleData *)user_param;
 
-	simple_data = (LlcpSimpleData *)user_param;
+	g_assert(simple_data != NULL);
 
 	if (simple_data->callback)
 	{
@@ -2914,6 +2038,7 @@ static void llcp_simple_receive_cb(net_nfc_llcp_socket_t socket,
 /* Public Function */
 gboolean net_nfc_server_llcp_init(GDBusConnection *connection)
 {
+	gboolean result;
 	GError *error = NULL;
 
 	if (llcp_skeleton)
@@ -2929,6 +2054,16 @@ gboolean net_nfc_server_llcp_init(GDBusConnection *connection)
 	g_signal_connect(llcp_skeleton,
 			"handle-listen",
 			G_CALLBACK(llcp_handle_listen),
+			NULL);
+
+	g_signal_connect(llcp_skeleton,
+			"handle-accept",
+			G_CALLBACK(llcp_handle_accept),
+			NULL);
+
+	g_signal_connect(llcp_skeleton,
+			"handle-reject",
+			G_CALLBACK(llcp_handle_reject),
 			NULL);
 
 	g_signal_connect(llcp_skeleton,
@@ -2971,20 +2106,19 @@ gboolean net_nfc_server_llcp_init(GDBusConnection *connection)
 			G_CALLBACK(llcp_handle_disconnect),
 			NULL);
 
-	if(g_dbus_interface_skeleton_export(
-				G_DBUS_INTERFACE_SKELETON(llcp_skeleton),
-				connection,
-				"/org/tizen/NetNfcService/Llcp",
-				&error) == FALSE)
+	result = g_dbus_interface_skeleton_export(
+			G_DBUS_INTERFACE_SKELETON(llcp_skeleton),
+			connection,
+			"/org/tizen/NetNfcService/Llcp",
+			&error);
+	if (result == FALSE)
 	{
 		g_error_free(error);
-		g_object_unref(llcp_skeleton);
-		llcp_skeleton = NULL;
 
-		return FALSE;
+		net_nfc_server_llcp_deinit();
 	}
 
-	return TRUE;
+	return result;
 }
 
 void net_nfc_server_llcp_deinit(void)
@@ -2996,47 +2130,8 @@ void net_nfc_server_llcp_deinit(void)
 	}
 }
 
-void net_nfc_server_llcp_deactivated(net_nfc_request_msg_t *req_msg)
-{
-	llcp_add_async_queue(req_msg, llcp_deactivated_thread_func);
-}
-
-void net_nfc_server_llcp_listen(net_nfc_request_msg_t *req_msg)
-{
-	llcp_add_async_queue(req_msg, llcp_listen_thread_func);
-}
-
-void net_nfc_server_llcp_socket_error(net_nfc_request_msg_t *req_msg)
-{
-	llcp_add_async_queue(req_msg, llcp_socket_error_thread_func);
-}
-
-void net_nfc_server_llcp_send(net_nfc_request_msg_t *req_msg)
-{
-	llcp_add_async_queue(req_msg, llcp_send_thread_func);
-}
-
-void net_nfc_server_llcp_receive(net_nfc_request_msg_t *req_msg)
-{
-	llcp_add_async_queue(req_msg, llcp_receive_thread_func);
-}
-
-void net_nfc_server_llcp_receive_from(net_nfc_request_msg_t *req_msg)
-{
-	llcp_add_async_queue(req_msg, llcp_receive_from_thread_func);
-}
-
-void net_nfc_server_llcp_connect(net_nfc_request_msg_t *req_msg)
-{
-	llcp_add_async_queue(req_msg, llcp_connect_thread_func);
-}
-
-void net_nfc_server_llcp_disconnect(net_nfc_request_msg_t *req_msg)
-{
-	llcp_add_async_queue(req_msg, llcp_disconnect_thread_func);
-}
-
-net_nfc_error_e net_nfc_server_llcp_set_config(net_nfc_llcp_config_info_s *config)
+net_nfc_error_e net_nfc_server_llcp_set_config(
+		net_nfc_llcp_config_info_s *config)
 {
 	net_nfc_error_e result;
 
@@ -3080,35 +2175,31 @@ net_nfc_error_e net_nfc_server_llcp_simple_server(net_nfc_target_handle_s *handl
 		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-
+	LlcpSimpleData *simple_data = NULL;
 	net_nfc_llcp_socket_t socket = -1;
 	net_nfc_llcp_config_info_s config;
 
-	LlcpSimpleData *simple_data = NULL;
-
 	if (handle == NULL)
-		return NET_NFC_NULL_PARAMETER;
-
-	if (san == NULL)
 		return NET_NFC_NULL_PARAMETER;
 
 	if (net_nfc_controller_llcp_get_remote_config(handle,
 				&config,
 				&result) == false)
 	{
-		DEBUG_ERR_MSG("%s failed [%d]",
-				"net_nfc_controller_llcp_get_remote_config",
-				result);
-		return result;
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_get_remote_config failed [%d]", result);
+
+		goto ERROR;
 	}
 
-	simple_data = g_new0(LlcpSimpleData, 1);
-	if(simple_data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+	simple_data = g_try_new0(LlcpSimpleData, 1);
+	if (simple_data == NULL) {
+		DEBUG_ERR_MSG("g_try_new0 failed");
 
-		return NET_NFC_ALLOC_FAIL;
+		result = NET_NFC_ALLOC_FAIL;
+
+		goto ERROR;
 	}
+
 	simple_data->handle = handle;
 	simple_data->callback = callback;
 	simple_data->error_callback = error_callback;
@@ -3124,12 +2215,9 @@ net_nfc_error_e net_nfc_server_llcp_simple_server(net_nfc_target_handle_s *handl
 				llcp_simple_socket_error_cb,
 				simple_data) == false)
 	{
-		DEBUG_ERR_MSG("%s failed [%d]",
-				"net_nfc_controller_llcp_create_socket",
-				result);
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_create_socket failed [%d]", result);
 
-		g_free(simple_data);
-		return result;
+		goto ERROR;
 	}
 
 	simple_data->socket = socket;
@@ -3138,16 +2226,9 @@ net_nfc_error_e net_nfc_server_llcp_simple_server(net_nfc_target_handle_s *handl
 				sap,
 				&result) == false)
 	{
-		DEBUG_ERR_MSG("%s failed [%d]",
-				"nte_nfc_controller_llcp_bind",
-				result);
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_bind failed [%d]", result);
 
-		if (simple_data->socket != 1)
-			net_nfc_controller_llcp_socket_close(socket, &result);
-
-		g_free(simple_data);
-
-		return result;
+		goto ERROR;
 	}
 
 	if (net_nfc_controller_llcp_listen(handle,
@@ -3157,27 +2238,28 @@ net_nfc_error_e net_nfc_server_llcp_simple_server(net_nfc_target_handle_s *handl
 				llcp_simple_listen_cb,
 				simple_data) == false)
 	{
-		DEBUG_ERR_MSG("%s failed [%d]",
-				"net_nfc_controller_llcp_listen",
-				result);
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_listen failed [%d]", result);
 
-		if (simple_data->socket != 1)
-		{
-			net_nfc_controller_llcp_socket_close(
-					simple_data->socket,
-					&result);
-		}
-
-		g_free(simple_data);
-
-		return result;
-
+		goto ERROR;
 	}
 
 	DEBUG_SERVER_MSG("result [%d]", result);
 
 	if (result == NET_NFC_BUSY)
 		result = NET_NFC_OK;
+
+	return result;
+
+ERROR :
+	if (socket != -1) {
+		net_nfc_error_e temp;
+
+		net_nfc_controller_llcp_socket_close(socket, &temp);
+	}
+
+	if (simple_data != NULL) {
+		g_free(simple_data);
+	}
 
 	return result;
 }
@@ -3190,12 +2272,10 @@ net_nfc_error_e net_nfc_server_llcp_simple_client(
 		net_nfc_server_llcp_callback error_callback,
 		gpointer user_data)
 {
-	net_nfc_error_e result = NET_NFC_OK;
-
+	net_nfc_error_e result;
+	LlcpSimpleData *simple_data = NULL;
 	net_nfc_llcp_socket_t socket = -1;
 	net_nfc_llcp_config_info_s config;
-
-	LlcpSimpleData *simple_data = NULL;
 
 	if (handle == NULL)
 		return NET_NFC_NULL_PARAMETER;
@@ -3204,13 +2284,19 @@ net_nfc_error_e net_nfc_server_llcp_simple_client(
 				&config,
 				&result) == false)
 	{
-		DEBUG_ERR_MSG("%s failed [%d]",
-				"net_nfc_controller_llcp_get_remote_config",
-				result);
-		return result;
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_get_remote_config failed [%d]", result);
+
+		goto ERROR;
 	}
 
-	simple_data = g_new0(LlcpSimpleData, 1);
+	simple_data = g_try_new0(LlcpSimpleData, 1);
+	if (simple_data == NULL) {
+		DEBUG_ERR_MSG("g_try_new0 failed");
+
+		result = NET_NFC_ALLOC_FAIL;
+
+		goto ERROR;
+	}
 
 	simple_data->handle = handle;
 	simple_data->callback = callback;
@@ -3227,12 +2313,9 @@ net_nfc_error_e net_nfc_server_llcp_simple_client(
 				llcp_simple_socket_error_cb,
 				simple_data) == false)
 	{
-		DEBUG_ERR_MSG("%s failed [%d]",
-				"net_nfc_controller_llcp_create_socket",
-				result);
+		DEBUG_ERR_MSG("net_nfc_controller_llcp_create_socket failed [%d]", result);
 
-		g_free(simple_data);
-		return result;
+		goto ERROR;
 	}
 
 	simple_data->socket = socket;
@@ -3246,22 +2329,10 @@ net_nfc_error_e net_nfc_server_llcp_simple_client(
 					llcp_simple_connect_cb,
 					simple_data) == false)
 		{
-			DEBUG_ERR_MSG("%s failed [%d]",
-					"net_nfc_controller_llcp_connect",
-					result);
+			DEBUG_ERR_MSG("net_nfc_controller_llcp_connect failed [%d]", result);
 
-			if (simple_data->socket != -1)
-			{
-				net_nfc_controller_llcp_socket_close(
-						simple_data->socket,
-						&result);
-			}
-
-			g_free(simple_data);
-
-			return result;
+			goto ERROR;
 		}
-
 	}
 	else
 	{
@@ -3272,20 +2343,9 @@ net_nfc_error_e net_nfc_server_llcp_simple_client(
 					llcp_simple_connect_cb,
 					simple_data) == false)
 		{
-			DEBUG_ERR_MSG("%s failed [%d]",
-					"net_nfc_controller_llcp_connect_by_url",
-					result);
+			DEBUG_ERR_MSG("net_nfc_controller_llcp_connect_by_url failed [%d]", result);
 
-			if (simple_data->socket != -1)
-			{
-				net_nfc_controller_llcp_socket_close(
-						simple_data->socket,
-						&result);
-			}
-
-			g_free(simple_data);
-
-			return result;
+			goto ERROR;
 		}
 	}
 
@@ -3293,6 +2353,19 @@ net_nfc_error_e net_nfc_server_llcp_simple_client(
 
 	if (result == NET_NFC_BUSY)
 		result = NET_NFC_OK;
+
+	return result;
+
+ERROR :
+	if (socket != -1) {
+		net_nfc_error_e temp;
+
+		net_nfc_controller_llcp_socket_close(socket, &temp);
+	}
+
+	if (simple_data != NULL) {
+		g_free(simple_data);
+	}
 
 	return result;
 }
@@ -3303,30 +2376,27 @@ net_nfc_error_e net_nfc_server_llcp_simple_accept(
 		net_nfc_server_llcp_callback error_callback,
 		gpointer user_data)
 {
-	net_nfc_error_e result = NET_NFC_OK;
-
+	net_nfc_error_e result;
 	LlcpSimpleData *simple_data;
 
-	simple_data = g_new0(LlcpSimpleData, 1);
-	if(simple_data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+	simple_data = g_try_new0(LlcpSimpleData, 1);
+	if (simple_data != NULL) {
+		simple_data->handle = handle;
+		simple_data->socket = socket;
+		simple_data->error_callback = error_callback;
+		simple_data->user_data = user_data;
 
-		return NET_NFC_ALLOC_FAIL;
-	}
-	simple_data->handle = handle;
-	simple_data->socket = socket;
-	simple_data->error_callback = error_callback;
-	simple_data->user_data = user_data;
+		if (net_nfc_controller_llcp_accept(socket,
+					&result,
+					llcp_simple_socket_error_cb,
+					simple_data) == false)
+		{
+			DEBUG_ERR_MSG("net_nfc_controller_llcp_accept failed [%d]", result);
+		}
+	} else {
+		DEBUG_ERR_MSG("g_try_new0 failed");
 
-	if (net_nfc_controller_llcp_accept(socket,
-				&result,
-				llcp_simple_server_error_cb,
-				simple_data) == false)
-	{
-		DEBUG_ERR_MSG("%s failed [%d]",
-				"net_nfc_controller_llcp_accept",
-				result);
+		result = NET_NFC_ALLOC_FAIL;
 	}
 
 	if (result == NET_NFC_BUSY)
@@ -3342,32 +2412,30 @@ net_nfc_error_e net_nfc_server_llcp_simple_send(
 		net_nfc_server_llcp_callback callback,
 		gpointer user_data)
 {
-	net_nfc_error_e result = NET_NFC_OK;
-
+	net_nfc_error_e result;
 	LlcpSimpleData *simple_data;
 
-	simple_data = g_new0(LlcpSimpleData, 1);
-	if(simple_data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+	simple_data = g_try_new0(LlcpSimpleData, 1);
+	if (simple_data != NULL) {
+		simple_data->handle = handle;
+		simple_data->socket = socket;
+		simple_data->callback = callback;
+		simple_data->user_data = user_data;
 
-		return NET_NFC_ALLOC_FAIL;
-	}
-	simple_data->handle = handle;
-	simple_data->socket = socket;
-	simple_data->callback = callback;
-	simple_data->user_data = user_data;
+		if (net_nfc_controller_llcp_send(handle,
+					socket,
+					data,
+					&result,
+					llcp_simple_send_cb,
+					simple_data) == false)
+		{
+			DEBUG_ERR_MSG("net_nfc_controller_llcp_send failed [%d]",
+					result);
+		}
+	} else {
+		DEBUG_ERR_MSG("g_try_new0 failed");
 
-	if (net_nfc_controller_llcp_send(handle,
-				socket,
-				data,
-				&result,
-				llcp_simple_send_cb,
-				simple_data) == false)
-	{
-		DEBUG_ERR_MSG("%s failed [%d]",
-				"net_nfc_controller_llcp_send",
-				result);
+		result = NET_NFC_ALLOC_FAIL;
 	}
 
 	if (result == NET_NFC_BUSY)
@@ -3382,32 +2450,31 @@ net_nfc_error_e net_nfc_server_llcp_simple_receive(
 		net_nfc_server_llcp_callback callback,
 		gpointer user_data)
 {
-	net_nfc_error_e result = NET_NFC_OK;
-
+	net_nfc_error_e result;
 	LlcpSimpleData *simple_data;
 
-	simple_data = g_new0(LlcpSimpleData, 1);
-	if(simple_data == NULL)
-	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+	simple_data = g_try_new0(LlcpSimpleData, 1);
+	if (simple_data != NULL) {
+		simple_data->handle = handle;
+		simple_data->socket = socket;
+		simple_data->callback = callback;
+		simple_data->user_data = user_data;
 
-		return NET_NFC_ALLOC_FAIL;
-	}
-	simple_data->handle = handle;
-	simple_data->socket = socket;
-	simple_data->callback = callback;
-	simple_data->user_data = user_data;
+		if (net_nfc_controller_llcp_recv(handle,
+					socket,
+					net_nfc_server_llcp_get_miu(),
+					&result,
+					llcp_simple_receive_cb,
+					simple_data) == false)
+		{
+			DEBUG_ERR_MSG("net_nfc_controller_llcp_recv failed [%d]", result);
 
-	if (net_nfc_controller_llcp_recv(handle,
-				socket,
-				net_nfc_server_llcp_get_miu(),
-				&result,
-				llcp_simple_receive_cb,
-				simple_data) == false)
-	{
-		DEBUG_ERR_MSG("%s failed [%d]",
-				"net_nfc_controller_llcp_send",
-				result);
+			g_free(simple_data);
+		}
+	} else {
+		DEBUG_ERR_MSG("g_try_new0 failed");
+
+		result = NET_NFC_ALLOC_FAIL;
 	}
 
 	if (result == NET_NFC_BUSY)
@@ -3457,7 +2524,7 @@ static net_nfc_error_e _llcp_add_service(const char *id, uint32_t sap,
 	if (_llcp_find_service(sap) == NULL) {
 		DEBUG_SERVER_MSG("new service, sap [%d]", sap);
 
-		service = g_new0(service_t, 1);
+		service = g_try_new0(service_t, 1);
 		if (service != NULL) {
 			service->sap = sap;
 			if (san != NULL && strlen(san) > 0) {
@@ -3614,17 +2681,21 @@ net_nfc_error_e net_nfc_server_llcp_start_registered_services(
 static void net_nfc_server_llcp_process(gpointer user_data)
 {
 	net_nfc_current_target_info_s *target;
+#if 0
+	net_nfc_error_e result;
+#endif
 	net_nfc_target_handle_s *handle;
+	net_nfc_target_type_e dev_type;
 
 	target = net_nfc_server_get_target_info();
 
 	g_assert(target != NULL); /* raise exception!!! what;s wrong?? */
 
 	handle = target->handle;
+	dev_type = target->devType;
+
 	DEBUG_SERVER_MSG("connection type = [%d]", handle->connection_type);
 #if 0
-	net_nfc_target_type_e dev_type = target->devType;
-
 	if (dev_type == NET_NFC_NFCIP1_TARGET)
 	{
 		DEBUG_SERVER_MSG("LLCP : target, try to connect");

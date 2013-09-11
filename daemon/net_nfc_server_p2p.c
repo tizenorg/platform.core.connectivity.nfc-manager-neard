@@ -53,10 +53,13 @@ static void p2p_send_data_thread_func(gpointer user_data)
 {
 	P2pSendData *p2p_data = (P2pSendData *)user_data;
 	net_nfc_error_e result;
+	net_nfc_target_handle_s *handle;
 
 	g_assert(p2p_data != NULL);
 	g_assert(p2p_data->p2p != NULL);
 	g_assert(p2p_data->invocation != NULL);
+
+	handle = GUINT_TO_POINTER(p2p_data->p2p_handle);
 
 	result = net_nfc_server_snep_default_client_start(
 			GUINT_TO_POINTER(p2p_data->p2p_handle),
@@ -181,31 +184,27 @@ void net_nfc_server_p2p_deinit(void)
 
 void net_nfc_server_p2p_detached(void)
 {
-	if (p2p_skeleton == NULL)
-	{
-		DEBUG_ERR_MSG("p2p_skeleton is not initialized");
-
-		return;
-	}
-
-	DEBUG_ERR_MSG("p2p detached signal");
+	INFO_MSG("====== p2p target detached ======");
 
 	/* release target information */
 	net_nfc_server_free_target_info();
 
-	net_nfc_gdbus_p2p_emit_detached(p2p_skeleton);
+	if (p2p_skeleton != NULL)
+	{
+		net_nfc_gdbus_p2p_emit_detached(p2p_skeleton);
+	}
 }
 
 void net_nfc_server_p2p_discovered(net_nfc_target_handle_h handle)
 {
+	INFO_MSG("====== p2p target discovered ======");
+
 	if (p2p_skeleton == NULL)
 	{
 		DEBUG_ERR_MSG("p2p_skeleton is not initialized");
 
 		return;
 	}
-
-	DEBUG_ERR_MSG("Emitting p2p discovered signal");
 
 	net_nfc_gdbus_p2p_emit_discovered(p2p_skeleton,
 			GPOINTER_TO_UINT(handle));
