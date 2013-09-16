@@ -25,6 +25,8 @@
 #define CH_SAN		"urn:nfc:sn:handover"
 #define CH_SAP		0x11	/* connection handover service access point */
 
+void net_nfc_convert_byte_order(unsigned char *array, int size);
+
 net_nfc_error_e net_nfc_util_create_carrier_config(net_nfc_carrier_config_s **config, net_nfc_conn_handover_carrier_type_e type);
 
 net_nfc_error_e net_nfc_util_add_carrier_config_property(net_nfc_carrier_config_s *config, uint16_t attribute, uint16_t size, uint8_t *data);
@@ -72,14 +74,14 @@ net_nfc_error_e net_nfc_util_set_alternative_carrier_power_status(ndef_message_s
 net_nfc_error_e net_nfc_util_get_alternative_carrier_type_from_record(ndef_record_s *record, net_nfc_conn_handover_carrier_type_e *type);
 
 /**
- this function will get carrier type.
+  this function will get carrier type.
 
- @param[in] 	carrier_info 			connection handover carrier info handler
- @param[in] 	carrier_type 			record type. it can be a NET_NFC_CONN_HANDOVER_CARRIER_BT or NET_NFC_CONN_HANDOVER_CARRIER_WIFI or NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN.
+  @param[in] 	carrier_info 			connection handover carrier info handler
+  @param[in] 	carrier_type 			record type. it can be a NET_NFC_CONN_HANDOVER_CARRIER_BT or NET_NFC_CONN_HANDOVER_CARRIER_WIFI or NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN.
 
- @return		return the result of the calling the function
+  @return		return the result of the calling the function
 
- @exception NET_NFC_NULL_PARAMETER		parameter(s) has(have) illegal NULL pointer(s)
+  @exception NET_NFC_NULL_PARAMETER		parameter(s) has(have) illegal NULL pointer(s)
  */
 net_nfc_error_e net_nfc_util_get_alternative_carrier_type(ndef_message_s *message, int index, net_nfc_conn_handover_carrier_type_e *power_state);
 
@@ -87,6 +89,7 @@ net_nfc_error_e net_nfc_util_create_handover_request_message(ndef_message_s **me
 
 net_nfc_error_e net_nfc_util_create_handover_select_message(ndef_message_s **message);
 
+net_nfc_error_e net_nfc_util_create_handover_carrier_record(ndef_record_s ** record);
 net_nfc_error_e net_nfc_util_create_handover_error_record(ndef_record_s **record, uint8_t reason, uint32_t data);
 
 net_nfc_error_e net_nfc_util_get_selector_power_status(ndef_message_s *message, net_nfc_conn_handover_carrier_state_e *power_state);

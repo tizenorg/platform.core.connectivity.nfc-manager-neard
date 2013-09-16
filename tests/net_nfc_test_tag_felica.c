@@ -142,7 +142,7 @@ void net_nfc_test_felica_write_without_encryption(gpointer data,
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_handle_h handle = NULL;
 	uint8_t number_of_services = 10;
-	uint16_t service_list[2] = {0,};
+	uint16_t service_list[10] = {0,};
 	uint8_t number_of_blocks = 1;
 	uint8_t block_list[3] = {0,};
 	data_h data_to_write = NULL;

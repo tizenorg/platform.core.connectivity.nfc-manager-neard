@@ -17,6 +17,9 @@ BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(tapi)
 BuildRequires: pkgconfig(bluetooth-api)
 BuildRequires: pkgconfig(capi-network-wifi)
+%ifarch %arm
+BuildRequires: pkgconfig(wifi-direct)
+%endif
 BuildRequires: pkgconfig(mm-sound)
 BuildRequires: pkgconfig(appsvc)
 BuildRequires: pkgconfig(svi)

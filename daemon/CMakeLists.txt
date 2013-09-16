@@ -6,9 +6,15 @@ SET(NFC_DAEMON "nfc-manager-daemon")
 
 FILE(GLOB DAEMON_SRCS *.c)
 
-pkg_check_modules(daemon_pkgs REQUIRED aul glib-2.0 gio-unix-2.0 security-server
-	vconf dlog tapi appsvc libcurl bluetooth-api libssl svi capi-media-wav-player
-	pkgmgr pkgmgr-info capi-network-wifi ecore-x pmapi)
+IF("${ARCH}" MATCHES "^arm.*")
+	pkg_check_modules(daemon_pkgs REQUIRED aul glib-2.0 gio-unix-2.0 security-server
+		vconf dlog tapi appsvc libcurl bluetooth-api libssl svi capi-media-wav-player
+		pkgmgr pkgmgr-info capi-network-wifi wifi-direct ecore-x pmapi)
+ELSE()
+	pkg_check_modules(daemon_pkgs REQUIRED aul glib-2.0 gio-unix-2.0 security-server
+		vconf dlog tapi appsvc libcurl bluetooth-api libssl svi capi-media-wav-player
+		pkgmgr pkgmgr-info capi-network-wifi ecore-x pmapi)
+ENDIF()
 
 FOREACH(flag ${daemon_pkgs_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")

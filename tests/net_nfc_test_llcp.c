@@ -296,7 +296,7 @@ void net_nfc_test_llcp_get_local_config(gpointer data,
    g_print("net_nfc_test_llcp_get_local_config: %d\n", local_config->option);
 
    }
-   */
+ */
 
 void net_nfc_test_llcp_get_config_miu(gpointer data,
 		gpointer user_data)
@@ -839,8 +839,8 @@ void net_nfc_test_llcp_receive_from_sync(gpointer data,
 		gpointer user_data)
 {
 	net_nfc_error_e result;
-	data_h out_data;
-	sap_t sap_data;
+	data_h out_data = NULL;
+	sap_t sap_data = 0;
 
 	result = net_nfc_client_llcp_receive_from_sync(server_test_socket,
 			512,

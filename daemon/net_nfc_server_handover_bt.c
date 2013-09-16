@@ -55,18 +55,6 @@ static int _net_nfc_handover_bt_get_carrier_record(
 static int _net_nfc_handover_bt_process_carrier_record(
 		net_nfc_handover_bt_process_context_t *context);
 
-static inline void _net_nfc_convert_byte_order(unsigned char *array, int size)
-{
-	int i;
-	unsigned char tmp_char;
-
-	for (i=0;i<size/2;i++) {
-		tmp_char = array[i];
-		array[i] = array[size-1-i];
-		array[size-1-i] = tmp_char;
-	}
-}
-
 static net_nfc_error_e _net_nfc_handover_bt_get_oob_data(
 		net_nfc_carrier_config_s *config,
 		bt_oob_data_t *oob)
@@ -94,7 +82,7 @@ static net_nfc_error_e _net_nfc_handover_bt_get_oob_data(
 		{
 			DEBUG_MSG("hash.length == 16");
 
-			_net_nfc_convert_byte_order(hash.buffer, 16);
+			net_nfc_convert_byte_order(hash.buffer, 16);
 
 			oob->hash_len = MIN(sizeof(oob->hash), hash.length);
 			memcpy(oob->hash, hash.buffer, oob->hash_len);
@@ -115,7 +103,7 @@ static net_nfc_error_e _net_nfc_handover_bt_get_oob_data(
 		{
 			DEBUG_MSG("randomizer.length == 16");
 
-			_net_nfc_convert_byte_order(randomizer.buffer, 16);
+			net_nfc_convert_byte_order(randomizer.buffer, 16);
 
 			oob->randomizer_len = MIN(sizeof(oob->randomizer), randomizer.length);
 			memcpy(oob->randomizer, randomizer.buffer, oob->randomizer_len);
@@ -193,7 +181,7 @@ static net_nfc_error_e _net_nfc_handover_bt_create_config_record(
 		{
 			bt_oob_data_t oob = { { 0 }, };
 
-			_net_nfc_convert_byte_order(bt_addr.addr, 6);
+			net_nfc_convert_byte_order(bt_addr.addr, 6);
 
 			if ((result = net_nfc_util_add_carrier_config_property(
 							config,
@@ -215,7 +203,7 @@ static net_nfc_error_e _net_nfc_handover_bt_create_config_record(
 					DEBUG_SERVER_MSG("oob.randomizer_len"
 							" [%d]", oob.randomizer_len);
 
-					_net_nfc_convert_byte_order(oob.hash, 16);
+					net_nfc_convert_byte_order(oob.hash, 16);
 
 					if ((result =
 								net_nfc_util_add_carrier_config_property(
@@ -228,7 +216,7 @@ static net_nfc_error_e _net_nfc_handover_bt_create_config_record(
 								" [%d]",result);
 					}
 
-					_net_nfc_convert_byte_order(oob.randomizer, 16);
+					net_nfc_convert_byte_order(oob.randomizer, 16);
 
 					if ((result = net_nfc_util_add_carrier_config_property(
 									config,
@@ -595,7 +583,7 @@ static int _net_nfc_handover_bt_process_carrier_record(
 
 			if (temp.length == 6)
 			{
-				_net_nfc_convert_byte_order(temp.buffer, 6);
+				net_nfc_convert_byte_order(temp.buffer, 6);
 
 				memcpy(context->addr.addr,
 						temp.buffer,

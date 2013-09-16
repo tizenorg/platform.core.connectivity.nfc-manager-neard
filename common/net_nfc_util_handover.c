@@ -32,6 +32,19 @@ typedef struct _search_index
 	void *found;
 } search_index;
 
+inline void net_nfc_convert_byte_order(unsigned char *array, int size)
+{
+	int i;
+	unsigned char tmp_char;
+
+	for (i=0;i<size/2;i++) {
+		tmp_char = array[i];
+		array[i] = array[size-1-i];
+		array[size-1-i] = tmp_char;
+	}
+}
+
+
 static int __property_equal_to(gconstpointer key1, gconstpointer key2)
 {
 	net_nfc_carrier_property_s *arg1 = (net_nfc_carrier_property_s *)key1;
@@ -291,7 +304,7 @@ net_nfc_error_e net_nfc_util_append_carrier_config_group(
 		return NET_NFC_ALREADY_REGISTERED;
 
 	config->data = g_list_append(config->data, group);
-	config->length += group->length;
+	config->length += group->length+4;
 
 	return NET_NFC_OK;
 }
@@ -483,7 +496,7 @@ net_nfc_error_e net_nfc_util_free_carrier_group(net_nfc_carrier_property_s *grou
 static void __make_serial_wifi(gpointer data, gpointer user_data)
 {
 	net_nfc_carrier_property_s *info = (net_nfc_carrier_property_s *)data;
-	data_s *payload = user_data;
+	data_s *payload = (data_s *)user_data;
 	uint8_t *current;
 	int inc = 0;
 
@@ -497,7 +510,9 @@ static void __make_serial_wifi(gpointer data, gpointer user_data)
 	{
 		DEBUG_MSG("[WIFI]Found Group make recursive");
 		*(uint16_t *)current = info->attribute;
+		net_nfc_convert_byte_order(current,2);
 		*(uint16_t *)(current + inc) = info->length;
+		net_nfc_convert_byte_order((current + inc),2);
 		payload->length += (inc + inc);
 		g_list_foreach((GList *)info->data, __make_serial_wifi, payload);
 	}
@@ -505,7 +520,9 @@ static void __make_serial_wifi(gpointer data, gpointer user_data)
 	{
 		DEBUG_MSG("[WIFI]Element is found attrib:0x%X length:%d current:%d", info->attribute, info->length, payload->length);
 		*(uint16_t *)current = info->attribute;
+		net_nfc_convert_byte_order(current,2);
 		*(uint16_t *)(current + inc) = info->length;
+		net_nfc_convert_byte_order((current + inc),2);
 		memcpy(current + inc + inc, info->data, info->length);
 		payload->length += (inc + inc + info->length);
 	}
@@ -866,6 +883,43 @@ net_nfc_error_e net_nfc_util_create_handover_select_message(ndef_message_s **mes
 	return NET_NFC_OK;
 }
 
+net_nfc_error_e net_nfc_util_create_handover_carrier_record(ndef_record_s ** record)
+{
+	data_s payload = {NULL,0};
+
+	data_s type = { NULL, 0 };
+	uint8_t *buffer_ptr = NULL;
+
+	_net_nfc_util_alloc_mem(payload.buffer,26);//hardcoded as of now
+	if (payload.buffer == NULL)
+		return NET_NFC_ALLOC_FAIL;
+
+	buffer_ptr = payload.buffer;
+
+	//copy ctf
+	buffer_ptr[0]= NET_NFC_RECORD_MIME_TYPE;
+
+	//copy the MIME type length
+	buffer_ptr[1] = strlen(CONN_HANDOVER_WIFI_BSS_CARRIER_MIME_NAME);
+
+	//copy the MIME
+	memcpy(buffer_ptr[2],CONN_HANDOVER_WIFI_BSS_CARRIER_MIME_NAME,(payload.buffer)[1]);
+	payload.buffer[25] = '\0';
+
+	payload.length =26;
+	type.buffer = (uint8_t *)CH_CAR_RECORD_TYPE;
+	type.length = strlen(CH_CAR_RECORD_TYPE);
+
+	net_nfc_util_create_record(NET_NFC_RECORD_MIME_TYPE,
+			&type,
+			NULL,
+			&payload,
+			(ndef_record_s **)record);
+
+	_net_nfc_util_free_mem(payload.buffer);
+
+	return NET_NFC_OK;
+}
 net_nfc_error_e net_nfc_util_create_handover_error_record(ndef_record_s **record, uint8_t reason, uint32_t data)
 {
 	data_s type;
@@ -1467,23 +1521,71 @@ net_nfc_error_e net_nfc_util_set_alternative_carrier_power_status(ndef_message_s
 
 net_nfc_error_e net_nfc_util_get_alternative_carrier_type_from_record(ndef_record_s *record, net_nfc_conn_handover_carrier_type_e *type)
 {
-	if (strncmp((char *)record->type_s.buffer, CONN_HANDOVER_BT_CARRIER_MIME_NAME, (size_t)record->type_s.length) == 0)
+	if(strncmp((char*)record->type_s.buffer, CH_CAR_RECORD_TYPE, (size_t)record->type_s.length) == 0)
 	{
-		*type = NET_NFC_CONN_HANDOVER_CARRIER_BT;
-	}
-	else if (strncmp((char *)record->type_s.buffer, CONN_HANDOVER_WIFI_BSS_CARRIER_MIME_NAME, (size_t)record->type_s.length) == 0)
-	{
-		*type = NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS;
-	}
-	else if (strncmp((char *)record->type_s.buffer, CONN_HANDOVER_WIFI_IBSS_CARRIER_MIME_NAME, (size_t)record->type_s.length) == 0)
-	{
-		*type = NET_NFC_CONN_HANDOVER_CARRIER_WIFI_IBSS;
+		DEBUG_MSG("CH_CAR_RECORD_TYPE");
+
+		char ctf = record->payload_s.buffer[0] & 0x07;
+		char ctype_length = record->payload_s.buffer[1];
+		switch(ctf)
+		{
+		case NET_NFC_RECORD_MIME_TYPE:		/* Media Type as defined in [RFC 2046] */
+			if (strncmp((char *)&record->payload_s.buffer[2],
+						CONN_HANDOVER_BT_CARRIER_MIME_NAME,
+						(size_t)ctype_length) == 0)
+			{
+				*type = NET_NFC_CONN_HANDOVER_CARRIER_BT;
+			}
+			else if (strncmp((char *)&record->payload_s.buffer[2],
+						CONN_HANDOVER_WIFI_BSS_CARRIER_MIME_NAME,
+						(size_t)ctype_length) == 0)
+			{
+				*type = NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS;
+			}
+			else if (strncmp((char *)&record->payload_s.buffer[2],
+						CONN_HANDOVER_WIFI_IBSS_CARRIER_MIME_NAME,
+						(size_t)ctype_length) == 0)
+			{
+				*type = NET_NFC_CONN_HANDOVER_CARRIER_WIFI_IBSS;
+			}
+			else
+			{
+				*type = NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN;
+			}
+		break;
+		case NET_NFC_RECORD_WELL_KNOWN_TYPE:	/* NFC Forum Well-known Type*/
+		case NET_NFC_RECORD_URI:				/* Absolute URIs as defined in [RFC 3986] */
+		case NET_NFC_RECORD_EXTERNAL_RTD:		/* NFC Forum external type */
+		default:
+			*type = NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN;
+			break;
+		}
+
 	}
 	else
 	{
-		*type = NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN;
+		DEBUG_MSG("Other record type");
+		if (strncmp((char *)record->type_s.buffer, CONN_HANDOVER_BT_CARRIER_MIME_NAME, (size_t)record->type_s.length) == 0)
+		{
+			*type = NET_NFC_CONN_HANDOVER_CARRIER_BT;
+		}
+		else if (strncmp((char *)record->type_s.buffer,
+					CONN_HANDOVER_WIFI_BSS_CARRIER_MIME_NAME,
+					(size_t)record->type_s.length) == 0)
+		{
+			*type = NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS;
+		}
+		else if (strncmp((char *)record->type_s.buffer,
+					CONN_HANDOVER_WIFI_IBSS_CARRIER_MIME_NAME,
+					(size_t)record->type_s.length) == 0)
+		{
+			*type = NET_NFC_CONN_HANDOVER_CARRIER_WIFI_IBSS;
+		}
+		else
+		{
+			*type = NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN;
+		}
 	}
-
 	return NET_NFC_OK;
 }
 
