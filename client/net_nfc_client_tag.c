@@ -495,7 +495,7 @@ API net_nfc_error_e net_nfc_client_tag_is_tag_connected_sync(
 		net_nfc_target_type_e *dev_type)
 {
 	net_nfc_target_info_s *info;
-	net_nfc_error_e out_result = NET_NFC_OK;
+	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_type_e out_dev_type = NET_NFC_UNKNOWN_TARGET;
 	gboolean out_is_connected = false;
 	GError *error = NULL;
@@ -522,16 +522,16 @@ API net_nfc_error_e net_nfc_client_tag_is_tag_connected_sync(
 					error->message);
 			g_error_free(error);
 
-			out_result = NET_NFC_IPC_FAIL;
+			return NET_NFC_IPC_FAIL;
 		}
 
 		if (out_is_connected == true) {
 			if (dev_type)
 				*dev_type = out_dev_type;
 
-			out_result = NET_NFC_OK;
+			result = NET_NFC_OK;
 		} else {
-			out_result = NET_NFC_NOT_CONNECTED;
+			result = NET_NFC_NOT_CONNECTED;
 		}
 	} else {
 		/* target was connected */
@@ -539,10 +539,10 @@ API net_nfc_error_e net_nfc_client_tag_is_tag_connected_sync(
 			*dev_type = info->devType;
 		}
 
-		out_result = NET_NFC_OK;
+		result = NET_NFC_OK;
 	}
 
-	return out_result;
+	return result;
 }
 
 #if 0
@@ -581,7 +581,7 @@ API net_nfc_error_e net_nfc_client_tag_get_current_tag_info(
 API net_nfc_error_e net_nfc_client_tag_get_current_tag_info_sync(
 		net_nfc_target_info_h *info)
 {
-	net_nfc_error_e out_result = NET_NFC_OK;
+	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_type_e out_dev_type = NET_NFC_UNKNOWN_TARGET;
 	gboolean out_is_connected = false;
 	gboolean out_is_ndef_supported = false;
@@ -619,11 +619,11 @@ API net_nfc_error_e net_nfc_client_tag_get_current_tag_info_sync(
 					NULL,
 					&error) == FALSE)
 		{
-			DEBUG_ERR_MSG("Can no get current_tag_info result: %s",
+			DEBUG_ERR_MSG("Can not get current_tag_info result: %s",
 					error->message);
 			g_error_free(error);
 
-			out_result = NET_NFC_IPC_FAIL;
+			return NET_NFC_IPC_FAIL;
 		}
 
 		if (out_is_connected == true) {
@@ -639,24 +639,24 @@ API net_nfc_error_e net_nfc_client_tag_get_current_tag_info_sync(
 						out_raw_data,
 						&client_target_info);
 
-				out_result = NET_NFC_OK;
+				result = NET_NFC_OK;
 			} else {
 				INFO_MSG("The detected target is filtered out");
 
-				out_result = NET_NFC_NOT_CONNECTED;
+				result = NET_NFC_NOT_CONNECTED;
 			}
 		} else {
-			out_result = NET_NFC_NOT_CONNECTED;
+			result = NET_NFC_NOT_CONNECTED;
 		}
 	} else {
-		out_result = NET_NFC_OK;
+		result = NET_NFC_OK;
 	}
 
-	if (out_result == NET_NFC_OK && info != NULL) {
+	if (result == NET_NFC_OK && info != NULL) {
 		*info = client_target_info;
 	}
 
-	return out_result;
+	return result;
 }
 
 #if 0
@@ -721,11 +721,11 @@ API net_nfc_error_e net_nfc_client_tag_get_current_target_handle_sync(
 					NULL,
 					&error) == FALSE)
 		{
-			DEBUG_ERR_MSG("Can no get current_target_handle result: %s",
+			DEBUG_ERR_MSG("Can not get current_target_handle result: %s",
 					error->message);
 			g_error_free(error);
 
-			result = NET_NFC_IPC_FAIL;
+			return NET_NFC_IPC_FAIL;
 		}
 
 		if (out_is_connected == true) {
