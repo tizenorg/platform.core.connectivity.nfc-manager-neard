@@ -26,8 +26,8 @@ typedef enum
 } net_nfc_detect_mode_e;
 
 /**
- This structure is just data, to express bytes array
- */
+  This structure is just data, to express bytes array
+  */
 typedef struct _data_s
 {
 	uint8_t *buffer;
@@ -86,7 +86,6 @@ typedef struct _net_nfc_llcp_internal_socket_s
 	uint16_t miu; /** The remote Maximum Information Unit */
 	uint8_t rw; /** The Receive Window size (4 bits)*/
 	net_nfc_socket_type_e type;
-	net_nfc_llcp_socket_t oal_socket;
 	net_nfc_llcp_socket_t client_socket;
 	sap_t sap;
 	uint8_t *service_name;
@@ -97,8 +96,8 @@ typedef struct _net_nfc_llcp_internal_socket_s
 } net_nfc_llcp_internal_socket_s;
 
 /**
- ndef_record_s structure has the NDEF record data. it is only a record not a message
- */
+  ndef_record_s structure has the NDEF record data. it is only a record not a message
+  */
 typedef struct _record_s
 {
 	uint8_t MB :1;
@@ -114,8 +113,8 @@ typedef struct _record_s
 } ndef_record_s;
 
 /**
- NDEF message it has record counts and records (linked listed form)
- */
+  NDEF message it has record counts and records (linked listed form)
+  */
 typedef struct _ndef_message_s
 {
 	uint32_t recordCount;
@@ -123,8 +122,8 @@ typedef struct _ndef_message_s
 } ndef_message_s;
 
 /**
- Enum value to stop or start the discovery mode
- */
+  Enum value to stop or start the discovery mode
+  */
 
 #define NET_NFC_MAX_UID_LENGTH            0x0AU       /**< Maximum UID length expected */
 #define NET_NFC_MAX_ATR_LENGTH            0x30U       /**< Maximum ATR_RES (General Bytes) */
@@ -288,9 +287,9 @@ typedef enum net_nfc_eDataRate_t
 typedef struct _net_nfc_sNfcIPInfo_t
 {
 	/* Contains the random NFCID3I conveyed with the ATR_REQ.
-	 always 10 bytes length
-	 or contains the random NFCID3T conveyed with the ATR_RES.
-	 always 10 bytes length */
+	   always 10 bytes length
+	   or contains the random NFCID3T conveyed with the ATR_RES.
+	   always 10 bytes length */
 	uint8_t NFCID[NET_NFC_MAX_UID_LENGTH];
 	uint8_t NFCID_Length;
 	/* ATR_RES = General bytes length, Max length = 48 bytes */
@@ -404,7 +403,7 @@ typedef struct _net_nfc_request_msg_t
 
 typedef struct _net_nfc_request_target_detected_t
 {
-	NET_NFC_REQUEST_MSG_HEADER
+	NET_NFC_REQUEST_MSG_HEADER;
 
 	net_nfc_target_handle_s *handle;
 	uint32_t devType;
@@ -414,7 +413,7 @@ typedef struct _net_nfc_request_target_detected_t
 
 typedef struct _net_nfc_request_se_event_t
 {
-	NET_NFC_REQUEST_MSG_HEADER
+	NET_NFC_REQUEST_MSG_HEADER;
 
 	data_s aid;
 	data_s param;
@@ -422,7 +421,7 @@ typedef struct _net_nfc_request_se_event_t
 
 typedef struct _net_nfc_request_llcp_msg_t
 {
-	NET_NFC_REQUEST_MSG_HEADER
+	NET_NFC_REQUEST_MSG_HEADER;
 
 	uint32_t result;
 	net_nfc_llcp_socket_t llcp_socket;
@@ -430,7 +429,7 @@ typedef struct _net_nfc_request_llcp_msg_t
 
 typedef struct _net_nfc_request_listen_socket_t
 {
-	NET_NFC_REQUEST_MSG_HEADER
+	NET_NFC_REQUEST_MSG_HEADER;
 
 	uint32_t result;
 	net_nfc_target_handle_s *handle;
@@ -446,7 +445,7 @@ typedef struct _net_nfc_request_listen_socket_t
 
 typedef struct _net_nfc_request_receive_socket_t
 {
-	NET_NFC_REQUEST_MSG_HEADER
+	NET_NFC_REQUEST_MSG_HEADER;
 
 	uint32_t result;
 	net_nfc_target_handle_s *handle;
@@ -459,7 +458,7 @@ typedef struct _net_nfc_request_receive_socket_t
 
 typedef struct _net_nfc_request_receive_from_socket_t
 {
-	NET_NFC_REQUEST_MSG_HEADER
+	NET_NFC_REQUEST_MSG_HEADER;
 
 	uint32_t result;
 	net_nfc_target_handle_s *handle;
@@ -635,7 +634,7 @@ __attribute__((packed)) net_nfc_certificate_chain_s;
 #define URI_SCHEM_FILE "file://"
 
 typedef void (*net_nfc_service_llcp_cb)(net_nfc_llcp_socket_t socket,
-	net_nfc_error_e result, data_s *data, void *extra, void *user_param);
+		net_nfc_error_e result, data_s *data, void *extra, void *user_param);
 
 typedef struct _net_nfc_llcp_param_t
 {

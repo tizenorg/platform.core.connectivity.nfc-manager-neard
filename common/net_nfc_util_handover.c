@@ -903,7 +903,7 @@ net_nfc_error_e net_nfc_util_create_handover_carrier_record(ndef_record_s ** rec
 	buffer_ptr[1] = strlen(CONN_HANDOVER_WIFI_BSS_CARRIER_MIME_NAME);
 
 	//copy the MIME
-	memcpy(buffer_ptr[2],CONN_HANDOVER_WIFI_BSS_CARRIER_MIME_NAME,(payload.buffer)[1]);
+	memcpy(&buffer_ptr[2],CONN_HANDOVER_WIFI_BSS_CARRIER_MIME_NAME,(payload.buffer)[1]);
 	payload.buffer[25] = '\0';
 
 	payload.length =26;
@@ -1552,7 +1552,7 @@ net_nfc_error_e net_nfc_util_get_alternative_carrier_type_from_record(ndef_recor
 			{
 				*type = NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN;
 			}
-		break;
+			break;
 		case NET_NFC_RECORD_WELL_KNOWN_TYPE:	/* NFC Forum Well-known Type*/
 		case NET_NFC_RECORD_URI:				/* Absolute URIs as defined in [RFC 3986] */
 		case NET_NFC_RECORD_EXTERNAL_RTD:		/* NFC Forum external type */

@@ -194,9 +194,6 @@ static void llcp_call_listen(GObject *source_object,
 	net_nfc_error_e result;
 	guint32 out_client_socket;
 	GError *error = NULL;
-
-	guint32 out_oal_socket;
-
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 
 	g_assert(func_data != NULL);
@@ -222,8 +219,6 @@ static void llcp_call_listen(GObject *source_object,
 		DEBUG_ERR_MSG("Wrong client socket is returned");
 		return;
 	}
-
-	socket_data->oal_socket = out_oal_socket;
 
 	if (func_data->callback != NULL)
 	{
@@ -315,9 +310,6 @@ static void llcp_call_connect(GObject *source_object,
 	net_nfc_error_e result;
 	guint32 out_client_socket;
 	GError *error = NULL;
-
-	guint32 out_oal_socket;
-
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 
 	g_assert(func_data != NULL);
@@ -343,8 +335,6 @@ static void llcp_call_connect(GObject *source_object,
 		return;
 	}
 
-	socket_data->oal_socket = out_oal_socket;
-
 	if (func_data->callback != NULL)
 	{
 		net_nfc_client_llcp_connect_completed callback =
@@ -365,9 +355,6 @@ static void llcp_call_connect_sap(GObject *source_object,
 	net_nfc_error_e result;
 	guint32 out_client_socket;
 	GError *error = NULL;
-
-	guint32 out_oal_socket;
-
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 
 	g_assert(func_data != NULL);
@@ -391,8 +378,6 @@ static void llcp_call_connect_sap(GObject *source_object,
 		DEBUG_ERR_MSG("Wrong client socket is returned");
 		return;
 	}
-
-	socket_data->oal_socket = out_oal_socket;
 
 	if (func_data->callback != NULL)
 	{

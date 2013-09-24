@@ -2683,19 +2683,20 @@ static void net_nfc_server_llcp_process(gpointer user_data)
 	net_nfc_current_target_info_s *target;
 #if 0
 	net_nfc_error_e result;
+	net_nfc_target_type_e dev_type;
 #endif
 	net_nfc_target_handle_s *handle;
-	net_nfc_target_type_e dev_type;
 
 	target = net_nfc_server_get_target_info();
 
 	g_assert(target != NULL); /* raise exception!!! what;s wrong?? */
 
 	handle = target->handle;
-	dev_type = target->devType;
 
 	DEBUG_SERVER_MSG("connection type = [%d]", handle->connection_type);
 #if 0
+	dev_type = target->devType;
+
 	if (dev_type == NET_NFC_NFCIP1_TARGET)
 	{
 		DEBUG_SERVER_MSG("LLCP : target, try to connect");

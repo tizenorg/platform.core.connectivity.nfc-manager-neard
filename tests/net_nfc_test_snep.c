@@ -61,12 +61,6 @@ static void snep_send_request_cb(net_nfc_snep_handle_h target,
 		void *user_data);
 
 
-static void snep_register_server_cb(net_nfc_snep_handle_h target,
-		net_nfc_llcp_state_t state,
-		net_nfc_error_e result,
-		ndef_message_h msg,
-		void *user_data);
-
 /******************************Callbacks*********************************************/
 
 
@@ -155,12 +149,14 @@ static void snep_send_request_cb(net_nfc_snep_handle_h target,
 }
 
 
-static void snep_register_server_cb(net_nfc_snep_handle_h target,
-		net_nfc_llcp_state_t state,
+static void snep_register_server_cb(
+		net_nfc_snep_handle_h target,
+		net_nfc_snep_type_t event,
 		net_nfc_error_e result,
 		ndef_message_h msg,
 		void *user_data)
 {
+	net_nfc_llcp_state_t state = event;
 
 	g_print("snep_register_server_cb Completed %d\n", state);
 	g_print("snep_register_server_cb Completed %d\n", result);

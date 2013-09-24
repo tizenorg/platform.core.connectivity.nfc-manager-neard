@@ -15,19 +15,14 @@
  */
 #ifndef __NET_NFC_SERVER_HANDOVER_BSS_H__
 #define __NET_NFC_SERVER_HANDOVER_BSS_H__
-#include <gio/gio.h>
+
 #include <wifi.h>
 #ifdef TARGET
 #include <wifi-direct.h>
 #endif
-#include "net_nfc_debug_internal.h"
+
 #include "net_nfc_typedef_internal.h"
-#include "net_nfc_util_internal.h"
-#include "net_nfc_util_ndef_message.h"
-#include "net_nfc_util_ndef_record.h"
-#include "net_nfc_util_handover.h"
 #include "net_nfc_server_handover_bt.h"
-#include "net_nfc_server_llcp.h"
 
 typedef struct _net_nfc_handover_bss_process_context_t
 {

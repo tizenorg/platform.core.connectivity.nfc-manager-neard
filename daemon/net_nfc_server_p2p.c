@@ -61,12 +61,8 @@ static void p2p_send_data_thread_func(gpointer user_data)
 
 	handle = GUINT_TO_POINTER(p2p_data->p2p_handle);
 
-	result = net_nfc_server_snep_default_client_start(
-			GUINT_TO_POINTER(p2p_data->p2p_handle),
-			SNEP_REQ_PUT,
-			&p2p_data->data,
-			-1,
-			p2p_data);
+	result = net_nfc_server_snep_default_client_start(handle, SNEP_REQ_PUT,
+			&p2p_data->data, -1, p2p_data);
 	if (result != NET_NFC_OK)
 	{
 		net_nfc_gdbus_p2p_complete_send(p2p_data->p2p,
