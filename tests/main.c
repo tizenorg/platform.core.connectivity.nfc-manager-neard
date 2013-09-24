@@ -235,9 +235,18 @@ static TestData test_data[] = {
 
 	{
 		"Handover",
-		"Request",
-		net_nfc_test_p2p_connection_handover,
-		net_nfc_test_p2p_connection_handover_sync,
+		"BTRequest",
+		net_nfc_test_p2p_connection_handover_with_BT,
+		net_nfc_test_p2p_connection_handover_with_BT_sync,
+		"Handover Request Call"
+
+	},
+
+	{
+		"Handover",
+		"WIFIRequest",
+		net_nfc_test_p2p_connection_handover_with_WIFI,
+		net_nfc_test_p2p_connection_handover_with_WIFI_sync,
 		"Handover Request Call"
 
 	},

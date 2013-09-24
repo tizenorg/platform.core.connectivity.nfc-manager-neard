@@ -66,33 +66,30 @@ static void p2p_connection_handover_cb(net_nfc_error_e result,
 	run_next_callback(user_data);
 }
 
-void net_nfc_test_p2p_connection_handover(gpointer data,
-		gpointer user_data)
+static void _p2p_connection_handover(
+		net_nfc_conn_handover_carrier_type_e type, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	net_nfc_conn_handover_carrier_type_e type = NET_NFC_CONN_HANDOVER_CARRIER_BT;
 	net_nfc_target_handle_h handle = NULL;
 
 	handle = net_nfc_test_device_get_target_handle();
 
-	g_print("handle for handover  : %p \n", handle);
+	g_print("handle for handover : %p \n", handle);
 
 	result = net_nfc_client_p2p_connection_handover(
-			handle,
-			type,
-			p2p_connection_handover_cb,
-			user_data);
+		handle,
+		type,
+		p2p_connection_handover_cb,
+		user_data);
 	g_print("net_nfc_client_p2p_connection_handover() : %d\n", result);
 }
 
-void  net_nfc_test_p2p_connection_handover_sync(gpointer data,
-		gpointer user_data)
+static void _p2p_connection_handover_sync(
+		net_nfc_conn_handover_carrier_type_e type, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	net_nfc_conn_handover_carrier_type_e type;
 	net_nfc_conn_handover_carrier_type_e out_carrier;
 	data_h out_data = NULL;
-	type = NET_NFC_CONN_HANDOVER_CARRIER_BT;
 	net_nfc_target_handle_h handle = NULL;
 
 	handle = net_nfc_test_device_get_target_handle();
@@ -107,6 +104,30 @@ void  net_nfc_test_p2p_connection_handover_sync(gpointer data,
 	g_print("Received out carrier type & carrier type  %d, %d\n", out_carrier, type);
 	print_received_data(out_data);
 	run_next_callback(user_data);
+}
+
+void net_nfc_test_p2p_connection_handover_with_BT(gpointer data,
+		gpointer user_data)
+{
+	_p2p_connection_handover(NET_NFC_CONN_HANDOVER_CARRIER_BT, user_data);
+}
+
+void net_nfc_test_p2p_connection_handover_with_WIFI(gpointer data,
+		gpointer user_data)
+{
+	_p2p_connection_handover(NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS, user_data);
+}
+
+void net_nfc_test_p2p_connection_handover_with_BT_sync(gpointer data,
+		gpointer user_data)
+{
+	_p2p_connection_handover_sync(NET_NFC_CONN_HANDOVER_CARRIER_BT, user_data);
+}
+
+void net_nfc_test_p2p_connection_handover_with_WIFI_sync(gpointer data,
+		gpointer user_data)
+{
+	_p2p_connection_handover_sync(NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS, user_data);
 }
 
 void net_nfc_test_handover_get_alternative_carrier_type(gpointer data,
