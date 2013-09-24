@@ -34,8 +34,6 @@ typedef enum
 } CRC_type_e;
 
 void net_nfc_change_log_tag();
-void net_nfc_manager_init_log();
-void net_nfc_manager_fini_log();
 
 /* Memory utils */
 /* allocation memory */

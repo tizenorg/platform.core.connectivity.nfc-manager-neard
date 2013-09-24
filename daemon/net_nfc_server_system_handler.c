@@ -41,7 +41,7 @@ static gboolean popup_handle_set(NetNfcGDbusPopup *popup_manager,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -49,7 +49,7 @@ static gboolean popup_handle_set(NetNfcGDbusPopup *popup_manager,
 				smack_privilege,
 				"nfc-manager",
 				"w") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -70,7 +70,7 @@ static gboolean popup_handle_get(NetNfcGDbusPopup *popup_manager,
 {
 	gboolean state;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -78,7 +78,7 @@ static gboolean popup_handle_get(NetNfcGDbusPopup *popup_manager,
 				smack_privilege,
 				"nfc-manager",
 				"r") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -103,7 +103,7 @@ gboolean net_nfc_server_system_handler_init(GDBusConnection *connection)
 	popup_skeleton = net_nfc_gdbus_popup_skeleton_new();
 	if (popup_skeleton == NULL)
 	{
-		DEBUG_ERR_MSG("Failed to allocate popup skeleton");
+		NFC_ERR("Failed to allocate popup skeleton");
 
 		return FALSE;
 	}
@@ -125,7 +125,7 @@ gboolean net_nfc_server_system_handler_init(GDBusConnection *connection)
 			&error);
 	if (result == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not skeleton_export %s", error->message);
+		NFC_ERR("Can not skeleton_export %s", error->message);
 
 		g_error_free(error);
 

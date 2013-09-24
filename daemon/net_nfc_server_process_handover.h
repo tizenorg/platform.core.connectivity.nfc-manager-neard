@@ -15,7 +15,7 @@
  */
 #ifndef __NET_NFC_SERVER_PROCESS_HANDOVER_H__
 #define __NET_NFC_SERVER_PROCESS_HANDOVER_H__
-#include "net_nfc_server_handover_bt.h"
+
 #include "net_nfc_typedef_internal.h"
 
 net_nfc_error_e net_nfc_server_handover_default_server_start(
@@ -31,8 +31,7 @@ net_nfc_error_e net_nfc_server_handover_default_server_unregister();
 net_nfc_error_e net_nfc_server_handover_create_selector_from_rawdata(
 		ndef_message_s **selector,data_s *data);
 
-net_nfc_error_e
-net_nfc_server_handover_get_carrier_record_by_priority_order(
+net_nfc_error_e net_nfc_server_handover_get_carrier_record_by_priority_order(
 		ndef_message_s *request,ndef_record_s **record);
 
 net_nfc_error_e net_nfc_server_handover_process_carrier_record(

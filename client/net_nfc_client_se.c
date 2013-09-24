@@ -98,7 +98,7 @@ static void se_ese_detected(GObject *source_object,
 		gint arg_se_type,
 		GVariant *arg_data)
 {
-	INFO_MSG(">>> SIGNAL arrived");
+	NFC_INFO(">>> SIGNAL arrived");
 
 	if (se_esedetecthandler.se_ese_detected_cb != NULL) {
 		data_s buffer_data = { NULL, 0 };
@@ -118,7 +118,7 @@ static void se_ese_detected(GObject *source_object,
 static void se_type_changed(GObject *source_object,
 		gint arg_se_type)
 {
-	INFO_MSG(">>> SIGNAL arrived");
+	NFC_INFO(">>> SIGNAL arrived");
 
 	if (se_eventhandler.se_event_cb != NULL)
 	{
@@ -136,7 +136,7 @@ static void se_transaction_event(GObject *source_object,
 		GVariant *arg_aid,
 		GVariant *arg_param)
 {
-	INFO_MSG(">>> SIGNAL arrived");
+	NFC_INFO(">>> SIGNAL arrived");
 
 	if (se_transeventhandler.se_transaction_event_cb != NULL) {
 		net_nfc_client_se_transaction_event callback =
@@ -173,7 +173,7 @@ static void set_secure_element(GObject *source_object,
 	{
 		result = NET_NFC_IPC_FAIL;
 
-		DEBUG_ERR_MSG("Could not set secure element: %s",
+		NFC_ERR("Could not set secure element: %s",
 				error->message);
 
 		g_error_free(error);
@@ -207,7 +207,7 @@ static void get_secure_element(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Could not set secure element: %s",
+		NFC_ERR("Could not set secure element: %s",
 				error->message);
 
 		g_error_free(error);
@@ -242,7 +242,7 @@ static void _set_card_emulation_cb(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Could not set card emulation: %s",
+		NFC_ERR("Could not set card emulation: %s",
 				error->message);
 
 		g_error_free(error);
@@ -282,7 +282,7 @@ static void open_secure_element(GObject *source_object,
 	{
 		result = NET_NFC_IPC_FAIL;
 
-		DEBUG_ERR_MSG("Could not open secure element: %s",
+		NFC_ERR("Could not open secure element: %s",
 				error->message);
 
 		g_error_free(error);
@@ -318,7 +318,7 @@ static void close_secure_element(GObject *source_object,
 	{
 		result = NET_NFC_IPC_FAIL;
 
-		DEBUG_ERR_MSG("Could not close secure element: %s", error->message);
+		NFC_ERR("Could not close secure element: %s", error->message);
 
 		g_error_free(error);
 	}
@@ -355,7 +355,7 @@ static void send_apdu_secure_element(GObject *source_object,
 	{
 		result = NET_NFC_IPC_FAIL;
 
-		DEBUG_ERR_MSG("Could not send apdu: %s", error->message);
+		NFC_ERR("Could not send apdu: %s", error->message);
 
 		g_error_free(error);
 	}
@@ -397,7 +397,7 @@ static void get_atr_secure_element(GObject *source_object,
 	{
 		result = NET_NFC_IPC_FAIL;
 
-		DEBUG_ERR_MSG("Could not get atr: %s", error->message);
+		NFC_ERR("Could not get atr: %s", error->message);
 
 		g_error_free(error);
 	}
@@ -428,7 +428,7 @@ API net_nfc_error_e net_nfc_client_se_set_secure_element_type(
 
 	if (se_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get se_proxy");
+		NFC_ERR("Can not get se_proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -465,7 +465,7 @@ API net_nfc_error_e net_nfc_client_se_set_secure_element_type_sync(
 
 	if (se_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get se_proxy");
+		NFC_ERR("Can not get se_proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -483,7 +483,7 @@ API net_nfc_error_e net_nfc_client_se_set_secure_element_type_sync(
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Set secure element failed: %s", error->message);
+		NFC_ERR("Set secure element failed: %s", error->message);
 
 		g_error_free(error);
 
@@ -501,7 +501,7 @@ API net_nfc_error_e net_nfc_client_se_get_secure_element_type(
 
 	if (se_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get se_proxy");
+		NFC_ERR("Can not get se_proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -538,7 +538,7 @@ API net_nfc_error_e net_nfc_client_se_get_secure_element_type_sync(
 #endif
 	if (se_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get se_proxy");
+		NFC_ERR("Can not get se_proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -563,7 +563,7 @@ API net_nfc_error_e net_nfc_client_se_get_secure_element_type_sync(
 				&error) == true) {
 		*se_type = type;
 	} else {
-		DEBUG_ERR_MSG("Set secure element failed: %s", error->message);
+		NFC_ERR("Set secure element failed: %s", error->message);
 
 		g_error_free(error);
 
@@ -581,7 +581,7 @@ API net_nfc_error_e net_nfc_set_card_emulation_mode(
 	NetNfcCallback *func_data;
 
 	if (se_proxy == NULL) {
-		DEBUG_ERR_MSG("Can not get se_proxy");
+		NFC_ERR("Can not get se_proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -618,7 +618,7 @@ API net_nfc_error_e net_nfc_set_card_emulation_mode_sync(
 
 	if (se_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get se_proxy");
+		NFC_ERR("Can not get se_proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -636,7 +636,7 @@ API net_nfc_error_e net_nfc_set_card_emulation_mode_sync(
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Set card emulation failed: %s", error->message);
+		NFC_ERR("Set card emulation failed: %s", error->message);
 
 		g_error_free(error);
 
@@ -656,7 +656,7 @@ API net_nfc_error_e net_nfc_client_se_open_internal_secure_element(
 
 	if (se_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get se_proxy");
+		NFC_ERR("Can not get se_proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -695,7 +695,7 @@ API net_nfc_error_e net_nfc_client_se_open_internal_secure_element_sync(
 
 	if (se_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get se_proxy");
+		NFC_ERR("Can not get se_proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -712,7 +712,7 @@ API net_nfc_error_e net_nfc_client_se_open_internal_secure_element_sync(
 				&error) == true) {
 		*handle = GUINT_TO_POINTER(out_handle);
 	} else {
-		DEBUG_ERR_MSG("Open internal secure element failed: %s", error->message);
+		NFC_ERR("Open internal secure element failed: %s", error->message);
 		g_error_free(error);
 
 		result = NET_NFC_IPC_FAIL;
@@ -729,7 +729,7 @@ API net_nfc_error_e net_nfc_client_se_close_internal_secure_element(
 
 	if (se_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get se_proxy");
+		NFC_ERR("Can not get se_proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -763,7 +763,7 @@ API net_nfc_error_e net_nfc_client_se_close_internal_secure_element_sync(
 
 	if (se_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get se_proxy");
+		NFC_ERR("Can not get se_proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -778,7 +778,7 @@ API net_nfc_error_e net_nfc_client_se_close_internal_secure_element_sync(
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("close internal secure element failed: %s",
+		NFC_ERR("close internal secure element failed: %s",
 				error->message);
 		g_error_free(error);
 
@@ -796,7 +796,7 @@ API net_nfc_error_e net_nfc_client_se_get_atr(net_nfc_target_handle_h handle,
 
 	if (se_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get se_proxy");
+		NFC_ERR("Can not get se_proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -836,7 +836,7 @@ API net_nfc_error_e net_nfc_client_se_get_atr_sync(
 
 	if (se_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get se_proxy");
+		NFC_ERR("Can not get se_proxy");
 		return NET_NFC_NOT_INITIALIZED;
 	}
 
@@ -852,7 +852,7 @@ API net_nfc_error_e net_nfc_client_se_get_atr_sync(
 				&error) == true) {
 		*atr = net_nfc_util_gdbus_variant_to_data(out_atr);
 	} else {
-		DEBUG_ERR_MSG("Get attributes failed: %s", error->message);
+		NFC_ERR("Get attributes failed: %s", error->message);
 		g_error_free(error);
 
 		result = NET_NFC_IPC_FAIL;
@@ -870,7 +870,7 @@ API net_nfc_error_e net_nfc_client_se_send_apdu(net_nfc_target_handle_h handle,
 
 	if (se_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get se_proxy");
+		NFC_ERR("Can not get se_proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -919,7 +919,7 @@ API net_nfc_error_e net_nfc_client_se_send_apdu_sync(
 
 	if (se_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get se_proxy");
+		NFC_ERR("Can not get se_proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -941,7 +941,7 @@ API net_nfc_error_e net_nfc_client_se_send_apdu_sync(
 				&error) == true) {
 		*response = net_nfc_util_gdbus_variant_to_data(out_data);
 	} else {
-		DEBUG_ERR_MSG("Send APDU failed: %s",
+		NFC_ERR("Send APDU failed: %s",
 				error->message);
 		g_error_free(error);
 
@@ -1002,8 +1002,7 @@ net_nfc_error_e net_nfc_client_se_init(void)
 
 	if (se_proxy)
 	{
-		DEBUG_CLIENT_MSG("Already initialized");
-
+		NFC_WARN("Already initialized");
 		return NET_NFC_OK;
 	}
 
@@ -1016,7 +1015,7 @@ net_nfc_error_e net_nfc_client_se_init(void)
 			&error);
 	if (se_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not create proxy : %s", error->message);
+		NFC_ERR("Can not create proxy : %s", error->message);
 
 		g_error_free(error);
 

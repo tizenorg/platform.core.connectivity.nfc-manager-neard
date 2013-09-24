@@ -61,7 +61,7 @@ static void snep_send_client_request(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish send client request %s",
+		NFC_ERR("Can not finish send client request %s",
 				error->message);
 		g_error_free(error);
 
@@ -99,7 +99,7 @@ API net_nfc_error_e net_nfc_client_snep_start_server(
 
 	if (snep_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get Snep Proxy");
+		NFC_ERR("Can not get Snep Proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -123,7 +123,7 @@ API net_nfc_error_e net_nfc_client_snep_start_server(
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("snep server(sync call) failed: %s",
+		NFC_ERR("snep server(sync call) failed: %s",
 				error->message);
 		g_error_free(error);
 
@@ -148,7 +148,7 @@ API net_nfc_error_e net_nfc_client_snep_start_client(
 
 	if (snep_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get Snep Proxy");
+		NFC_ERR("Can not get Snep Proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -172,7 +172,7 @@ API net_nfc_error_e net_nfc_client_snep_start_client(
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("snep client(sync call) failed: %s",
+		NFC_ERR("snep client(sync call) failed: %s",
 				error->message);
 		g_error_free(error);
 
@@ -201,7 +201,7 @@ API net_nfc_error_e net_nfc_client_snep_send_client_request(
 
 	if (snep_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get Snep Proxy");
+		NFC_ERR("Can not get Snep Proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -253,7 +253,7 @@ API net_nfc_error_e net_nfc_client_snep_send_client_request_sync(
 
 	if (snep_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get Snep Proxy");
+		NFC_ERR("Can not get Snep Proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -286,7 +286,7 @@ API net_nfc_error_e net_nfc_client_snep_send_client_request_sync(
 	}
 	else
 	{
-		DEBUG_ERR_MSG(" send client request (sync call) failed: %s",
+		NFC_ERR(" send client request (sync call) failed: %s",
 				error->message);
 		g_error_free(error);
 
@@ -309,7 +309,7 @@ API net_nfc_error_e net_nfc_client_snep_stop_service_sync(
 
 	if (snep_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get Snep Proxy");
+		NFC_ERR("Can not get Snep Proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -328,7 +328,7 @@ API net_nfc_error_e net_nfc_client_snep_stop_service_sync(
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("snep stop service(sync call) failed: %s",
+		NFC_ERR("snep stop service(sync call) failed: %s",
 				error->message);
 		g_error_free(error);
 
@@ -347,9 +347,7 @@ static void _snep_event_cb(NetNfcGDbusSnep *object,
 {
 	GVariant *parameter = (GVariant *)GUINT_TO_POINTER(arg_user_data);
 
-	INFO_MSG(">>> SIGNAL arrived");
-
-	DEBUG_CLIENT_MSG("handle [%p], event [%d], result [%d], user_data [%p]",
+	NFC_DBG("handle [%p], event [%d], result [%d], user_data [%p]",
 			GUINT_TO_POINTER(arg_handle),
 			arg_event,
 			arg_result,
@@ -398,7 +396,7 @@ API net_nfc_error_e net_nfc_client_snep_register_server(const char *san,
 
 	if (snep_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get Snep Proxy");
+		NFC_ERR("Can not get Snep Proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -421,7 +419,7 @@ API net_nfc_error_e net_nfc_client_snep_register_server(const char *san,
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("snep register server(sync call) failed: %s",
+		NFC_ERR("snep register server(sync call) failed: %s",
 				error->message);
 		g_error_free(error);
 
@@ -441,7 +439,7 @@ API net_nfc_error_e net_nfc_client_snep_unregister_server(const char *san,
 
 	if (snep_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get Snep Proxy");
+		NFC_ERR("Can not get Snep Proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -459,7 +457,7 @@ API net_nfc_error_e net_nfc_client_snep_unregister_server(const char *san,
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("snep unregister server(sync call) failed: %s",
+		NFC_ERR("snep unregister server(sync call) failed: %s",
 				error->message);
 		g_error_free(error);
 
@@ -475,8 +473,7 @@ net_nfc_error_e net_nfc_client_snep_init(void)
 
 	if (snep_proxy)
 	{
-		DEBUG_CLIENT_MSG("Already initialized");
-
+		NFC_WARN("Already initialized");
 		return NET_NFC_OK;
 	}
 
@@ -489,7 +486,7 @@ net_nfc_error_e net_nfc_client_snep_init(void)
 			&error);
 	if (snep_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not create proxy : %s", error->message);
+		NFC_ERR("Can not create proxy : %s", error->message);
 		g_error_free(error);
 
 		return NET_NFC_UNKNOWN_ERROR;

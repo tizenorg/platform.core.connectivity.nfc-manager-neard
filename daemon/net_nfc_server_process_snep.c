@@ -184,12 +184,12 @@ static bool _net_nfc_server_snep_add_get_response_cb(
 		}
 		else
 		{
-			DEBUG_ERR_MSG("g_list_append failed");
+			NFC_ERR("g_list_append failed");
 		}
 	}
 	else
 	{
-		DEBUG_ERR_MSG("_net_nfc_util_alloc_mem failed");
+		NFC_ERR("_net_nfc_util_alloc_mem failed");
 	}
 
 	return result;
@@ -232,7 +232,7 @@ static bool _net_nfc_server_snep_process_get_response_cb(
 
 		if (cb_data->cb != NULL)
 		{
-			DEBUG_SERVER_MSG("invoke callback [%p]", cb_data->cb);
+			NFC_DBG("invoke callback [%p]", cb_data->cb);
 			if (cb_data->cb(handle,
 						SNEP_REQ_GET,
 						max_len,
@@ -262,7 +262,7 @@ static net_nfc_server_snep_op_context_t* _net_nfc_server_snep_create_send_contex
 	if (net_nfc_controller_llcp_get_remote_config(handle,
 				&config, &result) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_get_remote_config failed, [%d]",
+		NFC_ERR("net_nfc_controller_llcp_get_remote_config failed, [%d]",
 				result);
 
 		return NULL;
@@ -317,7 +317,7 @@ static net_nfc_server_snep_op_context_t* _net_nfc_server_snep_create_send_contex
 
 		if (data != NULL && data->buffer != NULL)
 		{
-			DEBUG_SERVER_MSG("data->length [%d]", data->length);
+			NFC_DBG("data->length [%d]", data->length);
 
 			/* copy ndef information to response msg */
 			memcpy(buffer, data->buffer, data->length);
@@ -349,7 +349,7 @@ static net_nfc_server_snep_op_context_t* _net_nfc_server_snep_create_recv_contex
 				&config,
 				&result) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_get_remote_config failed, [%d]",
+		NFC_ERR("net_nfc_controller_llcp_get_remote_config failed, [%d]",
 				result);
 		return NULL;
 	}
@@ -393,8 +393,7 @@ static void _net_nfc_server_recv_fragment_cb(
 	uint8_t *buffer;
 	uint32_t length;
 
-	DEBUG_SERVER_MSG("_net_nfc_server_recv_fragment_cb,"
-			" socket [%x], result [%d]",socket, result);
+	NFC_DBG("_net_nfc_server_recv_fragment_cb, socket[%x], result[%d]", socket, result);
 
 	if (context == NULL)
 		return;
@@ -403,14 +402,14 @@ static void _net_nfc_server_recv_fragment_cb(
 
 	if (result != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("error [%d]", result);
+		NFC_ERR("error [%d]", result);
 		context->state = NET_NFC_STATE_ERROR;
 		goto END;
 	}
 
 	if (data == NULL || data->buffer == NULL || data->length == 0)
 	{
-		DEBUG_ERR_MSG("invalid response");
+		NFC_ERR("invalid response");
 		context->state = NET_NFC_STATE_ERROR;
 		goto END;
 	}
@@ -422,7 +421,7 @@ static void _net_nfc_server_recv_fragment_cb(
 
 		if (data->length < SNEP_HEADER_LEN)
 		{
-			DEBUG_ERR_MSG("too short data, length [%d]",
+			NFC_ERR("too short data, length [%d]",
 					data->length);
 			/* FIXME!!! what should I do. */
 			context->type = SNEP_RESP_BAD_REQ;
@@ -435,7 +434,7 @@ static void _net_nfc_server_recv_fragment_cb(
 
 		if (length > SNEP_MAX_LEN)
 		{
-			DEBUG_ERR_MSG("too long snep message, length [%d]",
+			NFC_ERR("too long snep message, length [%d]",
 					length);
 			if (IS_SNEP_REQ(msg->op))
 			{
@@ -453,7 +452,7 @@ static void _net_nfc_server_recv_fragment_cb(
 		if (IS_SNEP_REQ(msg->op) &&
 				GET_MAJOR_VER(msg->version) > SNEP_MAJOR_VER)
 		{
-			DEBUG_ERR_MSG("not supported version, version [0x%02x]",
+			NFC_ERR("not supported version, version [0x%02x]",
 					msg->version);
 			context->type = SNEP_RESP_UNSUPPORTED_VER;
 			context->state = NET_NFC_LLCP_STEP_04;
@@ -467,7 +466,7 @@ static void _net_nfc_server_recv_fragment_cb(
 			net_nfc_util_alloc_data(&context->data, length);
 			if (context->data.buffer == NULL)
 			{
-				DEBUG_ERR_MSG("net_nfc_util_alloc_data failed");
+				NFC_ERR("net_nfc_util_alloc_data failed");
 				if (IS_SNEP_REQ(msg->op))
 				{
 					context->type = SNEP_RESP_REJECT;
@@ -482,8 +481,7 @@ static void _net_nfc_server_recv_fragment_cb(
 			}
 		}
 
-		DEBUG_SERVER_MSG("incoming message, type [0x%02x], length [%d]",
-				msg->op, length);
+		NFC_DBG("incoming message, type [0x%02x], length [%d]", msg->op, length);
 
 		context->type = msg->op;
 		buffer = msg->data;
@@ -504,8 +502,7 @@ static void _net_nfc_server_recv_fragment_cb(
 				buffer, length);
 		context->offset += length;
 
-		DEBUG_SERVER_MSG("receive progress... [%d|%d]",
-				context->offset, context->data.length);
+		NFC_DBG("receive progress... [%d|%d]", context->offset, context->data.length);
 
 		if (context->offset >= context->data.length)
 			context->state = NET_NFC_LLCP_STEP_RETURN;
@@ -513,7 +510,7 @@ static void _net_nfc_server_recv_fragment_cb(
 	}
 	else
 	{
-		DEBUG_SERVER_MSG("receive complete... [no ndef message]");
+		NFC_DBG("receive complete... [no ndef message]");
 		context->state = NET_NFC_LLCP_STEP_RETURN;
 	}
 
@@ -527,7 +524,7 @@ static void _net_nfc_server_recv_fragment(
 {
 	net_nfc_error_e result;
 
-	DEBUG_SERVER_MSG("socket [%x] waiting data.....", context->socket);
+	NFC_DBG("socket [%x] waiting data.....", context->socket);
 
 	if (net_nfc_controller_llcp_recv(
 				context->handle,
@@ -537,7 +534,7 @@ static void _net_nfc_server_recv_fragment(
 				_net_nfc_server_recv_fragment_cb,
 				context) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_recv failed, [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_recv failed, [%d]", result);
 		context->state = NET_NFC_STATE_ERROR;
 		context->result = result;
 		_net_nfc_server_snep_recv(context);
@@ -554,7 +551,7 @@ void _net_nfc_server_snep_recv_send_cb(
 	net_nfc_server_snep_op_context_t *context =
 		(net_nfc_server_snep_op_context_t *)user_param;
 
-	DEBUG_SERVER_MSG("_net_nfc_server_snep_recv_send_cb, result [%d]", result);
+	NFC_DBG("_net_nfc_server_snep_recv_send_cb, result [%d]", result);
 
 	if (context == NULL)/* TODO */
 		return;
@@ -563,7 +560,7 @@ void _net_nfc_server_snep_recv_send_cb(
 		context->state = NET_NFC_LLCP_STEP_03;
 	else
 	{
-		DEBUG_ERR_MSG("net_nfc_server_snep_send failed, [0x%x][%d]",
+		NFC_ERR("net_nfc_server_snep_send failed, [0x%x][%d]",
 				type, result);
 		context->state = NET_NFC_STATE_ERROR;
 		context->result = result;
@@ -581,8 +578,7 @@ void _net_nfc_server_snep_recv_send_reject_cb(
 	net_nfc_server_snep_op_context_t *context =
 		(net_nfc_server_snep_op_context_t *)user_param;
 
-	DEBUG_SERVER_MSG("_net_nfc_server_snep_recv_send_reject_cb,"
-			" result [%d]", result);
+	NFC_DBG("_net_nfc_server_snep_recv_send_reject_cb, result [%d]", result);
 
 	if (context == NULL)/* TODO */
 		return;
@@ -591,7 +587,7 @@ void _net_nfc_server_snep_recv_send_reject_cb(
 
 	if (result != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("net_nfc_server_snep_send failed, [0x%x][%d]",
+		NFC_ERR("net_nfc_server_snep_send failed, [0x%x][%d]",
 				type, result);
 	}
 
@@ -608,8 +604,7 @@ static void _net_nfc_server_snep_recv(
 	{
 	case NET_NFC_LLCP_STEP_01 :
 	case NET_NFC_LLCP_STEP_03 :
-		DEBUG_SERVER_MSG("NET_NFC_LLCP_STEP_%02d",
-				context->state - NET_NFC_LLCP_STEP_01 + 1);
+		NFC_DBG("NET_NFC_LLCP_STEP_%02d", context->state - NET_NFC_LLCP_STEP_01 + 1);
 
 		/* receive fragment */
 		_net_nfc_server_recv_fragment(context);
@@ -619,7 +614,7 @@ static void _net_nfc_server_snep_recv(
 		{
 			uint8_t op = context->type;
 
-			DEBUG_SERVER_MSG("NET_NFC_LLCP_STEP_02");
+			NFC_DBG("NET_NFC_LLCP_STEP_02");
 
 			/* make correct request/response code */
 			op = SNEP_MAKE_PAIR_OP(op, SNEP_REQ_CONTINUE);
@@ -636,7 +631,7 @@ static void _net_nfc_server_snep_recv(
 
 	case NET_NFC_LLCP_STEP_04 :
 		{
-			DEBUG_SERVER_MSG("NET_NFC_LLCP_STEP_04");
+			NFC_DBG("NET_NFC_LLCP_STEP_04");
 
 			/* send response */
 			net_nfc_server_snep_send(
@@ -649,7 +644,7 @@ static void _net_nfc_server_snep_recv(
 
 	case NET_NFC_LLCP_STEP_RETURN :
 		{
-			DEBUG_SERVER_MSG("NET_NFC_LLCP_STEP_RETURN");
+			NFC_DBG("NET_NFC_LLCP_STEP_RETURN");
 
 			/* complete and invoke callback */
 			context->cb(
@@ -664,10 +659,10 @@ static void _net_nfc_server_snep_recv(
 
 	case NET_NFC_STATE_ERROR :
 	default :
-		DEBUG_ERR_MSG("NET_NFC_STATE_ERROR");
+		NFC_ERR("NET_NFC_STATE_ERROR");
 
 		/* error, invoke callback */
-		DEBUG_ERR_MSG("net_nfc_server_snep_recv failed, [%d]",
+		NFC_ERR("net_nfc_server_snep_recv failed, [%d]",
 				context->result);
 
 		context->cb(
@@ -715,8 +710,7 @@ static void _net_nfc_server_send_fragment_cb(
 	net_nfc_server_snep_op_context_t *context =
 		(net_nfc_server_snep_op_context_t *)user_param;
 
-	DEBUG_SERVER_MSG("_net_nfc_server_send_fragment_cb,"
-			" socket [%x], result [%d]",socket, result);
+	NFC_DBG("_net_nfc_server_send_fragment_cb, socket[%x], result[%d]", socket, result);
 
 	if (context == NULL)
 		return;
@@ -725,8 +719,7 @@ static void _net_nfc_server_send_fragment_cb(
 
 	if (result == NET_NFC_OK)
 	{
-		DEBUG_SERVER_MSG("send progress... [%d|%d]",
-				context->offset, context->data.length);
+		NFC_DBG("send progress... [%d|%d]", context->offset, context->data.length);
 		if (context->offset < context->data.length)
 		{
 			if (context->state == NET_NFC_LLCP_STEP_01)
@@ -746,7 +739,7 @@ static void _net_nfc_server_send_fragment_cb(
 	}
 	else
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_send failed, [%d]",
+		NFC_ERR("net_nfc_controller_llcp_send failed, [%d]",
 				result);
 		context->state = NET_NFC_STATE_ERROR;
 	}
@@ -769,9 +762,8 @@ static void _net_nfc_server_send_fragment(
 	req_msg.length = (remain_len < context->miu) ? remain_len : context->miu;
 	req_msg.buffer = context->data.buffer + context->offset;
 
-	DEBUG_SERVER_MSG("try to send data, socket [%x], offset [%d],"
-			" current [%d], remain [%d]",context->socket, context->offset,
-			req_msg.length, remain_len - req_msg.length);
+	NFC_DBG("try to send data, socket [%x], offset [%d], current [%d], remain [%d]",
+			context->socket, context->offset, req_msg.length, remain_len-req_msg.length);
 
 	context->offset += req_msg.length;
 
@@ -782,7 +774,7 @@ static void _net_nfc_server_send_fragment(
 				_net_nfc_server_send_fragment_cb,
 				context) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_send failed, [%d]",
+		NFC_ERR("net_nfc_controller_llcp_send failed, [%d]",
 				result);
 		context->state = NET_NFC_STATE_ERROR;
 		context->result = result;
@@ -799,13 +791,12 @@ void _net_nfc_server_snep_send_recv_cb(
 	net_nfc_server_snep_op_context_t *context =
 		(net_nfc_server_snep_op_context_t *)user_param;
 
-	DEBUG_SERVER_MSG("_net_nfc_server_snep_send_recv_cb,"
-			" result [%d]", result);
+	NFC_DBG("_net_nfc_server_snep_send_recv_cb, result [%d]", result);
 
 	if (context == NULL)/* TODO */
 		return;
 
-	DEBUG_SERVER_MSG("received message, type [%d]", type);
+	NFC_DBG("received message, type [%d]", type);
 
 	context->result = result;
 	context->type = type;
@@ -865,15 +856,14 @@ static void _net_nfc_server_snep_send(
 	{
 	case NET_NFC_LLCP_STEP_01 :
 	case NET_NFC_LLCP_STEP_03 :
-		DEBUG_SERVER_MSG("NET_NFC_LLCP_STEP_%02d",
-				context->state - NET_NFC_LLCP_STEP_01 + 1);
+		NFC_DBG("NET_NFC_LLCP_STEP_%02d", context->state - NET_NFC_LLCP_STEP_01 + 1);
 
 		/* send fragment */
 		_net_nfc_server_send_fragment(context);
 		break;
 
 	case NET_NFC_LLCP_STEP_02 :
-		DEBUG_SERVER_MSG("NET_NFC_LLCP_STEP_02");
+		NFC_DBG("NET_NFC_LLCP_STEP_02");
 
 		/* receive response */
 		net_nfc_server_snep_recv(
@@ -884,7 +874,7 @@ static void _net_nfc_server_snep_send(
 		break;
 
 	case NET_NFC_LLCP_STEP_RETURN :
-		DEBUG_SERVER_MSG("NET_NFC_LLCP_STEP_RETURN");
+		NFC_DBG("NET_NFC_LLCP_STEP_RETURN");
 
 		/* complete and invoke callback */
 		context->cb(
@@ -897,10 +887,10 @@ static void _net_nfc_server_snep_send(
 		break;
 
 	case NET_NFC_STATE_ERROR :
-		DEBUG_ERR_MSG("NET_NFC_STATE_ERROR");
+		NFC_ERR("NET_NFC_STATE_ERROR");
 
 		/* error, invoke callback */
-		DEBUG_ERR_MSG("net_nfc_server_snep_send failed, [%d]",
+		NFC_ERR("net_nfc_server_snep_send failed, [%d]",
 				context->result);
 
 		context->cb(
@@ -913,7 +903,7 @@ static void _net_nfc_server_snep_send(
 		break;
 
 	default :
-		DEBUG_ERR_MSG("NET_NFC_LLCP_STEP_??");
+		NFC_ERR("NET_NFC_LLCP_STEP_??");
 
 		context->cb(NET_NFC_OPERATION_FAIL,
 				context->type,
@@ -966,8 +956,7 @@ static void _net_nfc_server_snep_server_recv_cb(
 	net_nfc_server_snep_context_t *context =
 		(net_nfc_server_snep_context_t *)user_param;
 
-	DEBUG_SERVER_MSG("_net_nfc_server_snep_server_recv_cb"
-			"result [%d]", result);
+	NFC_DBG("_net_nfc_server_snep_server_recv_cb result [%d]", result);
 
 	if (context == NULL)
 	{
@@ -980,8 +969,7 @@ static void _net_nfc_server_snep_server_recv_cb(
 
 	if (result == NET_NFC_OK && data != NULL && data->buffer != NULL)
 	{
-		DEBUG_SERVER_MSG("received message, type [%d], length [%d]",
-				type, data->length);
+		NFC_DBG("received message, type [%d], length [%d]", type, data->length);
 
 		net_nfc_util_alloc_data(&context->data, data->length);
 		if (context->data.buffer != NULL)
@@ -1000,7 +988,7 @@ static void _net_nfc_server_snep_server_recv_cb(
 				break;
 
 			default :
-				DEBUG_ERR_MSG("invalid request, [%d]", type);
+				NFC_ERR("invalid request, [%d]", type);
 				context->state = NET_NFC_STATE_ERROR;
 				context->result = NET_NFC_NOT_ALLOWED_OPERATION;
 				break;
@@ -1008,7 +996,7 @@ static void _net_nfc_server_snep_server_recv_cb(
 		}
 		else
 		{
-			DEBUG_ERR_MSG("net_nfc_util_alloc_data failed");
+			NFC_ERR("net_nfc_util_alloc_data failed");
 			/* TODO */
 			context->state = NET_NFC_STATE_ERROR;
 			context->result = NET_NFC_ALLOC_FAIL;
@@ -1016,7 +1004,7 @@ static void _net_nfc_server_snep_server_recv_cb(
 	}
 	else
 	{
-		DEBUG_ERR_MSG("net_nfc_server_snep_recv failed, [%d]", result);
+		NFC_ERR("net_nfc_server_snep_recv failed, [%d]", result);
 		context->type = type;
 		context->state = NET_NFC_STATE_ERROR;
 	}
@@ -1033,8 +1021,7 @@ static void _net_nfc_server_snep_server_send_cb(net_nfc_error_e result,
 	net_nfc_server_snep_context_t *context =
 		(net_nfc_server_snep_context_t *)user_param;
 
-	DEBUG_SERVER_MSG("_net_nfc_server_snep_server_send_cb"
-			", result [%d]", result);
+	NFC_DBG("_net_nfc_server_snep_server_send_cb, result [%d]", result);
 
 	if (context == NULL)/* TODO */
 		return;
@@ -1043,7 +1030,7 @@ static void _net_nfc_server_snep_server_send_cb(net_nfc_error_e result,
 
 	if (result == NET_NFC_OK)
 	{
-		DEBUG_SERVER_MSG("server process success. and restart....");
+		NFC_DBG("server process success. and restart....");
 
 		/* restart */
 		net_nfc_util_free_data(&context->data);
@@ -1051,7 +1038,7 @@ static void _net_nfc_server_snep_server_send_cb(net_nfc_error_e result,
 	}
 	else
 	{
-		DEBUG_ERR_MSG("net_nfc_server_snep_send failed, [%d]", result);
+		NFC_ERR("net_nfc_server_snep_send failed, [%d]", result);
 		context->state = NET_NFC_STATE_ERROR;
 	}
 
@@ -1068,7 +1055,7 @@ static void _net_nfc_server_snep_server_process(
 	switch (context->state)
 	{
 	case NET_NFC_LLCP_STEP_01 :
-		DEBUG_SERVER_MSG("NET_NFC_LLCP_STEP_01");
+		NFC_DBG("NET_NFC_LLCP_STEP_01");
 
 		/* receive request */
 		net_nfc_server_snep_recv(
@@ -1079,7 +1066,7 @@ static void _net_nfc_server_snep_server_process(
 		break;
 
 	case NET_NFC_LLCP_STEP_02 :
-		DEBUG_SERVER_MSG("NET_NFC_LLCP_STEP_02");
+		NFC_DBG("NET_NFC_LLCP_STEP_02");
 
 		context->state = NET_NFC_LLCP_STEP_03;
 
@@ -1091,7 +1078,7 @@ static void _net_nfc_server_snep_server_process(
 					context->user_param) != NET_NFC_OK)
 		{
 			/* there is no response for GET request */
-			DEBUG_ERR_MSG("there is no response for GET request");
+			NFC_ERR("there is no response for GET request");
 
 			/* receive request */
 			net_nfc_server_snep_send(context->handle,
@@ -1104,7 +1091,7 @@ static void _net_nfc_server_snep_server_process(
 		break;
 
 	case NET_NFC_LLCP_STEP_03 :
-		DEBUG_SERVER_MSG("NET_NFC_LLCP_STEP_03");
+		NFC_DBG("NET_NFC_LLCP_STEP_03");
 
 		/* receive request */
 		net_nfc_server_snep_send(context->handle,
@@ -1116,7 +1103,7 @@ static void _net_nfc_server_snep_server_process(
 		break;
 
 	case NET_NFC_LLCP_STEP_04 :
-		DEBUG_SERVER_MSG("NET_NFC_LLCP_STEP_04");
+		NFC_DBG("NET_NFC_LLCP_STEP_04");
 
 		if (context->cb != NULL)
 		{
@@ -1145,10 +1132,10 @@ static void _net_nfc_server_snep_server_process(
 		break;
 
 	case NET_NFC_STATE_ERROR :
-		DEBUG_SERVER_MSG("NET_NFC_STATE_ERROR");
+		NFC_DBG("NET_NFC_STATE_ERROR");
 
 		/* error, invoke callback */
-		DEBUG_ERR_MSG("_snep_server_recv failed, [%d]",
+		NFC_ERR("_snep_server_recv failed, [%d]",
 				context->result);
 
 		if (context->cb != NULL)
@@ -1164,7 +1151,7 @@ static void _net_nfc_server_snep_server_process(
 		break;
 
 	default :
-		DEBUG_ERR_MSG("NET_NFC_LLCP_STEP_??");
+		NFC_ERR("NET_NFC_LLCP_STEP_??");
 		/* TODO */
 		break;
 	}
@@ -1206,8 +1193,8 @@ static void _net_nfc_server_snep_incomming_socket_error_cb(
 	net_nfc_server_snep_context_t *context =
 		(net_nfc_server_snep_context_t *)user_param;
 
-	DEBUG_SERVER_MSG("_net_nfc_server_snep_incomming_socket_error_cb,"
-			" socket [%x], result [%d]",socket, result);
+	NFC_DBG("_net_nfc_server_snep_incomming_socket_error_cb, socket [%x], result [%d]",
+			socket, result);
 
 	if (context == NULL)
 	{
@@ -1236,8 +1223,8 @@ static void _net_nfc_server_snep_socket_error_cb(net_nfc_error_e result,
 	net_nfc_server_snep_context_t *context =
 		(net_nfc_server_snep_context_t *)user_param;
 
-	DEBUG_SERVER_MSG("_net_nfc_server_snep_socket_error_cb"
-			" socket [%x], result [%d]",socket, result);
+	NFC_DBG("_net_nfc_server_snep_socket_error_cb socket [%x], result [%d]",
+			socket, result);
 
 	if (context == NULL)
 	{
@@ -1283,12 +1270,12 @@ static void _net_nfc_server_snep_incoming_cb(net_nfc_error_e result,
 		return;
 	}
 
-	DEBUG_SERVER_MSG("_net_nfc_server_snep_incoming_cb,"
-			" incoming socket [%x], result [%d]",socket, result);
+	NFC_DBG("_net_nfc_server_snep_incoming_cb, incoming socket [%x], result [%d]",
+			socket, result);
 
 	if (result != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("listen socket failed, [%d]", result);
+		NFC_ERR("listen socket failed, [%d]", result);
 
 		goto ERROR;
 	}
@@ -1298,7 +1285,7 @@ static void _net_nfc_server_snep_incoming_cb(net_nfc_error_e result,
 
 	if (accept_context == NULL)
 	{
-		DEBUG_ERR_MSG("_net_nfc_util_alloc_mem failed");
+		NFC_ERR("_net_nfc_util_alloc_mem failed");
 		result = NET_NFC_ALLOC_FAIL;
 
 		goto ERROR;
@@ -1317,13 +1304,12 @@ static void _net_nfc_server_snep_incoming_cb(net_nfc_error_e result,
 
 	if (result != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("net_nfc_server_llcp_simple_accept failed, [%d]",
+		NFC_ERR("net_nfc_server_llcp_simple_accept failed, [%d]",
 				result);
 		goto ERROR;
 	}
 
-	DEBUG_SERVER_MSG("socket [%x] accepted.. waiting for request message",
-			socket);
+	NFC_DBG("socket [%x] accepted.. waiting for request message", socket);
 
 	_net_nfc_server_snep_server_process(accept_context);
 
@@ -1360,7 +1346,7 @@ net_nfc_error_e net_nfc_server_snep_server(	net_nfc_target_handle_s *handle,
 
 	if (context == NULL)
 	{
-		DEBUG_ERR_MSG("_create_snep_context failed");
+		NFC_ERR("_create_snep_context failed");
 		result = NET_NFC_ALLOC_FAIL;
 		goto ERROR;
 	}
@@ -1378,13 +1364,12 @@ net_nfc_error_e net_nfc_server_snep_server(	net_nfc_target_handle_s *handle,
 
 	if (result != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("net_nfc_server_llcp_simple_server failed, [%d]",
+		NFC_ERR("net_nfc_server_llcp_simple_server failed, [%d]",
 				result);
 		goto ERROR;
 	}
 
-	DEBUG_SERVER_MSG("start snep server, san [%s], sap [%d]",
-			san, sap);
+	NFC_DBG("start snep server, san [%s], sap [%d]", san, sap);
 	return result;
 
 ERROR :
@@ -1403,11 +1388,11 @@ net_nfc_error_e net_nfc_server_snep_server_send_get_response(
 
 	if (context == NULL/* && check valid handle */)
 	{
-		DEBUG_ERR_MSG("invalid handle");
+		NFC_ERR("invalid handle");
 		return NET_NFC_INVALID_PARAM;
 	}
 
-	DEBUG_SERVER_MSG("send get response, socket [%x]", context->socket);
+	NFC_DBG("send get response, socket [%x]", context->socket);
 
 	/* check correct status */
 	if (context->type == SNEP_REQ_GET)
@@ -1426,7 +1411,7 @@ net_nfc_error_e net_nfc_server_snep_server_send_get_response(
 			}
 			else
 			{
-				DEBUG_ERR_MSG("net_nfc_util_alloc_data failed");
+				NFC_ERR("net_nfc_util_alloc_data failed");
 				result = NET_NFC_ALLOC_FAIL;
 			}
 		}
@@ -1440,7 +1425,7 @@ net_nfc_error_e net_nfc_server_snep_server_send_get_response(
 	}
 	else
 	{
-		DEBUG_ERR_MSG("incorrect handle state");
+		NFC_ERR("incorrect handle state");
 		result = NET_NFC_INVALID_STATE;
 	}
 
@@ -1470,7 +1455,7 @@ static void _net_nfc_server_snep_client_send_cb(net_nfc_error_e result,
 	}
 	else
 	{
-		DEBUG_ERR_MSG("net_nfc_server_snep_send failed, [%d]", result);
+		NFC_ERR("net_nfc_server_snep_send failed, [%d]", result);
 		job->state = NET_NFC_STATE_ERROR;
 	}
 
@@ -1507,7 +1492,7 @@ static void _net_nfc_server_snep_client_recv_cb(net_nfc_error_e result,
 				}
 				else
 				{
-					DEBUG_ERR_MSG("net_nfc_util_alloc_data failed");
+					NFC_ERR("net_nfc_util_alloc_data failed");
 					job->state = NET_NFC_STATE_ERROR;
 					job->result = NET_NFC_ALLOC_FAIL;
 				}
@@ -1516,7 +1501,7 @@ static void _net_nfc_server_snep_client_recv_cb(net_nfc_error_e result,
 		else
 		{
 			/* TODO */
-			DEBUG_ERR_MSG("invalid request, [0x%x]", type);
+			NFC_ERR("invalid request, [0x%x]", type);
 			job->state = NET_NFC_STATE_ERROR;
 			job->result = NET_NFC_NOT_ALLOWED_OPERATION;
 		}
@@ -1524,7 +1509,7 @@ static void _net_nfc_server_snep_client_recv_cb(net_nfc_error_e result,
 	else
 	{
 
-		DEBUG_ERR_MSG("net_nfc_server_snep_recv failed, [%d]", result);
+		NFC_ERR("net_nfc_server_snep_recv failed, [%d]", result);
 		job->state = NET_NFC_STATE_ERROR;
 	}
 
@@ -1561,7 +1546,7 @@ static void _net_nfc_server_snep_client_process(
 	switch (job->state)
 	{
 	case NET_NFC_LLCP_STEP_01 :
-		DEBUG_SERVER_MSG("NET_NFC_LLCP_STEP_01");
+		NFC_DBG("NET_NFC_LLCP_STEP_01");
 
 		/* send request */
 		net_nfc_server_snep_send(job->handle,
@@ -1573,7 +1558,7 @@ static void _net_nfc_server_snep_client_process(
 		break;
 
 	case NET_NFC_LLCP_STEP_02 :
-		DEBUG_SERVER_MSG("NET_NFC_LLCP_STEP_02");
+		NFC_DBG("NET_NFC_LLCP_STEP_02");
 
 		/* receive response */
 		net_nfc_server_snep_recv(job->handle,
@@ -1583,7 +1568,7 @@ static void _net_nfc_server_snep_client_process(
 		break;
 
 	case NET_NFC_LLCP_STEP_RETURN :
-		DEBUG_SERVER_MSG("NET_NFC_LLCP_STEP_RETURN");
+		NFC_DBG("NET_NFC_LLCP_STEP_RETURN");
 
 		/* complete and invoke callback */
 		if (job->cb != NULL)
@@ -1601,10 +1586,10 @@ static void _net_nfc_server_snep_client_process(
 
 	case NET_NFC_STATE_ERROR :
 	default :
-		DEBUG_ERR_MSG("NET_NFC_STATE_ERROR");
+		NFC_ERR("NET_NFC_STATE_ERROR");
 
 		/* error, invoke callback */
-		DEBUG_ERR_MSG("_snep_server_send failed, [%d]",
+		NFC_ERR("_snep_server_send failed, [%d]",
 				job->result);
 		if (job->cb != NULL)
 		{
@@ -1656,12 +1641,11 @@ static void _net_nfc_server_snep_connected_cb(net_nfc_error_e result,
 	if (result == NET_NFC_OK)
 	{
 		/* start snep client */
-		DEBUG_SERVER_MSG("socket [%x] connected. send message",
-				socket);
+		NFC_DBG("socket [%x] connected. send message", socket);
 	}
 	else
 	{
-		DEBUG_ERR_MSG("connect socket failed, [%d]", result);
+		NFC_ERR("connect socket failed, [%d]", result);
 	}
 
 	if (context->cb != NULL)
@@ -1688,7 +1672,7 @@ net_nfc_error_e net_nfc_server_snep_client(net_nfc_target_handle_s *handle,
 	_net_nfc_util_alloc_mem(context, sizeof(*context));
 	if (context == NULL)
 	{
-		DEBUG_ERR_MSG("_net_nfc_util_alloc_mem failed");
+		NFC_ERR("_net_nfc_util_alloc_mem failed");
 		result = NET_NFC_ALLOC_FAIL;
 
 		goto ERROR;
@@ -1706,17 +1690,14 @@ net_nfc_error_e net_nfc_server_snep_client(net_nfc_target_handle_s *handle,
 
 	if (result != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("net_nfc_server_llcp_simple_client failed, [%d]",
-				result);
+		NFC_ERR("net_nfc_server_llcp_simple_client failed, [%d]", result);
 
 		goto ERROR;
 	}
 	if (san != NULL)
-		DEBUG_SERVER_MSG("start snep client, san [%s]",
-				san);
+		NFC_DBG("start snep client, san [%s]", san);
 	else
-		DEBUG_SERVER_MSG("start snep client, sap [%d]",
-				sap);
+		NFC_DBG("start snep client, sap [%d]", sap);
 
 	return result;
 
@@ -1770,14 +1751,14 @@ net_nfc_error_e net_nfc_server_snep_client_request(net_nfc_snep_handle_h snep,
 		return NET_NFC_ALLOC_FAIL;
 	}
 
-	INFO_MSG("enqueued jobs [%d]", g_queue_get_length(&context->queue));
+	NFC_INFO("enqueued jobs [%d]", g_queue_get_length(&context->queue));
 
 	/* if client is idle, starts sending request */
 	if (context->state == NET_NFC_LLCP_IDLE)
 	{
 		_net_nfc_server_snep_client_do_job(context);
 	} else {
-		INFO_MSG("client is working. this job will be enqueued");
+		NFC_INFO("client is working. this job will be enqueued");
 	}
 
 	return result;
@@ -1790,7 +1771,7 @@ static net_nfc_error_e _net_nfc_server_default_server_cb_(
 		data_s *data,
 		void *user_param)
 {
-	DEBUG_SERVER_MSG("type [%d], result [%d], data [%p], user_param [%p]",
+	NFC_DBG("type [%d], result [%d], data [%p], user_param [%p]",
 			type, result, data, user_param);
 
 	if (result != NET_NFC_OK || data == NULL || data->buffer == NULL)
@@ -1810,7 +1791,7 @@ static net_nfc_error_e _net_nfc_server_default_server_cb_(
 			uint32_t max_len = htonl(msg->length);
 			data_s get_msg = { msg->data,data->length - sizeof(msg->length)};
 
-			DEBUG_SERVER_MSG("GET : acceptable max_len [%d], message [%d]",
+			NFC_DBG("GET : acceptable max_len [%d], message [%d]",
 					max_len, data->length - sizeof(msg->length));
 
 
@@ -1835,7 +1816,7 @@ static net_nfc_error_e _net_nfc_server_default_server_cb_(
 		break;
 
 	default :
-		DEBUG_ERR_MSG("error [%d]", result);
+		NFC_ERR("error [%d]", result);
 		break;
 	}
 
@@ -1853,8 +1834,7 @@ static net_nfc_error_e _net_nfc_server_default_client_cb_(
 	_net_nfc_server_snep_service_context_t *context =
 		(_net_nfc_server_snep_service_context_t*)user_param;
 
-	DEBUG_SERVER_MSG("type [%d], result [%d], data [%p]",
-			type, result, data);
+	NFC_DBG("type [%d], result [%d], data [%p]", type, result, data);
 
 	if (user_param == NULL)
 		return NET_NFC_NULL_PARAMETER;;
@@ -1875,7 +1855,7 @@ static net_nfc_error_e _net_nfc_server_default_client_cb_(
 		break;
 
 	default :
-		DEBUG_ERR_MSG("error [%d]", result);
+		NFC_ERR("error [%d]", result);
 		break;
 	}
 
@@ -1893,7 +1873,7 @@ static net_nfc_error_e _net_nfc_server_default_client_connected_cb_(
 	_net_nfc_server_snep_service_context_t *context =
 		(_net_nfc_server_snep_service_context_t *)user_param;
 
-	DEBUG_SERVER_MSG("type [%d], result [%d], data [%p], user_param [%p]",
+	NFC_DBG("type [%d], result [%d], data [%p], user_param [%p]",
 			type, result, data, user_param);
 
 	if (context == NULL)
@@ -2004,7 +1984,7 @@ net_nfc_error_e net_nfc_server_snep_default_server_send_get_response(
 
 	if (context == NULL/* && check valid handle */)
 	{
-		DEBUG_ERR_MSG("invalid handle");
+		NFC_ERR("invalid handle");
 		return NET_NFC_INVALID_PARAM;
 	}
 
@@ -2016,7 +1996,7 @@ net_nfc_error_e net_nfc_server_snep_default_server_send_get_response(
 	}
 	else
 	{
-		DEBUG_ERR_MSG("incorrect handle state");
+		NFC_ERR("incorrect handle state");
 		result = NET_NFC_INVALID_STATE;
 	}
 
@@ -2028,15 +2008,14 @@ static void _snep_default_activate_cb(int event, net_nfc_target_handle_s *handle
 {
 	net_nfc_error_e result;
 
-	DEBUG_SERVER_MSG("event [%d], handle [%p], sap [%d], san [%s]",
-			event, handle, sap, san);
+	NFC_DBG("event [%d], handle [%p], sap [%d], san [%s]", event, handle, sap, san);
 
 	if (event == NET_NFC_LLCP_START) {
 		/* start snep server */
 		result = net_nfc_server_snep_server(handle, (char *)san, sap,
 				_net_nfc_server_default_server_cb_, user_param);
 		if (result != NET_NFC_OK) {
-			DEBUG_ERR_MSG("net_nfc_service_snep_server failed, [%d]",
+			NFC_ERR("net_nfc_service_snep_server failed, [%d]",
 					result);
 		}
 	} else if (event == NET_NFC_LLCP_UNREGISTERED) {
@@ -2089,7 +2068,7 @@ net_nfc_error_e net_nfc_server_snep_parse_get_request(data_s *request,
 	message->buffer = msg->data;
 	message->length = request->length - sizeof(msg->length);
 
-	DEBUG_SERVER_MSG("GET : acceptable max_len [%d], message [%d]",
+	NFC_DBG("GET : acceptable max_len [%d], message [%d]",
 			*max_len, request->length - sizeof(msg->length));
 
 	return NET_NFC_OK;

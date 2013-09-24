@@ -88,7 +88,7 @@ bool net_nfc_server_gdbus_check_privilege(GDBusMethodInvocation *invocation,
 	net_nfc_util_free_data(&priv);
 
 	if (result < 0) {
-		DEBUG_ERR_MSG("permission denied : \"%s\", \"%s\"", object, right);
+		NFC_ERR("permission denied : \"%s\", \"%s\"", object, right);
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.Privilege",
 				"Permission denied");
@@ -161,7 +161,7 @@ void net_nfc_server_gdbus_add_client_context(const char *id,
 			pid_t pid;
 
 			pid = net_nfc_server_gdbus_get_pid(id);
-			DEBUG_SERVER_MSG("added client id : [%s], pid [%d]", id, pid);
+			NFC_DBG("added client id : [%s], pid [%d]", id, pid);
 
 			info->id = g_strdup(id);
 			info->pid = pid;
@@ -174,12 +174,12 @@ void net_nfc_server_gdbus_add_client_context(const char *id,
 					(gpointer)info->id,
 					(gpointer)info);
 
-			DEBUG_SERVER_MSG("current client count = [%d]",
+			NFC_DBG("current client count = [%d]",
 					net_nfc_server_gdbus_get_client_count_no_lock());
 		}
 		else
 		{
-			DEBUG_ERR_MSG("alloc failed");
+			NFC_ERR("alloc failed");
 		}
 	}
 
@@ -195,14 +195,13 @@ void net_nfc_server_gdbus_cleanup_client_context(const char *id)
 	info = net_nfc_server_gdbus_get_client_context_no_lock(id);
 	if (info != NULL)
 	{
-		DEBUG_SERVER_MSG("clean up client context, [%s, %d]", info->id,
-				info->pid);
+		NFC_DBG("clean up client context, [%s, %d]", info->id, info->pid);
 
 		g_hash_table_remove(client_contexts, id);
 
 		_cleanup_client_context(info);
 
-		DEBUG_SERVER_MSG("current client count = [%d]",
+		NFC_DBG("current client count = [%d]",
 				net_nfc_server_gdbus_get_client_count_no_lock());
 
 		///* TODO : exit when no client */

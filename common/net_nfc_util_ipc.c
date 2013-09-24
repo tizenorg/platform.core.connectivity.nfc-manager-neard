@@ -58,13 +58,13 @@ int net_nfc_util_fill_va_list(uint8_t *buffer, int length, va_list list)
 
 void net_nfc_util_set_non_block_socket(int socket)
 {
-	DEBUG_SERVER_MSG("set non block socket");
+	NFC_DBG("set non block socket");
 
 	int flags = fcntl(socket, F_GETFL);
 	flags |= O_NONBLOCK;
 
 	if (fcntl(socket, F_SETFL, flags) < 0)
 	{
-		DEBUG_ERR_MSG("fcntl, executing nonblock error");
+		NFC_ERR("fcntl, executing nonblock error");
 	}
 }

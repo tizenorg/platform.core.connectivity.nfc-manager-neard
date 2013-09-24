@@ -79,7 +79,7 @@ static void _name_owner_changed(GDBusProxy *proxy,
 		const gchar *new_owner, void *user_data)
 {
 	if (name == NULL || old_owner == NULL || new_owner == NULL) {
-		DEBUG_ERR_MSG("invalid parameter");
+		NFC_ERR("invalid parameter");
 
 		return;
 	}
@@ -152,7 +152,7 @@ static void net_nfc_server_gdbus_init(void)
 	connection = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &error);
 	if (connection == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get connection %s", error->message);
+		NFC_ERR("Can not get connection %s", error->message);
 		g_error_free (error);
 		return;
 	}
@@ -161,67 +161,67 @@ static void net_nfc_server_gdbus_init(void)
 
 	if (net_nfc_server_manager_init(connection) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not init manager");
+		NFC_ERR("Can not init manager");
 		return;
 	}
 
 	if (net_nfc_server_tag_init(connection) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not init tag");
+		NFC_ERR("Can not init tag");
 		return;
 	}
 
 	if (net_nfc_server_ndef_init(connection) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not init ndef");
+		NFC_ERR("Can not init ndef");
 		return;
 	}
 
 	if (net_nfc_server_llcp_init(connection) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not init llcp");
+		NFC_ERR("Can not init llcp");
 		return;
 	}
 
 	if (net_nfc_server_p2p_init(connection) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not init tag");
+		NFC_ERR("Can not init tag");
 		return;
 	}
 
 	if (net_nfc_server_transceive_init(connection) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not initialize transceive");
+		NFC_ERR("Can not initialize transceive");
 		return;
 	}
 
 	if (net_nfc_server_handover_init(connection) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not initialize transceive");
+		NFC_ERR("Can not initialize transceive");
 		return;
 	}
 
 	if (net_nfc_server_se_init(connection) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not init Test");
+		NFC_ERR("Can not init Test");
 		return;
 	}
 
 	if (net_nfc_server_snep_init(connection) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not init controller thread");
+		NFC_ERR("Can not init controller thread");
 		return;
 	}
 
 	if (net_nfc_server_system_handler_init(connection) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not init controller thread");
+		NFC_ERR("Can not init controller thread");
 		return;
 	}
 
 	if (net_nfc_server_controller_thread_init() == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not init controller thread");
+		NFC_ERR("Can not init controller thread");
 		return;
 	}
 
@@ -255,7 +255,7 @@ static void net_nfc_server_gdbus_deinit(void)
 
 void net_nfc_manager_quit()
 {
-	DEBUG_MSG("net_nfc_manager_quit kill the nfc-manager daemon!!");
+	NFC_DBG("net_nfc_manager_quit kill the nfc-manager daemon!!");
 
 	if (loop != NULL)
 		g_main_loop_quit(loop);
@@ -266,7 +266,7 @@ static void on_bus_acquired(GDBusConnection *connection, const gchar *path,
 {
 	gint state;
 
-	DEBUG_MSG("bus path : %s", path);
+	NFC_DBG("bus path : %s", path);
 
 	net_nfc_server_gdbus_init();
 
@@ -274,7 +274,7 @@ static void on_bus_acquired(GDBusConnection *connection, const gchar *path,
 
 	if (vconf_get_bool(VCONFKEY_NFC_STATE, &state) != 0)
 	{
-		DEBUG_MSG("VCONFKEY_NFC_STATE is not exist");
+		NFC_DBG("VCONFKEY_NFC_STATE is not exist");
 		net_nfc_manager_quit();
 
 		return;
@@ -293,13 +293,13 @@ static void on_bus_acquired(GDBusConnection *connection, const gchar *path,
 static void on_name_acquired(GDBusConnection *connection, const gchar *name,
 		gpointer user_data)
 {
-	DEBUG_SERVER_MSG("name : %s", name);
+	NFC_INFO("name : %s", name);
 }
 
 static void on_name_lost(GDBusConnection *connnection, const gchar *name,
 		gpointer user_data)
 {
-	DEBUG_SERVER_MSG("name : %s", name);
+	NFC_INFO("name : %s", name);
 
 	net_nfc_manager_quit();
 }
@@ -321,36 +321,34 @@ int main(int argc, char *argv[])
 
 	if (g_option_context_parse(option_context, &argc, &argv, &error) == FALSE)
 	{
-		DEBUG_ERR_MSG("can not parse option: %s", error->message);
+		NFC_ERR("can not parse option: %s", error->message);
 		g_error_free(error);
 
 		g_option_context_free(option_context);
 		return 0;
 	}
 
-	DEBUG_SERVER_MSG("start nfc manager");
-	DEBUG_SERVER_MSG("use_daemon : %d", use_daemon);
-
-	net_nfc_manager_init_log();
+	NFC_DBG("start nfc manager");
+	NFC_INFO("use_daemon : %d", use_daemon);
 
 	net_nfc_app_util_clean_storage(MESSAGE_STORAGE);
 
 	handle = net_nfc_controller_onload();
 	if (handle == NULL)
 	{
-		DEBUG_ERR_MSG("load plugin library is failed");
+		NFC_ERR("load plugin library is failed");
 
 		if (vconf_set_bool(VCONFKEY_NFC_FEATURE, VCONFKEY_NFC_FEATURE_OFF) != 0)
-			DEBUG_ERR_MSG("VCONFKEY_NFC_FEATURE set to %d failed", VCONFKEY_NFC_FEATURE_OFF);
+			NFC_ERR("VCONFKEY_NFC_FEATURE set to %d failed", VCONFKEY_NFC_FEATURE_OFF);
 
 		if (vconf_set_bool(VCONFKEY_NFC_STATE, 0) != 0)
-			DEBUG_ERR_MSG("VCONFKEY_NFC_STATE set to %d failed", 0);
+			NFC_ERR("VCONFKEY_NFC_STATE set to %d failed", 0);
 
 		goto EXIT;
 	}
 
 	if (vconf_set_bool(VCONFKEY_NFC_FEATURE, VCONFKEY_NFC_FEATURE_ON) != 0)
-		DEBUG_ERR_MSG("VCONFKEY_NFC_FEATURE set to %d failed", VCONFKEY_NFC_FEATURE_ON);
+		NFC_ERR("VCONFKEY_NFC_FEATURE set to %d failed", VCONFKEY_NFC_FEATURE_ON);
 
 	id = g_bus_own_name(G_BUS_TYPE_SYSTEM,
 			"org.tizen.NetNfcService",
@@ -373,8 +371,6 @@ EXIT :
 		g_bus_unown_name(id);
 
 	net_nfc_controller_unload(handle);
-
-	net_nfc_manager_fini_log();
 
 	g_option_context_free(option_context);
 

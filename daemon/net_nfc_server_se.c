@@ -195,11 +195,11 @@ static net_nfc_target_handle_s *net_nfc_server_se_open_ese()
 		{
 			net_nfc_server_se_set_current_ese_handle(handle);
 
-			DEBUG_SERVER_MSG("handle [%p]", handle);
+			NFC_DBG("handle [%p]", handle);
 		}
 		else
 		{
-			DEBUG_ERR_MSG("net_nfc_controller_secure_element_open failed [%d]",
+			NFC_ERR("net_nfc_controller_secure_element_open failed [%d]",
 					result);
 		}
 	}
@@ -241,17 +241,17 @@ static void _se_uicc_enable_card_emulation()
 			SECURE_ELEMENT_VIRTUAL_MODE,
 			&result);
 	if (result == NET_NFC_OK) {
-		INFO_MSG("card emulation changed to SECURE_ELEMENT_TYPE_UICC");
+		NFC_INFO("card emulation changed to SECURE_ELEMENT_TYPE_UICC");
 
 		net_nfc_server_se_set_se_type(SECURE_ELEMENT_TYPE_UICC);
 		net_nfc_server_se_set_se_mode(SECURE_ELEMENT_VIRTUAL_MODE);
 
 		if (vconf_set_int(VCONFKEY_NFC_SE_TYPE,
 					VCONFKEY_NFC_SE_TYPE_UICC) < 0) {
-			DEBUG_ERR_MSG("vconf_set_int failed");
+			NFC_ERR("vconf_set_int failed");
 		}
 	} else {
-		DEBUG_ERR_MSG("net_nfc_controller_set_secure_element_mode failed, [%d]",
+		NFC_ERR("net_nfc_controller_set_secure_element_mode failed, [%d]",
 				result);
 	}
 }
@@ -265,10 +265,10 @@ static void _se_uicc_prepare(void)
 		gdbus_uicc_handle = tel_init(cpList[0]);
 		if (gdbus_uicc_handle != NULL) {
 		} else {
-			DEBUG_ERR_MSG("tel_init() failed");
+			NFC_ERR("tel_init() failed");
 		}
 	} else {
-		DEBUG_ERR_MSG("tel_get_cp_name_list() failed");
+		NFC_ERR("tel_get_cp_name_list() failed");
 	}
 }
 
@@ -279,7 +279,7 @@ static void _se_uicc_status_noti_cb(TapiHandle *handle,
 {
 	TelSimCardStatus_t *status = (TelSimCardStatus_t *)data;
 
-	DEBUG_SERVER_MSG("_se_uicc_status_noti_cb");
+	NFC_DBG("_se_uicc_status_noti_cb");
 
 	switch (*status) {
 	case TAPI_SIM_STATUS_SIM_INIT_COMPLETED :
@@ -297,7 +297,7 @@ static void _se_uicc_status_noti_cb(TapiHandle *handle,
 		break;
 
 	case TAPI_SIM_STATUS_CARD_REMOVED :
-		DEBUG_SERVER_MSG("TAPI_SIM_STATUS_CARD_REMOVED");
+		NFC_DBG("TAPI_SIM_STATUS_CARD_REMOVED");
 		gdbus_uicc_ready = SE_UICC_UNAVAILABLE;
 
 		if (net_nfc_server_se_get_se_type() == SECURE_ELEMENT_TYPE_UICC) {
@@ -395,7 +395,7 @@ net_nfc_error_e net_nfc_server_se_change_se(uint8_t type)
 			if (gdbus_uicc_ready == SE_UICC_READY) {
 				_se_uicc_enable_card_emulation();
 			} else if (gdbus_uicc_ready == SE_UICC_ON_PROGRESS) {
-				INFO_MSG("waiting for uicc initializing complete...");
+				NFC_INFO("waiting for uicc initializing complete...");
 
 				net_nfc_server_se_set_se_type(SECURE_ELEMENT_TYPE_UICC);
 				net_nfc_server_se_set_se_mode(SECURE_ELEMENT_VIRTUAL_MODE);
@@ -405,7 +405,7 @@ net_nfc_error_e net_nfc_server_se_change_se(uint8_t type)
 				result = NET_NFC_NOT_SUPPORTED;
 			}
 		} else {
-			DEBUG_SERVER_MSG("Previous request is processing.");
+			NFC_DBG("Previous request is processing.");
 
 			result = NET_NFC_BUSY;
 		}
@@ -425,28 +425,28 @@ net_nfc_error_e net_nfc_server_se_change_se(uint8_t type)
 				&result);
 
 		if (result == NET_NFC_OK) {
-			INFO_MSG("card emulation changed to SECURE_ELEMENT_TYPE_ESE");
+			NFC_INFO("card emulation changed to SECURE_ELEMENT_TYPE_ESE");
 
 			net_nfc_server_se_set_se_type(SECURE_ELEMENT_TYPE_ESE);
 			net_nfc_server_se_set_se_mode(SECURE_ELEMENT_VIRTUAL_MODE);
 
 			if (vconf_set_int(VCONFKEY_NFC_SE_TYPE,
 						VCONFKEY_NFC_SE_TYPE_ESE) != 0) {
-				DEBUG_ERR_MSG("vconf_set_int failed");
+				NFC_ERR("vconf_set_int failed");
 			}
 		} else {
-			DEBUG_ERR_MSG("net_nfc_controller_set_secure_element_mode failed, [%d]", result);
+			NFC_ERR("net_nfc_controller_set_secure_element_mode failed, [%d]", result);
 		}
 		break;
 
 	default:
 		result = net_nfc_server_se_disable_card_emulation();
 		if (result == NET_NFC_OK){
-			INFO_MSG("card emulation turned off");
+			NFC_INFO("card emulation turned off");
 
 			if (vconf_set_int(VCONFKEY_NFC_SE_TYPE,
 						VCONFKEY_NFC_SE_TYPE_NONE) != 0) {
-				DEBUG_ERR_MSG("vconf_set_int failed");
+				NFC_ERR("vconf_set_int failed");
 			}
 		}
 		break;
@@ -519,7 +519,7 @@ static gboolean se_handle_close_secure_element(
 	SeDataHandle *data;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -527,7 +527,7 @@ static gboolean se_handle_close_secure_element(
 				smack_privilege,
 				"nfc-manager",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -535,7 +535,7 @@ static gboolean se_handle_close_secure_element(
 	data = g_try_new0(SeDataHandle, 1);
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
@@ -586,7 +586,7 @@ static void se_get_atr_thread_func(gpointer user_data)
 	}
 	else
 	{
-		DEBUG_ERR_MSG("invalid se handle");
+		NFC_ERR("invalid se handle");
 
 		result = NET_NFC_INVALID_HANDLE;
 	}
@@ -619,7 +619,7 @@ static gboolean se_handle_get_atr(
 	SeDataHandle *data;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -627,7 +627,7 @@ static gboolean se_handle_get_atr(
 				smack_privilege,
 				"nfc-manager",
 				"r") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -635,7 +635,7 @@ static gboolean se_handle_get_atr(
 	data = g_try_new0(SeDataHandle, 1);
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
@@ -724,7 +724,7 @@ static void se_open_secure_element_thread_func(gpointer user_data)
 
 			net_nfc_server_se_set_current_ese_handle(handle);
 #endif
-			DEBUG_SERVER_MSG("handle [%p]", handle);
+			NFC_DBG("handle [%p]", handle);
 
 			/* increase client reference count */
 			net_nfc_server_gdbus_increase_se_count(
@@ -764,7 +764,7 @@ static gboolean se_handle_open_secure_element(
 	SeDataSeType *data;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -772,7 +772,7 @@ static gboolean se_handle_open_secure_element(
 				smack_privilege,
 				"nfc-manager",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -780,7 +780,7 @@ static gboolean se_handle_open_secure_element(
 	data = g_try_new0(SeDataSeType, 1);
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
@@ -871,7 +871,7 @@ static gboolean se_handle_send_apdu(
 	SeDataApdu *data;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -879,7 +879,7 @@ static gboolean se_handle_send_apdu(
 				smack_privilege,
 				"nfc-manager",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -887,7 +887,7 @@ static gboolean se_handle_send_apdu(
 	data = g_try_new0(SeDataApdu, 1);
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
@@ -936,14 +936,14 @@ static void _se_set_card_emulation_thread_func(gpointer user_data)
 				&result);
 		if (result == NET_NFC_OK)
 		{
-			DEBUG_SERVER_MSG("changed to CARD EMULATION ON");
+			NFC_DBG("changed to CARD EMULATION ON");
 
 			net_nfc_server_se_set_se_mode(
 					SECURE_ELEMENT_VIRTUAL_MODE);
 		}
 		else
 		{
-			DEBUG_ERR_MSG("CARD EMULATION ON fail [%d]", result);
+			NFC_ERR("CARD EMULATION ON fail [%d]", result);
 		}
 	}
 	else if (data->mode == NET_NFC_CARD_EMULATION_DISABLE)
@@ -954,13 +954,13 @@ static void _se_set_card_emulation_thread_func(gpointer user_data)
 				&result);
 		if (result == NET_NFC_OK)
 		{
-			DEBUG_SERVER_MSG("changed to CARD EMULATION OFF");
+			NFC_DBG("changed to CARD EMULATION OFF");
 
 			net_nfc_server_se_set_se_mode(SECURE_ELEMENT_OFF_MODE);
 		}
 		else
 		{
-			DEBUG_ERR_MSG("CARD EMULATION OFF fail [%d]", result);
+			NFC_ERR("CARD EMULATION OFF fail [%d]", result);
 		}
 	}
 	else
@@ -986,7 +986,7 @@ static gboolean _se_handle_set_card_emulation(
 	SeSetCardEmul *data;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -994,7 +994,7 @@ static gboolean _se_handle_set_card_emulation(
 				smack_privilege,
 				"nfc-manager",
 				"w") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -1002,7 +1002,7 @@ static gboolean _se_handle_set_card_emulation(
 	data = g_try_new0(SeSetCardEmul, 1);
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
@@ -1069,7 +1069,7 @@ static gboolean se_handle_set(
 	SeDataSeType *data;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -1077,7 +1077,7 @@ static gboolean se_handle_set(
 				smack_privilege,
 				"nfc-manager",
 				"w") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -1085,7 +1085,7 @@ static gboolean se_handle_set(
 	data = g_try_new0(SeDataSeType, 1);
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
@@ -1142,7 +1142,7 @@ static gboolean se_handle_get(
 	SeDataSeType *data;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -1150,7 +1150,7 @@ static gboolean se_handle_get(
 				smack_privilege,
 				"nfc-manager",
 				"r") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -1158,7 +1158,7 @@ static gboolean se_handle_get(
 	data = g_try_new0(SeDataSeType, 1);
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
@@ -1241,7 +1241,7 @@ gboolean net_nfc_server_se_init(GDBusConnection *connection)
 			&error);
 	if (result == FALSE)
 	{
-		DEBUG_ERR_MSG("can not skeleton_export %s", error->message);
+		NFC_ERR("can not skeleton_export %s", error->message);
 
 		g_error_free(error);
 
@@ -1274,7 +1274,7 @@ static void se_detected_thread_func(gpointer user_data)
 
 	if (se_skeleton == NULL)
 	{
-		DEBUG_ERR_MSG("se skeleton is not initialized");
+		NFC_ERR("se skeleton is not initialized");
 
 		g_variant_unref((GVariant *)user_data);
 
@@ -1289,11 +1289,11 @@ static void se_detected_thread_func(gpointer user_data)
 
 	net_nfc_server_se_set_current_ese_handle(handle);
 
-	DEBUG_SERVER_MSG("trying to connect to ESE = [0x%p]", handle);
+	NFC_DBG("trying to connect to ESE = [0x%p]", handle);
 
 	if (!net_nfc_controller_connect(handle, &result))
 	{
-		DEBUG_SERVER_MSG("connect failed = [%d]", result);
+		NFC_DBG("connect failed = [%d]", result);
 	}
 
 	net_nfc_gdbus_secure_element_emit_ese_detected(
@@ -1313,7 +1313,7 @@ static void se_transcation_thread_func(gpointer user_data)
 
 	if (detail->event == NET_NFC_MESSAGE_SE_START_TRANSACTION)
 	{
-		DEBUG_SERVER_MSG("launch se app");
+		NFC_DBG("launch se app");
 
 		net_nfc_app_util_launch_se_transaction_app(
 				detail->aid.buffer,
@@ -1321,7 +1321,7 @@ static void se_transcation_thread_func(gpointer user_data)
 				detail->param.buffer,
 				detail->param.length);
 
-		DEBUG_SERVER_MSG("launch se app end");
+		NFC_DBG("launch se app end");
 	}
 
 	net_nfc_util_free_data(&detail->param);
@@ -1349,12 +1349,12 @@ void net_nfc_server_se_detected(void *info)
 		if (net_nfc_server_controller_async_queue_push(
 					se_detected_thread_func,
 					parameter) == FALSE) {
-			DEBUG_ERR_MSG("can not push to controller thread");
+			NFC_ERR("can not push to controller thread");
 
 			g_variant_unref(parameter);
 		}
 	} else {
-		DEBUG_ERR_MSG("g_variant_new failed");
+		NFC_ERR("g_variant_new failed");
 	}
 
 	/* FIXME : should be removed when plugins would be fixed*/
@@ -1391,7 +1391,7 @@ void net_nfc_server_se_transaction_received(void *info)
 
 		if (net_nfc_server_controller_async_queue_push(
 					se_transcation_thread_func, detail) == FALSE) {
-			DEBUG_ERR_MSG("can not push to controller thread");
+			NFC_ERR("can not push to controller thread");
 
 			net_nfc_util_free_data(&detail->param);
 			net_nfc_util_free_data(&detail->aid);
@@ -1399,7 +1399,7 @@ void net_nfc_server_se_transaction_received(void *info)
 			g_free(detail);
 		}
 	} else {
-		DEBUG_ERR_MSG("g_new0 failed");
+		NFC_ERR("g_new0 failed");
 	}
 
 	/* FIXME : should be removed when plugins would be fixed*/

@@ -75,7 +75,7 @@ static X509 *_load_certificate_from_mem(int format, uint8_t *buffer, uint32_t le
 	}
 	else
 	{
-		DEBUG_ERR_MSG("X509_LOOKUP_load_file failed");
+		NFC_ERR("X509_LOOKUP_load_file failed");
 	}
 
 	return x509;
@@ -106,24 +106,24 @@ static X509 *_load_certificate_from_mem(int format, uint8_t *buffer, uint32_t le
 //				}
 //				else
 //				{
-//					DEBUG_ERR_MSG("X509_STORE_add_lookup failed");
+//					NFC_ERR("X509_STORE_add_lookup failed");
 //				}
 //			}
 //			else
 //			{
-//				DEBUG_ERR_MSG("X509_LOOKUP_load_file failed");
+//				NFC_ERR("X509_LOOKUP_load_file failed");
 //			}
 //		}
 //		else
 //		{
-//			DEBUG_ERR_MSG("X509_STORE_add_lookup failed");
+//			NFC_ERR("X509_STORE_add_lookup failed");
 //		}
 //
 //		X509_STORE_free(cert_ctx);
 //	}
 //	else
 //	{
-//		DEBUG_ERR_MSG("X509_STORE_new failed");
+//		NFC_ERR("X509_STORE_new failed");
 //	}
 //
 //	return ret;
@@ -143,12 +143,12 @@ net_nfc_openssl_verify_context_s *net_nfc_util_openssl_init_verify_certificate(v
 		}
 		else
 		{
-			DEBUG_ERR_MSG("X509_STORE_new failed");
+			NFC_ERR("X509_STORE_new failed");
 		}
 	}
 	else
 	{
-		DEBUG_ERR_MSG("alloc failed [%d]", sizeof(net_nfc_openssl_verify_context_s));
+		NFC_ERR("alloc failed [%d]", sizeof(net_nfc_openssl_verify_context_s));
 	}
 
 	return result;
@@ -217,14 +217,14 @@ int net_nfc_util_openssl_verify_certificate(net_nfc_openssl_verify_context_s *co
 		}
 		else
 		{
-			DEBUG_ERR_MSG("X509_STORE_CTX_init failed");
+			NFC_ERR("X509_STORE_CTX_init failed");
 		}
 
 		X509_STORE_CTX_free(store_ctx);
 	}
 	else
 	{
-		DEBUG_ERR_MSG("X509_STORE_CTX_new failed");
+		NFC_ERR("X509_STORE_CTX_new failed");
 	}
 
 	return result;
@@ -260,14 +260,14 @@ static int _load_pkcs12(BIO *in, const char *password, EVP_PKEY **pkey, X509 **c
 		}
 		else
 		{
-			DEBUG_ERR_MSG("Mac verify error (wrong password?) in PKCS12 file");
+			NFC_ERR("Mac verify error (wrong password?) in PKCS12 file");
 		}
 
 		PKCS12_free(p12);
 	}
 	else
 	{
-		DEBUG_ERR_MSG("Error loading PKCS12 file");
+		NFC_ERR("Error loading PKCS12 file");
 	}
 
 	return ret;
@@ -280,7 +280,7 @@ EVP_PKEY *_load_key(const char *file, int format, const char *pass, ENGINE *e)
 
 	if (file == NULL)
 	{
-		DEBUG_ERR_MSG("no keyfile specified\n");
+		NFC_ERR("no keyfile specified\n");
 		return pkey;
 	}
 
@@ -291,12 +291,12 @@ EVP_PKEY *_load_key(const char *file, int format, const char *pass, ENGINE *e)
 			pkey = ENGINE_load_private_key(e, file, NULL/*ui_method*/, (void *)pass);
 			if (!pkey)
 			{
-				DEBUG_ERR_MSG("cannot load key from engine");
+				NFC_ERR("cannot load key from engine");
 			}
 		}
 		else
 		{
-			DEBUG_ERR_MSG("no engine specified");
+			NFC_ERR("no engine specified");
 		}
 	}
 	else
@@ -318,7 +318,7 @@ EVP_PKEY *_load_key(const char *file, int format, const char *pass, ENGINE *e)
 				case OPENSSL_FORMAT_PKCS12 :
 					if (_load_pkcs12(key, pass, &pkey, NULL, NULL) == false)
 					{
-						DEBUG_ERR_MSG("_load_pkcs12 failed");
+						NFC_ERR("_load_pkcs12 failed");
 					}
 					break;
 
@@ -331,20 +331,20 @@ EVP_PKEY *_load_key(const char *file, int format, const char *pass, ENGINE *e)
 					break;
 
 				default :
-					DEBUG_ERR_MSG("bad input format specified for key file");
+					NFC_ERR("bad input format specified for key file");
 					break;
 				}
 			}
 			else
 			{
-				DEBUG_ERR_MSG("Error opening %s", file);
+				NFC_ERR("Error opening %s", file);
 			}
 
 			BIO_free(key);
 		}
 		else
 		{
-			DEBUG_ERR_MSG("BIO_new failed");
+			NFC_ERR("BIO_new failed");
 		}
 	}
 
@@ -358,7 +358,7 @@ EVP_PKEY *_load_pubkey(const char *file, int format, const char *pass, ENGINE *e
 
 	if (file == NULL)
 	{
-		DEBUG_ERR_MSG("no keyfile specified");
+		NFC_ERR("no keyfile specified");
 		return pkey;
 	}
 
@@ -370,7 +370,7 @@ EVP_PKEY *_load_pubkey(const char *file, int format, const char *pass, ENGINE *e
 		}
 		else
 		{
-			DEBUG_ERR_MSG("no engine specified");
+			NFC_ERR("no engine specified");
 		}
 	}
 	else
@@ -426,20 +426,20 @@ EVP_PKEY *_load_pubkey(const char *file, int format, const char *pass, ENGINE *e
 					break;
 
 				default :
-					DEBUG_ERR_MSG("bad input format specified for key file");
+					NFC_ERR("bad input format specified for key file");
 					break;
 				}
 			}
 			else
 			{
-				DEBUG_ERR_MSG("Error opening %s %s", key_descrip, file);
+				NFC_ERR("Error opening %s %s", key_descrip, file);
 			}
 
 			BIO_free(key);
 		}
 		else
 		{
-			DEBUG_ERR_MSG("BIO_new failed");
+			NFC_ERR("BIO_new failed");
 		}
 	}
 
@@ -567,7 +567,7 @@ int net_nfc_util_openssl_verify_signature(uint32_t type, uint8_t *buffer, uint32
 	EVP_DigestVerifyUpdate(&ctx, buffer, length);
 	result = EVP_DigestVerifyFinal(&ctx, sign, sign_len);
 
-	DEBUG_MSG("EVP_DigestVerifyFinal returns %d", result);
+	NFC_DBG("EVP_DigestVerifyFinal returns %d", result);
 
 	return result;
 }
@@ -608,7 +608,7 @@ int net_nfc_util_get_cert_list_from_file(char *file_name, char *password, uint8_
 					}
 				}
 
-				DEBUG_MSG("count = %d, length = %d", sk_X509_INFO_num(xis), temp_len);
+				NFC_DBG("count = %d, length = %d", sk_X509_INFO_num(xis), temp_len);
 				*length = temp_len;
 				_net_nfc_util_alloc_mem(*buffer, temp_len);
 
@@ -638,7 +638,7 @@ int net_nfc_util_get_cert_list_from_file(char *file_name, char *password, uint8_
 			}
 			else
 			{
-				DEBUG_ERR_MSG("PEM_X509_INFO_read_bio failed");
+				NFC_ERR("PEM_X509_INFO_read_bio failed");
 			}
 		}
 
@@ -691,7 +691,7 @@ int net_nfc_util_get_cert_list_from_file(char *file_name, char *password, uint8_
 					}
 				}
 
-				DEBUG_MSG("count = %d, length = %d", sk_X509_num(ca) + 1, temp_len);
+				NFC_DBG("count = %d, length = %d", sk_X509_num(ca) + 1, temp_len);
 				*length = temp_len;
 				_net_nfc_util_alloc_mem(*buffer, temp_len);
 
@@ -732,7 +732,7 @@ int net_nfc_util_get_cert_list_from_file(char *file_name, char *password, uint8_
 			}
 			else
 			{
-				DEBUG_ERR_MSG("PEM_X509_INFO_read_bio failed");
+				NFC_ERR("PEM_X509_INFO_read_bio failed");
 			}
 		}
 
@@ -773,7 +773,7 @@ bool net_nfc_util_openssl_encode_base64(const uint8_t *buffer, const uint32_t bu
 	}
 	else
 	{
-		DEBUG_ERR_MSG("not enough result buffer");
+		NFC_ERR("not enough result buffer");
 	}
 
 	BIO_free_all(b64);
@@ -815,14 +815,14 @@ bool net_nfc_util_openssl_decode_base64(const char *buffer, uint8_t *result, uin
 		}
 		else
 		{
-			DEBUG_ERR_MSG("not enough result buffer");
+			NFC_ERR("not enough result buffer");
 		}
 
 		_net_nfc_util_free_mem(temp);
 	}
 	else
 	{
-		DEBUG_ERR_MSG("alloc failed");
+		NFC_ERR("alloc failed");
 	}
 
 	return ret;
@@ -854,7 +854,7 @@ bool net_nfc_util_openssl_digest(const char *algorithm, const uint8_t *buffer, c
 			EVP_DigestInit(&mdCtx, md);
 			if (EVP_DigestUpdate(&mdCtx, buffer, buf_len) != 0)
 			{
-				DEBUG_ERR_MSG("EVP_DigestUpdate failed");
+				NFC_ERR("EVP_DigestUpdate failed");
 			}
 			EVP_DigestFinal(&mdCtx, temp, &resultLen);
 
@@ -866,19 +866,19 @@ bool net_nfc_util_openssl_digest(const char *algorithm, const uint8_t *buffer, c
 			}
 			else
 			{
-				DEBUG_ERR_MSG("not enough result buffer");
+				NFC_ERR("not enough result buffer");
 			}
 
 			_net_nfc_util_free_mem(temp);
 		}
 		else
 		{
-			DEBUG_ERR_MSG("alloc failed");
+			NFC_ERR("alloc failed");
 		}
 	}
 	else
 	{
-		DEBUG_ERR_MSG("EVP_get_digestbyname(\"%s\") returns NULL", algorithm);
+		NFC_ERR("EVP_get_digestbyname(\"%s\") returns NULL", algorithm);
 	}
 
 	return ret;

@@ -70,7 +70,7 @@ static gboolean handover_handle_request(NetNfcGDbusHandover *hdover,
 	HandoverRequestData *data;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -78,7 +78,7 @@ static gboolean handover_handle_request(NetNfcGDbusHandover *hdover,
 				smack_privilege,
 				"nfc-manager::p2p",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -86,7 +86,7 @@ static gboolean handover_handle_request(NetNfcGDbusHandover *hdover,
 	data = g_try_new0(HandoverRequestData,1);
 	if(data == NULL)
 	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");

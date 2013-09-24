@@ -359,7 +359,7 @@ net_nfc_error_e net_nfc_util_create_uri_string_from_uri_record(ndef_record_s *re
 		}
 		else
 		{
-			DEBUG_ERR_MSG("invalid payload in record");
+			NFC_ERR("invalid payload in record");
 		}
 	}
 	else if (record->TNF == NET_NFC_RECORD_URI)
@@ -382,7 +382,7 @@ net_nfc_error_e net_nfc_util_create_uri_string_from_uri_record(ndef_record_s *re
 	}
 	else
 	{
-		DEBUG_ERR_MSG("no uri record");
+		NFC_ERR("no uri record");
 		result = NET_NFC_NDEF_RECORD_IS_NOT_EXPECTED_TYPE;
 	}
 

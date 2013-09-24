@@ -89,7 +89,7 @@ static gboolean p2p_handle_send(NetNfcGDbusP2p *p2p,
 	gboolean result;
 	P2pSendData *data;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -97,7 +97,7 @@ static gboolean p2p_handle_send(NetNfcGDbusP2p *p2p,
 				smack_privilege,
 				"nfc-manager::p2p",
 				"w") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -105,7 +105,7 @@ static gboolean p2p_handle_send(NetNfcGDbusP2p *p2p,
 	data = g_new0(P2pSendData, 1);
 	if(data == NULL)
 	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
@@ -180,7 +180,7 @@ void net_nfc_server_p2p_deinit(void)
 
 void net_nfc_server_p2p_detached(void)
 {
-	INFO_MSG("====== p2p target detached ======");
+	NFC_INFO("====== p2p target detached ======");
 
 	/* release target information */
 	net_nfc_server_free_target_info();
@@ -193,11 +193,11 @@ void net_nfc_server_p2p_detached(void)
 
 void net_nfc_server_p2p_discovered(net_nfc_target_handle_h handle)
 {
-	INFO_MSG("====== p2p target discovered ======");
+	NFC_INFO("====== p2p target discovered ======");
 
 	if (p2p_skeleton == NULL)
 	{
-		DEBUG_ERR_MSG("p2p_skeleton is not initialized");
+		NFC_ERR("p2p_skeleton is not initialized");
 
 		return;
 	}
@@ -212,7 +212,7 @@ void net_nfc_server_p2p_received(data_h user_data)
 
 	if (p2p_skeleton == NULL)
 	{
-		DEBUG_ERR_MSG("p2p_skeleton is not initialized");
+		NFC_ERR("p2p_skeleton is not initialized");
 
 		return;
 	}

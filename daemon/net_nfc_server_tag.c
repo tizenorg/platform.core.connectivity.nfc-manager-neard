@@ -96,7 +96,7 @@ static gboolean tag_is_isp_dep_ndef_formatable(net_nfc_target_handle_s *handle,
 				&response,
 				&error) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_transceive is failed");
+		NFC_ERR("net_nfc_controller_transceive is failed");
 
 		return result;
 	}
@@ -115,7 +115,7 @@ static gboolean tag_is_isp_dep_ndef_formatable(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
-		DEBUG_ERR_MSG("response is NULL");
+		NFC_ERR("response is NULL");
 	}
 
 	return result;
@@ -139,16 +139,16 @@ static gboolean tag_read_ndef_message(net_nfc_target_handle_s *handle,
 	{
 		if (tag_is_isp_dep_ndef_formatable(handle, dev_type) == FALSE)
 		{
-			DEBUG_ERR_MSG(
+			NFC_ERR(
 					"DESFIRE : ISO-DEP ndef not formatable");
 			return FALSE;
 		}
 
-		DEBUG_SERVER_MSG("DESFIRE : ISO-DEP ndef formatable");
+		NFC_DBG("DESFIRE : ISO-DEP ndef formatable");
 
 		if (net_nfc_controller_connect(handle, &result) == false)
 		{
-			DEBUG_ERR_MSG("%s failed, & retry polling!!",
+			NFC_ERR("%s failed, & retry polling!!",
 					"net_nfc_controller_connect");
 
 			if (net_nfc_controller_configure_discovery(
@@ -164,19 +164,17 @@ static gboolean tag_read_ndef_message(net_nfc_target_handle_s *handle,
 
 	if (net_nfc_controller_read_ndef(handle, &temp, &result) == false)
 	{
-		DEBUG_ERR_MSG("%s failed",
-				"net_nfc_controller_read_ndef");
+		NFC_ERR("net_nfc_controller_read_ndef failed");
 		return FALSE;
 	}
 
-	DEBUG_SERVER_MSG("%s success",
-			"net_nfc_controller_read_ndef");
+	NFC_DBG("net_nfc_controller_read_ndef success");
 
 	if (dev_type == NET_NFC_MIFARE_DESFIRE_PICC)
 	{
 		if (net_nfc_controller_connect(handle, &result) == false)
 		{
-			DEBUG_ERR_MSG("%s failed, & retry polling!!",
+			NFC_ERR("%s failed, & retry polling!!",
 					"net_nfc_controller_connect");
 
 			if (net_nfc_controller_configure_discovery(
@@ -211,13 +209,13 @@ static void tag_watchdog_thread_func(gpointer user_data)
 
 	if (watch_dog == NULL)
 	{
-		DEBUG_ERR_MSG("can not get WatchDogData");
+		NFC_ERR("can not get WatchDogData");
 		return;
 	}
 
 	if (watch_dog->handle == NULL)
 	{
-		DEBUG_ERR_MSG("can not get WatchDogData->handle");
+		NFC_ERR("can not get WatchDogData->handle");
 		return;
 	}
 
@@ -240,7 +238,7 @@ static void tag_watchdog_thread_func(gpointer user_data)
 					tag_watchdog_thread_func,
 					watch_dog) == FALSE)
 		{
-			DEBUG_ERR_MSG("can not create watch dog");
+			NFC_ERR("can not create watch dog");
 			g_free(watch_dog);
 		}
 		return;
@@ -251,8 +249,7 @@ static void tag_watchdog_thread_func(gpointer user_data)
 	{
 		if(net_nfc_controller_disconnect(handle, &result) == false)
 		{
-			DEBUG_SERVER_MSG("try to disconnect result = [%d]",
-					result);
+			NFC_ERR("try to disconnect result = [%d]", result);
 			net_nfc_controller_exception_handler();
 		}
 	}
@@ -315,8 +312,7 @@ static void tag_get_current_tag_info_thread_func(gpointer user_data)
 			if (net_nfc_controller_read_ndef(target_info->handle,
 						&raw_data, &result) == true)
 			{
-				DEBUG_SERVER_MSG("%s is success",
-						"net_nfc_controller_read_ndef");
+				NFC_DBG("net_nfc_controller_read_ndef is success");
 			}
 		}
 	}
@@ -367,14 +363,14 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 
 	if (tag_skeleton == NULL)
 	{
-		DEBUG_ERR_MSG("tag skeleton is not initialized");
+		NFC_ERR("tag skeleton is not initialized");
 
 		return;
 	}
 
 	if (net_nfc_controller_connect(target->handle, &result) == false)
 	{
-		DEBUG_ERR_MSG("connect failed & Retry Polling!!");
+		NFC_ERR("connect failed & Retry Polling!!");
 
 		if (net_nfc_controller_configure_discovery(
 					NET_NFC_DISCOVERY_MODE_RESUME,
@@ -389,7 +385,7 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 
 	net_nfc_server_set_state(NET_NFC_TAG_CONNECTED);
 
-	DEBUG_SERVER_MSG("tag is connected");
+	NFC_DBG("tag is connected");
 
 	target_info_values = net_nfc_util_gdbus_buffer_to_variant(
 			target->target_info_values.buffer,
@@ -408,7 +404,7 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 	{
 		data_s *recv_data = NULL;
 
-		DEBUG_SERVER_MSG("support NDEF");
+		NFC_DBG("support NDEF");
 
 		if (tag_read_ndef_message(target->handle,
 					target->devType,
@@ -440,7 +436,7 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 				}
 				else
 				{
-					DEBUG_ERR_MSG("_get_carrier_record_by_priority_order"
+					NFC_ERR("_get_carrier_record_by_priority_order"
 							" failed, [%d]",result);
 				}
 			}
@@ -452,7 +448,7 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 		}
 		else
 		{
-			DEBUG_ERR_MSG("net_nfc_controller_read_ndef failed");
+			NFC_ERR("net_nfc_controller_read_ndef failed");
 			raw_data = net_nfc_util_gdbus_buffer_to_variant(NULL, 0);
 		}
 	}
@@ -462,7 +458,7 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 		uint8_t empty[] = { 0xd0, 0x00, 0x00 };
 		data_s empty_data = { empty, sizeof(empty) };
 
-		DEBUG_SERVER_MSG("not support NDEF");
+		NFC_DBG("not support NDEF");
 
 		net_nfc_app_util_process_ndef(&empty_data);
 		raw_data = net_nfc_util_gdbus_data_to_variant(&empty_data);
@@ -484,12 +480,12 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 	}
 
 	/* turn on watch dog */
-	DEBUG_SERVER_MSG("turn on watch dog");
+	NFC_DBG("turn on watch dog");
 
 	watch_dog = g_new0(WatchDogData, 1);
 	if(watch_dog == NULL)
 	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+		NFC_ERR("Memory allocation failed");
 		return;
 	}
 
@@ -500,7 +496,7 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 				tag_watchdog_thread_func,
 				watch_dog) == FALSE)
 	{
-		DEBUG_ERR_MSG("can not create watch dog");
+		NFC_ERR("can not create watch dog");
 		g_free(watch_dog);
 		return;
 	}
@@ -517,7 +513,7 @@ static gboolean tag_handle_is_tag_connected(NetNfcGDbusTag *tag,
 	net_nfc_target_type_e dev_type = NET_NFC_UNKNOWN_TARGET;
 	gboolean is_connected = FALSE;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -525,7 +521,7 @@ static gboolean tag_handle_is_tag_connected(NetNfcGDbusTag *tag,
 				smack_privilege,
 				"nfc-manager::tag",
 				"r") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -553,7 +549,7 @@ static gboolean tag_handle_get_current_tag_info(NetNfcGDbusTag *tag,
 	CurrentTagInfoData *info_data;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -561,7 +557,7 @@ static gboolean tag_handle_get_current_tag_info(NetNfcGDbusTag *tag,
 				smack_privilege,
 				"nfc-manager::tag",
 				"r") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -569,7 +565,7 @@ static gboolean tag_handle_get_current_tag_info(NetNfcGDbusTag *tag,
 	info_data = g_new0(CurrentTagInfoData, 1);
 	if (info_data == NULL)
 	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
@@ -608,7 +604,7 @@ static gboolean tag_handle_get_current_target_handle(NetNfcGDbusTag *tag,
 	net_nfc_target_handle_s *handle = NULL;
 	uint32_t devType = NET_NFC_UNKNOWN_TARGET;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -616,7 +612,7 @@ static gboolean tag_handle_get_current_target_handle(NetNfcGDbusTag *tag,
 				smack_privilege,
 				"nfc-manager::tag",
 				"r") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -670,7 +666,7 @@ gboolean net_nfc_server_tag_init(GDBusConnection *connection)
 			&error);
 	if (result == FALSE)
 	{
-		DEBUG_ERR_MSG("can not skeleton_export %s", error->message);
+		NFC_ERR("can not skeleton_export %s", error->message);
 
 		g_error_free(error);
 
@@ -746,6 +742,6 @@ void net_nfc_server_tag_target_detected(void *info)
 				tag_slave_target_detected_thread_func,
 				NULL) == FALSE)
 	{
-		DEBUG_ERR_MSG("can not push to controller thread");
+		NFC_ERR("can not push to controller thread");
 	}
 }

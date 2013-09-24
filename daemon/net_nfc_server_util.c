@@ -88,14 +88,14 @@ static inline int _mkdir_recursive(char *path, mode_t mode)
 					if (-1 == ret)
 					{
 						char buf[1024];
-						DEBUG_ERR_MSG("mkdir() Failed(%s)", strerror_r(errno, buf, sizeof(buf)));
+						NFC_ERR("mkdir() Failed(%s)", strerror_r(errno, buf, sizeof(buf)));
 						return -1;
 					}
 				}
 				else
 				{
 					char buf[1024];
-					DEBUG_ERR_MSG("opendir() Failed(%s)", strerror_r(errno, buf, sizeof(buf)));
+					NFC_ERR("opendir() Failed(%s)", strerror_r(errno, buf, sizeof(buf)));
 					return -1;
 				}
 			}
@@ -161,7 +161,7 @@ static bool _net_nfc_app_util_change_file_owner_permission(FILE *file)
 	{
 		if (fchown(fileno(file), pw_inhouse->pw_uid, gr_inhouse->gr_gid) < 0)
 		{
-			DEBUG_ERR_MSG("failed to change owner");
+			NFC_ERR("failed to change owner");
 		}
 	}
 
@@ -187,7 +187,7 @@ static net_nfc_error_e net_nfc_app_util_store_ndef_message(data_s *data)
 	ret = _mkdir_recursive(file_name, 0755);
 	if (-1 == ret)
 	{
-		DEBUG_ERR_MSG("_mkdir_recursive() Failed");
+		NFC_ERR("_mkdir_recursive() Failed");
 		return NET_NFC_UNKNOWN_ERROR;
 	}
 
@@ -204,7 +204,7 @@ static net_nfc_error_e net_nfc_app_util_store_ndef_message(data_s *data)
 
 		if ((length = fwrite(data->buffer, 1, data->length, fp)) > 0)
 		{
-			DEBUG_SERVER_MSG("[%d] bytes is written", length);
+			NFC_DBG("[%d] bytes is written", length);
 
 			_net_nfc_app_util_change_file_owner_permission(fp);
 
@@ -215,7 +215,7 @@ static net_nfc_error_e net_nfc_app_util_store_ndef_message(data_s *data)
 		}
 		else
 		{
-			DEBUG_ERR_MSG("write is failed = [%d]", data->length);
+			NFC_ERR("write is failed = [%d]", data->length);
 			result = NET_NFC_UNKNOWN_ERROR;
 		}
 
@@ -304,7 +304,7 @@ static bool _net_nfc_app_util_get_mime_from_record(ndef_record_s *record, char *
 			if (record->type_s.buffer == NULL || record->type_s.length == 0 ||
 					record->payload_s.buffer == NULL || record->payload_s.length == 0)
 			{
-				DEBUG_ERR_MSG("Broken NDEF Message [NET_NFC_RECORD_WELL_KNOWN_TYPE]");
+				NFC_ERR("Broken NDEF Message [NET_NFC_RECORD_WELL_KNOWN_TYPE]");
 				break;
 			}
 
@@ -321,8 +321,6 @@ static bool _net_nfc_app_util_get_mime_from_record(ndef_record_s *record, char *
 				mime[record->type_s.length + 2] = '\0';
 			}
 
-			//DEBUG_SERVER_MSG("mime [%s]", mime);
-
 			result = true;
 		}
 		break;
@@ -335,7 +333,7 @@ static bool _net_nfc_app_util_get_mime_from_record(ndef_record_s *record, char *
 
 			if (record->type_s.buffer == NULL || record->type_s.length == 0)
 			{
-				DEBUG_ERR_MSG("Broken NDEF Message [NET_NFC_RECORD_MIME_TYPE]");
+				NFC_ERR("Broken NDEF Message [NET_NFC_RECORD_MIME_TYPE]");
 				break;
 			}
 
@@ -343,17 +341,14 @@ static bool _net_nfc_app_util_get_mime_from_record(ndef_record_s *record, char *
 			_net_nfc_util_alloc_mem(buffer, record->type_s.length + 1);
 			if (buffer == NULL)
 			{
-				DEBUG_ERR_MSG("_net_nfc_manager_util_alloc_mem return NULL");
+				NFC_ERR("_net_nfc_manager_util_alloc_mem return NULL");
 				break;
 			}
 			memcpy(buffer, record->type_s.buffer, record->type_s.length);
 
-			//DEBUG_SERVER_MSG("NET_NFC_RECORD_MIME_TYPE type [%s]", buffer);
-
 			token = strchr(buffer, ';');
 			if (token != NULL)
 			{
-				//DEBUG_SERVER_MSG("token = strchr(buffer, ';') != NULL, len [%d]", token - buffer);
 				len = MIN(token - buffer, length - 1);
 			}
 			else
@@ -361,14 +356,10 @@ static bool _net_nfc_app_util_get_mime_from_record(ndef_record_s *record, char *
 				len = MIN(strlen(buffer), length - 1);
 			}
 
-			//DEBUG_SERVER_MSG("len [%d]", len);
-
 			strncpy(mime, buffer, len);
 			mime[len] = '\0';
 
 			_to_lower(0, mime);
-
-			//DEBUG_SERVER_MSG("mime [%s]", mime);
 
 			_net_nfc_util_free_mem(buffer);
 
@@ -411,7 +402,6 @@ static bool _net_nfc_app_util_get_uri_from_record(ndef_record_s *record, char *d
 			if (net_nfc_util_create_uri_string_from_uri_record(record, &uri) == NET_NFC_OK &&
 					uri != NULL)
 			{
-				//DEBUG_SERVER_MSG("uri record : %s", uri);
 				snprintf(data, length, "%s", uri);
 
 				_net_nfc_util_free_mem(uri);
@@ -439,7 +429,7 @@ static bool _net_nfc_app_util_get_uri_from_record(ndef_record_s *record, char *d
 					/* to lower case!! */
 					strlwr(buffer);
 
-					DEBUG_SERVER_MSG("uri record : %s", buffer);
+					NFC_DBG("uri record : %s", buffer);
 					snprintf(data, length, "%s", buffer);
 
 					_net_nfc_util_free_mem(buffer);
@@ -452,7 +442,6 @@ static bool _net_nfc_app_util_get_uri_from_record(ndef_record_s *record, char *d
 				/* to lower case!! */
 				_to_lower(0, data);
 
-				//DEBUG_SERVER_MSG("uri record : %s", data);
 				result = true;
 #endif
 			}
@@ -490,7 +479,7 @@ static bool _net_nfc_app_util_get_data_from_record(ndef_record_s *record, char *
 			if (record->type_s.buffer == NULL || record->type_s.length == 0
 					|| record->payload_s.buffer == NULL || record->payload_s.length == 0)
 			{
-				DEBUG_ERR_MSG("Broken NDEF Message [NET_NFC_RECORD_WELL_KNOWN_TYPE]");
+				NFC_ERR("Broken NDEF Message [NET_NFC_RECORD_WELL_KNOWN_TYPE]");
 				break;
 			}
 
@@ -504,8 +493,6 @@ static bool _net_nfc_app_util_get_data_from_record(ndef_record_s *record, char *
 
 				memcpy(data, &(buffer_temp[index]), MIN(text_length, length));
 			}
-
-			//DEBUG_SERVER_MSG("data [%s]", data);
 
 			result = true;
 		}
@@ -541,55 +528,55 @@ net_nfc_error_e net_nfc_app_util_process_ndef(data_s *data)
 
 	if (data == NULL || data->buffer == NULL || data->length == 0)
 	{
-		DEBUG_ERR_MSG("net_nfc_app_util_process_ndef NET_NFC_NULL_PARAMETER");
+		NFC_ERR("net_nfc_app_util_process_ndef NET_NFC_NULL_PARAMETER");
 		return NET_NFC_NULL_PARAMETER;
 	}
 
 	/* create file */
 	if ((result = net_nfc_app_util_store_ndef_message(data)) != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("net_nfc_app_util_store_ndef_message failed [%d]", result);
+		NFC_ERR("net_nfc_app_util_store_ndef_message failed [%d]", result);
 		return result;
 	}
 
 	/* check state of launch popup */
 	if(net_nfc_app_util_check_launch_state() == TRUE)
 	{
-		DEBUG_SERVER_MSG("skip launch popup!!!");
+		NFC_DBG("skip launch popup!!!");
 		result = NET_NFC_OK;
 		return result;
 	}
 
 	if (net_nfc_util_create_ndef_message(&msg) != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("memory alloc fail..");
+		NFC_ERR("memory alloc fail..");
 		return NET_NFC_ALLOC_FAIL;
 	}
 
 	/* parse ndef message and fill appsvc data */
 	if ((result = net_nfc_util_convert_rawdata_to_ndef_message(data, msg)) != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("net_nfc_app_util_store_ndef_message failed [%d]", result);
+		NFC_ERR("net_nfc_app_util_store_ndef_message failed [%d]", result);
 		goto ERROR;
 	}
 
 	if (_net_nfc_app_util_get_operation_from_record(msg->records, operation, sizeof(operation)) == FALSE)
 	{
-		DEBUG_ERR_MSG("_net_nfc_app_util_get_operation_from_record failed [%d]", result);
+		NFC_ERR("_net_nfc_app_util_get_operation_from_record failed [%d]", result);
 		result = NET_NFC_UNKNOWN_ERROR;
 		goto ERROR;
 	}
 
 	if (_net_nfc_app_util_get_mime_from_record(msg->records, mime, sizeof(mime)) == FALSE)
 	{
-		DEBUG_ERR_MSG("_net_nfc_app_util_get_mime_from_record failed [%d]", result);
+		NFC_ERR("_net_nfc_app_util_get_mime_from_record failed [%d]", result);
 		result = NET_NFC_UNKNOWN_ERROR;
 		goto ERROR;
 	}
 #ifdef USE_FULL_URI
 	if (_net_nfc_app_util_get_uri_from_record(msg->records, uri, sizeof(uri)) == FALSE)
 	{
-		DEBUG_ERR_MSG("_net_nfc_app_util_get_uri_from_record failed [%d]", result);
+		NFC_ERR("_net_nfc_app_util_get_uri_from_record failed [%d]", result);
 		result = NET_NFC_UNKNOWN_ERROR;
 		goto ERROR;
 	}
@@ -597,7 +584,7 @@ net_nfc_error_e net_nfc_app_util_process_ndef(data_s *data)
 	/* launch appsvc */
 	if (_net_nfc_app_util_get_data_from_record(msg->records, text, sizeof(text)) == FALSE)
 	{
-		DEBUG_ERR_MSG("_net_nfc_app_util_get_data_from_record failed [%d]", result);
+		NFC_ERR("_net_nfc_app_util_get_data_from_record failed [%d]", result);
 		result = NET_NFC_UNKNOWN_ERROR;
 		goto ERROR;
 	}
@@ -611,7 +598,7 @@ net_nfc_error_e net_nfc_app_util_process_ndef(data_s *data)
 	}
 #endif
 
-	DEBUG_SERVER_MSG("net_nfc_app_util_appsvc_launch return %d", ret);
+	NFC_DBG("net_nfc_app_util_appsvc_launch return %d", ret);
 
 	result = NET_NFC_OK;
 
@@ -687,22 +674,22 @@ void net_nfc_app_util_aul_launch_app(char* package_name, bundle* kb)
 		switch(result)
 		{
 		case AUL_R_EINVAL:
-			DEBUG_SERVER_MSG("aul launch error : AUL_R_EINVAL");
+			NFC_ERR("aul launch error : AUL_R_EINVAL");
 			break;
 		case AUL_R_ECOMM:
-			DEBUG_SERVER_MSG("aul launch error : AUL_R_ECOM");
+			NFC_ERR("aul launch error : AUL_R_ECOM");
 			break;
 		case AUL_R_ERROR:
-			DEBUG_SERVER_MSG("aul launch error : AUL_R_ERROR");
+			NFC_ERR("aul launch error : AUL_R_ERROR");
 			break;
 		default:
-			DEBUG_SERVER_MSG("aul launch error : unknown ERROR");
+			NFC_ERR("aul launch error : unknown ERROR");
 			break;
 		}
 	}
 	else
 	{
-		DEBUG_SERVER_MSG("success to launch [%s]", package_name);
+		NFC_DBG("success to launch [%s]", package_name);
 	}
 }
 
@@ -718,25 +705,25 @@ int net_nfc_app_util_appsvc_launch(const char *operation, const char *uri, const
 
 	if (operation != NULL && strlen(operation) > 0)
 	{
-		DEBUG_SERVER_MSG("operation : %s", operation);
+		NFC_DBG("operation : %s", operation);
 		appsvc_set_operation(bd, operation);
 	}
 
 	if (uri != NULL && strlen(uri) > 0)
 	{
-		DEBUG_SERVER_MSG("uri : %s", uri);
+		NFC_DBG("uri : %s", uri);
 		appsvc_set_uri(bd, uri);
 	}
 
 	if (mime != NULL && strlen(mime) > 0)
 	{
-		DEBUG_SERVER_MSG("mime : %s", mime);
+		NFC_DBG("mime : %s", mime);
 		appsvc_set_mime(bd, mime);
 	}
 
 	if (data != NULL && strlen(data) > 0)
 	{
-		DEBUG_SERVER_MSG("data : %s", data);
+		NFC_DBG("data : %s", data);
 		appsvc_add_data(bd, "data", data);
 	}
 
@@ -772,7 +759,7 @@ void _string_to_binary(const char *input, uint8_t *output, uint32_t *length)
 	if (input == NULL || *length == 0 || output == NULL)
 		return;
 
-	DEBUG_SERVER_MSG("_string_to_binary ");
+	NFC_DBG("_string_to_binary ");
 
 	/* strlen("nfc://secure/aid/") = 17 */
 
@@ -817,7 +804,7 @@ int net_nfc_app_util_launch_se_transaction_app(uint8_t *aid, uint32_t aid_len, u
 
 		_binary_to_string(aid, aid_len, temp_string, sizeof(temp_string));
 		snprintf(aid_string, sizeof(aid_string), "nfc://secure/aid/%s", temp_string);
-		DEBUG_SERVER_MSG("aid_string : %s", aid_string);
+		NFC_DBG("aid_string : %s", aid_string);
 		appsvc_set_uri(bd, aid_string);
 	}
 
@@ -826,7 +813,7 @@ int net_nfc_app_util_launch_se_transaction_app(uint8_t *aid, uint32_t aid_len, u
 		char param_string[1024] = { 0, };
 
 		_binary_to_string(param, param_len, param_string, sizeof(param_string));
-		DEBUG_SERVER_MSG("param_string : %s", param_string);
+		NFC_DBG("param_string : %s", param_string);
 		appsvc_add_data(bd, "data", param_string);
 	}
 
@@ -899,7 +886,7 @@ int net_nfc_app_util_decode_base64(const char *buffer, uint32_t buf_len, uint8_t
 	}
 	else
 	{
-		DEBUG_ERR_MSG("alloc failed");
+		NFC_ERR("alloc failed");
 	}
 
 	return ret;
@@ -937,11 +924,11 @@ bool net_nfc_app_util_check_launch_state()
 
 static void _play_sound_callback(int id, void *data)
 {
-	DEBUG_MSG("_play_sound_callback");
+	NFC_DBG("_play_sound_callback");
 
 	if (WAV_PLAYER_ERROR_NONE != wav_player_stop(id))
 	{
-		DEBUG_MSG("wav_player_stop failed");
+		NFC_ERR("wav_player_stop failed");
 	}
 }
 
@@ -952,19 +939,19 @@ void net_nfc_manager_util_play_sound(net_nfc_sound_type_e sound_type)
 
 	if (vconf_get_bool(VCONFKEY_SETAPPL_SOUND_STATUS_BOOL, &bSoundOn) != 0)
 	{
-		DEBUG_MSG("vconf_get_bool failed for Sound");
+		NFC_ERR("vconf_get_bool failed for Sound");
 		return;
 	}
 
 	if (vconf_get_bool(VCONFKEY_SETAPPL_VIBRATION_STATUS_BOOL, &bVibrationOn) != 0)
 	{
-		DEBUG_MSG("vconf_get_bool failed for Vibration");
+		NFC_ERR("vconf_get_bool failed for Vibration");
 		return;
 	}
 
 	if ((sound_type > NET_NFC_TASK_ERROR) || (sound_type < NET_NFC_TASK_START))
 	{
-		DEBUG_MSG("Invalid Sound Type");
+		NFC_ERR("Invalid Sound Type");
 		return;
 	}
 
@@ -972,13 +959,13 @@ void net_nfc_manager_util_play_sound(net_nfc_sound_type_e sound_type)
 	{
 		int svi_handle = -1;
 
-		DEBUG_MSG("Play Vibration");
+		NFC_DBG("Play Vibration");
 
 		if (SVI_SUCCESS == svi_init(&svi_handle))
 		{
 			if (SVI_SUCCESS == svi_play_vib(svi_handle, SVI_VIB_TOUCH_SIP))
 			{
-				DEBUG_MSG("svi_play_vib success");
+				NFC_DBG("svi_play_vib success");
 			}
 
 			svi_fini(svi_handle);
@@ -989,7 +976,7 @@ void net_nfc_manager_util_play_sound(net_nfc_sound_type_e sound_type)
 	{
 		char *sound_path = NULL;
 
-		DEBUG_MSG("Play Sound");
+		NFC_DBG("Play Sound");
 
 		switch (sound_type)
 		{
@@ -1008,14 +995,14 @@ void net_nfc_manager_util_play_sound(net_nfc_sound_type_e sound_type)
 		{
 			if (WAV_PLAYER_ERROR_NONE == wav_player_start(sound_path, SOUND_TYPE_MEDIA, _play_sound_callback, NULL, NULL))
 			{
-				DEBUG_MSG("wav_player_start success");
+				NFC_DBG("wav_player_start success");
 			}
 
 			_net_nfc_util_free_mem(sound_path);
 		}
 		else
 		{
-			DEBUG_ERR_MSG("Invalid Sound Path");
+			NFC_ERR("Invalid Sound Path");
 		}
 	}
 }

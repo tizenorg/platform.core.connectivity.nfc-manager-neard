@@ -168,7 +168,7 @@ static void _controller_llcp_event_cb(gpointer user_data)
 
 	if (req_msg == NULL)
 	{
-		DEBUG_ERR_MSG("can not get llcp_event info");
+		NFC_ERR("can not get llcp_event info");
 
 		return;
 	}
@@ -265,7 +265,7 @@ static void controller_llcp_event_cb(void *info, void *user_context)
 	if(net_nfc_server_controller_async_queue_push(
 				_controller_llcp_event_cb, info) == FALSE)
 	{
-		DEBUG_ERR_MSG("Failed to push onto the queue");
+		NFC_ERR("Failed to push onto the queue");
 	}
 }
 
@@ -275,33 +275,33 @@ static void controller_init_thread_func(gpointer user_data)
 
 	if (net_nfc_controller_init(&result) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_init failed, [%d]", result);
+		NFC_ERR("net_nfc_controller_init failed, [%d]", result);
 
 		net_nfc_manager_quit();
 		return;
 	}
 
-	INFO_MSG("net_nfc_controller_init success, [%d]", result);
+	NFC_INFO("net_nfc_controller_init success, [%d]", result);
 
 	if (net_nfc_controller_register_listener(controller_target_detected_cb,
 				controller_se_transaction_cb,
 				controller_llcp_event_cb,
 				&result) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_contorller_register_listener failed [%d]",
+		NFC_ERR("net_nfc_contorller_register_listener failed [%d]",
 				result);
 	}
 
-	INFO_MSG("net_nfc_contorller_register_listener success");
+	NFC_INFO("net_nfc_contorller_register_listener success");
 
 	result = net_nfc_server_llcp_set_config(NULL);
 	if (result != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("net_nfc_server_llcp_set config failed, [%d]",
+		NFC_ERR("net_nfc_server_llcp_set config failed, [%d]",
 				result);
 	}
 
-	INFO_MSG("net_nfc_server_llcp_set_config success");
+	NFC_INFO("net_nfc_server_llcp_set_config success");
 }
 
 #ifndef ESE_ALWAYS_ON
@@ -313,18 +313,18 @@ static void controller_deinit_thread_func(gpointer user_data)
 				NET_NFC_ALL_DISABLE,
 				&result) == false) {
 
-		DEBUG_ERR_MSG("net_nfc_controller_configure_discovery failed, [%d]", result);
+		NFC_ERR("net_nfc_controller_configure_discovery failed, [%d]", result);
 	}
 
 	net_nfc_server_free_target_info();
 
 	if (net_nfc_controller_deinit() == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_deinit failed, [%d]", result);
+		NFC_ERR("net_nfc_controller_deinit failed, [%d]", result);
 		return;
 	}
 
-	INFO_MSG("net_nfc_controller_deinit success");
+	NFC_INFO("net_nfc_controller_deinit success");
 
 	net_nfc_manager_quit();
 }
@@ -339,16 +339,15 @@ static void restart_polling_loop_thread_func(gpointer user_data)
 	net_nfc_error_e result;
 
 	if (vconf_get_bool(VCONFKEY_NFC_STATE, &state) != 0)
-		DEBUG_ERR_MSG("%s does not exist", "VCONFKEY_NFC_STATE");
+		NFC_ERR("%s does not exist", "VCONFKEY_NFC_STATE");
 
 	if (state == 0)
 		return;
 
 	if (vconf_get_int(VCONFKEY_PM_STATE, &pm_state) != 0)
-		DEBUG_ERR_MSG("%s does not exist", "VCONFKEY_PM_STATE");
+		NFC_ERR("%s does not exist", "VCONFKEY_PM_STATE");
 
-	DEBUG_SERVER_MSG("net_nfc_service_restart_polling, state = [%d]",
-			pm_state);
+	NFC_DBG("net_nfc_service_restart_polling, state = [%d]", pm_state);
 
 	if (pm_state == VCONFKEY_PM_STATE_NORMAL)
 	{
@@ -357,7 +356,7 @@ static void restart_polling_loop_thread_func(gpointer user_data)
 					NET_NFC_ALL_ENABLE,
 					&result) == true)
 		{
-			DEBUG_SERVER_MSG("polling enable");
+			NFC_DBG("polling enable");
 		}
 
 		return;
@@ -370,7 +369,7 @@ static void restart_polling_loop_thread_func(gpointer user_data)
 					NET_NFC_ALL_DISABLE,
 					&result) == true)
 		{
-			DEBUG_SERVER_MSG("polling disabled");
+			NFC_DBG("polling disabled");
 		}
 
 		return;
@@ -391,7 +390,7 @@ gboolean net_nfc_server_controller_thread_init(void)
 
 	if (controller_thread == NULL)
 	{
-		DEBUG_ERR_MSG("can not create controller thread: %s",
+		NFC_ERR("can not create controller thread: %s",
 				error->message);
 		g_error_free(error);
 		return FALSE;
@@ -406,7 +405,7 @@ void net_nfc_server_controller_thread_deinit(void)
 				controller_thread_deinit_thread_func,
 				NULL)==FALSE)
 	{
-		DEBUG_ERR_MSG("Failed to push onto the queue");
+		NFC_ERR("Failed to push onto the queue");
 	}
 
 	g_thread_join(controller_thread);
@@ -422,7 +421,7 @@ void net_nfc_server_controller_init(void)
 				controller_init_thread_func,
 				NULL)==FALSE)
 	{
-		DEBUG_ERR_MSG("Failed to push onto the queue");
+		NFC_ERR("Failed to push onto the queue");
 	}
 }
 
@@ -434,7 +433,7 @@ void net_nfc_server_controller_deinit(void)
 	ret = net_nfc_server_controller_async_queue_push(controller_deinit_thread_func, NULL);
 	if (FALSE == ret)
 	{
-		DEBUG_ERR_MSG("Failed to push onto the queue");
+		NFC_ERR("Failed to push onto the queue");
 	}
 }
 #endif
@@ -447,7 +446,7 @@ gboolean net_nfc_server_controller_async_queue_push(
 
 	if(controller_async_queue == NULL)
 	{
-		DEBUG_ERR_MSG("controller_async_queue is not initialized");
+		NFC_ERR("controller_async_queue is not initialized");
 
 		return FALSE;
 	}
@@ -467,7 +466,7 @@ void net_nfc_server_restart_polling_loop(void)
 				restart_polling_loop_thread_func,
 				NULL) == FALSE)
 	{
-		DEBUG_ERR_MSG("Failed to push onto the queue");
+		NFC_ERR("Failed to push onto the queue");
 	}
 }
 

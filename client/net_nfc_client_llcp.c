@@ -167,7 +167,7 @@ static void llcp_call_config(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish config: %s",
+		NFC_ERR("Can not finish config: %s",
 				error->message);
 
 		g_error_free(error);
@@ -205,7 +205,7 @@ static void llcp_call_listen(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish listen: %s",
+		NFC_ERR("Can not finish listen: %s",
 				error->message);
 
 		g_error_free(error);
@@ -216,7 +216,7 @@ static void llcp_call_listen(GObject *source_object,
 	socket_data = llcp_socket_data_find(out_client_socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("Wrong client socket is returned");
+		NFC_ERR("Wrong client socket is returned");
 		return;
 	}
 
@@ -248,7 +248,7 @@ static void llcp_call_accept(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish accept: %s",
+		NFC_ERR("Can not finish accept: %s",
 				error->message);
 
 		g_error_free(error);
@@ -283,7 +283,7 @@ static void llcp_call_reject(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish reject: %s",
+		NFC_ERR("Can not finish reject: %s",
 				error->message);
 
 		g_error_free(error);
@@ -321,7 +321,7 @@ static void llcp_call_connect(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish connect: %s", error->message);
+		NFC_ERR("Can not finish connect: %s", error->message);
 
 		g_error_free(error);
 
@@ -331,7 +331,7 @@ static void llcp_call_connect(GObject *source_object,
 	socket_data = llcp_socket_data_find(out_client_socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("Wrong client socket is returned");
+		NFC_ERR("Wrong client socket is returned");
 		return;
 	}
 
@@ -366,7 +366,7 @@ static void llcp_call_connect_sap(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish connect sap: %s", error->message);
+		NFC_ERR("Can not finish connect sap: %s", error->message);
 		g_error_free(error);
 
 		result = NET_NFC_IPC_FAIL;
@@ -375,7 +375,7 @@ static void llcp_call_connect_sap(GObject *source_object,
 	socket_data = llcp_socket_data_find(out_client_socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("Wrong client socket is returned");
+		NFC_ERR("Wrong client socket is returned");
 		return;
 	}
 
@@ -409,7 +409,7 @@ static void llcp_call_send(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish send: %s",
+		NFC_ERR("Can not finish send: %s",
 				error->message);
 
 		g_error_free(error);
@@ -446,7 +446,7 @@ static void llcp_call_send_to(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish send to: %s", error->message);
+		NFC_ERR("Can not finish send to: %s", error->message);
 
 		g_error_free(error);
 
@@ -482,7 +482,7 @@ static void llcp_call_receive(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish receive: %s", error->message);
+		NFC_ERR("Can not finish receive: %s", error->message);
 
 		g_error_free(error);
 
@@ -525,7 +525,7 @@ static void llcp_call_receive_from(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish receive from: %s",
+		NFC_ERR("Can not finish receive from: %s",
 				error->message);
 
 		g_error_free(error);
@@ -569,7 +569,7 @@ static void llcp_call_close(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish close: %s", error->message);
+		NFC_ERR("Can not finish close: %s", error->message);
 
 		g_error_free(error);
 
@@ -579,7 +579,7 @@ static void llcp_call_close(GObject *source_object,
 	socket_data = llcp_socket_data_find(out_client_socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("Wrong client socket is returned");
+		NFC_ERR("Wrong client socket is returned");
 		return;
 	}
 
@@ -614,7 +614,7 @@ static void llcp_call_disconnect(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish disconnect: %s", error->message);
+		NFC_ERR("Can not finish disconnect: %s", error->message);
 
 		g_error_free(error);
 
@@ -624,7 +624,7 @@ static void llcp_call_disconnect(GObject *source_object,
 	socket_data = llcp_socket_data_find(out_client_socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("Wrong client socket is returned");
+		NFC_ERR("Wrong client socket is returned");
 		return;
 	}
 
@@ -644,7 +644,7 @@ static void llcp_error(NetNfcGDbusLlcp *object,
 		gint error,
 		gpointer user_data)
 {
-	INFO_MSG(">>> SIGNAL arrived");
+	NFC_INFO(">>> SIGNAL arrived");
 }
 
 static void llcp_incoming(NetNfcGDbusLlcp *object,
@@ -653,7 +653,7 @@ static void llcp_incoming(NetNfcGDbusLlcp *object,
 		guint incoming_socket,
 		gpointer user_data)
 {
-	INFO_MSG(">>> SIGNAL arrived");
+	NFC_INFO(">>> SIGNAL arrived");
 }
 
 /* Public APIs */
@@ -664,16 +664,12 @@ API net_nfc_error_e net_nfc_client_llcp_config(net_nfc_llcp_config_info_h config
 	LlcpFuncData *func_data;
 	GVariant *variant;
 
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
+
 	if (config == NULL) {
 		return NET_NFC_NULL_PARAMETER;
 	}
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
 
 	/* prevent executing daemon when nfc is off */
 	if (net_nfc_client_manager_is_activated() == false) {
@@ -682,7 +678,7 @@ API net_nfc_error_e net_nfc_client_llcp_config(net_nfc_llcp_config_info_h config
 
 	func_data = g_new0(LlcpFuncData, 1);
 	if (func_data == NULL) {
-		DEBUG_ERR_MSG("g_new0 failed");
+		NFC_ERR("g_new0 failed");
 
 		return NET_NFC_ALLOC_FAIL;
 	}
@@ -715,12 +711,7 @@ API net_nfc_error_e net_nfc_client_llcp_config_sync(
 	GVariant *variant = NULL;
 	GError *error = NULL;
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
 
 	/* prevent executing daemon when nfc is off */
 	if (net_nfc_client_manager_is_activated() == false) {
@@ -742,7 +733,7 @@ API net_nfc_error_e net_nfc_client_llcp_config_sync(
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("can not config: %s", error->message);
+		NFC_ERR("can not config: %s", error->message);
 
 		g_error_free(error);
 
@@ -772,17 +763,12 @@ API net_nfc_error_e net_nfc_client_llcp_listen(net_nfc_llcp_socket_t socket,
 	LlcpFuncData *func_data;
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
 
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
@@ -797,7 +783,7 @@ API net_nfc_error_e net_nfc_client_llcp_listen(net_nfc_llcp_socket_t socket,
 
 	func_data = g_new0(LlcpFuncData, 1);
 	if (func_data == NULL) {
-		DEBUG_ERR_MSG("g_new0 failed");
+		NFC_ERR("g_new0 failed");
 
 		return NET_NFC_ALLOC_FAIL;
 	}
@@ -837,23 +823,18 @@ API net_nfc_error_e net_nfc_client_llcp_listen_sync(net_nfc_llcp_socket_t socket
 		return NET_NFC_NULL_PARAMETER;
 	}
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
 
 	if (service_name == NULL)
 	{
-		DEBUG_ERR_MSG("service_name is empty");
+		NFC_ERR("service_name is empty");
 		return NET_NFC_UNKNOWN_ERROR;
 	}
 
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
@@ -882,7 +863,7 @@ API net_nfc_error_e net_nfc_client_llcp_listen_sync(net_nfc_llcp_socket_t socket
 		out_socket_data = llcp_socket_data_find(out_client_socket);
 		if (out_socket_data == NULL || out_socket_data !=  socket_data)
 		{
-			DEBUG_ERR_MSG("Wrong client socket is returned");
+			NFC_ERR("Wrong client socket is returned");
 			return NET_NFC_UNKNOWN_ERROR;
 		}
 
@@ -891,10 +872,8 @@ API net_nfc_error_e net_nfc_client_llcp_listen_sync(net_nfc_llcp_socket_t socket
 		if (out_socket)
 			*out_socket = out_client_socket;
 	} else {
-		DEBUG_ERR_MSG("can not listen: %s", error->message);
-
+		NFC_ERR("can not listen: %s", error->message);
 		g_error_free(error);
-
 		result = NET_NFC_IPC_FAIL;
 	}
 
@@ -906,12 +885,7 @@ API net_nfc_error_e net_nfc_client_llcp_accept(net_nfc_llcp_socket_t socket,
 {
 	LlcpFuncData *func_data;
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
 
 	/* prevent executing daemon when nfc is off */
 	if (net_nfc_client_manager_is_activated() == false) {
@@ -920,8 +894,7 @@ API net_nfc_error_e net_nfc_client_llcp_accept(net_nfc_llcp_socket_t socket,
 
 	func_data = g_new0(LlcpFuncData, 1);
 	if (func_data == NULL) {
-		DEBUG_ERR_MSG("g_new0 failed");
-
+		NFC_ERR("g_new0 failed");
 		return NET_NFC_ALLOC_FAIL;
 	}
 
@@ -944,12 +917,7 @@ API net_nfc_error_e net_nfc_client_llcp_accept_sync(net_nfc_llcp_socket_t socket
 	net_nfc_error_e result;
 	GError *error = NULL;
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
 
 	/* prevent executing daemon when nfc is off */
 	if (net_nfc_client_manager_is_activated() == false) {
@@ -962,11 +930,10 @@ API net_nfc_error_e net_nfc_client_llcp_accept_sync(net_nfc_llcp_socket_t socket
 				net_nfc_client_gdbus_get_privilege(),
 				&result,
 				NULL,
-				&error) == false) {
-		DEBUG_ERR_MSG("can not connect: %s", error->message);
-
+				&error) == false)
+	{
+		NFC_ERR("can not connect: %s", error->message);
 		g_error_free(error);
-
 		result = NET_NFC_IPC_FAIL;
 	}
 
@@ -979,12 +946,7 @@ API net_nfc_error_e net_nfc_client_llcp_reject(net_nfc_llcp_socket_t socket,
 {
 	LlcpFuncData *func_data;
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
 
 	/* prevent executing daemon when nfc is off */
 	if (net_nfc_client_manager_is_activated() == false) {
@@ -993,8 +955,7 @@ API net_nfc_error_e net_nfc_client_llcp_reject(net_nfc_llcp_socket_t socket,
 
 	func_data = g_new0(LlcpFuncData, 1);
 	if (func_data == NULL) {
-		DEBUG_ERR_MSG("g_new0 failed");
-
+		NFC_ERR("g_new0 failed");
 		return NET_NFC_ALLOC_FAIL;
 	}
 
@@ -1017,12 +978,7 @@ API net_nfc_error_e net_nfc_client_llcp_reject_sync(net_nfc_llcp_socket_t socket
 	net_nfc_error_e result;
 	GError *error = NULL;
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
 
 	/* prevent executing daemon when nfc is off */
 	if (net_nfc_client_manager_is_activated() == false) {
@@ -1035,11 +991,10 @@ API net_nfc_error_e net_nfc_client_llcp_reject_sync(net_nfc_llcp_socket_t socket
 				net_nfc_client_gdbus_get_privilege(),
 				&result,
 				NULL,
-				&error) == false) {
-		DEBUG_ERR_MSG("can not connect: %s", error->message);
-
+				&error) == false)
+	{
+		NFC_ERR("can not connect: %s", error->message);
 		g_error_free(error);
-
 		result = NET_NFC_IPC_FAIL;
 	}
 
@@ -1058,17 +1013,12 @@ API net_nfc_error_e net_nfc_client_llcp_connect(net_nfc_llcp_socket_t socket,
 		return NET_NFC_NULL_PARAMETER;
 	}
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
 
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
@@ -1079,7 +1029,7 @@ API net_nfc_error_e net_nfc_client_llcp_connect(net_nfc_llcp_socket_t socket,
 
 	func_data = g_new0(LlcpFuncData, 1);
 	if (func_data == NULL) {
-		DEBUG_ERR_MSG("g_new0 failed");
+		NFC_ERR("g_new0 failed");
 
 		return NET_NFC_ALLOC_FAIL;
 	}
@@ -1109,25 +1059,19 @@ API net_nfc_error_e net_nfc_client_llcp_connect_sync(net_nfc_llcp_socket_t socke
 	net_nfc_error_e result;
 	GError *error = NULL;
 	guint32 out_client_socket;
-
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 	net_nfc_llcp_internal_socket_s *out_socket_data = NULL;
+
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
 
 	if (service_name == NULL || out_socket == NULL) {
 		return NET_NFC_NULL_PARAMETER;
 	}
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
-
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
@@ -1151,7 +1095,7 @@ API net_nfc_error_e net_nfc_client_llcp_connect_sync(net_nfc_llcp_socket_t socke
 		out_socket_data = llcp_socket_data_find(out_client_socket);
 		if (out_socket_data == NULL || out_socket_data !=  socket_data)
 		{
-			DEBUG_ERR_MSG("Wrong client socket is returned");
+			NFC_ERR("Wrong client socket is returned");
 			return NET_NFC_UNKNOWN_ERROR;
 		}
 
@@ -1160,7 +1104,7 @@ API net_nfc_error_e net_nfc_client_llcp_connect_sync(net_nfc_llcp_socket_t socke
 		if (out_socket)
 			*out_socket = out_client_socket;
 	} else {
-		DEBUG_ERR_MSG("can not connect: %s", error->message);
+		NFC_ERR("can not connect: %s", error->message);
 
 		g_error_free(error);
 
@@ -1178,21 +1122,16 @@ API net_nfc_error_e net_nfc_client_llcp_connect_sap(net_nfc_llcp_socket_t socket
 	LlcpFuncData *func_data;
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
+
 	if (sap == 0) {
 		return NET_NFC_INVALID_PARAM;
-	}
-
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
 	}
 
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
@@ -1203,7 +1142,7 @@ API net_nfc_error_e net_nfc_client_llcp_connect_sap(net_nfc_llcp_socket_t socket
 
 	func_data = g_new0(LlcpFuncData, 1);
 	if (func_data == NULL) {
-		DEBUG_ERR_MSG("g_new0 failed");
+		NFC_ERR("g_new0 failed");
 
 		return NET_NFC_ALLOC_FAIL;
 	}
@@ -1234,9 +1173,10 @@ API net_nfc_error_e net_nfc_client_llcp_connect_sap_sync(
 	net_nfc_error_e result;
 	GError *error = NULL;
 	guint32 out_client_socket;
-
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 	net_nfc_llcp_internal_socket_s *out_socket_data = NULL;
+
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
 
 	if (out_socket == NULL) {
 		return NET_NFC_NULL_PARAMETER;
@@ -1246,17 +1186,10 @@ API net_nfc_error_e net_nfc_client_llcp_connect_sap_sync(
 		return NET_NFC_INVALID_PARAM;
 	}
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
-
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
@@ -1280,7 +1213,7 @@ API net_nfc_error_e net_nfc_client_llcp_connect_sap_sync(
 		out_socket_data = llcp_socket_data_find(out_client_socket);
 		if (out_socket_data == NULL || out_socket_data !=  socket_data)
 		{
-			DEBUG_ERR_MSG("Wrong client socket is returned");
+			NFC_ERR("Wrong client socket is returned");
 			return NET_NFC_UNKNOWN_ERROR;
 		}
 
@@ -1289,7 +1222,7 @@ API net_nfc_error_e net_nfc_client_llcp_connect_sap_sync(
 		if (out_socket)
 			*out_socket = out_client_socket;
 	} else {
-		DEBUG_ERR_MSG("can not connect: %s", error->message);
+		NFC_ERR("can not connect: %s", error->message);
 
 		g_error_free(error);
 
@@ -1308,19 +1241,14 @@ API net_nfc_error_e net_nfc_client_llcp_send(net_nfc_llcp_socket_t socket,
 	GVariant *variant;
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
+
 	if (data == NULL) {
 		return NET_NFC_NULL_PARAMETER;
 	}
 
 	if (socket <= 0) {
 		return NET_NFC_INVALID_PARAM;
-	}
-
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
 	}
 
 	/* prevent executing daemon when nfc is off */
@@ -1331,13 +1259,13 @@ API net_nfc_error_e net_nfc_client_llcp_send(net_nfc_llcp_socket_t socket,
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
 	func_data = g_new0(LlcpFuncData, 1);
 	if (func_data == NULL) {
-		DEBUG_ERR_MSG("g_new0 failed");
+		NFC_ERR("g_new0 failed");
 
 		return NET_NFC_ALLOC_FAIL;
 	}
@@ -1366,9 +1294,10 @@ API net_nfc_error_e net_nfc_client_llcp_send_sync(net_nfc_llcp_socket_t socket,
 	GVariant *variant;
 	GError *error = NULL;
 	guint32 out_client_socket;
-
 	net_nfc_llcp_internal_socket_s *socket_data;
 	net_nfc_llcp_internal_socket_s *out_socket_data;
+
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
 
 	if (data == NULL) {
 		return NET_NFC_NULL_PARAMETER;
@@ -1378,23 +1307,16 @@ API net_nfc_error_e net_nfc_client_llcp_send_sync(net_nfc_llcp_socket_t socket,
 		return NET_NFC_INVALID_PARAM;
 	}
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
-
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("data is empty");
+		NFC_ERR("data is empty");
 		return NET_NFC_INVALID_PARAM;
 	}
 
@@ -1417,11 +1339,11 @@ API net_nfc_error_e net_nfc_client_llcp_send_sync(net_nfc_llcp_socket_t socket,
 		out_socket_data = llcp_socket_data_find(out_client_socket);
 		if (out_socket_data == NULL)
 		{
-			DEBUG_ERR_MSG("can not find socket_data");
+			NFC_ERR("can not find socket_data");
 			return NET_NFC_UNKNOWN_ERROR;
 		}
 	} else {
-		DEBUG_ERR_MSG("can not call send: %s", error->message);
+		NFC_ERR("can not call send: %s", error->message);
 
 		g_error_free(error);
 
@@ -1441,6 +1363,8 @@ API net_nfc_error_e net_nfc_client_llcp_send_to(net_nfc_llcp_socket_t socket,
 	GVariant *variant;
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
+
 	if (data == NULL) {
 		return NET_NFC_NULL_PARAMETER;
 	}
@@ -1449,17 +1373,10 @@ API net_nfc_error_e net_nfc_client_llcp_send_to(net_nfc_llcp_socket_t socket,
 		return NET_NFC_INVALID_PARAM;
 	}
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
-
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
@@ -1470,7 +1387,7 @@ API net_nfc_error_e net_nfc_client_llcp_send_to(net_nfc_llcp_socket_t socket,
 
 	func_data = g_new0(LlcpFuncData, 1);
 	if (func_data == NULL) {
-		DEBUG_ERR_MSG("g_new0 failed");
+		NFC_ERR("g_new0 failed");
 
 		return NET_NFC_ALLOC_FAIL;
 	}
@@ -1504,6 +1421,8 @@ API net_nfc_error_e net_nfc_client_llcp_send_to_sync(net_nfc_llcp_socket_t socke
 	net_nfc_llcp_internal_socket_s *socket_data;
 	net_nfc_llcp_internal_socket_s *out_socket_data;
 
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
+
 	if (data == NULL) {
 		return NET_NFC_NULL_PARAMETER;
 	}
@@ -1512,17 +1431,10 @@ API net_nfc_error_e net_nfc_client_llcp_send_to_sync(net_nfc_llcp_socket_t socke
 		return NET_NFC_INVALID_PARAM;
 	}
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
-
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
@@ -1546,11 +1458,11 @@ API net_nfc_error_e net_nfc_client_llcp_send_to_sync(net_nfc_llcp_socket_t socke
 		out_socket_data = llcp_socket_data_find(out_client_socket);
 		if (out_socket_data == NULL)
 		{
-			DEBUG_ERR_MSG("can not find socket_data");
+			NFC_ERR("can not find socket_data");
 			return NET_NFC_UNKNOWN_ERROR;
 		}
 	} else {
-		DEBUG_ERR_MSG("can not call send to: %s", error->message);
+		NFC_ERR("can not call send to: %s", error->message);
 
 		g_error_free(error);
 
@@ -1568,21 +1480,16 @@ API net_nfc_error_e net_nfc_client_llcp_receive(net_nfc_llcp_socket_t socket,
 	LlcpFuncData *func_data;
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
+
 	if (socket <= 0 || request_length == 0) {
 		return NET_NFC_INVALID_PARAM;
-	}
-
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
 	}
 
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
@@ -1593,7 +1500,7 @@ API net_nfc_error_e net_nfc_client_llcp_receive(net_nfc_llcp_socket_t socket,
 
 	func_data = g_new0(LlcpFuncData, 1);
 	if (func_data == NULL) {
-		DEBUG_ERR_MSG("g_new0 failed");
+		NFC_ERR("g_new0 failed");
 
 		return NET_NFC_ALLOC_FAIL;
 	}
@@ -1622,6 +1529,8 @@ API net_nfc_error_e net_nfc_client_llcp_receive_sync(net_nfc_llcp_socket_t socke
 	GError *error = NULL;
 	net_nfc_llcp_internal_socket_s *socket_data;
 
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
+
 	if (out_data == NULL) {
 		return NET_NFC_NULL_PARAMETER;
 	}
@@ -1632,17 +1541,10 @@ API net_nfc_error_e net_nfc_client_llcp_receive_sync(net_nfc_llcp_socket_t socke
 		return NET_NFC_INVALID_PARAM;
 	}
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
-
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
@@ -1662,7 +1564,7 @@ API net_nfc_error_e net_nfc_client_llcp_receive_sync(net_nfc_llcp_socket_t socke
 				&error) == true) {
 		*out_data = net_nfc_util_gdbus_variant_to_data(variant);
 	} else {
-		DEBUG_ERR_MSG("can not call receive: %s", error->message);
+		NFC_ERR("can not call receive: %s", error->message);
 
 		g_error_free(error);
 
@@ -1680,27 +1582,22 @@ API net_nfc_error_e net_nfc_client_llcp_receive_from(net_nfc_llcp_socket_t socke
 	LlcpFuncData *func_data;
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
+
 	if (socket <= 0 || request_length == 0) {
 		return NET_NFC_INVALID_PARAM;
-	}
-
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
 	}
 
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
 	func_data = g_new0(LlcpFuncData, 1);
 	if (func_data == NULL) {
-		DEBUG_ERR_MSG("g_new0 failed");
+		NFC_ERR("g_new0 failed");
 
 		return NET_NFC_ALLOC_FAIL;
 	}
@@ -1730,8 +1627,9 @@ API net_nfc_error_e net_nfc_client_llcp_receive_from_sync(
 	GError *error = NULL;
 	GVariant *variant;
 	sap_t sap;
-
 	net_nfc_llcp_internal_socket_s *socket_data;
+
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
 
 	if (out_sap == NULL || out_data == NULL) {
 		return NET_NFC_NULL_PARAMETER;
@@ -1744,17 +1642,10 @@ API net_nfc_error_e net_nfc_client_llcp_receive_from_sync(
 		return NET_NFC_INVALID_PARAM;
 	}
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
-
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
@@ -1776,7 +1667,7 @@ API net_nfc_error_e net_nfc_client_llcp_receive_from_sync(
 		*out_sap = sap;
 		*out_data = net_nfc_util_gdbus_variant_to_data(variant);
 	} else {
-		DEBUG_ERR_MSG("can not call receive from: %s", error->message);
+		NFC_ERR("can not call receive from: %s", error->message);
 
 		g_error_free(error);
 
@@ -1793,21 +1684,16 @@ API net_nfc_error_e net_nfc_client_llcp_close(net_nfc_llcp_socket_t socket,
 	LlcpFuncData *func_data;
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
+
 	if (socket <= 0) {
 		return NET_NFC_INVALID_PARAM;
-	}
-
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
 	}
 
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
@@ -1818,7 +1704,7 @@ API net_nfc_error_e net_nfc_client_llcp_close(net_nfc_llcp_socket_t socket,
 
 	func_data = g_new0(LlcpFuncData, 1);
 	if (func_data == NULL) {
-		DEBUG_ERR_MSG("g_new0 failed");
+		NFC_ERR("g_new0 failed");
 
 		return NET_NFC_ALLOC_FAIL;
 	}
@@ -1842,25 +1728,19 @@ API net_nfc_error_e net_nfc_client_llcp_close_sync(net_nfc_llcp_socket_t socket)
 	net_nfc_error_e result;
 	GError *error = NULL;
 	guint32 out_client_socket;
-
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 	net_nfc_llcp_internal_socket_s *out_socket_data = NULL;
+
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
 
 	if (socket <= 0) {
 		return NET_NFC_INVALID_PARAM;
 	}
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
-
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
@@ -1880,11 +1760,11 @@ API net_nfc_error_e net_nfc_client_llcp_close_sync(net_nfc_llcp_socket_t socket)
 		out_socket_data = llcp_socket_data_find(out_client_socket);
 		if (out_socket_data == NULL || out_socket_data !=  socket_data)
 		{
-			DEBUG_ERR_MSG("Wrong client socket is returned");
+			NFC_ERR("Wrong client socket is returned");
 			return NET_NFC_UNKNOWN_ERROR;
 		}
 	} else {
-		DEBUG_ERR_MSG("can not close: %s", error->message);
+		NFC_ERR("can not close: %s", error->message);
 
 		g_error_free(error);
 
@@ -1901,21 +1781,16 @@ API net_nfc_error_e net_nfc_client_llcp_disconnect(net_nfc_llcp_socket_t socket,
 	LlcpFuncData *func_data;
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
+
 	if (socket <= 0) {
 		return NET_NFC_INVALID_PARAM;
-	}
-
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
 	}
 
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
@@ -1926,7 +1801,7 @@ API net_nfc_error_e net_nfc_client_llcp_disconnect(net_nfc_llcp_socket_t socket,
 
 	func_data = g_new0(LlcpFuncData, 1);
 	if (func_data == NULL) {
-		DEBUG_ERR_MSG("g_new0 failed");
+		NFC_ERR("g_new0 failed");
 
 		return NET_NFC_ALLOC_FAIL;
 	}
@@ -1951,25 +1826,19 @@ API net_nfc_error_e net_nfc_client_llcp_disconnect_sync(
 	net_nfc_error_e result;
 	GError *error = NULL;
 	guint32 out_client_socket;
-
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 	net_nfc_llcp_internal_socket_s *out_socket_data = NULL;
+
+	RETVM_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED, "Can not get LlcpProxy");
 
 	if (socket <= 0) {
 		return NET_NFC_INVALID_PARAM;
 	}
 
-	if (llcp_proxy == NULL)
-	{
-		DEBUG_ERR_MSG("Can not get LlcpProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
-
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
 	{
-		DEBUG_ERR_MSG("can not get socket_data");
+		NFC_ERR("can not get socket_data");
 		return NET_NFC_LLCP_INVALID_SOCKET;
 	}
 
@@ -1989,11 +1858,11 @@ API net_nfc_error_e net_nfc_client_llcp_disconnect_sync(
 		out_socket_data = llcp_socket_data_find(out_client_socket);
 		if (out_socket_data == NULL || out_socket_data !=  socket_data)
 		{
-			DEBUG_ERR_MSG("Wrong client socket is returned");
+			NFC_ERR("Wrong client socket is returned");
 			return NET_NFC_UNKNOWN_ERROR;
 		}
 	} else {
-		DEBUG_ERR_MSG("can not disconnect: %s", error->message);
+		NFC_ERR("can not disconnect: %s", error->message);
 
 		g_error_free(error);
 
@@ -2051,8 +1920,6 @@ API net_nfc_error_e net_nfc_client_llcp_get_local_socket_option(
 		net_nfc_llcp_socket_option_h *info)
 {
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
-
-	DEBUG_CLIENT_MSG("function %s is called", __func__);
 
 	socket_data = llcp_socket_data_find(socket);
 	if (socket_data == NULL)
@@ -2378,7 +2245,7 @@ net_nfc_error_e net_nfc_client_llcp_init(void)
 
 	if (llcp_proxy)
 	{
-		DEBUG_CLIENT_MSG("Already initialized");
+		NFC_WARN("Already initialized");
 		return NET_NFC_OK;
 	}
 
@@ -2392,7 +2259,7 @@ net_nfc_error_e net_nfc_client_llcp_init(void)
 
 	if (llcp_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not create proxy : %s", error->message);
+		NFC_ERR("Can not create proxy : %s", error->message);
 		g_error_free(error);
 		return NET_NFC_UNKNOWN_ERROR;
 	}

@@ -53,7 +53,7 @@ static void p2p_connection_handover(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish"
+		NFC_ERR("Can not finish"
 				" connection handover: %s", error->message);
 		g_error_free(error);
 
@@ -134,7 +134,7 @@ API net_nfc_error_e net_nfc_client_p2p_connection_handover(
 
 	if (handover_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get handover Proxy");
+		NFC_ERR("Can not get handover Proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -178,7 +178,7 @@ API net_nfc_error_e net_nfc_client_p2p_connection_handover_sync(
 
 	if (handover_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get handover Proxy");
+		NFC_ERR("Can not get handover Proxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -205,7 +205,7 @@ API net_nfc_error_e net_nfc_client_p2p_connection_handover_sync(
 			*out_ac_data = net_nfc_util_gdbus_variant_to_data(out_data);
 		}
 	} else {
-		DEBUG_ERR_MSG("handover (sync call) failed: %s",error->message);
+		NFC_ERR("handover (sync call) failed: %s",error->message);
 		g_error_free(error);
 
 		out_result = NET_NFC_IPC_FAIL;
@@ -221,7 +221,7 @@ net_nfc_error_e net_nfc_client_handover_init(void)
 
 	if (handover_proxy)
 	{
-		DEBUG_CLIENT_MSG("Already initialized");
+		NFC_WARN("Already initialized");
 		return NET_NFC_OK;
 	}
 
@@ -235,7 +235,7 @@ net_nfc_error_e net_nfc_client_handover_init(void)
 
 	if (handover_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not create proxy : %s", error->message);
+		NFC_ERR("Can not create proxy : %s", error->message);
 		g_error_free(error);
 		return NET_NFC_UNKNOWN_ERROR;
 	}

@@ -57,7 +57,7 @@ static gboolean ndef_is_supported_tag(void)
 
 	if (target_info == NULL)
 	{
-		DEBUG_ERR_MSG("target_info does not exist");
+		NFC_ERR("target_info does not exist");
 		return FALSE;
 	}
 
@@ -72,8 +72,7 @@ static gboolean ndef_is_supported_tag(void)
 		return TRUE;
 		break;
 	default:
-		DEBUG_CLIENT_MSG(
-				"not supported tag for read only tag");
+		NFC_ERR("not supported tag(%d) for read only tag", target_info->devType);
 		return FALSE;
 	}
 }
@@ -98,7 +97,7 @@ static void ndef_call_read(GObject *source_object,
 				&error) == FALSE)
 	{
 
-		DEBUG_ERR_MSG("Can not finish read: %s", error->message);
+		NFC_ERR("Can not finish read: %s", error->message);
 		g_error_free(error);
 
 		out_result = NET_NFC_IPC_FAIL;
@@ -138,7 +137,7 @@ static void ndef_call_write(GObject *source_object,
 				&error) == FALSE)
 	{
 
-		DEBUG_ERR_MSG("Can not finish write: %s", error->message);
+		NFC_ERR("Can not finish write: %s", error->message);
 		g_error_free(error);
 
 		out_result = NET_NFC_IPC_FAIL;
@@ -173,7 +172,7 @@ static void ndef_call_make_read_only(GObject *source_object,
 				&error) == FALSE)
 	{
 
-		DEBUG_ERR_MSG("Can not finish make read only: %s",
+		NFC_ERR("Can not finish make read only: %s",
 				error->message);
 		g_error_free(error);
 
@@ -209,7 +208,7 @@ static void ndef_call_format(GObject *source_object,
 				&error) == FALSE)
 	{
 
-		DEBUG_ERR_MSG("Can not finish format: %s", error->message);
+		NFC_ERR("Can not finish format: %s", error->message);
 		g_error_free(error);
 
 		out_result = NET_NFC_IPC_FAIL;
@@ -227,8 +226,7 @@ static void ndef_call_format(GObject *source_object,
 }
 
 API net_nfc_error_e net_nfc_client_ndef_read(net_nfc_target_handle_h handle,
-		net_nfc_client_ndef_read_completed callback,
-		void *user_data)
+		net_nfc_client_ndef_read_completed callback, void *user_data)
 {
 	NetNfcCallback *func_data;
 
@@ -237,7 +235,7 @@ API net_nfc_error_e net_nfc_client_ndef_read(net_nfc_target_handle_h handle,
 
 	if (ndef_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get NdefProxy");
+		NFC_ERR("Can not get NdefProxy");
 		return NET_NFC_NOT_INITIALIZED;
 	}
 
@@ -249,7 +247,7 @@ API net_nfc_error_e net_nfc_client_ndef_read(net_nfc_target_handle_h handle,
 	if (net_nfc_client_tag_is_connected() == FALSE)
 		return NET_NFC_NOT_CONNECTED;
 
-	DEBUG_CLIENT_MSG("send request :: read ndef = [%p]", handle);
+	NFC_DBG("send request :: read ndef = [%p]", handle);
 
 	func_data = g_try_new0(NetNfcCallback, 1);
 	if (func_data == NULL) {
@@ -281,7 +279,7 @@ API net_nfc_error_e net_nfc_client_ndef_read_sync(net_nfc_target_handle_h handle
 
 	if (ndef_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get NdefProxy");
+		NFC_ERR("Can not get NdefProxy");
 		return NET_NFC_NOT_INITIALIZED;
 	}
 
@@ -293,7 +291,7 @@ API net_nfc_error_e net_nfc_client_ndef_read_sync(net_nfc_target_handle_h handle
 	if (net_nfc_client_tag_is_connected() == FALSE)
 		return NET_NFC_NOT_CONNECTED;
 
-	DEBUG_CLIENT_MSG("send request :: read ndef = [%p]", handle);
+	NFC_DBG("send request :: read ndef = [%p]", handle);
 
 	if (net_nfc_gdbus_ndef_call_read_sync(ndef_proxy,
 				GPOINTER_TO_UINT(handle),
@@ -304,7 +302,7 @@ API net_nfc_error_e net_nfc_client_ndef_read_sync(net_nfc_target_handle_h handle
 				&error) == TRUE) {
 		*message = net_nfc_util_gdbus_variant_to_ndef_message(out_data);
 	} else {
-		DEBUG_ERR_MSG("can not call read: %s",
+		NFC_ERR("can not call read: %s",
 				error->message);
 		g_error_free(error);
 		out_result = NET_NFC_IPC_FAIL;
@@ -326,7 +324,7 @@ API net_nfc_error_e net_nfc_client_ndef_write(net_nfc_target_handle_h handle,
 
 	if (ndef_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get NdefProxy");
+		NFC_ERR("Can not get NdefProxy");
 		return NET_NFC_NOT_INITIALIZED;
 	}
 
@@ -371,7 +369,7 @@ API net_nfc_error_e net_nfc_client_ndef_write_sync(net_nfc_target_handle_h handl
 
 	if (ndef_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get NdefProxy");
+		NFC_ERR("Can not get NdefProxy");
 		return NET_NFC_NOT_INITIALIZED;
 	}
 
@@ -393,7 +391,7 @@ API net_nfc_error_e net_nfc_client_ndef_write_sync(net_nfc_target_handle_h handl
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("can not call write: %s",
+		NFC_ERR("can not call write: %s",
 				error->message);
 		g_error_free(error);
 		out_result = NET_NFC_IPC_FAIL;
@@ -414,7 +412,7 @@ API net_nfc_error_e net_nfc_client_ndef_make_read_only(
 
 	if (ndef_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get NdefProxy");
+		NFC_ERR("Can not get NdefProxy");
 		return NET_NFC_NOT_INITIALIZED;
 	}
 
@@ -459,7 +457,7 @@ API net_nfc_error_e net_nfc_client_ndef_make_read_only_sync(
 
 	if (ndef_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get NdefProxy");
+		NFC_ERR("Can not get NdefProxy");
 		return NET_NFC_NOT_INITIALIZED;
 	}
 
@@ -482,7 +480,7 @@ API net_nfc_error_e net_nfc_client_ndef_make_read_only_sync(
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("can not make read only: %s",
+		NFC_ERR("can not make read only: %s",
 				error->message);
 		g_error_free(error);
 		out_result = NET_NFC_IPC_FAIL;
@@ -502,7 +500,7 @@ API net_nfc_error_e net_nfc_client_ndef_format(net_nfc_target_handle_h handle,
 
 	if (ndef_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get NdefProxy");
+		NFC_ERR("Can not get NdefProxy");
 		return NET_NFC_NOT_INITIALIZED;
 	}
 
@@ -546,7 +544,7 @@ API net_nfc_error_e net_nfc_client_ndef_format_sync(
 
 	if (ndef_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get NdefProxy");
+		NFC_ERR("Can not get NdefProxy");
 		return NET_NFC_NOT_INITIALIZED;
 	}
 
@@ -569,7 +567,7 @@ API net_nfc_error_e net_nfc_client_ndef_format_sync(
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("can not call format: %s",
+		NFC_ERR("can not call format: %s",
 				error->message);
 		g_error_free(error);
 		out_result = NET_NFC_IPC_FAIL;
@@ -584,7 +582,7 @@ net_nfc_error_e net_nfc_client_ndef_init(void)
 
 	if (ndef_proxy)
 	{
-		DEBUG_CLIENT_MSG("Already initialized");
+		NFC_WARN("Already initialized");
 		return NET_NFC_OK;
 	}
 
@@ -598,7 +596,7 @@ net_nfc_error_e net_nfc_client_ndef_init(void)
 
 	if (ndef_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not create proxy : %s", error->message);
+		NFC_ERR("Can not create proxy : %s", error->message);
 		g_error_free(error);
 		return NET_NFC_UNKNOWN_ERROR;
 	}

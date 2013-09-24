@@ -75,7 +75,7 @@ static void transceive_data_thread_func(gpointer user_data)
 
 	if (net_nfc_server_target_connected(handle) == true)
 	{
-		DEBUG_SERVER_MSG("call transceive");
+		NFC_DBG("call transceive");
 
 		if (net_nfc_controller_transceive(handle,
 					&transceive_data->transceive_info,
@@ -83,10 +83,7 @@ static void transceive_data_thread_func(gpointer user_data)
 					&result) == true)
 		{
 			if (data != NULL)
-			{
-				DEBUG_SERVER_MSG("Transceive data received [%d]",
-						data->length);
-			}
+				NFC_DBG("Transceive data received [%d]", data->length);
 		}
 	}
 	else
@@ -94,7 +91,7 @@ static void transceive_data_thread_func(gpointer user_data)
 		result = NET_NFC_TARGET_IS_MOVED_AWAY;
 	}
 
-	DEBUG_SERVER_MSG("transceive result : %d", result);
+	NFC_DBG("transceive result : %d", result);
 
 	resp_data = net_nfc_util_gdbus_data_to_variant(data);
 
@@ -129,7 +126,7 @@ static gboolean transceive_data_handle(NetNfcGDbusTransceive *transceive,
 	TransceiveSendData *data;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -137,7 +134,7 @@ static gboolean transceive_data_handle(NetNfcGDbusTransceive *transceive,
 				smack_privilege,
 				"nfc-manager",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -145,7 +142,7 @@ static gboolean transceive_data_handle(NetNfcGDbusTransceive *transceive,
 	data = g_new0(TransceiveSendData, 1);
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
@@ -194,7 +191,7 @@ static void transceive_thread_func(gpointer user_data)
 
 	if (net_nfc_server_target_connected(handle) == true)
 	{
-		DEBUG_MSG("call transceive");
+		NFC_DBG("call transceive");
 
 		if (net_nfc_controller_transceive(handle,
 					&transceive_data->transceive_info,
@@ -203,9 +200,7 @@ static void transceive_thread_func(gpointer user_data)
 		{
 			if (data != NULL)
 			{
-				DEBUG_SERVER_MSG(
-						"Transceive data received [%d]",
-						data->length);
+				NFC_DBG("Transceive data received [%d]", data->length);
 
 				/* free resource because it doesn't need */
 				g_free(data->buffer);
@@ -215,12 +210,12 @@ static void transceive_thread_func(gpointer user_data)
 	}
 	else
 	{
-		DEBUG_SERVER_MSG("target is not connected");
+		NFC_ERR("target is not connected");
 
 		result = NET_NFC_TARGET_IS_MOVED_AWAY;
 	}
 
-	DEBUG_SERVER_MSG("transceive result : %d", result);
+	NFC_DBG("transceive result : %d", result);
 
 	net_nfc_gdbus_transceive_complete_transceive(
 			transceive_data->transceive,
@@ -246,7 +241,7 @@ static gboolean transceive_handle(NetNfcGDbusTransceive *transceive,
 	TransceiveSendData *data;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -254,7 +249,7 @@ static gboolean transceive_handle(NetNfcGDbusTransceive *transceive,
 				smack_privilege,
 				"nfc-manager",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -262,7 +257,7 @@ static gboolean transceive_handle(NetNfcGDbusTransceive *transceive,
 	data = g_new0(TransceiveSendData, 1);
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");

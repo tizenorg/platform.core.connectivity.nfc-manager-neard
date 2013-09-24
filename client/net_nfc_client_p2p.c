@@ -59,7 +59,7 @@ static void p2p_call_send(GObject *source_object,
 static void p2p_device_detached(GObject *source_object,
 		gpointer user_data)
 {
-	INFO_MSG(">>> SIGNAL arrived");
+	NFC_INFO(">>> SIGNAL arrived");
 
 	/*llcp client function to set/unset the current target id needs to be implemented*/
 	/*net_nfc_client_llcp_current_target_id(NULL);*/
@@ -79,7 +79,7 @@ static void p2p_device_discovered(GObject *source_object, guint arg_handle,
 {
 	net_nfc_target_handle_s *handle_info = NULL;
 
-	INFO_MSG(">>> SIGNAL arrived");
+	NFC_INFO(">>> SIGNAL arrived");
 
 	handle_info = GUINT_TO_POINTER(arg_handle);
 
@@ -93,7 +93,7 @@ static void p2p_device_discovered(GObject *source_object, guint arg_handle,
 static void p2p_device_data_received(GObject *source_object, GVariant *arg_data,
 		gpointer user_data)
 {
-	INFO_MSG(">>> SIGNAL arrived");
+	NFC_INFO(">>> SIGNAL arrived");
 
 	if (p2p_signal_handler.p2p_data_received_cb)
 	{
@@ -125,7 +125,7 @@ static void p2p_call_send(GObject *source_object, GAsyncResult *res,
 	{
 		out_result = NET_NFC_IPC_FAIL;
 
-		DEBUG_ERR_MSG("Can not finish p2p send: %s", error->message);
+		NFC_ERR("Can not finish p2p send: %s", error->message);
 		g_error_free(error);
 	}
 
@@ -149,7 +149,7 @@ API net_nfc_error_e net_nfc_client_p2p_send(net_nfc_target_handle_h handle,
 
 	if (p2p_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get P2pProxy");
+		NFC_ERR("Can not get P2pProxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -193,7 +193,7 @@ API net_nfc_error_e net_nfc_client_p2p_send_sync(net_nfc_target_handle_h handle,
 
 	if (p2p_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get P2pProxy");
+		NFC_ERR("Can not get P2pProxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -214,7 +214,7 @@ API net_nfc_error_e net_nfc_client_p2p_send_sync(net_nfc_target_handle_h handle,
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("p2p send (sync call) failed: %s",
+		NFC_ERR("p2p send (sync call) failed: %s",
 				error->message);
 
 		g_error_free(error);
@@ -284,8 +284,7 @@ net_nfc_error_e net_nfc_client_p2p_init(void)
 
 	if (p2p_proxy)
 	{
-		DEBUG_CLIENT_MSG("Already initialized");
-
+		NFC_WARN("Already initialized");
 		return NET_NFC_OK;
 	}
 
@@ -298,7 +297,7 @@ net_nfc_error_e net_nfc_client_p2p_init(void)
 			&error);
 	if (p2p_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not create proxy : %s", error->message);
+		NFC_ERR("Can not create proxy : %s", error->message);
 		g_error_free(error);
 
 		return NET_NFC_UNKNOWN_ERROR;

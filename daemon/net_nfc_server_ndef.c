@@ -242,7 +242,7 @@ static gboolean ndef_handle_read(NetNfcGDbusNdef *ndef,
 	ReadData *data;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -250,7 +250,7 @@ static gboolean ndef_handle_read(NetNfcGDbusNdef *ndef,
 				smack_privilege,
 				"nfc-manager::tag",
 				"r") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -258,7 +258,7 @@ static gboolean ndef_handle_read(NetNfcGDbusNdef *ndef,
 	data = g_new0(ReadData, 1);
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
@@ -298,7 +298,7 @@ static gboolean ndef_handle_write(NetNfcGDbusNdef *ndef,
 	WriteData *data;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -306,7 +306,7 @@ static gboolean ndef_handle_write(NetNfcGDbusNdef *ndef,
 				smack_privilege,
 				"nfc-manager::tag",
 				"w") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -314,7 +314,7 @@ static gboolean ndef_handle_write(NetNfcGDbusNdef *ndef,
 	data = g_new0(WriteData, 1);
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
@@ -357,7 +357,7 @@ static gboolean ndef_handle_make_read_only(NetNfcGDbusNdef *ndef,
 	MakeReadOnlyData *data;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -365,7 +365,7 @@ static gboolean ndef_handle_make_read_only(NetNfcGDbusNdef *ndef,
 				smack_privilege,
 				"nfc-manager::tag",
 				"w") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -373,7 +373,7 @@ static gboolean ndef_handle_make_read_only(NetNfcGDbusNdef *ndef,
 	data = g_new0(MakeReadOnlyData, 1);
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");
@@ -413,7 +413,7 @@ static gboolean ndef_handle_format(NetNfcGDbusNdef *ndef,
 	FormatData *data;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -421,7 +421,7 @@ static gboolean ndef_handle_format(NetNfcGDbusNdef *ndef,
 				smack_privilege,
 				"nfc-manager::tag",
 				"w") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -429,7 +429,7 @@ static gboolean ndef_handle_format(NetNfcGDbusNdef *ndef,
 	data = g_new0(FormatData, 1);
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("Memory allocation failed");
+		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.AllocationError",
 				"Can not allocate memory");

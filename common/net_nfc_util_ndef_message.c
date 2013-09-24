@@ -222,7 +222,7 @@ net_nfc_error_e net_nfc_util_convert_rawdata_to_ndef_message(
 
 error:
 
-	DEBUG_ERR_MSG("parser error");
+	NFC_ERR("parser error");
 
 	if (newRec)
 	{
@@ -369,7 +369,7 @@ net_nfc_error_e net_nfc_util_append_record(ndef_message_s *msg, ndef_record_s *r
 
 		msg->recordCount++;
 
-		DEBUG_MSG("record is added to NDEF message :: count [%d]", msg->recordCount);
+		NFC_DBG("record is added to NDEF message :: count [%d]", msg->recordCount);
 	}
 	else
 	{
@@ -442,27 +442,27 @@ void net_nfc_util_print_ndef_message(ndef_message_s *msg)
 	}
 
 	//                123456789012345678901234567890123456789012345678901234567890
-	DEBUG_MSG("========== NDEF Message ====================================\n");
-	DEBUG_MSG("Total NDEF Records count: %d\n", msg->recordCount);
+	NFC_DBG("========== NDEF Message ====================================\n");
+	NFC_DBG("Total NDEF Records count: %d\n", msg->recordCount);
 	current = msg->records;
 	for (idx = 0; idx < msg->recordCount; idx++)
 	{
 		if (current == NULL)
 		{
-			DEBUG_ERR_MSG("Message Record is NULL!! unexpected error");
-			DEBUG_MSG("============================================================\n");
+			NFC_ERR("Message Record is NULL!! unexpected error");
+			NFC_DBG("============================================================\n");
 			return;
 		}
-		DEBUG_MSG("---------- Record -----------------------------------------\n");
-		DEBUG_MSG("MB:%d ME:%d CF:%d SR:%d IL:%d TNF:0x%02X\n",
+		NFC_DBG("---------- Record -----------------------------------------\n");
+		NFC_DBG("MB:%d ME:%d CF:%d SR:%d IL:%d TNF:0x%02X\n",
 				current->MB, current->ME, current->CF, current->SR, current->IL, current->TNF);
-		DEBUG_MSG("TypeLength:%d  PayloadLength:%d  IDLength:%d\n",
+		NFC_DBG("TypeLength:%d  PayloadLength:%d  IDLength:%d\n",
 				current->type_s.length, current->payload_s.length, current->id_s.length);
 		if (current->type_s.buffer != NULL)
 		{
 			memcpy(buffer, current->type_s.buffer, current->type_s.length);
 			buffer[current->type_s.length] = '\0';
-			DEBUG_MSG("Type: %s\n", buffer);
+			NFC_DBG("Type: %s\n", buffer);
 		}
 		if (current->id_s.buffer != NULL)
 		{
@@ -472,19 +472,19 @@ void net_nfc_util_print_ndef_message(ndef_message_s *msg)
 		}
 		if (current->payload_s.buffer != NULL)
 		{
-			DEBUG_MSG("Payload: ");
+			NFC_DBG("Payload: ");
 			for (idx2 = 0; idx2 < current->payload_s.length; idx2++)
 			{
 				if (idx2 % 16 == 0)
-					DEBUG_MSG("\n\t");
-				DEBUG_MSG("%02X ", current->payload_s.buffer[idx2]);
+					NFC_DBG("\n\t");
+				NFC_DBG("%02X ", current->payload_s.buffer[idx2]);
 			}
-			DEBUG_MSG("\n");
+			NFC_DBG("\n");
 		}
 		current = current->next;
 	}
 	//                123456789012345678901234567890123456789012345678901234567890
-	DEBUG_MSG("============================================================\n");
+	NFC_DBG("============================================================\n");
 
 }
 

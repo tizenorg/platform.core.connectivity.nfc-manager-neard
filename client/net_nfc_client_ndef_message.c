@@ -184,7 +184,7 @@ API net_nfc_error_e net_nfc_retrieve_current_ndef_message(
 		size = ftell(fp);
 		fseek(fp, 0, SEEK_SET);
 
-		DEBUG_CLIENT_MSG("message length = [%ld]", size);
+		NFC_DBG("message length = [%ld]", size);
 
 		if (size > 0)
 		{
@@ -207,7 +207,7 @@ API net_nfc_error_e net_nfc_retrieve_current_ndef_message(
 				if (offset == data.length) {
 					result = net_nfc_create_ndef_message_from_rawdata(ndef_message, &data);
 				} else {
-					DEBUG_ERR_MSG("failed to read ndef message");
+					NFC_ERR("failed to read ndef message");
 				}
 				net_nfc_util_free_data(&data);
 			}

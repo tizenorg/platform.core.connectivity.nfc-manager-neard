@@ -86,7 +86,7 @@ static gboolean tag_check_filter(net_nfc_target_type_e type)
 {
 	net_nfc_event_filter_e converted = NET_NFC_ALL_ENABLE;
 
-	DEBUG_CLIENT_MSG("client filter =  %d", client_filter);
+	NFC_DBG("client filter =  %d", client_filter);
 
 	if (type >= NET_NFC_ISO14443_A_PICC
 			&& type <= NET_NFC_MIFARE_DESFIRE_PICC)
@@ -147,7 +147,7 @@ static void tag_get_info_list(guint8 *buffer,
 		str = g_new0(gchar, length + 1);
 		memcpy(str, pos, length);
 
-		DEBUG_CLIENT_MSG("key = [%s]", str);
+		NFC_DBG("key = [%s]", str);
 
 		pos += length;
 
@@ -232,7 +232,7 @@ static void tag_is_tag_connected(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish is_tag_connected: %s",
+		NFC_ERR("Can not finish is_tag_connected: %s",
 				error->message);
 		g_error_free(error);
 
@@ -292,7 +292,7 @@ static void tag_get_current_tag_info(GObject *source_object,
 	{
 		out_result = NET_NFC_IPC_FAIL;
 
-		DEBUG_ERR_MSG("Can not finish get_current_tag_info: %s",
+		NFC_ERR("Can not finish get_current_tag_info: %s",
 				error->message);
 		g_error_free(error);
 	}
@@ -313,7 +313,7 @@ static void tag_get_current_tag_info(GObject *source_object,
 					out_raw_data,
 					&client_target_info);
 		} else {
-			INFO_MSG("The detected target is filtered out, type [%d]", out_dev_type);
+			NFC_INFO("The detected target is filtered out, type [%d]", out_dev_type);
 
 			out_is_connected = false;
 		}
@@ -354,7 +354,7 @@ static void tag_get_current_target_handle(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish get_current_target_handle: %s",
+		NFC_ERR("Can not finish get_current_target_handle: %s",
 				error->message);
 		g_error_free(error);
 
@@ -389,13 +389,13 @@ static void tag_tag_discovered(NetNfcGDbusTag *object,
 		GVariant *arg_raw_data,
 		gpointer user_data)
 {
-	INFO_MSG(">>> SIGNAL arrived");
+	NFC_INFO(">>> SIGNAL arrived");
 
 	net_nfc_release_tag_info((net_nfc_target_info_h)client_target_info);
 	client_target_info = NULL;
 
 	if (tag_check_filter(arg_dev_type) == FALSE) {
-		INFO_MSG("The detected target is filtered out, type [%d]", arg_dev_type);
+		NFC_INFO("The detected target is filtered out, type [%d]", arg_dev_type);
 
 		return;
 	}
@@ -425,7 +425,7 @@ static void tag_tag_detached(NetNfcGDbusTag *object,
 		gint arg_dev_type,
 		gpointer user_data)
 {
-	INFO_MSG(">>> SIGNAL arrived");
+	NFC_INFO(">>> SIGNAL arrived");
 
 	if (tag_check_filter(arg_dev_type) == TRUE) {
 		if (tag_detached_func_data.callback != NULL) {
@@ -435,7 +435,7 @@ static void tag_tag_detached(NetNfcGDbusTag *object,
 			callback(tag_detached_func_data.user_data);
 		}
 	} else {
-		INFO_MSG("The detected target is filtered out, type [%d]", arg_dev_type);
+		NFC_INFO("The detected target is filtered out, type [%d]", arg_dev_type);
 	}
 
 	net_nfc_release_tag_info((net_nfc_target_info_h)client_target_info);
@@ -518,7 +518,7 @@ API net_nfc_error_e net_nfc_client_tag_is_tag_connected_sync(
 					NULL,
 					&error) == FALSE)
 		{
-			DEBUG_ERR_MSG("Can not get is_tag_connected result: %s",
+			NFC_ERR("Can not get is_tag_connected result: %s",
 					error->message);
 			g_error_free(error);
 
@@ -619,7 +619,7 @@ API net_nfc_error_e net_nfc_client_tag_get_current_tag_info_sync(
 					NULL,
 					&error) == FALSE)
 		{
-			DEBUG_ERR_MSG("Can not get current_tag_info result: %s",
+			NFC_ERR("Can not get current_tag_info result: %s",
 					error->message);
 			g_error_free(error);
 
@@ -641,7 +641,7 @@ API net_nfc_error_e net_nfc_client_tag_get_current_tag_info_sync(
 
 				result = NET_NFC_OK;
 			} else {
-				INFO_MSG("The detected target is filtered out");
+				NFC_INFO("The detected target is filtered out");
 
 				result = NET_NFC_NOT_CONNECTED;
 			}
@@ -721,7 +721,7 @@ API net_nfc_error_e net_nfc_client_tag_get_current_target_handle_sync(
 					NULL,
 					&error) == FALSE)
 		{
-			DEBUG_ERR_MSG("Can not get current_target_handle result: %s",
+			NFC_ERR("Can not get current_target_handle result: %s",
 					error->message);
 			g_error_free(error);
 
@@ -797,7 +797,7 @@ net_nfc_error_e net_nfc_client_tag_init(void)
 
 	if (tag_proxy)
 	{
-		DEBUG_CLIENT_MSG("Alrady initialized");
+		NFC_WARN("Alrady initialized");
 		return NET_NFC_OK;
 	}
 
@@ -819,7 +819,7 @@ net_nfc_error_e net_nfc_client_tag_init(void)
 			&error);
 	if (tag_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not create proxy : %s", error->message);
+		NFC_ERR("Can not create proxy : %s", error->message);
 		g_error_free(error);
 
 		return NET_NFC_UNKNOWN_ERROR;

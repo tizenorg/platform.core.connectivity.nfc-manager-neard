@@ -23,6 +23,8 @@
 #include <libgen.h>
 #include <dlog.h>
 
+#define NFC_DEBUGGING
+
 #define LOG_SERVER_TAG "NET_NFC_MANAGER"
 #define LOG_CLIENT_TAG "NET_NFC_CLIENT"
 
@@ -35,143 +37,68 @@
 #define LOG_COLOR_LIGHTBLUE	"\033[0;37m"
 #define LOG_COLOR_END		"\033[0;m"
 
-#ifndef API
+#ifdef API
+#undef API
+#endif
 #define API __attribute__((visibility("default")))
-#endif
+
+const char* net_nfc_get_log_tag();
+
+#define DBG(fmt, arg...) SLOG(LOG_DEBUG, net_nfc_get_log_tag(), fmt, ##arg)
+#define INFO(fmt, arg...) SLOG(LOG_INFO, net_nfc_get_log_tag(), fmt, ##arg)
+#define WARN(fmt, arg...) SLOG(LOG_WARN, net_nfc_get_log_tag(), fmt, ##arg)
+#define ERR(fmt, arg...) SLOG(LOG_ERROR, net_nfc_get_log_tag(), fmt, ##arg)
 
 
-/* nfc_log_to_file */
-extern FILE *nfc_log_file;
-#define NFC_DLOG_FILE "/opt/usr/share/nfc_debug/nfc_mgr_dlog.txt"
+#ifdef NFC_DEBUGGING
 
-/* tag */
-const char *net_nfc_get_log_tag();
+#define NFC_FN_CALL DBG(">>>>>>>> called")
+#define NFC_FN_END DBG("<<<<<<<< ended")
+#define NFC_DBG(fmt, arg...) DBG(fmt, ##arg)
+#define NFC_WARN(fmt, arg...) WARN(LOG_COLOR_BROWN fmt LOG_COLOR_END, ##arg)
+#define NFC_ERR(fmt, arg...) ERR(LOG_COLOR_RED fmt LOG_COLOR_END, ##arg)
+#define NFC_INFO(fmt, arg...) INFO(LOG_COLOR_BLUE fmt LOG_COLOR_END, ##arg)
+#define NFC_SECURE_DBG(fmt, arg...) \
+	SECURE_SLOG(LOG_DEBUG, net_nfc_get_log_tag(), fmt, ##arg)
+#define NFC_SECURE_ERR(fmt, arg...) \
+	SECURE_SLOG(LOG_ERROR, net_nfc_get_log_tag(), fmt, ##arg)
 
-#define NFC_LOGD(format, arg...) SLOG(LOG_DEBUG, net_nfc_get_log_tag(), format, ##arg)
-#define NFC_LOGI(format, arg...) SLOG(LOG_INFO, net_nfc_get_log_tag(), format, ##arg)
-#define NFC_LOGW(format, arg...) SLOG(LOG_WARN, net_nfc_get_log_tag(), format, ##arg)
-#define NFC_LOGE(format, arg...) SLOG(LOG_ERROR, net_nfc_get_log_tag(), format, ##arg)
+#else /* NFC_DEBUGGING */
 
-#ifndef SECURE_LOGD
-#define SECURE_LOGD NFC_LOGD
-#endif
+#define NFC_FN_CALL
+#define NFC_FN_END
+#define NFC_DBG(fmt, arg...)
+#define NFC_WARN(fmt, arg...)
+#define NFC_ERR(fmt, arg...) ERR(fmt, ##arg)
+#define NFC_INFO(fmt, arg...)
+#define NFC_VERBOSE(fmt, arg...)
+#define NFC_SECURE_DBG(fmt, arg...)
+#define NFC_SECURE_ERR(fmt, arg...) \
+	SECURE_SLOG(LOG_ERROR, net_nfc_get_log_tag(), fmt, ##arg)
+
+#endif /* NFC_DEBUGGING */
+
 
 #define DEBUG_MSG_PRINT_BUFFER(buffer, length) \
 	do { \
 		int i = 0, offset = 0; \
 		char temp_buffer[4096] = { 0, }; \
-		NFC_LOGD(LOG_COLOR_BLUE "BUFFER [%d] = {" LOG_COLOR_END, length); \
+		NFC_INFO("BUFFER [%d] = {", length); \
 		for(; i < length && offset < sizeof(temp_buffer); i++) \
 		{ \
 			offset += snprintf(temp_buffer + offset, sizeof(temp_buffer) - offset, " %02x", buffer[i]); \
 			if (i % 16 == 15) \
 			{ \
-				NFC_LOGD(LOG_COLOR_BLUE "\t%s" LOG_COLOR_END, temp_buffer); \
+				NFC_INFO("\t%s", temp_buffer); \
 				offset = 0; \
 			} \
 		} \
-		NFC_LOGD(LOG_COLOR_BLUE "\t%s" LOG_COLOR_END, temp_buffer); \
-		NFC_LOGD(LOG_COLOR_BLUE "}" LOG_COLOR_END); \
-	} while(0)
-
-#define DEBUG_MSG_PRINT_BUFFER_CHAR(buffer, length) \
-	do { \
-		int i = 0, offset = 0; \
-		char temp_buffer[4096] = { 0, }; \
-		NFC_LOGD(LOG_COLOR_BLUE "BUFFER [%d] = {" LOG_COLOR_END, length); \
-		for(; i < length && offset < sizeof(temp_buffer); i++) \
-		{ \
-			offset += snprintf(temp_buffer + offset, sizeof(temp_buffer) - offset, " %c", buffer[i]); \
-			if (i % 16 == 15) \
-			{ \
-				NFC_LOGD(LOG_COLOR_BLUE "\t%s" LOG_COLOR_END, temp_buffer); \
-				offset = 0; \
-			} \
-		} \
-		NFC_LOGD(LOG_COLOR_BLUE "\t%s" LOG_COLOR_END, temp_buffer); \
-		NFC_LOGD(LOG_COLOR_BLUE "}" LOG_COLOR_END); \
-	} while(0)
-
-#define DEBUG_MSG(format, args...) \
-	do { \
-		NFC_LOGD(format, ##args); \
-		if (nfc_log_file) \
-		{ \
-			char timeBuf[50]; \
-			time_t rawtime;   time (&rawtime);   strftime(timeBuf, sizeof(timeBuf), "%m-%d %H:%M:%S", localtime(&rawtime)); \
-			fprintf(nfc_log_file, "\n%s",timeBuf); \
-			fprintf(nfc_log_file, "[D][%s:%d] "format"",__func__, __LINE__,  ##args); \
-			fflush(nfc_log_file);\
-		}\
-	} while(0)
-
-#define DEBUG_SERVER_MSG(format, args...) \
-	do {\
-		NFC_LOGD(LOG_COLOR_PURPLE format LOG_COLOR_END, ##args);\
-		if (nfc_log_file) \
-		{ \
-			char timeBuf[50]; \
-			time_t rawtime;   time (&rawtime);   strftime(timeBuf, sizeof(timeBuf), "%m-%d %H:%M:%S", localtime(&rawtime)); \
-			fprintf(nfc_log_file, "\n%s",timeBuf); \
-			fprintf(nfc_log_file, "[S][%s:%d] "format"",__func__, __LINE__,  ##args); \
-			fflush(nfc_log_file);\
-		} \
-	} while(0)
-
-#define DEBUG_CLIENT_MSG(format, args...) \
-	do {\
-		NFC_LOGD(LOG_COLOR_CYAN format LOG_COLOR_END, ##args); \
-		if (nfc_log_file) \
-		{ \
-			char timeBuf[50]; \
-			time_t rawtime;   time (&rawtime);   strftime(timeBuf, sizeof(timeBuf), "%m-%d %H:%M:%S", localtime(&rawtime)); \
-			fprintf(nfc_log_file, "\n%s",timeBuf); \
-			fprintf(nfc_log_file, "[C][%s:%d] "format"",__func__, __LINE__,  ##args); \
-			fflush(nfc_log_file);\
-		}\
-	} while(0)
-
-#define DEBUG_ERR_MSG(format, args...) \
-	do {\
-		NFC_LOGD(LOG_COLOR_RED format LOG_COLOR_END, ##args);\
-		if (nfc_log_file) \
-		{ \
-			char timeBuf[50]; \
-			time_t rawtime;   time (&rawtime);   strftime(timeBuf, sizeof(timeBuf), "%m-%d %H:%M:%S", localtime(&rawtime)); \
-			fprintf(nfc_log_file, "\n%s",timeBuf); \
-			fprintf(nfc_log_file, "[E][%s:%d] "format"",__func__, __LINE__,  ##args); \
-			fflush(nfc_log_file);\
-		} \
-	} while(0)
-
-#define INFO_MSG(format, args...) \
-	do {\
-		NFC_LOGI(LOG_COLOR_GREEN format LOG_COLOR_END, ##args);\
-		if (nfc_log_file) \
-		{ \
-			char timeBuf[50]; \
-			time_t rawtime;   time (&rawtime);   strftime(timeBuf, sizeof(timeBuf), "%m-%d %H:%M:%S", localtime(&rawtime)); \
-			fprintf(nfc_log_file, "\n%s",timeBuf); \
-			fprintf(nfc_log_file, "[I][%s:%d] "format"",__func__, __LINE__,  ##args); \
-			fflush(nfc_log_file);\
-		} \
-	} while(0)
-
-#define WARN_MSG(format, args...) \
-	do {\
-		NFC_LOGW(LOG_COLOR_BROWN format LOG_COLOR_END, ##args);\
-		if (nfc_log_file) \
-		{ \
-			char timeBuf[50]; \
-			time_t rawtime;   time (&rawtime);   strftime(timeBuf, sizeof(timeBuf), "%m-%d %H:%M:%S", localtime(&rawtime)); \
-			fprintf(nfc_log_file, "\n%s",timeBuf); \
-			fprintf(nfc_log_file, "[W][%s:%d] "format"",__func__, __LINE__,  ##args); \
-			fflush(nfc_log_file);\
-		} \
+		NFC_INFO("\t%s", temp_buffer); \
+		NFC_INFO("}"); \
 	} while(0)
 
 #define PROFILING(str) \
-	do{ \
+	do { \
 		struct timeval mytime;\
 		char buf[128]; = {0};\
 		memset(buf, 0x00, 128);\
@@ -181,5 +108,35 @@ const char *net_nfc_get_log_tag();
 		NFC_LOGD(str); \
 		NFC_LOGD("\t time = [%s]", time_string);\
 	} while(0)
+
+#define RET_IF(expr) \
+	do { \
+		if (expr) { \
+			NFC_ERR("(%s)", #expr); \
+			return; \
+		}\
+	} while(0)
+#define RETV_IF(expr, val) \
+	do {\
+		if (expr) { \
+			NFC_ERR("(%s)", #expr); \
+			return (val); \
+		} \
+	} while(0)
+#define RETM_IF(expr, fmt, arg...) \
+	do {\
+		if (expr) { \
+			NFC_ERR(fmt, ##arg); \
+			return; \
+		}\
+	} while(0)
+#define RETVM_IF(expr, val, fmt, arg...) \
+	do {\
+		if (expr) { \
+			NFC_ERR(fmt, ##arg); \
+			return (val); \
+		} \
+	} while(0)
+
 
 #endif //__NET_NFC_DEBUG_INTERNAL_H__

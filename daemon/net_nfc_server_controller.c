@@ -32,9 +32,7 @@
 #include "net_nfc_debug_internal.h"
 #include "net_nfc_server_tag.h"
 
-#define NET_NFC_OEM_LIBRARY_PATH "/usr/lib/libnfc-plugin.so"
 #define NET_NFC_DEFAULT_PLUGIN	"libnfc-plugin.so"
-
 
 static net_nfc_oem_interface_s g_interface;
 
@@ -50,22 +48,22 @@ static void *net_nfc_controller_load_file(const char *dir_path,
 	bool (*onload)(net_nfc_oem_interface_s *interfaces);
 
 	snprintf(path, PATH_MAX, "%s/%s", dir_path, filename);
-	DEBUG_SERVER_MSG("path : %s", path);
+	NFC_DBG("path : %s", path);
 
 	if (stat(path, &st) == -1) {
-		DEBUG_ERR_MSG("stat failed : file not found");
+		NFC_ERR("stat failed : file not found");
 		goto ERROR;
 	}
 
 	if (S_ISREG(st.st_mode) == 0) {
-		DEBUG_ERR_MSG("S_ISREG(st.st_mode) == 0");
+		NFC_ERR("S_ISREG(st.st_mode) == 0");
 		goto ERROR;
 	}
 
 	handle = dlopen(path, RTLD_LAZY);
 	if (handle == NULL) {
 		char buffer[1024];
-		DEBUG_ERR_MSG("dlopen failed, [%d] : %s",
+		NFC_ERR("dlopen failed, [%d] : %s",
 				errno, strerror_r(errno, buffer, sizeof(buffer)));
 		goto ERROR;
 	}
@@ -73,19 +71,19 @@ static void *net_nfc_controller_load_file(const char *dir_path,
 	onload = dlsym(handle, "onload");
 	if (onload == NULL) {
 		char buffer[1024];
-		DEBUG_ERR_MSG("dlsym failed, [%d] : %s",
+		NFC_ERR("dlsym failed, [%d] : %s",
 				errno, strerror_r(errno, buffer, sizeof(buffer)));
 		goto ERROR;
 	}
 
 	memset(&g_interface, 0, sizeof(g_interface));
 	if (onload(&g_interface) == false) {
-		DEBUG_ERR_MSG("onload failed");
+		NFC_ERR("onload failed");
 		goto ERROR;
 	}
 
 	if (net_nfc_controller_support_nfc(&result) == false) {
-		DEBUG_ERR_MSG("net_nfc_controller_support_nfc failed, [%d]",
+		NFC_ERR("net_nfc_controller_support_nfc failed, [%d]",
 				result);
 		goto ERROR;
 	}
@@ -110,7 +108,7 @@ void *net_nfc_controller_onload()
 	dirp = opendir(NFC_MANAGER_MODULEDIR);
 	if (dirp == NULL)
 	{
-		DEBUG_ERR_MSG("Can not open directory %s", NFC_MANAGER_MODULEDIR);
+		NFC_ERR("Can not open directory %s", NFC_MANAGER_MODULEDIR);
 		return NULL;
 	}
 
@@ -147,12 +145,12 @@ void *net_nfc_controller_onload()
 
 	if (handle)
 	{
-		DEBUG_SERVER_MSG("loaded default plugin : %s", NET_NFC_DEFAULT_PLUGIN);
+		NFC_DBG("loaded default plugin : %s", NET_NFC_DEFAULT_PLUGIN);
 		return handle;
 	}
 	else
 	{
-		DEBUG_ERR_MSG("can not load default plugin : %s", NET_NFC_DEFAULT_PLUGIN);
+		NFC_ERR("can not load default plugin : %s", NET_NFC_DEFAULT_PLUGIN);
 		return NULL;
 	}
 }
@@ -177,8 +175,8 @@ bool net_nfc_controller_init(net_nfc_error_e *result)
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -191,7 +189,7 @@ bool net_nfc_controller_deinit(void)
 	}
 	else
 	{
-		DEBUG_SERVER_MSG("interface is null");
+		NFC_ERR("interface is null");
 		return false;
 	}
 }
@@ -208,8 +206,8 @@ bool net_nfc_controller_register_listener(
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -222,7 +220,7 @@ bool net_nfc_controller_unregister_listener()
 	}
 	else
 	{
-		DEBUG_SERVER_MSG("interface is null");
+		NFC_ERR("interface is null");
 		return false;
 	}
 }
@@ -236,8 +234,8 @@ bool net_nfc_controller_get_firmware_version(data_s **data,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -250,8 +248,8 @@ bool net_nfc_controller_check_firmware_version(net_nfc_error_e *result)
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -264,8 +262,8 @@ bool net_nfc_controller_update_firmware(net_nfc_error_e *result)
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -279,8 +277,8 @@ bool net_nfc_controller_get_stack_information(
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -294,8 +292,8 @@ bool net_nfc_controller_configure_discovery(net_nfc_discovery_mode_e mode,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -311,8 +309,8 @@ bool net_nfc_controller_get_secure_element_list(
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -328,8 +326,8 @@ bool net_nfc_controller_set_secure_element_mode(
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -343,7 +341,7 @@ bool net_nfc_controller_secure_element_open(
 
 	ret_val = pm_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
 
-	DEBUG_SERVER_MSG("pm_lock_state [%d]!!", ret_val);
+	NFC_DBG("pm_lock_state [%d]!!", ret_val);
 
 	if (g_interface.secure_element_open != NULL)
 	{
@@ -351,8 +349,8 @@ bool net_nfc_controller_secure_element_open(
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -366,8 +364,8 @@ bool net_nfc_controller_secure_element_get_atr(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -384,8 +382,8 @@ bool net_nfc_controller_secure_element_send_apdu(
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -396,7 +394,7 @@ bool net_nfc_controller_secure_element_close(net_nfc_target_handle_s *handle,
 	int ret_val = 0;
 
 	ret_val = pm_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
-	DEBUG_SERVER_MSG("pm_unlock_state [%d]!!", ret_val);
+	NFC_DBG("pm_unlock_state [%d]!!", ret_val);
 
 	if (g_interface.secure_element_close != NULL)
 	{
@@ -404,8 +402,8 @@ bool net_nfc_controller_secure_element_close(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -419,8 +417,8 @@ bool net_nfc_controller_check_target_presence(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -432,7 +430,7 @@ bool net_nfc_controller_connect(net_nfc_target_handle_s *handle,
 
 	ret_val = pm_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
 
-	DEBUG_SERVER_MSG("net_nfc_controller_connect pm_lock_state [%d]!!", ret_val);
+	NFC_DBG("net_nfc_controller_connect pm_lock_state [%d]!!", ret_val);
 
 	if (g_interface.connect != NULL)
 	{
@@ -440,8 +438,8 @@ bool net_nfc_controller_connect(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -453,7 +451,7 @@ bool net_nfc_controller_disconnect(net_nfc_target_handle_s *handle,
 
 	ret_val = pm_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
 
-	DEBUG_ERR_MSG("net_nfc_controller_disconnect pm_lock_state [%d]!!", ret_val);
+	NFC_ERR("net_nfc_controller_disconnect pm_lock_state [%d]!!", ret_val);
 
 	if (g_interface.disconnect != NULL)
 	{
@@ -463,8 +461,8 @@ bool net_nfc_controller_disconnect(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -482,8 +480,8 @@ bool net_nfc_controller_check_ndef(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -497,8 +495,8 @@ bool net_nfc_controller_read_ndef(net_nfc_target_handle_s *handle, data_s **data
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -512,8 +510,8 @@ bool net_nfc_controller_write_ndef(net_nfc_target_handle_s *handle, data_s *data
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -527,8 +525,8 @@ bool net_nfc_controller_make_read_only_ndef(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -542,8 +540,8 @@ bool net_nfc_controller_format_ndef(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -557,8 +555,8 @@ bool net_nfc_controller_transceive(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -571,7 +569,7 @@ bool net_nfc_controller_exception_handler()
 	}
 	else
 	{
-		DEBUG_SERVER_MSG("interface is null");
+		NFC_ERR("interface is null");
 		return false;
 	}
 }
@@ -584,8 +582,8 @@ bool net_nfc_controller_is_ready(net_nfc_error_e *result)
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -599,8 +597,8 @@ bool net_nfc_controller_llcp_config(net_nfc_llcp_config_info_s *config,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -613,8 +611,8 @@ bool net_nfc_controller_llcp_check_llcp(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -627,8 +625,8 @@ bool net_nfc_controller_llcp_activate_llcp(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -720,7 +718,7 @@ bool net_nfc_controller_llcp_create_socket(net_nfc_llcp_socket_t *socket,
 
 		info = _add_socket_info(-1);
 		if (info == NULL) {
-			DEBUG_ERR_MSG("_net_nfc_util_alloc_mem failed");
+			NFC_ERR("_net_nfc_util_alloc_mem failed");
 			*result = NET_NFC_ALLOC_FAIL;
 			return false;
 		}
@@ -738,8 +736,8 @@ bool net_nfc_controller_llcp_create_socket(net_nfc_llcp_socket_t *socket,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -753,8 +751,8 @@ bool net_nfc_controller_llcp_bind(net_nfc_llcp_socket_t socket,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -771,7 +769,7 @@ void net_nfc_controller_llcp_incoming_cb(net_nfc_llcp_socket_t socket,
 				info->work_cb(socket, result, NULL, NULL, info->work_param);
 			}
 		} else {
-			DEBUG_ERR_MSG("_net_nfc_util_alloc_mem failed");
+			NFC_ERR("_net_nfc_util_alloc_mem failed");
 		}
 	}
 }
@@ -789,7 +787,7 @@ bool net_nfc_controller_llcp_listen(net_nfc_target_handle_s* handle,
 
 		info = _get_socket_info(socket);
 		if (info == NULL) {
-			DEBUG_ERR_MSG("_get_socket_info failed");
+			NFC_ERR("_get_socket_info failed");
 			*result = NET_NFC_INVALID_HANDLE;
 			return false;
 		}
@@ -802,8 +800,8 @@ bool net_nfc_controller_llcp_listen(net_nfc_target_handle_s* handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -817,7 +815,7 @@ bool net_nfc_controller_llcp_accept(net_nfc_llcp_socket_t socket,
 
 		info = _get_socket_info(socket);
 		if (info == NULL) {
-			DEBUG_ERR_MSG("_get_socket_info failed");
+			NFC_ERR("_get_socket_info failed");
 			*result = NET_NFC_INVALID_HANDLE;
 			return false;
 		}
@@ -829,8 +827,8 @@ bool net_nfc_controller_llcp_accept(net_nfc_llcp_socket_t socket,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -851,8 +849,8 @@ bool net_nfc_controller_llcp_reject(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -883,7 +881,7 @@ bool net_nfc_controller_llcp_connect_by_url(net_nfc_target_handle_s *handle,
 
 	ret_val = pm_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
 
-	DEBUG_SERVER_MSG("pm_lock_state[%d]!!", ret_val);
+	NFC_DBG("pm_lock_state[%d]!!", ret_val);
 
 	if (g_interface.connect_llcp_by_url != NULL)
 	{
@@ -891,7 +889,7 @@ bool net_nfc_controller_llcp_connect_by_url(net_nfc_target_handle_s *handle,
 
 		_net_nfc_util_alloc_mem(param, sizeof(*param));
 		if (param == NULL) {
-			DEBUG_ERR_MSG("_net_nfc_util_alloc_mem failed");
+			NFC_ERR("_net_nfc_util_alloc_mem failed");
 			*result = NET_NFC_ALLOC_FAIL;
 			return false;
 		}
@@ -905,8 +903,8 @@ bool net_nfc_controller_llcp_connect_by_url(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -922,7 +920,7 @@ bool net_nfc_controller_llcp_connect(net_nfc_target_handle_s *handle,
 
 	ret_val = pm_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
 
-	DEBUG_SERVER_MSG("net_nfc_controller_llcp_connect pm_lock_state [%d]!!", ret_val);
+	NFC_DBG("net_nfc_controller_llcp_connect pm_lock_state [%d]!!", ret_val);
 
 	if (g_interface.connect_llcp != NULL)
 	{
@@ -930,7 +928,7 @@ bool net_nfc_controller_llcp_connect(net_nfc_target_handle_s *handle,
 
 		_net_nfc_util_alloc_mem(param, sizeof(*param));
 		if (param == NULL) {
-			DEBUG_ERR_MSG("_net_nfc_util_alloc_mem failed");
+			NFC_ERR("_net_nfc_util_alloc_mem failed");
 			*result = NET_NFC_ALLOC_FAIL;
 			return false;
 		}
@@ -943,8 +941,8 @@ bool net_nfc_controller_llcp_connect(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -974,7 +972,7 @@ bool net_nfc_controller_llcp_disconnect(net_nfc_target_handle_s *handle,
 
 	ret_val = pm_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
 
-	DEBUG_SERVER_MSG("net_nfc_controller_llcp_disconnect pm_unlock_state [%d]!!", ret_val);
+	NFC_DBG("net_nfc_controller_llcp_disconnect pm_unlock_state [%d]!!", ret_val);
 
 	if (g_interface.disconnect_llcp != NULL)
 	{
@@ -982,7 +980,7 @@ bool net_nfc_controller_llcp_disconnect(net_nfc_target_handle_s *handle,
 
 		_net_nfc_util_alloc_mem(param, sizeof(net_nfc_llcp_param_t));
 		if (param == NULL) {
-			DEBUG_ERR_MSG("_net_nfc_util_alloc_mem failed");
+			NFC_ERR("_net_nfc_util_alloc_mem failed");
 			*result = NET_NFC_ALLOC_FAIL;
 			return false;
 		}
@@ -995,8 +993,8 @@ bool net_nfc_controller_llcp_disconnect(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -1010,8 +1008,8 @@ bool net_nfc_controller_llcp_socket_close(net_nfc_llcp_socket_t socket,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -1047,7 +1045,7 @@ bool net_nfc_controller_llcp_recv(net_nfc_target_handle_s *handle,
 
 		_net_nfc_util_alloc_mem(param, sizeof(*param));
 		if (param == NULL) {
-			DEBUG_ERR_MSG("_net_nfc_util_alloc_mem failed");
+			NFC_ERR("_net_nfc_util_alloc_mem failed");
 			*result = NET_NFC_ALLOC_FAIL;
 			return false;
 		}
@@ -1057,7 +1055,7 @@ bool net_nfc_controller_llcp_recv(net_nfc_target_handle_s *handle,
 		if (max_len > 0) {
 			_net_nfc_util_alloc_mem(param->data.buffer, max_len);
 			if (param->data.buffer == NULL) {
-				DEBUG_ERR_MSG("_net_nfc_util_alloc_mem failed");
+				NFC_ERR("_net_nfc_util_alloc_mem failed");
 				_net_nfc_util_free_mem(param);
 				*result = NET_NFC_ALLOC_FAIL;
 				return false;
@@ -1070,8 +1068,8 @@ bool net_nfc_controller_llcp_recv(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -1104,7 +1102,7 @@ bool net_nfc_controller_llcp_send(net_nfc_target_handle_s *handle,
 
 		_net_nfc_util_alloc_mem(param, sizeof(*param));
 		if (param == NULL) {
-			DEBUG_ERR_MSG("_net_nfc_util_alloc_mem failed");
+			NFC_ERR("_net_nfc_util_alloc_mem failed");
 			*result = NET_NFC_ALLOC_FAIL;
 			return false;
 		}
@@ -1117,8 +1115,8 @@ bool net_nfc_controller_llcp_send(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -1135,7 +1133,7 @@ bool net_nfc_controller_llcp_recv_from(net_nfc_target_handle_s *handle,
 
 		_net_nfc_util_alloc_mem(param, sizeof(*param));
 		if (param == NULL) {
-			DEBUG_ERR_MSG("_net_nfc_util_alloc_mem failed");
+			NFC_ERR("_net_nfc_util_alloc_mem failed");
 			*result = NET_NFC_ALLOC_FAIL;
 			return false;
 		}
@@ -1145,7 +1143,7 @@ bool net_nfc_controller_llcp_recv_from(net_nfc_target_handle_s *handle,
 		if (max_len > 0) {
 			_net_nfc_util_alloc_mem(param->data.buffer, max_len);
 			if (param->data.buffer == NULL) {
-				DEBUG_ERR_MSG("_net_nfc_util_alloc_mem failed");
+				NFC_ERR("_net_nfc_util_alloc_mem failed");
 				_net_nfc_util_free_mem(param);
 				*result = NET_NFC_ALLOC_FAIL;
 				return false;
@@ -1158,8 +1156,8 @@ bool net_nfc_controller_llcp_recv_from(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -1177,7 +1175,7 @@ bool net_nfc_controller_llcp_send_to(net_nfc_target_handle_s *handle,
 
 		_net_nfc_util_alloc_mem(param, sizeof(*param));
 		if (param == NULL) {
-			DEBUG_ERR_MSG("_net_nfc_util_alloc_mem failed");
+			NFC_ERR("_net_nfc_util_alloc_mem failed");
 			*result = NET_NFC_ALLOC_FAIL;
 			return false;
 		}
@@ -1191,8 +1189,8 @@ bool net_nfc_controller_llcp_send_to(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -1206,8 +1204,8 @@ bool net_nfc_controller_llcp_get_remote_config(net_nfc_target_handle_s *handle,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -1223,8 +1221,8 @@ bool net_nfc_controller_llcp_get_remote_socket_info(
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 
@@ -1238,8 +1236,8 @@ bool net_nfc_controller_sim_test(net_nfc_error_e *result)
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -1253,8 +1251,8 @@ bool net_nfc_controller_prbs_test(net_nfc_error_e *result, uint32_t tech,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -1267,8 +1265,8 @@ bool net_nfc_controller_test_mode_on(net_nfc_error_e *result)
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -1281,8 +1279,8 @@ bool net_nfc_controller_test_mode_off(net_nfc_error_e *result)
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -1295,8 +1293,8 @@ bool net_nfc_controller_support_nfc(net_nfc_error_e *result)
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }
@@ -1310,8 +1308,8 @@ bool net_nfc_controller_eedata_register_set(net_nfc_error_e *result,
 	}
 	else
 	{
+		NFC_ERR("interface is null");
 		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		DEBUG_SERVER_MSG("interface is null");
 		return false;
 	}
 }

@@ -74,7 +74,7 @@ int _net_nfc_handover_bss_convert_security_type(int value)
 		retval = WIFI_SECURITY_TYPE_WPA_PSK;
 		break;
 	default:
-		DEBUG_ERR_MSG("Invalid security Type");
+		NFC_ERR("Invalid security Type");
 		retval = 0;
 	}
 	return retval;
@@ -101,14 +101,13 @@ int _net_nfc_handover_bss_convert_encryption_type (int enc_type)
 		retval = WIFI_ENCRYPTION_TYPE_TKIP_AES_MIXED;
 		break;
 	default:
-		DEBUG_ERR_MSG("Invalid Encryption type");
+		NFC_ERR("Invalid Encryption type");
 		retval = 0;
 	}
 	return retval;
 }
 
-wifi_ap_h
-_net_nfc_handover_bss_create_ap(net_nfc_carrier_config_s *config)
+wifi_ap_h _net_nfc_handover_bss_create_ap(net_nfc_carrier_config_s *config)
 {
 	wifi_ap_h ap_handle = NULL;
 	data_s temp = { NULL, 0 };
@@ -117,11 +116,11 @@ _net_nfc_handover_bss_create_ap(net_nfc_carrier_config_s *config)
 	// Sets SSID
 	err = net_nfc_util_get_carrier_config_property(config,
 			NET_NFC_WIFI_ATTRIBUTE_SSID,(uint16_t *)&temp.length, &temp.buffer);
-	DEBUG_SERVER_MSG("SSID = [%s] err %d",temp.buffer, err);
+	NFC_DBG("SSID = [%s] err %d",temp.buffer, err);
 	err = wifi_ap_create((char*)temp.buffer, &ap_handle);
 	if(err != WIFI_ERROR_NONE)
 	{
-		DEBUG_ERR_MSG("Failed to create AP information %d",err);
+		NFC_ERR("Failed to create AP information %d",err);
 		goto error;
 	}
 
@@ -131,18 +130,18 @@ _net_nfc_handover_bss_create_ap(net_nfc_carrier_config_s *config)
 	if(temp.length == 2)
 	{
 		uint16_t securitytype = temp.buffer[0] <<8 | temp.buffer[1];
-		DEBUG_MSG("wifi_ap_set_security_type %x", securitytype);
+		NFC_DBG("wifi_ap_set_security_type %x", securitytype);
 		err = wifi_ap_set_security_type(ap_handle,
 				_net_nfc_handover_bss_convert_security_type(securitytype));
 		if(err != WIFI_ERROR_NONE)
 		{
-			DEBUG_ERR_MSG("set security type failed");
+			NFC_ERR("set security type failed");
 			goto error;
 		}
 	}
 	else
 	{
-		DEBUG_ERR_MSG("Invalid authentication length");
+		NFC_ERR("Invalid authentication length");
 		goto error;
 	}
 	net_nfc_util_get_carrier_config_property(config,
@@ -152,7 +151,7 @@ _net_nfc_handover_bss_create_ap(net_nfc_carrier_config_s *config)
 	err = wifi_ap_set_passphrase(ap_handle,(char*)temp.buffer);
 	if(err != WIFI_ERROR_NONE)
 	{
-		DEBUG_ERR_MSG("Failed to set passphrase");
+		NFC_ERR("Failed to set passphrase");
 		goto error;
 	}
 	// Sets encryption Type
@@ -161,13 +160,13 @@ _net_nfc_handover_bss_create_ap(net_nfc_carrier_config_s *config)
 	if(temp.length == 2)
 	{
 		uint16_t enc_type = temp.buffer[0] <<8 | temp.buffer[1];
-		DEBUG_MSG("wifi_ap_set_encryption_type %x", enc_type);
+		NFC_DBG("wifi_ap_set_encryption_type %x", enc_type);
 		err = wifi_ap_set_encryption_type(ap_handle,
 				_net_nfc_handover_bss_convert_encryption_type(enc_type));
 	}
 	else
 	{
-		DEBUG_ERR_MSG("Invalid Encryption length");
+		NFC_ERR("Invalid Encryption length");
 		goto error;
 	}
 	return ap_handle;
@@ -179,29 +178,28 @@ error:
 	return NULL;
 }
 
-void
-_net_nfc_handover_bss_on_wifi_activated(wifi_error_e errorCode, void* user_data)
+void _net_nfc_handover_bss_on_wifi_activated(wifi_error_e errorCode,
+	void* user_data)
 {
 	net_nfc_handover_bss_process_context_t *context = user_data;
 	if(context == NULL)
 	{
-		DEBUG_ERR_MSG("Invalid context");
+		NFC_ERR("Invalid context");
 		return;
 	}
 	if (errorCode == WIFI_ERROR_NONE)
 	{
-		DEBUG_ERR_MSG("WIFI activated succesfully");
+		NFC_ERR("WIFI activated succesfully");
 		context->result = NET_NFC_OK;
 	}
 	else
 	{
-		DEBUG_ERR_MSG("Failed to activate WIFI");
+		NFC_ERR("Failed to activate WIFI");
 		context->result = NET_NFC_OPERATION_FAIL;
 	}
 }
 
-bool
-_net_nfc_handover_bss_wifi_for_each_access_point_found(
+bool _net_nfc_handover_bss_wifi_for_each_access_point_found(
 		wifi_ap_h ap_handle, void *user_data)
 {
 	data_s temp_ssid = { NULL, 0 };
@@ -211,7 +209,7 @@ _net_nfc_handover_bss_wifi_for_each_access_point_found(
 
 	if(context == NULL)
 	{
-		DEBUG_ERR_MSG("Invalid context");
+		NFC_ERR("Invalid context");
 		return false;
 	}
 
@@ -222,16 +220,15 @@ _net_nfc_handover_bss_wifi_for_each_access_point_found(
 
 	if(err != WIFI_ERROR_NONE)
 	{
-		DEBUG_ERR_MSG("Wifi get carrier config failed");
+		NFC_ERR("Wifi get carrier config failed");
 		context->result = NET_NFC_OPERATION_FAIL;
 		context->step = NET_NFC_LLCP_STEP_RETURN;
-		g_idle_add(_net_nfc_handover_bss_process_carrier_record,
-				context);
+		g_idle_add(_net_nfc_handover_bss_process_carrier_record, context);
 		return false;
 	}
 
 	wifi_ap_get_essid(ap_handle, &essid);
-	DEBUG_MSG("Scan Result Ap essid [%s]",essid);
+	NFC_DBG("Scan Result Ap essid [%s]",essid);
 	if(memcmp(temp_ssid.buffer, essid,temp_ssid.length) == 0)
 	{
 		return false;
@@ -244,21 +241,20 @@ _net_nfc_handover_bss_wifi_for_each_access_point_found(
 	return true;
 }
 
-void
-_net_nfc_handover_bss_on_wifi_bgscan_completed(wifi_error_e error_code,
-		void* user_data)
+void _net_nfc_handover_bss_on_wifi_bgscan_completed(
+		wifi_error_e error_code, void* user_data)
 {
 
 	net_nfc_handover_bss_process_context_t *context = user_data;
 
 	if(context == NULL)
 	{
-		DEBUG_ERR_MSG("Invalid context");
+		NFC_ERR("Invalid context");
 		return;
 	}
 	if(error_code != WIFI_ERROR_NONE)
 	{
-		DEBUG_ERR_MSG("Wifi scan failed");
+		NFC_ERR("Wifi scan failed");
 		context->result = NET_NFC_OPERATION_FAIL;
 		context->step = NET_NFC_LLCP_STEP_RETURN;
 		g_idle_add(
@@ -273,8 +269,7 @@ _net_nfc_handover_bss_on_wifi_bgscan_completed(wifi_error_e error_code,
 	}
 }
 
-void
-_net_nfc_handover_bss_on_wifi_scan_completed(wifi_error_e error_code,
+void _net_nfc_handover_bss_on_wifi_scan_completed(wifi_error_e error_code,
 		void* user_data)
 {
 	int err = WIFI_ERROR_NONE;
@@ -282,7 +277,7 @@ _net_nfc_handover_bss_on_wifi_scan_completed(wifi_error_e error_code,
 
 	if(error_code != WIFI_ERROR_NONE)
 	{
-		DEBUG_ERR_MSG("Wifi scan failed");
+		NFC_ERR("Wifi scan failed");
 		context->result = NET_NFC_OPERATION_FAIL;
 		context->step = NET_NFC_LLCP_STEP_RETURN;
 		g_idle_add(
@@ -299,13 +294,10 @@ _net_nfc_handover_bss_on_wifi_scan_completed(wifi_error_e error_code,
 				context);
 		if(err != WIFI_ERROR_NONE)
 		{
-			DEBUG_ERR_MSG("wifi_foreach_found_aps failed Err[%x]",err);
+			NFC_ERR("wifi_foreach_found_aps failed Err[%x]",err);
 			context->result = NET_NFC_OPERATION_FAIL;
 			context->step = NET_NFC_LLCP_STEP_RETURN;
-			g_idle_add(
-					_net_nfc_handover_bss_process_carrier_record,
-					context);
-
+			g_idle_add(_net_nfc_handover_bss_process_carrier_record, context);
 		}
 		if(context->ap_handle == NULL)
 		{
@@ -315,9 +307,9 @@ _net_nfc_handover_bss_on_wifi_scan_completed(wifi_error_e error_code,
 			context->ap_handle = _net_nfc_handover_bss_create_ap(
 					context->config);
 			wifi_ap_get_encryption_type(context->ap_handle, &enc_type);
-			DEBUG_MSG("Encryption type %x",enc_type);
+			NFC_DBG("Encryption type %x",enc_type);
 			wifi_ap_get_security_type(context->ap_handle, &sec_type);
-			DEBUG_MSG("Authentication type %x", sec_type);
+			NFC_DBG("Authentication type %x", sec_type);
 		}
 		else
 		{
@@ -329,68 +321,62 @@ _net_nfc_handover_bss_on_wifi_scan_completed(wifi_error_e error_code,
 					NET_NFC_WIFI_ATTRIBUTE_NET_KEY,(uint16_t *)&temp.length,
 					&temp.buffer);
 
-			DEBUG_ERR_MSG("Network Key %s",temp.buffer);
+			NFC_ERR("Network Key %s",temp.buffer);
 			// Sets Network Key
 			err = wifi_ap_set_passphrase(context->ap_handle,(char*)temp.buffer);
 
 			wifi_ap_get_encryption_type(context->ap_handle, &enc_type);
-			DEBUG_MSG("Encryption type %x",enc_type);
+			NFC_DBG("Encryption type %x",enc_type);
 			wifi_ap_get_security_type(context->ap_handle, &sec_type);
-			DEBUG_MSG("Authentication type %x", sec_type);
+			NFC_DBG("Authentication type %x", sec_type);
 		}
 		context->step = NET_NFC_LLCP_STEP_03;
-		g_idle_add(
-				_net_nfc_handover_bss_process_carrier_record,
-				context);
+		g_idle_add(_net_nfc_handover_bss_process_carrier_record, context);
 
 	}
 
 }
 
-void
-_net_nfc_handover_bss_on_wifi_connected(wifi_error_e error_code, void* user_data)
+void _net_nfc_handover_bss_on_wifi_connected(wifi_error_e error_code, void* user_data)
 {
 	net_nfc_handover_bss_process_context_t *context = user_data;
 
 	if(context == NULL)
 	{
-		DEBUG_ERR_MSG("Invalid context");
+		NFC_ERR("Invalid context");
 		return;
 	}
 
 	if(error_code == WIFI_ERROR_NONE)
 	{
-		DEBUG_ERR_MSG("WIFI Connected succesfully");
+		NFC_ERR("WIFI Connected succesfully");
 		context->result = NET_NFC_OK;
 	}
 	else
 	{
-		DEBUG_ERR_MSG("Failed to connect WIFI");
+		NFC_ERR("Failed to connect WIFI");
 		context->result = NET_NFC_OPERATION_FAIL;
 	}
 	context->step = NET_NFC_LLCP_STEP_RETURN;
-	g_idle_add(
-			_net_nfc_handover_bss_process_carrier_record,
-			context);
+	g_idle_add(_net_nfc_handover_bss_process_carrier_record,context);
 }
 
-static gboolean _net_nfc_handover_bss_process_carrier_record(
-		gpointer user_data)
+static gboolean _net_nfc_handover_bss_process_carrier_record(gpointer user_data)
 {
-	LOGD("[%s:%d] START", __func__, __LINE__);
+	NFC_DBG("[%s:%d] START", __func__, __LINE__);
 
 	net_nfc_handover_bss_process_context_t *context = user_data;
 
 	if(context == NULL)
 	{
-		DEBUG_ERR_MSG("Invalid context");
-		DEBUG_ERR_MSG("Handover Failed");
-		return 0;
+		NFC_ERR("Invalid context");
+		NFC_ERR("Handover Failed");
+		return FALSE;
 	}
 
 	if (context->result != NET_NFC_OK && context->result != NET_NFC_BUSY)
 	{
-		DEBUG_ERR_MSG("context->result is error [%d]", context->result);
+		NFC_ERR("context->result is error [%d]", context->result);
 		context->step = NET_NFC_LLCP_STEP_RETURN;
 	}
 
@@ -399,7 +385,7 @@ static gboolean _net_nfc_handover_bss_process_carrier_record(
 	case NET_NFC_LLCP_STEP_01:
 		{
 			int err = WIFI_ERROR_NONE;
-			DEBUG_MSG("STEP [1]");
+			NFC_DBG("STEP [1]");
 			err = wifi_initialize();
 			/* WIFI returns WIFI_ERROR_INVALID_OPERATION in case already
 			 *  initialized*/
@@ -421,21 +407,18 @@ static gboolean _net_nfc_handover_bss_process_carrier_record(
 				else
 				{
 					/* do next step */
-					DEBUG_MSG("Wifi is enabled already, go next step");
+					NFC_DBG("Wifi is enabled already, go next step");
 					context->result = NET_NFC_OK;
 					context->step = NET_NFC_LLCP_STEP_02;
-					g_idle_add(_net_nfc_handover_bss_process_carrier_record,
-							context);
+					g_idle_add(_net_nfc_handover_bss_process_carrier_record, context);
 				}
 			}
 			else
 			{
-				DEBUG_ERR_MSG("Wifi init failed");
+				NFC_ERR("Wifi init failed");
 				context->result = NET_NFC_OPERATION_FAIL;
 				context->step = NET_NFC_LLCP_STEP_RETURN;
-				g_idle_add(
-						_net_nfc_handover_bss_process_carrier_record,
-						context);
+				g_idle_add(_net_nfc_handover_bss_process_carrier_record, context);
 			}
 		}
 		break;
@@ -444,48 +427,44 @@ static gboolean _net_nfc_handover_bss_process_carrier_record(
 		{
 
 			int err = WIFI_ERROR_NONE;
-			DEBUG_MSG("STEP [2]");
+			NFC_DBG("STEP [2]");
 			err = wifi_scan(_net_nfc_handover_bss_on_wifi_scan_completed,
 					context);
 			if(err != WIFI_ERROR_NONE)
 			{
-				DEBUG_ERR_MSG("Wifi scan failed");
+				NFC_ERR("Wifi scan failed");
 				context->result = NET_NFC_OPERATION_FAIL;
 				context->step = NET_NFC_LLCP_STEP_RETURN;
-				g_idle_add(
-						_net_nfc_handover_bss_process_carrier_record,
-						context);
+				g_idle_add(_net_nfc_handover_bss_process_carrier_record, context);
 			}
 		}
 
 		break;
 	case NET_NFC_LLCP_STEP_03 :
 		{
-			DEBUG_MSG("Connect with WIFI");
+			NFC_DBG("Connect with WIFI");
 			int err = wifi_connect(context->ap_handle,
 					_net_nfc_handover_bss_on_wifi_connected, context);
-			DEBUG_MSG("Connect with WIFI err [%x]",err);
+			NFC_DBG("Connect with WIFI err [%x]",err);
 			if(err != WIFI_ERROR_NONE)
 			{
-				DEBUG_ERR_MSG("Wifi Connect failed");
+				NFC_ERR("Wifi Connect failed");
 				context->result = NET_NFC_OPERATION_FAIL;
 				context->step = NET_NFC_LLCP_STEP_RETURN;
-				g_idle_add(
-						_net_nfc_handover_bss_process_carrier_record,
-						context);
+				g_idle_add(_net_nfc_handover_bss_process_carrier_record, context);
 			}
 		}
 		break;
 	case NET_NFC_LLCP_STEP_RETURN :
 		{
-			DEBUG_MSG("STEP return");
+			NFC_DBG("STEP return");
 			if(context->result == NET_NFC_OK)
 			{
-				DEBUG_MSG("Handover completed succesfully");
+				NFC_DBG("Handover completed succesfully");
 			}
 			else
 			{
-				DEBUG_ERR_MSG("Handover Failed");
+				NFC_ERR("Handover Failed");
 			}
 			wifi_deinitialize();
 			context->cb(context->result,
@@ -521,9 +500,7 @@ net_nfc_error_e net_nfc_server_handover_bss_process_carrier_record(
 		net_nfc_util_create_record(record->TNF, &record->type_s,
 				&record->id_s, &record->payload_s, &context->carrier);
 
-		g_idle_add(
-				_net_nfc_handover_bss_process_carrier_record,
-				context);
+		g_idle_add(_net_nfc_handover_bss_process_carrier_record, context);
 	}
 	else
 	{
@@ -540,11 +517,11 @@ _net_nfc_wifi_direct_power_changed(int err, wifi_direct_device_state_e device_st
 	if(device_state == WIFI_DIRECT_DEVICE_STATE_ACTIVATED && err == WIFI_DIRECT_ERROR_NONE)
 	{
 		int err = wifi_direct_start_discovery(true, 0);
-		DEBUG_MSG("wifi direct is enabled %d",err);
+		NFC_DBG("wifi direct is enabled %d",err);
 	}
 	else
 	{
-		DEBUG_ERR_MSG("wifi direct power state error");
+		NFC_ERR("wifi direct power state error");
 		net_nfc_handover_bss_create_context_t* context =
 			(net_nfc_handover_bss_create_context_t*)user_data;
 
@@ -571,7 +548,7 @@ _net_nfc_wifi_scan_completed_cb(int err, wifi_direct_discovery_state_e discovery
 	}
 	else
 	{
-		DEBUG_ERR_MSG("wifi scan error");
+		NFC_ERR("wifi scan error");
 		context->step = NET_NFC_LLCP_STEP_RETURN;
 		context->result = NET_NFC_OPERATION_FAIL;
 		g_idle_add((GSourceFunc)
@@ -600,7 +577,7 @@ _net_nfc_wifi_direct_connection_changed(wifi_direct_error_e error_code,
 	}
 	else
 	{
-		DEBUG_ERR_MSG("_net_nfc_wifi_direct_connection_changed failed"
+		NFC_ERR("_net_nfc_wifi_direct_connection_changed failed"
 				"[%d] [%d]",error_code,connection_state);
 
 		context->step = NET_NFC_LLCP_STEP_RETURN;
@@ -621,12 +598,12 @@ static net_nfc_error_e _net_nfc_handover_bss_create_carrier_record(
 	if ((result = net_nfc_util_create_handover_carrier_record(
 					record)) == NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("net_nfc_util_create_ndef_record"
+		NFC_ERR("net_nfc_util_create_ndef_record"
 				"_with_carrier_config [%d]",result);
 	}
 	else
 	{
-		DEBUG_ERR_MSG("net_nfc_util_create_carrier_config failed "
+		NFC_ERR("net_nfc_util_create_carrier_config failed "
 				"[%d]", result);
 	}
 
@@ -644,7 +621,7 @@ static int _net_nfc_handover_getpassword(uint8_t** password )
 	ret_val = system("wpa_cli -g /var/run/wpa_supplicant/p2p-wlan0-0 p2p_get_passphrase "
 			"> /tmp/nfc_p2p_passphrase.txt");
 
-	DEBUG_MSG("system command returned with [%d]",ret_val);
+	NFC_DBG("system command returned with [%d]",ret_val);
 
 	FILE *f = fopen("/tmp/nfc_p2p_passphrase.txt","r");
 	if(f != NULL)
@@ -702,7 +679,7 @@ static net_nfc_error_e _net_nfc_handover_bss_create_config_record(
 							NET_NFC_WIFI_ATTRIBUTE_VERSION,
 							version_data.length, version_data.buffer)) != NET_NFC_OK)
 			{
-				DEBUG_ERR_MSG("net_nfc_util_add_carrier_config_property failed"
+				NFC_ERR("net_nfc_util_add_carrier_config_property failed"
 						"[%d]", result);
 			}
 		}
@@ -776,7 +753,7 @@ static net_nfc_error_e _net_nfc_handover_bss_create_config_record(
 
 		pw_length = _net_nfc_handover_getpassword(&password);
 
-		DEBUG_ERR_MSG("_net_nfc_handover_getpassword[%s]", password);
+		NFC_ERR("_net_nfc_handover_getpassword[%s]", password);
 
 		net_nfc_util_add_carrier_config_group_property(
 				cred_config,
@@ -798,7 +775,7 @@ static net_nfc_error_e _net_nfc_handover_bss_create_config_record(
 							NET_NFC_WIFI_ATTRIBUTE_MAC_ADDR,
 							mac_data.length, mac_data.buffer)) != NET_NFC_OK)
 			{
-				DEBUG_ERR_MSG("net_nfc_util_add_carrier"
+				NFC_ERR("net_nfc_util_add_carrier"
 						"_config_property failed"
 						"[%d]", result);
 			}
@@ -815,7 +792,7 @@ static net_nfc_error_e _net_nfc_handover_bss_create_config_record(
 
 	if (result != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("net_nfc_util_create_ndef_record"
+		NFC_ERR("net_nfc_util_create_ndef_record"
 				"_with_carrier_config failed"
 				"[%d]",result);
 	}
@@ -835,7 +812,7 @@ static void _net_nfc_handover_bss_get_carrier_record(
 
 		if (context->result != NET_NFC_OK && context->result != NET_NFC_BUSY)
 		{
-			DEBUG_ERR_MSG("context->result is error [%d]", context->result);
+			NFC_ERR("context->result is error [%d]", context->result);
 		}
 
 		context->result = NET_NFC_OK;
@@ -847,7 +824,7 @@ static void _net_nfc_handover_bss_get_carrier_record(
 				&context->carrier);
 		if (context->result!= NET_NFC_OK)
 		{
-			DEBUG_ERR_MSG("create_bss_config_record failed"
+			NFC_ERR("create_bss_config_record failed"
 					" [%d]", context->result);
 		}
 
@@ -864,7 +841,7 @@ static void _net_nfc_handover_bss_get_carrier_record(
 #ifdef TARGET
 static void _net_nfc_wifi_process_error(int error)
 {
-	DEBUG_ERR_MSG("_net_nfc_wifi_process_error - [%d]",error);
+	NFC_ERR("_net_nfc_wifi_process_error - [%d]",error);
 
 	context->step = NET_NFC_LLCP_STEP_RETURN;
 	context->result = NET_NFC_OPERATION_FAIL;
@@ -883,7 +860,7 @@ static int _net_nfc_handover_process_wifi_direct_setup(
 	err = wifi_direct_initialize();
 	if(err != WIFI_DIRECT_ERROR_NONE)
 	{
-		DEBUG_ERR_MSG("wifi_direct_initialize err value %d",err);
+		NFC_ERR("wifi_direct_initialize err value %d",err);
 		return err;
 	}
 
@@ -893,7 +870,7 @@ static int _net_nfc_handover_process_wifi_direct_setup(
 
 	if(err != WIFI_DIRECT_ERROR_NONE)
 	{
-		DEBUG_ERR_MSG("wifi_direct_set_device_state_changed_cb err value %d",err);
+		NFC_ERR("wifi_direct_set_device_state_changed_cb err value %d",err);
 		return err;
 	}
 
@@ -903,7 +880,7 @@ static int _net_nfc_handover_process_wifi_direct_setup(
 
 	if(err != WIFI_DIRECT_ERROR_NONE)
 	{
-		DEBUG_ERR_MSG("wifi_direct_set_discovery_state_changed_cb err value %d",err);
+		NFC_ERR("wifi_direct_set_discovery_state_changed_cb err value %d",err);
 		return err;
 	}
 
@@ -913,7 +890,7 @@ static int _net_nfc_handover_process_wifi_direct_setup(
 
 	if (err != WIFI_DIRECT_ERROR_NONE)
 	{
-		DEBUG_ERR_MSG("wifi_direct_set_connection_state_changed_cb err value %d",err);
+		NFC_ERR("wifi_direct_set_connection_state_changed_cb err value %d",err);
 		return err;
 	}
 	else
@@ -924,7 +901,7 @@ static int _net_nfc_handover_process_wifi_direct_setup(
 		wifi_direct_state_e status = WIFI_DIRECT_STATE_DEACTIVATED;
 
 		err = wifi_direct_get_state(&status);
-		DEBUG_ERR_MSG("status value %d",status);
+		NFC_ERR("status value %d",status);
 
 		if (status != WIFI_DIRECT_STATE_ACTIVATED)
 		{
@@ -932,7 +909,7 @@ static int _net_nfc_handover_process_wifi_direct_setup(
 		}
 		else
 		{
-			DEBUG_MSG("wifi direct is enabled already");
+			NFC_DBG("wifi direct is enabled already");
 
 			/* do next step */
 			g_idle_add((GSourceFunc)
@@ -951,7 +928,7 @@ static int _net_nfc_handover_process_wifi_group_setup(
 	bool group_owner = false;
 
 	err = wifi_direct_is_group_owner(&group_owner);
-	DEBUG_ERR_MSG("error value %d",err);
+	NFC_ERR("error value %d",err);
 
 	context->step = NET_NFC_LLCP_STEP_03;
 	context->result = NET_NFC_OK;
@@ -960,7 +937,7 @@ static int _net_nfc_handover_process_wifi_group_setup(
 	{
 		if(group_owner == true)
 		{
-			DEBUG_MSG("Already group owner, continue next step");
+			NFC_DBG("Already group owner, continue next step");
 			g_idle_add((GSourceFunc)
 					_net_nfc_handover_bss_wfd_get_carrier_record,
 					(gpointer)context);
@@ -970,14 +947,14 @@ static int _net_nfc_handover_process_wifi_group_setup(
 			err = wifi_direct_create_group();
 			if (err != WIFI_DIRECT_ERROR_NONE)
 			{
-				DEBUG_ERR_MSG("wifi_direct_create_group failed [%d]",err);
+				NFC_ERR("wifi_direct_create_group failed [%d]",err);
 				return err;
 			}
 		}
 	}
 	else
 	{
-		DEBUG_ERR_MSG("wifi_direct_is_group_owner failed [%d]",err);
+		NFC_ERR("wifi_direct_is_group_owner failed [%d]",err);
 		return err;
 	}
 
@@ -989,7 +966,7 @@ static gboolean _net_nfc_handover_bss_wfd_get_carrier_record(
 	LOGD("[%s:%d] START", __func__, __LINE__);
 	if(context == NULL)
 	{
-		DEBUG_ERR_MSG("Invalid context");
+		NFC_ERR("Invalid context");
 		return FALSE;
 	}
 
@@ -999,7 +976,7 @@ static gboolean _net_nfc_handover_bss_wfd_get_carrier_record(
 
 		if (context->result != NET_NFC_OK && context->result != NET_NFC_BUSY)
 		{
-			DEBUG_ERR_MSG("context->result is error"
+			NFC_ERR("context->result is error"
 					" [%d]", context->result);
 
 			context->step = NET_NFC_LLCP_STEP_RETURN;
@@ -1008,25 +985,25 @@ static gboolean _net_nfc_handover_bss_wfd_get_carrier_record(
 		switch (context->step)
 		{
 		case NET_NFC_LLCP_STEP_01 :
-			DEBUG_ERR_MSG("NET_NFC_LLCP_STEP_01");
+			NFC_ERR("NET_NFC_LLCP_STEP_01");
 			err = _net_nfc_handover_process_wifi_direct_setup(context);
 			if(err != WIFI_DIRECT_ERROR_NONE)
 			{
-				DEBUG_ERR_MSG("_net_nfc_handover_process_wifi_direct_setup failed");
+				NFC_ERR("_net_nfc_handover_process_wifi_direct_setup failed");
 				_net_nfc_wifi_process_error(err);
 			}
 			break;
 		case NET_NFC_LLCP_STEP_02:
-			DEBUG_ERR_MSG("NET_NFC_LLCP_STEP_02");
+			NFC_ERR("NET_NFC_LLCP_STEP_02");
 			err = _net_nfc_handover_process_wifi_group_setup(context);
 			if(err != WIFI_DIRECT_ERROR_NONE)
 			{
-				DEBUG_ERR_MSG("_net_nfc_handover_process_wifi_group_setup failed");
+				NFC_ERR("_net_nfc_handover_process_wifi_group_setup failed");
 				_net_nfc_wifi_process_error(err);
 			}
 			break;
 		case NET_NFC_LLCP_STEP_03 :
-			DEBUG_ERR_MSG("NET_NFC_LLCP_STEP_03");
+			NFC_ERR("NET_NFC_LLCP_STEP_03");
 			context->step = NET_NFC_LLCP_STEP_RETURN;
 
 			/* append config to ndef message */
@@ -1034,7 +1011,7 @@ static gboolean _net_nfc_handover_bss_wfd_get_carrier_record(
 					&context->carrier);
 			if (context->result != NET_NFC_OK)
 			{
-				DEBUG_ERR_MSG("_net_nfc_handover_bss_create_config_record failed"
+				NFC_ERR("_net_nfc_handover_bss_create_config_record failed"
 						"[%d]", context->result);
 			}
 
@@ -1044,7 +1021,7 @@ static gboolean _net_nfc_handover_bss_wfd_get_carrier_record(
 
 			break;
 		case NET_NFC_LLCP_STEP_RETURN :
-			DEBUG_ERR_MSG("NET_NFC_LLCP_STEP_RETURN");
+			NFC_ERR("NET_NFC_LLCP_STEP_RETURN");
 			/* unregister current callback */
 			wifi_direct_unset_connection_state_changed_cb();
 			wifi_direct_unset_device_state_changed_cb();

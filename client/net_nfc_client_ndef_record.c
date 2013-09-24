@@ -188,7 +188,7 @@ API net_nfc_error_e net_nfc_create_text_string_from_text_record(
 
 	if (_is_text_record(record) == false)
 	{
-		DEBUG_ERR_MSG("record type is not matched");
+		NFC_ERR("record type is not matched");
 		return NET_NFC_NDEF_RECORD_IS_NOT_EXPECTED_TYPE;
 	}
 
@@ -212,8 +212,7 @@ API net_nfc_error_e net_nfc_create_text_string_from_text_record(
 		if (temp != NULL)
 		{
 			memcpy(temp, &(buffer_temp[index]), text_length);
-
-			DEBUG_CLIENT_MSG("text = [%s]", temp);
+			NFC_DBG("text = [%s]", temp);
 
 			*buffer = temp;
 		}
@@ -239,7 +238,7 @@ API net_nfc_error_e net_nfc_get_languange_code_string_from_text_record(
 
 	if (_is_text_record(record) == false)
 	{
-		DEBUG_ERR_MSG("record type is not matched");
+		NFC_ERR("record type is not matched");
 		return NET_NFC_NDEF_RECORD_IS_NOT_EXPECTED_TYPE;
 	}
 
@@ -260,7 +259,7 @@ API net_nfc_error_e net_nfc_get_languange_code_string_from_text_record(
 		if (buffer != NULL)
 		{
 			memcpy(buffer, &(buffer_temp[index]), lang_code_length);
-			DEBUG_CLIENT_MSG("language code = [%s]", buffer);
+			NFC_DBG("language code = [%s]", buffer);
 
 			*lang_code_str = buffer;
 		}
@@ -286,7 +285,7 @@ API net_nfc_error_e net_nfc_get_encoding_type_from_text_record(
 
 	if (_is_text_record(record) == false)
 	{
-		DEBUG_ERR_MSG("record type is not matched");
+		NFC_ERR("record type is not matched");
 		return NET_NFC_NDEF_RECORD_IS_NOT_EXPECTED_TYPE;
 	}
 

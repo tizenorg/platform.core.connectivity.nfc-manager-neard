@@ -80,7 +80,7 @@ static net_nfc_error_e _net_nfc_handover_bt_get_oob_data(
 	{
 		if (hash.length == 16)
 		{
-			DEBUG_MSG("hash.length == 16");
+			NFC_DBG("hash.length == 16");
 
 			net_nfc_convert_byte_order(hash.buffer, 16);
 
@@ -89,7 +89,7 @@ static net_nfc_error_e _net_nfc_handover_bt_get_oob_data(
 		}
 		else
 		{
-			DEBUG_ERR_MSG("hash.length error : [%d] bytes", hash.length);
+			NFC_ERR("hash.length error : [%d] bytes", hash.length);
 		}
 	}
 
@@ -101,7 +101,7 @@ static net_nfc_error_e _net_nfc_handover_bt_get_oob_data(
 	{
 		if (randomizer.length == 16)
 		{
-			DEBUG_MSG("randomizer.length == 16");
+			NFC_DBG("randomizer.length == 16");
 
 			net_nfc_convert_byte_order(randomizer.buffer, 16);
 
@@ -110,7 +110,7 @@ static net_nfc_error_e _net_nfc_handover_bt_get_oob_data(
 		}
 		else
 		{
-			DEBUG_ERR_MSG("randomizer.length error :"
+			NFC_ERR("randomizer.length error :"
 					" [%d] bytes", randomizer.length);
 		}
 	}
@@ -120,44 +120,38 @@ static net_nfc_error_e _net_nfc_handover_bt_get_oob_data(
 	return result;
 }
 
-static void _net_nfc_handover_bt_get_carrier_config_cb(
-		int event,
-		bluetooth_event_param_t *param,
-		void *user_data)
+static void _net_nfc_handover_bt_get_carrier_config_cb(int event,
+		bluetooth_event_param_t *param, void *user_data)
 {
 	net_nfc_handover_bt_get_context_t *context =
 		(net_nfc_handover_bt_get_context_t *)user_data;
 
-	LOGD("[%s] START", __func__);
-
 	if (context == NULL)
 	{
-		DEBUG_SERVER_MSG("user_data is null");
-		LOGD("[%s] END", __func__);
+		NFC_ERR("user_data is null");
 		return;
 	}
 
 	switch (event)
 	{
 	case BLUETOOTH_EVENT_ENABLED :
-		DEBUG_SERVER_MSG("BLUETOOTH_EVENT_ENABLED");
+		NFC_DBG("BLUETOOTH_EVENT_ENABLED");
 		if (context->step == NET_NFC_LLCP_STEP_02)
 		{
 			_net_nfc_handover_bt_get_carrier_record(context);
 		}
 		else
 		{
-			DEBUG_SERVER_MSG("step is incorrect");
+			NFC_ERR("step is incorrect");
 		}
 		break;
 
 	case BLUETOOTH_EVENT_DISABLED :
-		DEBUG_SERVER_MSG("BLUETOOTH_EVENT_DISABLED");
+		NFC_DBG("BLUETOOTH_EVENT_DISABLED");
 		break;
 
 	default :
-		DEBUG_SERVER_MSG("unhandled bt event [%d],"
-				"[0x%04x]", event, param->result);
+		NFC_ERR("unhandled bt event [%d],[0x%04x]", event, param->result);
 		break;
 	}
 
@@ -188,7 +182,7 @@ static net_nfc_error_e _net_nfc_handover_bt_create_config_record(
 							NET_NFC_BT_ATTRIBUTE_ADDRESS,
 							sizeof(bt_addr.addr), bt_addr.addr)) != NET_NFC_OK)
 			{
-				DEBUG_ERR_MSG("net_nfc_util_add_carrier"
+				NFC_ERR("net_nfc_util_add_carrier"
 						"_config_property failed"
 						"[%d]", result);
 			}
@@ -198,10 +192,8 @@ static net_nfc_error_e _net_nfc_handover_bt_create_config_record(
 			{
 				if (oob.hash_len == 16 && oob.randomizer_len == 16)
 				{
-					DEBUG_SERVER_MSG("oob.hash_len "
-							"[%d]", oob.hash_len);
-					DEBUG_SERVER_MSG("oob.randomizer_len"
-							" [%d]", oob.randomizer_len);
+					NFC_DBG("oob.hash_len [%d]", oob.hash_len);
+					NFC_DBG("oob.randomizer_len [%d]", oob.randomizer_len);
 
 					net_nfc_convert_byte_order(oob.hash, 16);
 
@@ -211,7 +203,7 @@ static net_nfc_error_e _net_nfc_handover_bt_create_config_record(
 									NET_NFC_BT_ATTRIBUTE_OOB_HASH_C,
 									oob.hash_len, oob.hash)) != NET_NFC_OK)
 					{
-						DEBUG_ERR_MSG("net_nfc_util_add_carrier"
+						NFC_ERR("net_nfc_util_add_carrier"
 								"_config_property failed"
 								" [%d]",result);
 					}
@@ -224,14 +216,14 @@ static net_nfc_error_e _net_nfc_handover_bt_create_config_record(
 									oob.randomizer_len,
 									oob.randomizer)) != NET_NFC_OK)
 					{
-						DEBUG_ERR_MSG("net_nfc_util_add_carrier"
+						NFC_ERR("net_nfc_util_add_carrier"
 								"_config_property failed"
 								" [%d]",result);
 					}
 				}
 				else
 				{
-					DEBUG_ERR_MSG("abnormal oob data, skip... [%d]", result);
+					NFC_ERR("abnormal oob data, skip... [%d]", result);
 				}
 			}
 
@@ -239,7 +231,7 @@ static net_nfc_error_e _net_nfc_handover_bt_create_config_record(
 							record,
 							config)) != NET_NFC_OK)
 			{
-				DEBUG_ERR_MSG("net_nfc_util_create_ndef_record"
+				NFC_ERR("net_nfc_util_create_ndef_record"
 						"_with_carrier_config failed"
 						"[%d]",result);
 			}
@@ -248,13 +240,13 @@ static net_nfc_error_e _net_nfc_handover_bt_create_config_record(
 		}
 		else
 		{
-			DEBUG_ERR_MSG("net_nfc_util_create_carrier_config failed "
+			NFC_ERR("net_nfc_util_create_carrier_config failed "
 					"[%d]", result);
 		}
 	}
 	else
 	{
-		DEBUG_ERR_MSG("bluetooth_get_local_address failed"
+		NFC_ERR("bluetooth_get_local_address failed"
 				" [%d]", result);
 		result = NET_NFC_OPERATION_FAIL;
 	}
@@ -269,7 +261,7 @@ static int _net_nfc_handover_bt_get_carrier_record(
 
 	if (context->result != NET_NFC_OK && context->result != NET_NFC_BUSY)
 	{
-		DEBUG_ERR_MSG("context->result is error"
+		NFC_ERR("context->result is error"
 				" [%d]", context->result);
 
 		context->step = NET_NFC_LLCP_STEP_RETURN;
@@ -278,7 +270,7 @@ static int _net_nfc_handover_bt_get_carrier_record(
 	switch (context->step)
 	{
 	case NET_NFC_LLCP_STEP_01 :
-		DEBUG_MSG("STEP [1]");
+		NFC_DBG("STEP [1]");
 
 		if (bluetooth_register_callback(
 					_net_nfc_handover_bt_get_carrier_config_cb,
@@ -293,7 +285,7 @@ static int _net_nfc_handover_bt_get_carrier_record(
 			}
 			else
 			{
-				DEBUG_MSG("bluetooth is enabled already");
+				NFC_DBG("bluetooth is enabled already");
 
 				/* do next step */
 				g_idle_add((GSourceFunc)
@@ -303,7 +295,7 @@ static int _net_nfc_handover_bt_get_carrier_record(
 		}
 		else
 		{
-			DEBUG_ERR_MSG("bluetooth_register_callback failed");
+			NFC_ERR("bluetooth_register_callback failed");
 
 			context->step = NET_NFC_LLCP_STEP_RETURN;
 			context->result = NET_NFC_OPERATION_FAIL;
@@ -315,7 +307,7 @@ static int _net_nfc_handover_bt_get_carrier_record(
 		break;
 
 	case NET_NFC_LLCP_STEP_02 :
-		DEBUG_MSG("STEP [2]");
+		NFC_DBG("STEP [2]");
 
 		context->step = NET_NFC_LLCP_STEP_RETURN;
 
@@ -324,7 +316,7 @@ static int _net_nfc_handover_bt_get_carrier_record(
 					_net_nfc_handover_bt_create_config_record(
 						&context->carrier)) != NET_NFC_OK)
 		{
-			DEBUG_ERR_MSG("_ch_create_bt_config_record failed"
+			NFC_ERR("_ch_create_bt_config_record failed"
 					"[%d]", context->result);
 		}
 
@@ -335,7 +327,7 @@ static int _net_nfc_handover_bt_get_carrier_record(
 		break;
 
 	case NET_NFC_LLCP_STEP_RETURN :
-		DEBUG_MSG("STEP return");
+		NFC_DBG("STEP return");
 
 		/* unregister current callback */
 		bluetooth_unregister_callback();
@@ -403,22 +395,18 @@ static bool _net_nfc_handover_bt_check_bond_device(
 		int i;
 		bluetooth_device_info_t *ptr;
 
-		DEBUG_SERVER_MSG("g pointer array count :"
-				" [%d]", devinfo->len);
+		NFC_DBG("g pointer array count : [%d]", devinfo->len);
 
 		for (i = 0; i < devinfo->len; i++)
 		{
 			ptr = g_ptr_array_index(devinfo, i);
 			if (ptr != NULL)
 			{
-				SECURE_LOGD("Name [%s]", ptr->device_name.name);
-				DEBUG_SERVER_MSG("Major Class [%d]",
-						ptr->device_class.major_class);
-				DEBUG_SERVER_MSG("Minor Class [%d]",
-						ptr->device_class.minor_class);
-				DEBUG_SERVER_MSG("Service Class [%d]",
-						ptr->device_class.service_class);
-				DEBUG_SERVER_MSG("%2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X",
+				NFC_SECURE_DBG("Name [%s]", ptr->device_name.name);
+				NFC_DBG("Major Class [%d]", ptr->device_class.major_class);
+				NFC_DBG("Minor Class [%d]", ptr->device_class.minor_class);
+				NFC_DBG("Service Class [%d]", ptr->device_class.service_class);
+				NFC_DBG("%2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X",
 						ptr->device_address.addr[0],
 						ptr->device_address.addr[1],
 						ptr->device_address.addr[2],
@@ -431,7 +419,7 @@ static bool _net_nfc_handover_bt_check_bond_device(
 							address,
 							sizeof(ptr->device_address)) == 0)
 				{
-					DEBUG_SERVER_MSG("Found!!!");
+					NFC_DBG("Found!!!");
 					result = true;
 					break;
 				}
@@ -440,7 +428,7 @@ static bool _net_nfc_handover_bt_check_bond_device(
 	}
 	else
 	{
-		DEBUG_ERR_MSG("bluetooth_get_bonded_device_list failed with"
+		NFC_ERR("bluetooth_get_bonded_device_list failed with"
 				" [%d]", ret);
 	}
 
@@ -460,41 +448,37 @@ static void _net_nfc_handover_bt_process_carrier_record_cb(
 	net_nfc_handover_bt_process_context_t *context =
 		(net_nfc_handover_bt_process_context_t *)user_data;
 
-	LOGD("[%s] START", __func__);
-
 	if (context == NULL)
 	{
-		DEBUG_SERVER_MSG("user_data is null");
-		LOGD("[%s] END", __func__);
+		NFC_ERR("user_data is null");
 		return;
 	}
 
 	switch (event)
 	{
 	case BLUETOOTH_EVENT_ENABLED :
-		DEBUG_SERVER_MSG("BLUETOOTH_EVENT_ENABLED");
+		NFC_DBG("BLUETOOTH_EVENT_ENABLED");
 		if (context->step == NET_NFC_LLCP_STEP_02)
 		{
 			_net_nfc_handover_bt_process_carrier_record(context);
 		}
 		else
 		{
-			DEBUG_SERVER_MSG("step is incorrect");
+			NFC_ERR("step is incorrect");
 		}
 		break;
 
 	case BLUETOOTH_EVENT_DISABLED :
-		DEBUG_SERVER_MSG("BLUETOOTH_EVENT_DISABLED");
+		NFC_DBG("BLUETOOTH_EVENT_DISABLED");
 		break;
 
 	case BLUETOOTH_EVENT_BONDING_FINISHED :
-		DEBUG_SERVER_MSG("BLUETOOTH_EVENT_BONDING_FINISHED, result "
-				"[0x%04x]", param->result);
+		NFC_DBG("BLUETOOTH_EVENT_BONDING_FINISHED, result [0x%04x]", param->result);
 		if (context->step == NET_NFC_LLCP_STEP_03)
 		{
 			if (param->result < BLUETOOTH_ERROR_NONE)
 			{
-				DEBUG_ERR_MSG("bond failed");
+				NFC_ERR("bond failed");
 				context->result = NET_NFC_OPERATION_FAIL;
 			}
 
@@ -502,13 +486,12 @@ static void _net_nfc_handover_bt_process_carrier_record_cb(
 		}
 		else
 		{
-			DEBUG_SERVER_MSG("step is incorrect");
+			NFC_ERR("step is incorrect");
 		}
 		break;
 
 	default :
-		DEBUG_SERVER_MSG("unhandled bt event [%d],"
-				"[0x%04x]", event, param->result);
+		NFC_ERR("unhandled bt event [%d],[0x%04x]", event, param->result);
 		break;
 	}
 
@@ -522,7 +505,7 @@ static int _net_nfc_handover_bt_process_carrier_record(
 
 	if (context->result != NET_NFC_OK && context->result != NET_NFC_BUSY)
 	{
-		DEBUG_ERR_MSG("context->result is error"
+		NFC_ERR("context->result is error"
 				" [%d]", context->result);
 		context->step = NET_NFC_LLCP_STEP_RETURN;
 	}
@@ -530,7 +513,7 @@ static int _net_nfc_handover_bt_process_carrier_record(
 	switch (context->step)
 	{
 	case NET_NFC_LLCP_STEP_01 :
-		DEBUG_MSG("STEP [1]");
+		NFC_DBG("STEP [1]");
 
 		if (bluetooth_register_callback(
 					_net_nfc_handover_bt_process_carrier_record_cb,
@@ -547,7 +530,7 @@ static int _net_nfc_handover_bt_process_carrier_record(
 			else
 			{
 				/* do next step */
-				DEBUG_MSG("BT is enabled already, go next step");
+				NFC_DBG("BT is enabled already, go next step");
 				context->result = NET_NFC_OK;
 
 				g_idle_add((GSourceFunc)
@@ -557,7 +540,7 @@ static int _net_nfc_handover_bt_process_carrier_record(
 		}
 		else
 		{
-			DEBUG_ERR_MSG("bluetooth_register_callback failed");
+			NFC_ERR("bluetooth_register_callback failed");
 			context->result = NET_NFC_OPERATION_FAIL;
 
 			g_idle_add(
@@ -571,7 +554,7 @@ static int _net_nfc_handover_bt_process_carrier_record(
 			net_nfc_carrier_config_s *config;
 			data_s temp = { NULL, 0 };
 
-			DEBUG_MSG("STEP [2]");
+			NFC_DBG("STEP [2]");
 
 			net_nfc_util_create_carrier_config_from_config_record(
 					&config,
@@ -593,8 +576,7 @@ static int _net_nfc_handover_bt_process_carrier_record(
 				if (_net_nfc_handover_bt_check_bond_device
 						(&context->addr) == true)
 				{
-					DEBUG_SERVER_MSG("already paired with"
-							" [%02x:%02x:%02x:%02x:%02x:%02x]",
+					NFC_DBG("already paired with [%02x:%02x:%02x:%02x:%02x:%02x]",
 							context->addr.addr[0],
 							context->addr.addr[1],
 							context->addr.addr[2],
@@ -627,7 +609,7 @@ static int _net_nfc_handover_bt_process_carrier_record(
 			}
 			else
 			{
-				DEBUG_ERR_MSG("bluetooth address is invalid."
+				NFC_ERR("bluetooth address is invalid."
 						" [%d] bytes", temp.length);
 
 				context->step = NET_NFC_LLCP_STEP_RETURN;
@@ -644,7 +626,7 @@ static int _net_nfc_handover_bt_process_carrier_record(
 
 	case NET_NFC_LLCP_STEP_RETURN :
 		{
-			DEBUG_MSG("STEP return");
+			NFC_DBG("STEP return");
 			data_s data = { context->addr.addr,
 				sizeof(context->addr.addr) };
 
@@ -702,32 +684,28 @@ static void _net_nfc_handover_bt_post_process_cb(int event,
 	net_nfc_handover_bt_process_context_t *context =
 		(net_nfc_handover_bt_process_context_t *)user_data;
 
-	LOGD("[%s] START", __func__);
-
 	if (context == NULL)
 	{
-		DEBUG_SERVER_MSG("user_data is null");
-		LOGD("[%s] END", __func__);
+		NFC_ERR("user_data is null");
 		return;
 	}
 
 	switch (event)
 	{
 	case BLUETOOTH_EVENT_ENABLED :
-		DEBUG_SERVER_MSG("BLUETOOTH_EVENT_ENABLED");
+		NFC_DBG("BLUETOOTH_EVENT_ENABLED");
 		break;
 
 	case BLUETOOTH_EVENT_DISABLED :
-		DEBUG_SERVER_MSG("BLUETOOTH_EVENT_DISABLED");
+		NFC_DBG("BLUETOOTH_EVENT_DISABLED");
 		break;
 
 	case BLUETOOTH_EVENT_BONDING_FINISHED :
-		DEBUG_SERVER_MSG("BLUETOOTH_EVENT_BONDING_FINISHED,"
-				" result [0x%04x]",param->result);
+		NFC_DBG("BLUETOOTH_EVENT_BONDING_FINISHED, result [0x%04x]",param->result);
 
 		if (param->result < BLUETOOTH_ERROR_NONE)
 		{
-			DEBUG_ERR_MSG("bond failed");
+			NFC_ERR("bond failed");
 			context->result = NET_NFC_OPERATION_FAIL;
 		}
 		else
@@ -742,8 +720,7 @@ static void _net_nfc_handover_bt_post_process_cb(int event,
 		break;
 
 	default :
-		DEBUG_SERVER_MSG("unhandled bt event"
-				" [%d], [0x%04x]", event, param->result);
+		NFC_ERR("unhandled bt event [%d], [0x%04x]", event, param->result);
 		break;
 	}
 

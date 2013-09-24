@@ -32,7 +32,7 @@ typedef struct _search_index
 	void *found;
 } search_index;
 
-inline void net_nfc_convert_byte_order(unsigned char *array, int size)
+void net_nfc_convert_byte_order(unsigned char *array, int size)
 {
 	int i;
 	unsigned char tmp_char;
@@ -107,12 +107,12 @@ static void __free_all_data(gpointer data, gpointer user_data)
 
 	if (info->is_group)
 	{
-		DEBUG_MSG("FREE: group is found");
+		NFC_DBG("FREE: group is found");
 		net_nfc_util_free_carrier_group((net_nfc_carrier_property_s *)info);
 	}
 	else
 	{
-		DEBUG_MSG("FREE: element is found ATTRIB:0x%X length:%d", info->attribute, info->length);
+		NFC_DBG("FREE: element is found ATTRIB:0x%X length:%d", info->attribute, info->length);
 		_net_nfc_util_free_mem(info->data);
 		_net_nfc_util_free_mem(info);
 	}
@@ -141,7 +141,7 @@ static net_nfc_error_e __net_nfc_util_create_connection_handover_collsion_resolu
 	payload.buffer = rand_buffer;
 	payload.length = 2;
 
-	DEBUG_MSG("rand number = [0x%x] [0x%x] => [0x%x]", payload.buffer[0], payload.buffer[1], random_num);
+	NFC_DBG("rand number = [0x%x] [0x%x] => [0x%x]", payload.buffer[0], payload.buffer[1], random_num);
 
 	return net_nfc_util_create_record(NET_NFC_RECORD_WELL_KNOWN_TYPE, &typeName, NULL, &payload, record);
 }
@@ -201,7 +201,7 @@ net_nfc_error_e net_nfc_util_add_carrier_config_property(net_nfc_carrier_config_
 {
 	net_nfc_carrier_property_s *elem = NULL;
 
-	DEBUG_MSG("ADD property: [ATTRIB:0x%X, SIZE:%d]", attribute, size);
+	NFC_DBG("ADD property: [ATTRIB:0x%X, SIZE:%d]", attribute, size);
 
 	if (config == NULL || data == NULL)
 	{
@@ -233,7 +233,7 @@ net_nfc_error_e net_nfc_util_add_carrier_config_property(net_nfc_carrier_config_
 	config->data = g_list_append(config->data, elem);
 	config->length += size + 2 * __net_nfc_get_size_of_attribute(attribute);
 
-	DEBUG_MSG("ADD completed total length %d", config->length);
+	NFC_DBG("ADD completed total length %d", config->length);
 
 	return NET_NFC_OK;
 }
@@ -396,7 +396,7 @@ net_nfc_error_e net_nfc_util_add_carrier_config_group_property(net_nfc_carrier_p
 {
 	net_nfc_carrier_property_s *elem = NULL;
 
-	DEBUG_MSG("ADD group property: [ATTRIB:0x%X, SIZE:%d]", attribute, size);
+	NFC_DBG("ADD group property: [ATTRIB:0x%X, SIZE:%d]", attribute, size);
 
 	if (group == NULL || data == NULL)
 	{
@@ -427,7 +427,7 @@ net_nfc_error_e net_nfc_util_add_carrier_config_group_property(net_nfc_carrier_p
 	group->length += size + 2 * __net_nfc_get_size_of_attribute(attribute);
 	group->data = g_list_append((GList *)(group->data), elem);
 
-	DEBUG_MSG("ADD group completed total length %d", group->length);
+	NFC_DBG("ADD group completed total length %d", group->length);
 
 	return NET_NFC_OK;
 }
@@ -496,7 +496,7 @@ net_nfc_error_e net_nfc_util_free_carrier_group(net_nfc_carrier_property_s *grou
 static void __make_serial_wifi(gpointer data, gpointer user_data)
 {
 	net_nfc_carrier_property_s *info = (net_nfc_carrier_property_s *)data;
-	data_s *payload = (data_s *)user_data;
+	data_s *payload = user_data;
 	uint8_t *current;
 	int inc = 0;
 
@@ -508,7 +508,7 @@ static void __make_serial_wifi(gpointer data, gpointer user_data)
 
 	if (info->is_group)
 	{
-		DEBUG_MSG("[WIFI]Found Group make recursive");
+		NFC_DBG("[WIFI]Found Group make recursive");
 		*(uint16_t *)current = info->attribute;
 		net_nfc_convert_byte_order(current,2);
 		*(uint16_t *)(current + inc) = info->length;
@@ -518,7 +518,7 @@ static void __make_serial_wifi(gpointer data, gpointer user_data)
 	}
 	else
 	{
-		DEBUG_MSG("[WIFI]Element is found attrib:0x%X length:%d current:%d", info->attribute, info->length, payload->length);
+		NFC_DBG("[WIFI]Element is found attrib:0x%X length:%d current:%d", info->attribute, info->length, payload->length);
 		*(uint16_t *)current = info->attribute;
 		net_nfc_convert_byte_order(current,2);
 		*(uint16_t *)(current + inc) = info->length;
@@ -542,14 +542,14 @@ static void __make_serial_bt(gpointer data, gpointer user_data)
 
 	if (info->is_group)
 	{
-		DEBUG_MSG("[BT]Found Group. call recursive");
+		NFC_DBG("[BT]Found Group. call recursive");
 		g_list_foreach((GList *)info->data, __make_serial_bt, payload);
 	}
 	else
 	{
 		if (info->attribute != NET_NFC_BT_ATTRIBUTE_ADDRESS)
 		{
-			DEBUG_MSG("[BT]Element is found attrib:0x%X length:%d current:%d", info->attribute, info->length, payload->length);
+			NFC_DBG("[BT]Element is found attrib:0x%X length:%d current:%d", info->attribute, info->length, payload->length);
 			inc = __net_nfc_get_size_of_attribute(info->attribute);
 			*current = info->length + 1;
 			*(current + inc) = info->attribute;
@@ -558,7 +558,7 @@ static void __make_serial_bt(gpointer data, gpointer user_data)
 		}
 		else
 		{
-			DEBUG_MSG("[BT]BT address is found length:%d", info->length);
+			NFC_DBG("[BT]BT address is found length:%d", info->length);
 			memcpy(current, info->data, info->length);
 			payload->length += (info->length);
 		}
@@ -610,7 +610,7 @@ net_nfc_error_e net_nfc_util_create_ndef_record_with_carrier_config(ndef_record_
 		return NET_NFC_NOT_SUPPORTED;
 	}
 
-	DEBUG_MSG("payload length = %d", payload.length);
+	NFC_DBG("payload length = %d", payload.length);
 
 	return net_nfc_util_create_record(NET_NFC_RECORD_MIME_TYPE, &record_type, NULL, &payload, record);
 }
@@ -736,7 +736,7 @@ net_nfc_error_e net_nfc_util_create_carrier_config_from_config_record(net_nfc_ca
 	}
 	else
 	{
-		DEBUG_MSG("Record type is not config type");
+		NFC_DBG("Record type is not config type");
 		return NET_NFC_INVALID_FORMAT;
 	}
 
@@ -1013,7 +1013,7 @@ static net_nfc_error_e __net_nfc_replace_inner_message(ndef_message_s *message, 
 	if (inner_record == NULL)
 	{
 		// This message is not connection handover message
-		DEBUG_ERR_MSG("inner_record == NULL");
+		NFC_ERR("inner_record == NULL");
 		return NET_NFC_INVALID_FORMAT;
 	}
 
@@ -1021,7 +1021,7 @@ static net_nfc_error_e __net_nfc_replace_inner_message(ndef_message_s *message, 
 			&& strncmp((char *)(inner_record->type_s.buffer), CH_SEL_RECORD_TYPE, (size_t)(inner_record->type_s.length)) != 0)
 	{
 		// This message is not connection handover message
-		DEBUG_ERR_MSG("unknown type [%s]", inner_record->type_s.buffer);
+		NFC_ERR("unknown type [%s]", inner_record->type_s.buffer);
 		return NET_NFC_INVALID_FORMAT;
 	}
 
@@ -1053,13 +1053,13 @@ static net_nfc_error_e __net_nfc_replace_inner_message(ndef_message_s *message, 
 		}
 		else
 		{
-			DEBUG_ERR_MSG("net_nfc_util_convert_ndef_message_to_rawdata failed [%d]", error);
+			NFC_ERR("net_nfc_util_convert_ndef_message_to_rawdata failed [%d]", error);
 			_net_nfc_util_free_mem(tdata.buffer);
 		}
 	}
 	else
 	{
-		DEBUG_ERR_MSG("inner_record->payload_s.length(%d) < 1 ", inner_record->payload_s.length);
+		NFC_ERR("inner_record->payload_s.length(%d) < 1 ", inner_record->payload_s.length);
 		error = NET_NFC_INVALID_FORMAT;
 	}
 
@@ -1088,7 +1088,7 @@ net_nfc_error_e net_nfc_util_append_carrier_config_record(ndef_message_s *messag
 
 	if ((error = net_nfc_util_create_ndef_message(&inner_msg)) != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("net_nfc_util_create_ndef_message failed [%d]", error);
+		NFC_ERR("net_nfc_util_create_ndef_message failed [%d]", error);
 
 		return error;
 	}
@@ -1119,7 +1119,7 @@ net_nfc_error_e net_nfc_util_append_carrier_config_record(ndef_message_s *messag
 		if (message->records != NULL &&
 				memcmp((char *)message->records->type_s.buffer, CH_SEL_RECORD_TYPE, (size_t)message->records->type_s.length) != 0)
 		{
-			DEBUG_ERR_MSG("ERROR [%d]", error);
+			NFC_ERR("ERROR [%d]", error);
 
 			net_nfc_util_free_ndef_message(inner_msg);
 
@@ -1161,7 +1161,7 @@ net_nfc_error_e net_nfc_util_append_carrier_config_record(ndef_message_s *messag
 	error = net_nfc_util_create_record(NET_NFC_RECORD_WELL_KNOWN_TYPE, &type, NULL, &payload, &carrier_rec);
 	if (error != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("net_nfc_util_create_record failed [%d]", error);
+		NFC_ERR("net_nfc_util_create_record failed [%d]", error);
 
 		net_nfc_util_free_ndef_message(inner_msg);
 
@@ -1171,7 +1171,7 @@ net_nfc_error_e net_nfc_util_append_carrier_config_record(ndef_message_s *messag
 	error = net_nfc_util_append_record(inner_msg, carrier_rec);
 	if (error != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("net_nfc_util_create_record failed [%d]", error);
+		NFC_ERR("net_nfc_util_create_record failed [%d]", error);
 
 		net_nfc_util_free_record(carrier_rec);
 		net_nfc_util_free_ndef_message(inner_msg);
@@ -1183,7 +1183,7 @@ net_nfc_error_e net_nfc_util_append_carrier_config_record(ndef_message_s *messag
 	net_nfc_util_free_ndef_message(inner_msg);
 	if (error != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("__net_nfc_replace_inner_message failed [%d]", error);
+		NFC_ERR("__net_nfc_replace_inner_message failed [%d]", error);
 
 		return error;
 	}
@@ -1192,7 +1192,7 @@ net_nfc_error_e net_nfc_util_append_carrier_config_record(ndef_message_s *messag
 	error = net_nfc_util_set_record_id((ndef_record_s *)record, &id, sizeof(id));
 	if (error != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("net_nfc_util_set_record_id failed [%d]", error);
+		NFC_ERR("net_nfc_util_set_record_id failed [%d]", error);
 
 		return error;
 	}
@@ -1200,7 +1200,7 @@ net_nfc_error_e net_nfc_util_append_carrier_config_record(ndef_message_s *messag
 	error = net_nfc_util_append_record(message, (ndef_record_s *)record);
 	if (error != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("net_nfc_util_append_record failed [%d]", error);
+		NFC_ERR("net_nfc_util_append_record failed [%d]", error);
 
 		return error;
 	}
@@ -1235,7 +1235,7 @@ net_nfc_error_e net_nfc_util_remove_carrier_config_record(ndef_message_s *messag
 
 	if (current == NULL || idx == message->recordCount)
 	{
-		DEBUG_MSG("The reference is not found in config records");
+		NFC_DBG("The reference is not found in config records");
 
 		return NET_NFC_NO_DATA_FOUND;
 	}
@@ -1243,7 +1243,7 @@ net_nfc_error_e net_nfc_util_remove_carrier_config_record(ndef_message_s *messag
 
 	if ((error = net_nfc_util_create_ndef_message(&inner_msg)) != NET_NFC_OK)
 	{
-		DEBUG_MSG("net_nfc_util_create_ndef_message failed [%d]", error);
+		NFC_DBG("net_nfc_util_create_ndef_message failed [%d]", error);
 
 		return error;
 	}
@@ -1267,7 +1267,7 @@ net_nfc_error_e net_nfc_util_remove_carrier_config_record(ndef_message_s *messag
 
 		if (current == NULL || idx == message->recordCount)
 		{
-			DEBUG_MSG("The reference is not found in inner message");
+			NFC_DBG("The reference is not found in inner message");
 
 			error = NET_NFC_NO_DATA_FOUND;
 		}
@@ -1302,7 +1302,7 @@ net_nfc_error_e net_nfc_util_get_carrier_config_record(ndef_message_s *message, 
 
 	if ((error = net_nfc_util_create_ndef_message(&inner_msg)) != NET_NFC_OK)
 	{
-		DEBUG_MSG("net_nfc_util_create_ndef_message failed [%d]", error);
+		NFC_DBG("net_nfc_util_create_ndef_message failed [%d]", error);
 
 		return error;
 	}
@@ -1323,7 +1323,7 @@ net_nfc_error_e net_nfc_util_get_carrier_config_record(ndef_message_s *message, 
 
 		if (current == NULL || idx == message->recordCount)
 		{
-			DEBUG_MSG("The reference is not found in inner message");
+			NFC_DBG("The reference is not found in inner message");
 
 			error = NET_NFC_NO_DATA_FOUND;
 		}
@@ -1354,7 +1354,7 @@ net_nfc_error_e net_nfc_util_get_handover_random_number(ndef_message_s *message,
 
 	if ((error = net_nfc_util_create_ndef_message(&inner_msg)) != NET_NFC_OK)
 	{
-		DEBUG_MSG("net_nfc_util_create_ndef_message failed [%d]", error);
+		NFC_DBG("net_nfc_util_create_ndef_message failed [%d]", error);
 
 		return error;
 	}
@@ -1365,7 +1365,7 @@ net_nfc_error_e net_nfc_util_get_handover_random_number(ndef_message_s *message,
 		if (strncmp((char*)cr_record->type_s.buffer, COLLISION_DETECT_RECORD_TYPE, (size_t)cr_record->type_s.length) != 0
 				|| cr_record->payload_s.length < 2)
 		{
-			DEBUG_MSG("There is no Collision resolution record");
+			NFC_DBG("There is no Collision resolution record");
 
 			error = NET_NFC_INVALID_FORMAT;
 		}
@@ -1394,7 +1394,7 @@ net_nfc_error_e net_nfc_util_get_alternative_carrier_record_count(ndef_message_s
 
 	if ((error = net_nfc_util_create_ndef_message(&inner_msg)) != NET_NFC_OK)
 	{
-		DEBUG_MSG("net_nfc_util_create_ndef_message failed [%d]", error);
+		NFC_DBG("net_nfc_util_create_ndef_message failed [%d]", error);
 
 		return error;
 	}
@@ -1439,7 +1439,7 @@ net_nfc_error_e net_nfc_util_get_alternative_carrier_power_status(ndef_message_s
 
 	if ((error = net_nfc_util_create_ndef_message(&inner_msg)) != NET_NFC_OK)
 	{
-		DEBUG_MSG("net_nfc_util_create_ndef_message failed [%d]", error);
+		NFC_DBG("net_nfc_util_create_ndef_message failed [%d]", error);
 
 		return error;
 	}
@@ -1485,7 +1485,7 @@ net_nfc_error_e net_nfc_util_set_alternative_carrier_power_status(ndef_message_s
 
 	if ((error = net_nfc_util_create_ndef_message(&inner_msg)) != NET_NFC_OK)
 	{
-		DEBUG_MSG("net_nfc_util_create_ndef_message failed [%d]", error);
+		NFC_DBG("net_nfc_util_create_ndef_message failed [%d]", error);
 
 		return error;
 	}
@@ -1523,7 +1523,7 @@ net_nfc_error_e net_nfc_util_get_alternative_carrier_type_from_record(ndef_recor
 {
 	if(strncmp((char*)record->type_s.buffer, CH_CAR_RECORD_TYPE, (size_t)record->type_s.length) == 0)
 	{
-		DEBUG_MSG("CH_CAR_RECORD_TYPE");
+		NFC_DBG("CH_CAR_RECORD_TYPE");
 
 		char ctf = record->payload_s.buffer[0] & 0x07;
 		char ctype_length = record->payload_s.buffer[1];
@@ -1552,7 +1552,7 @@ net_nfc_error_e net_nfc_util_get_alternative_carrier_type_from_record(ndef_recor
 			{
 				*type = NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN;
 			}
-			break;
+		break;
 		case NET_NFC_RECORD_WELL_KNOWN_TYPE:	/* NFC Forum Well-known Type*/
 		case NET_NFC_RECORD_URI:				/* Absolute URIs as defined in [RFC 3986] */
 		case NET_NFC_RECORD_EXTERNAL_RTD:		/* NFC Forum external type */
@@ -1564,19 +1564,20 @@ net_nfc_error_e net_nfc_util_get_alternative_carrier_type_from_record(ndef_recor
 	}
 	else
 	{
-		DEBUG_MSG("Other record type");
-		if (strncmp((char *)record->type_s.buffer, CONN_HANDOVER_BT_CARRIER_MIME_NAME, (size_t)record->type_s.length) == 0)
+		NFC_DBG("Other record type");
+		if (strncmp((char *)record->type_s.buffer, CONN_HANDOVER_BT_CARRIER_MIME_NAME,
+			(size_t)record->type_s.length) == 0)
 		{
 			*type = NET_NFC_CONN_HANDOVER_CARRIER_BT;
 		}
 		else if (strncmp((char *)record->type_s.buffer,
-					CONN_HANDOVER_WIFI_BSS_CARRIER_MIME_NAME,
-					(size_t)record->type_s.length) == 0)
+			CONN_HANDOVER_WIFI_BSS_CARRIER_MIME_NAME,
+			(size_t)record->type_s.length) == 0)
 		{
 			*type = NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS;
 		}
 		else if (strncmp((char *)record->type_s.buffer,
-					CONN_HANDOVER_WIFI_IBSS_CARRIER_MIME_NAME,
+			CONN_HANDOVER_WIFI_IBSS_CARRIER_MIME_NAME,
 					(size_t)record->type_s.length) == 0)
 		{
 			*type = NET_NFC_CONN_HANDOVER_CARRIER_WIFI_IBSS;
@@ -1589,27 +1590,29 @@ net_nfc_error_e net_nfc_util_get_alternative_carrier_type_from_record(ndef_recor
 	return NET_NFC_OK;
 }
 
-net_nfc_error_e net_nfc_util_get_alternative_carrier_type(ndef_message_s *message, int index, net_nfc_conn_handover_carrier_type_e *type)
+net_nfc_error_e net_nfc_util_get_alternative_carrier_type(ndef_message_s *message,
+	int index, net_nfc_conn_handover_carrier_type_e *type)
 {
 	ndef_record_s *record = NULL;
-	net_nfc_error_e error;
+	net_nfc_error_e ret;
 
-	error = net_nfc_util_get_carrier_config_record(message, index, (ndef_record_s **)&record);
-	if (error != NET_NFC_OK)
-	{
-		return error;
-	}
+	ret = net_nfc_util_get_carrier_config_record(message, index, &record);
+	if (ret != NET_NFC_OK)
+		return ret;
 
 	return net_nfc_util_get_alternative_carrier_type_from_record(record, type);
 }
 
-net_nfc_error_e net_nfc_util_get_selector_power_status(ndef_message_s *message, net_nfc_conn_handover_carrier_state_e *power_state)
+net_nfc_error_e net_nfc_util_get_selector_power_status(ndef_message_s *message,
+	net_nfc_conn_handover_carrier_state_e *power_state)
 {
 	net_nfc_error_e error;
 	ndef_message_s *inner_msg = NULL;
 	ndef_record_s *current = NULL;
 	int idx;
-	net_nfc_conn_handover_carrier_state_e selector_state = NET_NFC_CONN_HANDOVER_CARRIER_INACTIVATE;
+	net_nfc_conn_handover_carrier_state_e selector_state;
+
+	selector_state = NET_NFC_CONN_HANDOVER_CARRIER_INACTIVATE;
 
 	if (message == NULL)
 	{
@@ -1625,7 +1628,8 @@ net_nfc_error_e net_nfc_util_get_selector_power_status(ndef_message_s *message, 
 				current = inner_msg->records;
 				for (idx = 0; idx < inner_msg->recordCount; idx++)
 				{
-					if (strncmp((char *)current->type_s.buffer, ALTERNATIVE_RECORD_TYPE, (size_t)current->type_s.length) == 0)
+					if (strncmp((char *)current->type_s.buffer, ALTERNATIVE_RECORD_TYPE,
+						(size_t)current->type_s.length) == 0)
 					{
 						if (((current->payload_s.buffer[0] & 0x3) == NET_NFC_CONN_HANDOVER_CARRIER_ACTIVATE) || ((current->payload_s.buffer[0] & 0x3) == NET_NFC_CONN_HANDOVER_CARRIER_ACTIVATING))
 						{
@@ -1646,14 +1650,14 @@ net_nfc_error_e net_nfc_util_get_selector_power_status(ndef_message_s *message, 
 		}
 		else
 		{
-			DEBUG_ERR_MSG("_net_nfc_util_create_ndef_message failed [%d]", error);
+			NFC_ERR("_net_nfc_util_create_ndef_message failed [%d]", error);
 		}
 
 		net_nfc_util_free_ndef_message(inner_msg);
 	}
 	else
 	{
-		DEBUG_ERR_MSG("_net_nfc_util_create_ndef_message failed [%d]", error);
+		NFC_ERR("_net_nfc_util_create_ndef_message failed [%d]", error);
 		error = NET_NFC_ALLOC_FAIL;
 	}
 

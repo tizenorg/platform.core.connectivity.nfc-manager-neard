@@ -85,7 +85,7 @@ static void manager_call_set_active_callback(GObject *source_object,
 	if (net_nfc_gdbus_manager_call_set_active_finish(NET_NFC_GDBUS_MANAGER(source_object),
 				&result, res, &error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish call_set_active: %s", error->message);
+		NFC_ERR("Can not finish call_set_active: %s", error->message);
 		g_error_free(error);
 
 		result = NET_NFC_IPC_FAIL;
@@ -127,7 +127,7 @@ static void manager_call_get_server_state_callback(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish get_server_state: %s",
+		NFC_ERR("Can not finish get_server_state: %s",
 				error->message);
 		g_error_free(error);
 
@@ -160,8 +160,7 @@ static gboolean _activated_time_elapsed_callback(gpointer user_data)
 static void manager_activated(NetNfcGDbusManager *manager, gboolean activated,
 		gpointer user_data)
 {
-	INFO_MSG(">>> SIGNAL arrived");
-	DEBUG_CLIENT_MSG("activated %d", activated);
+	NFC_INFO(">>> SIGNAL arrived : activated %d", activated);
 
 	/* update current state */
 	is_activated = (int)activated;
@@ -250,8 +249,7 @@ API net_nfc_error_e net_nfc_client_manager_set_active_sync(int state)
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_CLIENT_MSG("can not call SetActive: %s",
-				error->message);
+		NFC_ERR("can not call SetActive: %s", error->message);
 		g_error_free(error);
 
 		out_result = NET_NFC_IPC_FAIL;
@@ -320,8 +318,7 @@ API net_nfc_error_e net_nfc_client_manager_get_server_state_sync(
 	}
 	else
 	{
-		DEBUG_CLIENT_MSG("can not call GetServerState: %s",
-				error->message);
+		NFC_ERR("can not call GetServerState: %s", error->message);
 		g_error_free(error);
 
 		out_result = NET_NFC_IPC_FAIL;
@@ -336,8 +333,7 @@ net_nfc_error_e net_nfc_client_manager_init(void)
 
 	if (manager_proxy)
 	{
-		DEBUG_CLIENT_MSG("Already initialized");
-
+		NFC_WARN("Already initialized");
 		return NET_NFC_OK;
 	}
 
@@ -351,7 +347,7 @@ net_nfc_error_e net_nfc_client_manager_init(void)
 
 	if (manager_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not create proxy : %s", error->message);
+		NFC_ERR("Can not create proxy : %s", error->message);
 		g_error_free(error);
 
 		return NET_NFC_UNKNOWN_ERROR;

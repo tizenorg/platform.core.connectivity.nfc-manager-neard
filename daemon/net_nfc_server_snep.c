@@ -102,9 +102,9 @@ static void _emit_snep_event_signal(GVariant *parameter,
 				&error) == false)
 	{
 		if (error != NULL && error->message != NULL) {
-			DEBUG_ERR_MSG("g_dbus_connection_emit_signal failed : %s", error->message);
+			NFC_ERR("g_dbus_connection_emit_signal failed : %s", error->message);
 		} else {
-			DEBUG_ERR_MSG("g_dbus_connection_emit_signal failed");
+			NFC_ERR("g_dbus_connection_emit_signal failed");
 		}
 	}
 
@@ -121,7 +121,7 @@ static net_nfc_error_e _snep_server_cb(net_nfc_snep_handle_h handle,
 
 	data_s *temp = data;
 
-	DEBUG_SERVER_MSG("type [%d], result [%d], data [%p], user_param [%p]",
+	NFC_DBG("type [%d], result [%d], data [%p], user_param [%p]",
 			type, result, data, user_param);
 
 	switch (type)
@@ -139,7 +139,7 @@ static net_nfc_error_e _snep_server_cb(net_nfc_snep_handle_h handle,
 		break;
 
 	default :
-		DEBUG_ERR_MSG("error [%d]", result);
+		NFC_ERR("error [%d]", result);
 		break;
 	}
 
@@ -172,7 +172,7 @@ static void snep_server_start_thread_func(gpointer user_data)
 
 	if (user_data == NULL)
 	{
-		DEBUG_ERR_MSG("cannot get SNEP client data");
+		NFC_ERR("cannot get SNEP client data");
 
 		return;
 	}
@@ -202,14 +202,14 @@ static void snep_server_start_thread_func(gpointer user_data)
 				_snep_server_cb,
 				parameter);
 		if (result != NET_NFC_OK) {
-			DEBUG_ERR_MSG("net_nfc_server_snep_server failed, [%d]",
+			NFC_ERR("net_nfc_server_snep_server failed, [%d]",
 					result);
 			g_object_unref(connection);
 
 			g_variant_unref(parameter);
 		}
 	} else {
-		DEBUG_ERR_MSG("g_variant_new failed");
+		NFC_ERR("g_variant_new failed");
 
 		g_object_unref(connection);
 
@@ -235,7 +235,7 @@ static gboolean _handle_start_server(
 	GVariant *parameter;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -243,7 +243,7 @@ static gboolean _handle_start_server(
 				arg_privilege,
 				"nfc-manager::p2p",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -261,7 +261,7 @@ static gboolean _handle_start_server(
 		if ((result = net_nfc_server_controller_async_queue_push(
 						snep_server_start_thread_func, parameter)) == FALSE)
 		{
-			DEBUG_ERR_MSG("net_nfc_server_controller_async_queue_push failed");
+			NFC_ERR("net_nfc_server_controller_async_queue_push failed");
 
 			g_dbus_method_invocation_return_dbus_error(invocation,
 					"org.tizen.NetNfcService.Snep.ThreadError",
@@ -275,7 +275,7 @@ static gboolean _handle_start_server(
 	}
 	else
 	{
-		DEBUG_ERR_MSG("g_variant_new failed");
+		NFC_ERR("g_variant_new failed");
 
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.Snep.MemoryError",
@@ -296,7 +296,7 @@ static net_nfc_error_e _snep_start_client_cb(
 {
 	GVariant *parameter = (GVariant *)user_param;
 
-	DEBUG_SERVER_MSG("type [%d], result [%d], data [%p], user_param [%p]",
+	NFC_DBG("type [%d], result [%d], data [%p], user_param [%p]",
 			type, result, data, user_param);
 
 	_emit_snep_event_signal(parameter, handle, result, type, data);
@@ -323,7 +323,7 @@ static void snep_client_start_thread_func(gpointer user_data)
 
 	if (user_data == NULL)
 	{
-		DEBUG_ERR_MSG("cannot get SNEP client data");
+		NFC_ERR("cannot get SNEP client data");
 
 		return;
 	}
@@ -353,14 +353,14 @@ static void snep_client_start_thread_func(gpointer user_data)
 				_snep_start_client_cb,
 				parameter);
 		if (result != NET_NFC_OK) {
-			DEBUG_ERR_MSG("net_nfc_server_snep_client failed, [%d]",
+			NFC_ERR("net_nfc_server_snep_client failed, [%d]",
 					result);
 			g_object_unref(connection);
 
 			g_variant_unref(parameter);
 		}
 	} else {
-		DEBUG_ERR_MSG("g_variant_new failed");
+		NFC_ERR("g_variant_new failed");
 
 		g_object_unref(connection);
 
@@ -386,7 +386,7 @@ static gboolean _handle_start_client(
 	GVariant *parameter;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -394,7 +394,7 @@ static gboolean _handle_start_client(
 				arg_privilege,
 				"nfc-manager::p2p",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -412,7 +412,7 @@ static gboolean _handle_start_client(
 		if ((result = net_nfc_server_controller_async_queue_push(
 						snep_client_start_thread_func, parameter)) == FALSE)
 		{
-			DEBUG_ERR_MSG("net_nfc_server_controller_async_queue_push failed");
+			NFC_ERR("net_nfc_server_controller_async_queue_push failed");
 
 			g_dbus_method_invocation_return_dbus_error(invocation,
 					"org.tizen.NetNfcService.Snep.ThreadError",
@@ -426,7 +426,7 @@ static gboolean _handle_start_client(
 	}
 	else
 	{
-		DEBUG_ERR_MSG("g_variant_new failed");
+		NFC_ERR("g_variant_new failed");
 
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.Snep.MemoryError",
@@ -447,7 +447,7 @@ static net_nfc_error_e _snep_client_request_cb(
 {
 	GVariant *parameter = (GVariant *)user_param;
 
-	DEBUG_SERVER_MSG("type [%d], result [%d], data [%p], user_param [%p]",
+	NFC_DBG("type [%d], result [%d], data [%p], user_param [%p]",
 			type, result, data, user_param);
 
 	if (parameter != NULL) {
@@ -505,7 +505,7 @@ static void snep_client_send_request_thread_func(gpointer user_data)
 
 	if (user_data == NULL)
 	{
-		DEBUG_ERR_MSG("cannot get SNEP client data");
+		NFC_ERR("cannot get SNEP client data");
 
 		return;
 	}
@@ -532,7 +532,7 @@ static void snep_client_send_request_thread_func(gpointer user_data)
 	{
 		GVariant *resp;
 
-		DEBUG_ERR_MSG("net_nfc_server_snep_client_request  "
+		NFC_ERR("net_nfc_server_snep_client_request  "
 				"failed, [%d]",result);
 
 		resp = net_nfc_util_gdbus_buffer_to_variant(NULL, 0);
@@ -562,7 +562,7 @@ static gboolean _handle_client_send_request(
 	GVariant *parameter;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -570,7 +570,7 @@ static gboolean _handle_client_send_request(
 				arg_privilege,
 				"nfc-manager::p2p",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -587,7 +587,7 @@ static gboolean _handle_client_send_request(
 		if ((result = net_nfc_server_controller_async_queue_push(
 						snep_client_send_request_thread_func, parameter)) == FALSE)
 		{
-			DEBUG_ERR_MSG("net_nfc_server_controller_async_queue_push failed");
+			NFC_ERR("net_nfc_server_controller_async_queue_push failed");
 
 			g_dbus_method_invocation_return_dbus_error(invocation,
 					"org.tizen.NetNfcService.Snep.ThreadError",
@@ -601,7 +601,7 @@ static gboolean _handle_client_send_request(
 	}
 	else
 	{
-		DEBUG_ERR_MSG("g_variant_new failed");
+		NFC_ERR("g_variant_new failed");
 
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.Snep.MemoryError",
@@ -622,7 +622,7 @@ static void snep_stop_service_thread_func(gpointer user_data)
 
 	if (user_data == NULL)
 	{
-		DEBUG_ERR_MSG("cannot get SNEP client data");
+		NFC_ERR("cannot get SNEP client data");
 
 		return;
 	}
@@ -664,7 +664,7 @@ static gboolean _handle_stop_snep(
 	GVariant *parameter;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -672,7 +672,7 @@ static gboolean _handle_stop_snep(
 				arg_privilege,
 				"nfc-manager::p2p",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -688,7 +688,7 @@ static gboolean _handle_stop_snep(
 		if ((result = net_nfc_server_controller_async_queue_push(
 						snep_stop_service_thread_func, parameter)) == FALSE)
 		{
-			DEBUG_ERR_MSG("net_nfc_server_controller_async_queue_push failed");
+			NFC_ERR("net_nfc_server_controller_async_queue_push failed");
 
 			g_dbus_method_invocation_return_dbus_error(invocation,
 					"org.tizen.NetNfcService.Snep.ThreadError",
@@ -702,7 +702,7 @@ static gboolean _handle_stop_snep(
 	}
 	else
 	{
-		DEBUG_ERR_MSG("g_variant_new failed");
+		NFC_ERR("g_variant_new failed");
 
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.Snep.MemoryError",
@@ -720,7 +720,7 @@ static void _snep_activate_cb(int event, net_nfc_target_handle_s *handle,
 	GVariant *parameter = (GVariant *)user_param;
 	net_nfc_error_e result = NET_NFC_OK;
 
-	DEBUG_SERVER_MSG("event [%d], handle [%p], sap [%d], san [%s]",
+	NFC_DBG("event [%d], handle [%p], sap [%d], san [%s]",
 			event, handle, sap, san);
 
 	if (event == NET_NFC_LLCP_START) {
@@ -748,7 +748,7 @@ static void _snep_activate_cb(int event, net_nfc_target_handle_s *handle,
 			_emit_snep_event_signal(parameter, handle,
 					result, event, NULL);
 		} else {
-			DEBUG_ERR_MSG("net_nfc_server_snep_server failed, [%d]",
+			NFC_ERR("net_nfc_server_snep_server failed, [%d]",
 					result);
 
 			g_variant_unref(param);
@@ -802,7 +802,7 @@ static void snep_register_server_thread_func(gpointer user_data)
 				_snep_activate_cb,
 				parameter);
 		if (result != NET_NFC_OK) {
-			DEBUG_ERR_MSG("net_nfc_service_llcp_register_service failed, [%d]", result);
+			NFC_ERR("net_nfc_service_llcp_register_service failed, [%d]", result);
 			g_object_unref(connection);
 			g_variant_unref(parameter);
 		}
@@ -834,7 +834,7 @@ static gboolean _handle_register_server(
 	GVariant *parameter;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -842,7 +842,7 @@ static gboolean _handle_register_server(
 				arg_privilege,
 				"nfc-manager::p2p",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -859,7 +859,7 @@ static gboolean _handle_register_server(
 		if ((result = net_nfc_server_controller_async_queue_push(
 						snep_register_server_thread_func, parameter)) == FALSE)
 		{
-			DEBUG_ERR_MSG("net_nfc_server_controller_async_queue_push failed");
+			NFC_ERR("net_nfc_server_controller_async_queue_push failed");
 
 			g_dbus_method_invocation_return_dbus_error(invocation,
 					"org.tizen.NetNfcService.Snep.ThreadError",
@@ -873,7 +873,7 @@ static gboolean _handle_register_server(
 	}
 	else
 	{
-		DEBUG_ERR_MSG("g_variant_new failed");
+		NFC_ERR("g_variant_new failed");
 
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.Snep.MemoryError",
@@ -933,7 +933,7 @@ static gboolean _handle_unregister_server(
 	GVariant *parameter;
 	gboolean result;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -941,7 +941,7 @@ static gboolean _handle_unregister_server(
 				arg_privilege,
 				"nfc-manager::p2p",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -957,7 +957,7 @@ static gboolean _handle_unregister_server(
 		if ((result = net_nfc_server_controller_async_queue_push(
 						snep_unregister_server_thread_func, parameter)) == FALSE)
 		{
-			DEBUG_ERR_MSG("net_nfc_server_controller_async_queue_push failed");
+			NFC_ERR("net_nfc_server_controller_async_queue_push failed");
 
 			g_dbus_method_invocation_return_dbus_error(invocation,
 					"org.tizen.NetNfcService.Snep.ThreadError",
@@ -971,7 +971,7 @@ static gboolean _handle_unregister_server(
 	}
 	else
 	{
-		DEBUG_ERR_MSG("g_variant_new failed");
+		NFC_ERR("g_variant_new failed");
 
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.Snep.MemoryError",

@@ -56,7 +56,7 @@ API net_nfc_error_e net_nfc_client_jewel_read_id(net_nfc_target_handle_h handle,
 
 	if(target_info->devType != NET_NFC_JEWEL_PICC)
 	{
-		DEBUG_CLIENT_MSG("only Jewel tag is available");
+		NFC_ERR("only Jewel tag is available(TAG=%d)", target_info->devType);
 		return NET_NFC_NOT_ALLOWED_OPERATION;
 	}
 
@@ -101,7 +101,7 @@ API net_nfc_error_e net_nfc_client_jewel_read_byte(net_nfc_target_handle_h handl
 
 	if(target_info->devType != NET_NFC_JEWEL_PICC)
 	{
-		DEBUG_CLIENT_MSG("only Jewel tag is available");
+		NFC_ERR("only Jewel tag is available(TAG=%d)", target_info->devType);
 		return NET_NFC_NOT_ALLOWED_OPERATION;
 	}
 
@@ -166,7 +166,7 @@ API net_nfc_error_e net_nfc_client_jewel_read_all(net_nfc_target_handle_h handle
 
 	if(target_info->devType != NET_NFC_JEWEL_PICC)
 	{
-		DEBUG_CLIENT_MSG("only Jewel tag is available");
+		NFC_ERR("only Jewel tag is available(TAG=%d)", target_info->devType);
 		return NET_NFC_NOT_ALLOWED_OPERATION;
 	}
 
@@ -303,7 +303,7 @@ API net_nfc_error_e net_nfc_client_jewel_write_with_no_erase(
 
 	if(target_info->devType != NET_NFC_JEWEL_PICC)
 	{
-		DEBUG_CLIENT_MSG("only Jewel tag is available");
+		NFC_ERR("only Jewel tag is available(TAG=%d)", target_info->devType);
 		return NET_NFC_NOT_ALLOWED_OPERATION;
 	}
 

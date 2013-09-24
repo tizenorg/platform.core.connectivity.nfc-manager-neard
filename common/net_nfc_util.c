@@ -74,7 +74,6 @@ static uint8_t *bt_addr = NULL;
 
 /* for log tag */
 static const char *log_tag = LOG_CLIENT_TAG;
-FILE *nfc_log_file;
 
 const char *net_nfc_get_log_tag()
 {
@@ -86,42 +85,6 @@ void net_nfc_change_log_tag()
 	log_tag = LOG_SERVER_TAG;
 }
 
-void net_nfc_manager_init_log()
-{
-	nfc_log_file = fopen(NFC_DLOG_FILE, "a+");
-	if (nfc_log_file != NULL)
-	{
-		char timeBuf[50];
-		time_t rawtime;
-
-		time (&rawtime);
-		strftime(timeBuf, sizeof(timeBuf), "%m-%d %H:%M:%S", localtime(&rawtime));
-		fprintf(nfc_log_file, "\n%s",timeBuf);
-		fprintf(nfc_log_file, "========== log begin, pid [%d] =========", getpid());
-		fflush(nfc_log_file);
-	}
-	else
-	{
-		fprintf(stderr, "\n\nfopen error\n\n");
-	}
-}
-
-void net_nfc_manager_fini_log()
-{
-	if (nfc_log_file != NULL)
-	{
-		char timeBuf[50];
-		time_t rawtime;
-
-		time (&rawtime);
-		strftime(timeBuf, sizeof(timeBuf), "%m-%d %H:%M:%S", localtime(&rawtime));
-		fprintf(nfc_log_file, "\n%s",timeBuf);
-		fprintf(nfc_log_file, "=========== log end, pid [%d] ==========", getpid());
-		fflush(nfc_log_file);
-		fclose(nfc_log_file);
-		nfc_log_file = NULL;
-	}
-}
 
 API void __net_nfc_util_free_mem(void **mem, char *filename, unsigned int line)
 {

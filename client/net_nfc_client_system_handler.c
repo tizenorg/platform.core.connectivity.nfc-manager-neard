@@ -47,7 +47,7 @@ static void popup_set_active_callback(GObject *source_object, GAsyncResult *res,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish popup_set_active: %s",
+		NFC_ERR("Can not finish popup_set_active: %s",
 				error->message);
 		g_error_free(error);
 
@@ -117,8 +117,7 @@ API net_nfc_error_e net_nfc_client_sys_handler_set_state_sync(int state)
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_CLIENT_MSG("can not call SetActive: %s",
-				error->message);
+		NFC_ERR("can not call SetActive: %s", error->message);
 		g_error_free(error);
 
 		result = NET_NFC_IPC_FAIL;
@@ -179,8 +178,7 @@ API net_nfc_error_e net_nfc_client_sys_handler_set_state_force_sync(int state)
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_CLIENT_MSG("can not call SetActive: %s",
-				error->message);
+		NFC_ERR("can not call SetActive: %s", error->message);
 		g_error_free(error);
 
 		result = NET_NFC_IPC_FAIL;
@@ -218,7 +216,7 @@ API net_nfc_error_e net_nfc_client_sys_handler_get_launch_popup_state(
 	*state = NET_NFC_LAUNCH_APP_SELECT;
 
 	if (popup_proxy == NULL) {
-		DEBUG_ERR_MSG("popup_proxy is null");
+		NFC_ERR("popup_proxy is null");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -237,7 +235,7 @@ API net_nfc_error_e net_nfc_client_sys_handler_get_launch_popup_state(
 		*state = out_state;
 	} else {
 
-		DEBUG_ERR_MSG("net_nfc_gdbus_popup_call_get_sync failed: %s",
+		NFC_ERR("net_nfc_gdbus_popup_call_get_sync failed: %s",
 				error->message);
 		g_error_free(error);
 
@@ -253,8 +251,7 @@ net_nfc_error_e net_nfc_client_sys_handler_init(void)
 
 	if (popup_proxy)
 	{
-		DEBUG_CLIENT_MSG("Already initialized");
-
+		NFC_WARN("Already initialized");
 		return NET_NFC_OK;
 	}
 
@@ -267,7 +264,7 @@ net_nfc_error_e net_nfc_client_sys_handler_init(void)
 			&error);
 	if (popup_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not create proxy : %s", error->message);
+		NFC_ERR("Can not create proxy : %s", error->message);
 		g_error_free(error);
 
 		return NET_NFC_OPERATION_FAIL;

@@ -196,12 +196,12 @@ ndef_message_s *net_nfc_util_gdbus_variant_to_ndef_message(GVariant *variant)
 						&data, temp) == NET_NFC_OK) {
 				message = temp;
 			} else {
-				DEBUG_ERR_MSG("net_nfc_create_ndef_message_from_rawdata failed");
+				NFC_ERR("net_nfc_create_ndef_message_from_rawdata failed");
 
 				net_nfc_util_free_ndef_message(temp);
 			}
 		} else {
-			DEBUG_ERR_MSG("net_nfc_util_create_ndef_message failed");
+			NFC_ERR("net_nfc_util_create_ndef_message failed");
 		}
 
 		net_nfc_util_free_data(&data);
@@ -228,15 +228,15 @@ GVariant *net_nfc_util_gdbus_ndef_message_to_variant(
 						&temp) == NET_NFC_OK) {
 				data = &temp;
 			} else {
-				DEBUG_ERR_MSG("can not convert ndef_message to rawdata");
+				NFC_ERR("can not convert ndef_message to rawdata");
 
 				net_nfc_util_free_data(&temp);
 			}
 		} else {
-			DEBUG_ERR_MSG("net_nfc_util_alloc_data failed");
+			NFC_ERR("net_nfc_util_alloc_data failed");
 		}
 	} else {
-		DEBUG_ERR_MSG("message length is 0");
+		NFC_ERR("message length is 0");
 	}
 
 	variant = net_nfc_util_gdbus_data_to_variant(data);

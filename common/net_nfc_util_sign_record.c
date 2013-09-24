@@ -134,16 +134,16 @@ net_nfc_error_e net_nfc_util_verify_signature_records(ndef_record_s *begin_recor
 		/* parse signature info */
 		sign_info = (net_nfc_signature_record_s *)sign_record->payload_s.buffer;
 
-		DEBUG_MSG("record version : %d", sign_info->version);
-		DEBUG_MSG("signature URI present? : %s", sign_info->uri_present ? "true" : "false");
-		DEBUG_MSG("signature type : %d", sign_info->sign_type);
-		DEBUG_MSG("signature length : %d", sign_info->signature.length);
+		NFC_DBG("record version : %d", sign_info->version);
+		NFC_DBG("signature URI present? : %s", sign_info->uri_present ? "true" : "false");
+		NFC_DBG("signature type : %d", sign_info->sign_type);
+		NFC_DBG("signature length : %d", sign_info->signature.length);
 
 		if (sign_info->uri_present == true)
 		{
 			/* TODO */
 			/* receive the signature data directed by uri */
-			DEBUG_ERR_MSG("NOT IMPLEMENTED (sign_info->uri_present == true)");
+			NFC_ERR("NOT IMPLEMENTED (sign_info->uri_present == true)");
 			_net_nfc_util_free_mem(buffer);
 			return result;
 		}
@@ -152,15 +152,15 @@ net_nfc_error_e net_nfc_util_verify_signature_records(ndef_record_s *begin_recor
 		chain_info = (net_nfc_certificate_chain_s *)__NEXT_SUB_FIELD(&(sign_info->signature));
 
 		SECURE_LOGD("certificate URI present? : %s", chain_info->uri_present ? "true" : "false");
-		DEBUG_MSG("certificate format : %d", chain_info->cert_format);
-		DEBUG_MSG("number of certificates : %d", chain_info->num_of_certs);
+		NFC_DBG("certificate format : %d", chain_info->cert_format);
+		NFC_DBG("number of certificates : %d", chain_info->num_of_certs);
 
 		if (chain_info->num_of_certs > 0)
 		{
 			net_nfc_sub_field_s *data_info = NULL;
 
 			data_info = (net_nfc_sub_field_s *)chain_info->cert_store;
-			DEBUG_MSG("certficate length : %d", data_info->length);
+			NFC_DBG("certficate length : %d", data_info->length);
 
 			//		DEBUG_MSG_PRINT_BUFFER(data_info->value, data_info->length);
 
@@ -184,7 +184,7 @@ net_nfc_error_e net_nfc_util_verify_signature_records(ndef_record_s *begin_recor
 							i < chain_info->num_of_certs;
 							i++, data_info = (net_nfc_sub_field_s *)__NEXT_SUB_FIELD(data_info))
 					{
-						DEBUG_MSG("certficate length : %d", data_info->length);
+						NFC_DBG("certficate length : %d", data_info->length);
 						//DEBUG_MSG_PRINT_BUFFER(data_info->value, data_info->length);
 
 						net_nfc_util_openssl_add_certificate_of_ca(context, data_info->value, data_info->length);
@@ -194,12 +194,12 @@ net_nfc_error_e net_nfc_util_verify_signature_records(ndef_record_s *begin_recor
 					if (chain_info->uri_present == true)
 					{
 						/* TODO : Need to implement */
-						DEBUG_ERR_MSG("NOT IMPLEMENTED (found_root == false && chain_info->uri_present == true)");
+						NFC_ERR("NOT IMPLEMENTED (found_root == false && chain_info->uri_present == true)");
 						net_nfc_util_openssl_release_verify_certificate(context);
 						_net_nfc_util_free_mem(buffer);
 						return result;
 
-						//DEBUG_MSG("certficate length : %d", data_info->length);
+						//NFC_DBG("certficate length : %d", data_info->length);
 						//DEBUG_MSG_PRINT_BUFFER(data_info->value, data_info->length);
 					}
 
@@ -215,16 +215,16 @@ net_nfc_error_e net_nfc_util_verify_signature_records(ndef_record_s *begin_recor
 					result = NET_NFC_OK;
 				}
 
-				DEBUG_MSG("verifying signature %d", result);
+				NFC_DBG("verifying signature %d", result);
 			}
 			else
 			{
-				DEBUG_ERR_MSG("verifying signature failed");
+				NFC_ERR("verifying signature failed");
 			}
 		}
 		else
 		{
-			DEBUG_ERR_MSG("certificate not found");
+			NFC_ERR("certificate not found");
 		}
 
 		_net_nfc_util_free_mem(buffer);
@@ -235,7 +235,7 @@ net_nfc_error_e net_nfc_util_verify_signature_records(ndef_record_s *begin_recor
 		{
 			_net_nfc_util_free_mem(buffer);
 		}
-		DEBUG_ERR_MSG("_get_records_data_buffer failed");
+		NFC_ERR("_get_records_data_buffer failed");
 	}
 
 	return result;
@@ -293,7 +293,7 @@ net_nfc_error_e net_nfc_util_sign_records(ndef_message_s *msg, int begin_index, 
 	net_nfc_util_get_record_by_index(msg, begin_index, &begin_record);
 	net_nfc_util_get_record_by_index(msg, end_index, &end_record);
 
-	DEBUG_MSG("total record count : %d, begin_index : %d, end_index : %d", msg->recordCount, begin_index, end_index);
+	NFC_DBG("total record count : %d, begin_index : %d, end_index : %d", msg->recordCount, begin_index, end_index);
 
 	/* get target data */
 	_get_records_data_buffer(begin_record, end_record->next, &data_buffer, &data_len);
@@ -341,7 +341,7 @@ net_nfc_error_e net_nfc_util_sign_records(ndef_message_s *msg, int begin_index, 
 	if (chain->uri_present)
 	{
 		/* TODO */
-		DEBUG_ERR_MSG("num_of_certs is greater than 15 [%d]", cert_count);
+		NFC_ERR("num_of_certs is greater than 15 [%d]", cert_count);
 	}
 
 	/* create record */

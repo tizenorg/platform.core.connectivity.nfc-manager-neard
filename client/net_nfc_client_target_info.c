@@ -136,7 +136,7 @@ API net_nfc_error_e net_nfc_get_tag_info_keys(net_nfc_target_info_h target_info,
 
 	*number_of_keys = handle->number_of_keys;
 
-	DEBUG_CLIENT_MSG("number of keys = [%d]", handle->number_of_keys);
+	NFC_DBG("number of keys = [%d]", handle->number_of_keys);
 
 	handle->keylist = *keys;
 

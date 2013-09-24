@@ -49,7 +49,7 @@ static GVariant *transceive_data_to_transceive_variant(
 
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("data is empty");
+		NFC_ERR("data is empty");
 		return NULL;
 	}
 
@@ -75,7 +75,7 @@ static GVariant *transceive_data_to_transceive_variant(
 	case NET_NFC_JEWEL_PICC :
 		if (data->length > 9)
 		{
-			DEBUG_ERR_MSG("data length is larger than 9");
+			NFC_ERR("data length is larger than 9");
 			return NULL;
 		}
 
@@ -125,7 +125,7 @@ static void transceive_data_call(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish transceive: %s", error->message);
+		NFC_ERR("Can not finish transceive: %s", error->message);
 		g_error_free(error);
 
 		out_result = NET_NFC_IPC_FAIL;
@@ -163,7 +163,7 @@ static void transceive_call(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish transceive: %s", error->message);
+		NFC_ERR("Can not finish transceive: %s", error->message);
 		g_error_free(error);
 
 		out_result = NET_NFC_IPC_FAIL;
@@ -188,7 +188,7 @@ API net_nfc_error_e net_nfc_client_transceive(net_nfc_target_handle_h handle,
 
 	if (transceive_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get TransceiveProxy");
+		NFC_ERR("Can not get TransceiveProxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -206,7 +206,7 @@ API net_nfc_error_e net_nfc_client_transceive(net_nfc_target_handle_h handle,
 	if (target_info == NULL || target_info->handle == NULL)
 		return NET_NFC_NOT_CONNECTED;
 
-	DEBUG_CLIENT_MSG("send request :: transceive = [%p]", handle);
+	NFC_DBG("send request :: transceive = [%p]", handle);
 
 	arg_data = transceive_data_to_transceive_variant(target_info->devType,
 			rawdata);
@@ -245,7 +245,7 @@ API net_nfc_error_e net_nfc_client_transceive_data(net_nfc_target_handle_h handl
 
 	if (transceive_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get TransceiveProxy");
+		NFC_ERR("Can not get TransceiveProxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -262,7 +262,7 @@ API net_nfc_error_e net_nfc_client_transceive_data(net_nfc_target_handle_h handl
 	if (target_info == NULL || target_info->handle == NULL)
 		return NET_NFC_NOT_CONNECTED;
 
-	DEBUG_CLIENT_MSG("send request :: transceive = [%p]", handle);
+	NFC_DBG("send request :: transceive = [%p]", handle);
 
 	arg_data = transceive_data_to_transceive_variant(target_info->devType,
 			rawdata);
@@ -305,7 +305,7 @@ API net_nfc_error_e net_nfc_client_transceive_sync(net_nfc_target_handle_h handl
 
 	if (transceive_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get TransceiveProxy");
+		NFC_ERR("Can not get TransceiveProxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -319,7 +319,7 @@ API net_nfc_error_e net_nfc_client_transceive_sync(net_nfc_target_handle_h handl
 	if (target_info == NULL || target_info->handle == NULL)
 		return NET_NFC_NOT_CONNECTED;
 
-	DEBUG_CLIENT_MSG("send request :: transceive = [%p]", handle);
+	NFC_DBG("send request :: transceive = [%p]", handle);
 
 	arg_data = transceive_data_to_transceive_variant(target_info->devType,
 			rawdata);
@@ -335,7 +335,7 @@ API net_nfc_error_e net_nfc_client_transceive_sync(net_nfc_target_handle_h handl
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Transceive (sync call) failed: %s",
+		NFC_ERR("Transceive (sync call) failed: %s",
 				error->message);
 		g_error_free(error);
 
@@ -359,7 +359,7 @@ API net_nfc_error_e net_nfc_client_transceive_data_sync(
 
 	if (transceive_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not get TransceiveProxy");
+		NFC_ERR("Can not get TransceiveProxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
@@ -373,7 +373,7 @@ API net_nfc_error_e net_nfc_client_transceive_data_sync(
 	if (target_info == NULL || target_info->handle == NULL)
 		return NET_NFC_NOT_CONNECTED;
 
-	DEBUG_CLIENT_MSG("send request :: transceive = [%p]", handle);
+	NFC_DBG("send request :: transceive = [%p]", handle);
 
 	arg_data = transceive_data_to_transceive_variant(target_info->devType,
 			rawdata);
@@ -391,7 +391,7 @@ API net_nfc_error_e net_nfc_client_transceive_data_sync(
 				NULL,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Transceive (sync call) failed: %s",
+		NFC_ERR("Transceive (sync call) failed: %s",
 				error->message);
 		g_error_free(error);
 
@@ -413,8 +413,7 @@ net_nfc_error_e net_nfc_client_transceive_init(void)
 
 	if (transceive_proxy)
 	{
-		DEBUG_CLIENT_MSG("Already initialized");
-
+		NFC_WARN("Already initialized");
 		return NET_NFC_OK;
 	}
 
@@ -427,7 +426,7 @@ net_nfc_error_e net_nfc_client_transceive_init(void)
 			&error);
 	if (transceive_proxy == NULL)
 	{
-		DEBUG_ERR_MSG("Can not create proxy : %s", error->message);
+		NFC_ERR("Can not create proxy : %s", error->message);
 		g_error_free(error);
 
 		return NET_NFC_UNKNOWN_ERROR;

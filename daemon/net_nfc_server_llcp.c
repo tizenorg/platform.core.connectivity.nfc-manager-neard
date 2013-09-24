@@ -430,9 +430,9 @@ static void llcp_socket_error_cb(net_nfc_llcp_socket_t socket,
 					result),
 				&error) == false) {
 		if (error != NULL && error->message != NULL) {
-			DEBUG_ERR_MSG("g_dbus_connection_emit_signal failed : %s", error->message);
+			NFC_ERR("g_dbus_connection_emit_signal failed : %s", error->message);
 		} else {
-			DEBUG_ERR_MSG("g_dbus_connection_emit_signal failed");
+			NFC_ERR("g_dbus_connection_emit_signal failed");
 		}
 	}
 }
@@ -458,9 +458,9 @@ static void llcp_incoming_cb(net_nfc_llcp_socket_t socket,
 					socket),
 				&error) == false) {
 		if (error != NULL && error->message != NULL) {
-			DEBUG_ERR_MSG("g_dbus_connection_emit_signal failed : %s", error->message);
+			NFC_ERR("g_dbus_connection_emit_signal failed : %s", error->message);
 		} else {
-			DEBUG_ERR_MSG("g_dbus_connection_emit_signal failed");
+			NFC_ERR("g_dbus_connection_emit_signal failed");
 		}
 	}
 }
@@ -705,7 +705,7 @@ static void llcp_handle_listen_thread_func(gpointer user_data)
 				llcp_socket_error_cb,
 				client_data) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_create_socket failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_create_socket failed [%d]", result);
 
 		goto ERROR;
 	}
@@ -716,7 +716,7 @@ static void llcp_handle_listen_thread_func(gpointer user_data)
 				data->sap,
 				&result) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_bind failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_bind failed [%d]", result);
 
 		goto ERROR;
 	}
@@ -728,7 +728,7 @@ static void llcp_handle_listen_thread_func(gpointer user_data)
 				llcp_incoming_cb,
 				client_data) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_listen failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_listen failed [%d]", result);
 
 		goto ERROR;
 	}
@@ -789,7 +789,7 @@ static void llcp_handle_accept_thread_func(gpointer user_data)
 	if (net_nfc_controller_llcp_accept(data->client_socket, &result,
 				llcp_socket_error_cb,
 				client_data) == false) {
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_accept failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_accept failed [%d]", result);
 
 		goto ERROR;
 	}
@@ -828,7 +828,7 @@ static void llcp_handle_reject_thread_func(gpointer user_data)
 	if (net_nfc_controller_llcp_reject(GUINT_TO_POINTER(data->handle),
 				data->client_socket,
 				&result) == false) {
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_reject failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_reject failed [%d]", result);
 	}
 
 	net_nfc_gdbus_llcp_complete_reject(data->llcp, data->invocation,
@@ -873,7 +873,7 @@ static void llcp_handle_connect_thread_func(gpointer user_data)
 				llcp_socket_error_cb,
 				client_data) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_create_socket failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_create_socket failed [%d]", result);
 
 		goto ERROR;
 	}
@@ -888,7 +888,7 @@ static void llcp_handle_connect_thread_func(gpointer user_data)
 				llcp_connect_by_url_cb,
 				data) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_listen failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_listen failed [%d]", result);
 
 		goto ERROR;
 	}
@@ -951,7 +951,7 @@ static void llcp_handle_connect_sap_thread_func(gpointer user_data)
 				llcp_socket_error_cb,
 				client_data) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_create_socket failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_create_socket failed [%d]", result);
 
 		goto ERROR;
 	}
@@ -965,7 +965,7 @@ static void llcp_handle_connect_sap_thread_func(gpointer user_data)
 				llcp_connect_cb,
 				data) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_listen failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_listen failed [%d]", result);
 
 		goto ERROR;
 	}
@@ -1009,7 +1009,7 @@ static void llcp_handle_send_thread_func(gpointer user_data)
 				llcp_send_cb,
 				data) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_send failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_send failed [%d]", result);
 
 		net_nfc_gdbus_llcp_complete_send(data->llcp,
 				data->invocation,
@@ -1042,7 +1042,7 @@ static void llcp_handle_send_to_thread_func(gpointer user_data)
 				llcp_send_to_cb,
 				data) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_send_to failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_send_to failed [%d]", result);
 
 		net_nfc_gdbus_llcp_complete_send_to(data->llcp,
 				data->invocation,
@@ -1074,7 +1074,7 @@ static void llcp_handle_receive_thread_func(gpointer user_data)
 				llcp_receive_cb,
 				data) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_recv failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_recv failed [%d]", result);
 
 		net_nfc_gdbus_llcp_complete_receive(data->llcp,
 				data->invocation,
@@ -1104,7 +1104,7 @@ static void llcp_handle_receive_from_thread_func(gpointer user_data)
 				llcp_receive_from_cb,
 				data) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_recv_from failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_recv_from failed [%d]", result);
 
 		net_nfc_gdbus_llcp_complete_receive_from(data->llcp,
 				data->invocation,
@@ -1151,8 +1151,7 @@ static void llcp_handle_disconnect_thread_func(gpointer user_data)
 
 		net_nfc_server_free_target_info();
 		ret_val = pm_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
-		DEBUG_SERVER_MSG("net_nfc_controller_disconnect pm_unlock_state"
-				"[%d]!!", ret_val);
+		NFC_DBG("net_nfc_controller_disconnect pm_unlock_state[%d]!!", ret_val);
 	}
 
 	if (net_nfc_controller_llcp_disconnect(GUINT_TO_POINTER(data->handle),
@@ -1161,7 +1160,7 @@ static void llcp_handle_disconnect_thread_func(gpointer user_data)
 				llcp_disconnect_cb,
 				data) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_disconnect failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_disconnect failed [%d]", result);
 
 		net_nfc_gdbus_llcp_complete_disconnect(data->llcp,
 				data->invocation,
@@ -1185,7 +1184,7 @@ static gboolean llcp_handle_config(NetNfcGDbusLlcp *llcp,
 	gboolean result;
 	LlcpConfigData *data;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -1193,7 +1192,7 @@ static gboolean llcp_handle_config(NetNfcGDbusLlcp *llcp,
 				smack_privilege,
 				"nfc-manager::p2p",
 				"w") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -1250,7 +1249,7 @@ static gboolean llcp_handle_listen(NetNfcGDbusLlcp *llcp,
 	gboolean result;
 	LlcpListenData *data;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -1258,7 +1257,7 @@ static gboolean llcp_handle_listen(NetNfcGDbusLlcp *llcp,
 				smack_privilege,
 				"nfc-manager::p2p",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -1312,7 +1311,7 @@ static gboolean llcp_handle_accept(NetNfcGDbusLlcp *llcp,
 	gboolean result;
 	LlcpAcceptData *data;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -1320,7 +1319,7 @@ static gboolean llcp_handle_accept(NetNfcGDbusLlcp *llcp,
 				smack_privilege,
 				"nfc-manager::p2p",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -1367,7 +1366,7 @@ static gboolean llcp_handle_reject(NetNfcGDbusLlcp *llcp,
 	gboolean result;
 	LlcpAcceptData *data;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -1375,7 +1374,7 @@ static gboolean llcp_handle_reject(NetNfcGDbusLlcp *llcp,
 				smack_privilege,
 				"nfc-manager::p2p",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -1426,7 +1425,7 @@ static gboolean llcp_handle_connect(NetNfcGDbusLlcp *llcp,
 	gboolean result;
 	LlcpConnectData *data;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -1434,7 +1433,7 @@ static gboolean llcp_handle_connect(NetNfcGDbusLlcp *llcp,
 				smack_privilege,
 				"nfc-manager::p2p",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -1491,7 +1490,7 @@ static gboolean llcp_handle_connect_sap(NetNfcGDbusLlcp *llcp,
 	gboolean result;
 	LlcpConnectSapData *data;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -1499,7 +1498,7 @@ static gboolean llcp_handle_connect_sap(NetNfcGDbusLlcp *llcp,
 				smack_privilege,
 				"nfc-manager::p2p",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -1551,7 +1550,7 @@ static gboolean llcp_handle_send(NetNfcGDbusLlcp *llcp,
 	gboolean result;
 	LlcpSendData *data;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -1559,7 +1558,7 @@ static gboolean llcp_handle_send(NetNfcGDbusLlcp *llcp,
 				smack_privilege,
 				"nfc-manager::p2p",
 				"w") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -1612,7 +1611,7 @@ static gboolean llcp_handle_send_to(NetNfcGDbusLlcp *llcp,
 	gboolean result;
 	LlcpSendToData *data;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -1620,7 +1619,7 @@ static gboolean llcp_handle_send_to(NetNfcGDbusLlcp *llcp,
 				smack_privilege,
 				"nfc-manager::p2p",
 				"rw") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -1673,7 +1672,7 @@ static gboolean llcp_handle_receive(NetNfcGDbusLlcp *llcp,
 	gboolean result;
 	LlcpReceiveData *data;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -1681,7 +1680,7 @@ static gboolean llcp_handle_receive(NetNfcGDbusLlcp *llcp,
 				smack_privilege,
 				"nfc-manager::p2p",
 				"w") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -1730,7 +1729,7 @@ static gboolean llcp_handle_receive_from(NetNfcGDbusLlcp *llcp,
 	gboolean result;
 	LlcpReceiveData *data;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -1738,7 +1737,7 @@ static gboolean llcp_handle_receive_from(NetNfcGDbusLlcp *llcp,
 				smack_privilege,
 				"nfc-manager::p2p",
 				"w") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -1786,7 +1785,7 @@ static gboolean llcp_handle_close(NetNfcGDbusLlcp *llcp,
 	gboolean result;
 	LlcpCloseData *data;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -1794,7 +1793,7 @@ static gboolean llcp_handle_close(NetNfcGDbusLlcp *llcp,
 				smack_privilege,
 				"nfc-manager::p2p",
 				"w") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -1841,7 +1840,7 @@ static gboolean llcp_handle_disconnect(NetNfcGDbusLlcp *llcp,
 	gboolean result;
 	LlcpDisconnectData *data;
 
-	INFO_MSG(">>> REQUEST from [%s]",
+	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
@@ -1849,7 +1848,7 @@ static gboolean llcp_handle_disconnect(NetNfcGDbusLlcp *llcp,
 				smack_privilege,
 				"nfc-manager::p2p",
 				"w") == false) {
-		DEBUG_ERR_MSG("permission denied, and finished request");
+		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
@@ -1902,7 +1901,7 @@ void net_nfc_server_llcp_deactivated(gpointer user_data)
 			}
 			else
 			{
-				DEBUG_SERVER_MSG("target was not connected.");
+				NFC_ERR("target was not connected.");
 			}
 		}
 
@@ -1910,7 +1909,7 @@ void net_nfc_server_llcp_deactivated(gpointer user_data)
 	}
 	else
 	{
-		DEBUG_SERVER_MSG("the target was disconnected");
+		NFC_ERR("the target was disconnected");
 	}
 
 	/* send p2p detatch */
@@ -1950,7 +1949,7 @@ static void llcp_simple_listen_cb(net_nfc_llcp_socket_t socket,
 	g_assert(simple_data != NULL);
 
 	if (result != NET_NFC_OK) {
-		DEBUG_ERR_MSG("listen socket failed, [%d]", result);
+		NFC_ERR("listen socket failed, [%d]", result);
 	}
 
 	if (simple_data->callback)
@@ -1976,7 +1975,7 @@ static void llcp_simple_connect_cb(net_nfc_llcp_socket_t socket,
 	g_assert(simple_data != NULL);
 
 	if (result != NET_NFC_OK) {
-		DEBUG_ERR_MSG("connect socket failed, [%d]", result);
+		NFC_ERR("connect socket failed, [%d]", result);
 	}
 
 	if (simple_data->callback)
@@ -2186,14 +2185,14 @@ net_nfc_error_e net_nfc_server_llcp_simple_server(net_nfc_target_handle_s *handl
 				&config,
 				&result) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_get_remote_config failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_get_remote_config failed [%d]", result);
 
 		goto ERROR;
 	}
 
 	simple_data = g_try_new0(LlcpSimpleData, 1);
 	if (simple_data == NULL) {
-		DEBUG_ERR_MSG("g_try_new0 failed");
+		NFC_ERR("g_try_new0 failed");
 
 		result = NET_NFC_ALLOC_FAIL;
 
@@ -2215,7 +2214,7 @@ net_nfc_error_e net_nfc_server_llcp_simple_server(net_nfc_target_handle_s *handl
 				llcp_simple_socket_error_cb,
 				simple_data) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_create_socket failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_create_socket failed [%d]", result);
 
 		goto ERROR;
 	}
@@ -2226,7 +2225,7 @@ net_nfc_error_e net_nfc_server_llcp_simple_server(net_nfc_target_handle_s *handl
 				sap,
 				&result) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_bind failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_bind failed [%d]", result);
 
 		goto ERROR;
 	}
@@ -2238,12 +2237,12 @@ net_nfc_error_e net_nfc_server_llcp_simple_server(net_nfc_target_handle_s *handl
 				llcp_simple_listen_cb,
 				simple_data) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_listen failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_listen failed [%d]", result);
 
 		goto ERROR;
 	}
 
-	DEBUG_SERVER_MSG("result [%d]", result);
+	NFC_DBG("result [%d]", result);
 
 	if (result == NET_NFC_BUSY)
 		result = NET_NFC_OK;
@@ -2284,14 +2283,14 @@ net_nfc_error_e net_nfc_server_llcp_simple_client(
 				&config,
 				&result) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_get_remote_config failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_get_remote_config failed [%d]", result);
 
 		goto ERROR;
 	}
 
 	simple_data = g_try_new0(LlcpSimpleData, 1);
 	if (simple_data == NULL) {
-		DEBUG_ERR_MSG("g_try_new0 failed");
+		NFC_ERR("g_try_new0 failed");
 
 		result = NET_NFC_ALLOC_FAIL;
 
@@ -2313,7 +2312,7 @@ net_nfc_error_e net_nfc_server_llcp_simple_client(
 				llcp_simple_socket_error_cb,
 				simple_data) == false)
 	{
-		DEBUG_ERR_MSG("net_nfc_controller_llcp_create_socket failed [%d]", result);
+		NFC_ERR("net_nfc_controller_llcp_create_socket failed [%d]", result);
 
 		goto ERROR;
 	}
@@ -2329,7 +2328,7 @@ net_nfc_error_e net_nfc_server_llcp_simple_client(
 					llcp_simple_connect_cb,
 					simple_data) == false)
 		{
-			DEBUG_ERR_MSG("net_nfc_controller_llcp_connect failed [%d]", result);
+			NFC_ERR("net_nfc_controller_llcp_connect failed [%d]", result);
 
 			goto ERROR;
 		}
@@ -2343,13 +2342,13 @@ net_nfc_error_e net_nfc_server_llcp_simple_client(
 					llcp_simple_connect_cb,
 					simple_data) == false)
 		{
-			DEBUG_ERR_MSG("net_nfc_controller_llcp_connect_by_url failed [%d]", result);
+			NFC_ERR("net_nfc_controller_llcp_connect_by_url failed [%d]", result);
 
 			goto ERROR;
 		}
 	}
 
-	DEBUG_SERVER_MSG("result [%d]", result);
+	NFC_DBG("result [%d]", result);
 
 	if (result == NET_NFC_BUSY)
 		result = NET_NFC_OK;
@@ -2391,10 +2390,10 @@ net_nfc_error_e net_nfc_server_llcp_simple_accept(
 					llcp_simple_socket_error_cb,
 					simple_data) == false)
 		{
-			DEBUG_ERR_MSG("net_nfc_controller_llcp_accept failed [%d]", result);
+			NFC_ERR("net_nfc_controller_llcp_accept failed [%d]", result);
 		}
 	} else {
-		DEBUG_ERR_MSG("g_try_new0 failed");
+		NFC_ERR("g_try_new0 failed");
 
 		result = NET_NFC_ALLOC_FAIL;
 	}
@@ -2429,11 +2428,11 @@ net_nfc_error_e net_nfc_server_llcp_simple_send(
 					llcp_simple_send_cb,
 					simple_data) == false)
 		{
-			DEBUG_ERR_MSG("net_nfc_controller_llcp_send failed [%d]",
+			NFC_ERR("net_nfc_controller_llcp_send failed [%d]",
 					result);
 		}
 	} else {
-		DEBUG_ERR_MSG("g_try_new0 failed");
+		NFC_ERR("g_try_new0 failed");
 
 		result = NET_NFC_ALLOC_FAIL;
 	}
@@ -2467,12 +2466,12 @@ net_nfc_error_e net_nfc_server_llcp_simple_receive(
 					llcp_simple_receive_cb,
 					simple_data) == false)
 		{
-			DEBUG_ERR_MSG("net_nfc_controller_llcp_recv failed [%d]", result);
+			NFC_ERR("net_nfc_controller_llcp_recv failed [%d]", result);
 
 			g_free(simple_data);
 		}
 	} else {
-		DEBUG_ERR_MSG("g_try_new0 failed");
+		NFC_ERR("g_try_new0 failed");
 
 		result = NET_NFC_ALLOC_FAIL;
 	}
@@ -2514,7 +2513,7 @@ static net_nfc_error_e _llcp_add_service(const char *id, uint32_t sap,
 	net_nfc_error_e result;
 
 	if (cb == NULL) {
-		DEBUG_ERR_MSG("callback is mandatory");
+		NFC_ERR("callback is mandatory");
 
 		return NET_NFC_NULL_PARAMETER;
 	}
@@ -2522,7 +2521,7 @@ static net_nfc_error_e _llcp_add_service(const char *id, uint32_t sap,
 	_llcp_init();
 
 	if (_llcp_find_service(sap) == NULL) {
-		DEBUG_SERVER_MSG("new service, sap [%d]", sap);
+		NFC_DBG("new service, sap [%d]", sap);
 
 		service = g_try_new0(service_t, 1);
 		if (service != NULL) {
@@ -2541,12 +2540,12 @@ static net_nfc_error_e _llcp_add_service(const char *id, uint32_t sap,
 
 			result = NET_NFC_OK;
 		} else {
-			DEBUG_ERR_MSG("alloc failed");
+			NFC_ERR("alloc failed");
 
 			result = NET_NFC_ALLOC_FAIL;
 		}
 	} else {
-		DEBUG_ERR_MSG("already registered");
+		NFC_ERR("already registered");
 
 		result = NET_NFC_ALREADY_REGISTERED;
 	}
@@ -2630,7 +2629,7 @@ net_nfc_error_e net_nfc_server_llcp_unregister_service(const char *id,
 
 		result = NET_NFC_OK;
 	} else {
-		DEBUG_ERR_MSG("service is not registered");
+		NFC_ERR("service is not registered");
 
 		result = NET_NFC_NOT_REGISTERED;
 	}
@@ -2693,29 +2692,24 @@ static void net_nfc_server_llcp_process(gpointer user_data)
 
 	handle = target->handle;
 
-	DEBUG_SERVER_MSG("connection type = [%d]", handle->connection_type);
+	NFC_DBG("connection type = [%d]", handle->connection_type);
 #if 0
 	dev_type = target->devType;
 
 	if (dev_type == NET_NFC_NFCIP1_TARGET)
 	{
-		DEBUG_SERVER_MSG("LLCP : target, try to connect");
+		NFC_DBG("LLCP : target, try to connect");
 
 		if (net_nfc_controller_connect(handle, &result) == false)
 		{
-			DEBUG_SERVER_MSG("%s is failed, [%d]",
-					"net_nfc_controller_connect",
-					result);
+			NFC_ERR("net_nfc_controller_connect is failed, [%d]", result);
 
 			if (net_nfc_controller_configure_discovery(
 						NET_NFC_DISCOVERY_MODE_RESUME,
 						NET_NFC_ALL_ENABLE,
 						&result) == false)
 			{
-				DEBUG_ERR_MSG("%s is failed [%d]",
-						"net_nfc_controller_configure_discovery",
-						result);
-
+				NFC_ERR("net_nfc_controller_configure_discovery is failed [%d]", result);
 				net_nfc_controller_exception_handler();
 			}
 
@@ -2723,22 +2717,19 @@ static void net_nfc_server_llcp_process(gpointer user_data)
 		}
 	}
 
-	DEBUG_SERVER_MSG("check LLCP");
+	NFC_DBG("check LLCP");
 
 	if (net_nfc_controller_llcp_check_llcp(handle, &result) == false)
 	{
-		DEBUG_ERR_MSG("%s is failed [%d]",
-				"net_nfc_controller_llcp_check_llcp",
-				result);
-
+		NFC_ERR("net_nfc_controller_llcp_check_llcp is failed [%d]", result);
 		return;
 	}
 
-	DEBUG_SERVER_MSG("activate LLCP");
+	NFC_DBG("activate LLCP");
 
 	if (net_nfc_controller_llcp_activate_llcp(handle, &result) == false)
 	{
-		DEBUG_ERR_MSG("%s is failed [%d]",
+		NFC_ERR("%s is failed [%d]",
 				"net_nfc_controller_llcp_activate_llcp",
 				result);
 
@@ -2755,6 +2746,6 @@ void net_nfc_server_llcp_target_detected(void *info)
 	if (net_nfc_server_controller_async_queue_push(
 				net_nfc_server_llcp_process, NULL) == FALSE)
 	{
-		DEBUG_ERR_MSG("can not push to controller thread");
+		NFC_ERR("can not push to controller thread");
 	}
 }

@@ -135,7 +135,7 @@ static net_nfc_error_e npp_create_message(data_s *data, data_s *message)
 	{
 		net_nfc_npp_entity_t *entity;
 
-		DEBUG_SERVER_MSG("data->length [%d]", data->length);
+		NFC_DBG("data->length [%d]", data->length);
 
 		msg->entity_count = htonl(1);
 
@@ -178,7 +178,7 @@ static void npp_server_receive_cb(net_nfc_error_e result,
 
 	if (result != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("error [%d]", result);
+		NFC_ERR("error [%d]", result);
 
 		if(npp_data->callback)
 			npp_data->callback(result, NULL, npp_data->user_data);
@@ -189,7 +189,7 @@ static void npp_server_receive_cb(net_nfc_error_e result,
 
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("data is NULL");
+		NFC_ERR("data is NULL");
 
 		if(npp_data->callback)
 		{
@@ -204,7 +204,7 @@ static void npp_server_receive_cb(net_nfc_error_e result,
 
 	if (data->buffer == NULL || data->length == 0)
 	{
-		DEBUG_ERR_MSG("Wrong data");
+		NFC_ERR("Wrong data");
 
 		if(npp_data->callback)
 		{
@@ -221,7 +221,7 @@ static void npp_server_receive_cb(net_nfc_error_e result,
 
 	if (data->length < NPP_HEADER_LEN)
 	{
-		DEBUG_ERR_MSG("too short data, length [%d]",
+		NFC_ERR("too short data, length [%d]",
 				data->length);
 		/* FIXME!!! what should I do. */
 		if(npp_data->callback)
@@ -238,7 +238,7 @@ static void npp_server_receive_cb(net_nfc_error_e result,
 	if (GET_MAJOR_VER(message->version) > NPP_MAJOR_VER ||
 			GET_MINOR_VER(message->version > NPP_MINOR_VER))
 	{
-		DEBUG_ERR_MSG("not supported version, version [0x%02x]",
+		NFC_ERR("not supported version, version [0x%02x]",
 				message->version);
 
 		if(npp_data->callback)
@@ -256,7 +256,7 @@ static void npp_server_receive_cb(net_nfc_error_e result,
 
 	if (entity_count > NPP_NDEF_ENTRY)
 	{
-		DEBUG_ERR_MSG("too many entities, [%d]",
+		NFC_ERR("too many entities, [%d]",
 				message->entity_count);
 
 		if(npp_data->callback)
@@ -275,7 +275,7 @@ static void npp_server_receive_cb(net_nfc_error_e result,
 		entity = (message->entity + i);
 
 		if (entity->op != NPP_ACTION_CODE) {
-			DEBUG_ERR_MSG("not supported action code, [0x%02x]",
+			NFC_ERR("not supported action code, [0x%02x]",
 					entity->op);
 
 			if(npp_data->callback)
@@ -291,8 +291,7 @@ static void npp_server_receive_cb(net_nfc_error_e result,
 
 		length = htonl(entity->length);
 
-		DEBUG_SERVER_MSG("action code [0x%02x], length [%d]",
-				entity->op, length);
+		NFC_DBG("action code [0x%02x], length [%d]", entity->op, length);
 
 		if (length > 0)
 		{
@@ -342,12 +341,11 @@ static void npp_listen_cb(net_nfc_error_e result, net_nfc_target_handle_s *handl
 	if (npp_data == NULL)
 		return;
 
-	DEBUG_SERVER_MSG("npp_listen_cb, incoming socket [%#x], result [%d]",
-			socket, result);
+	NFC_DBG("npp_listen_cb, incoming socket [%#x], result [%d]", socket, result);
 
 	if (result != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("listen failed [%d]", result);
+		NFC_ERR("listen failed [%d]", result);
 
 		if (npp_data->callback)
 			npp_data->callback(result, NULL, npp_data->user_data);
@@ -370,7 +368,7 @@ static void npp_listen_cb(net_nfc_error_e result, net_nfc_target_handle_s *handl
 			accept_data);
 	if (result != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("%s failed",
+		NFC_ERR("%s failed",
 				"net_nfc_server_llcp_simple_accept");
 
 		if (npp_data->callback)
@@ -382,8 +380,7 @@ static void npp_listen_cb(net_nfc_error_e result, net_nfc_target_handle_s *handl
 		return;
 	}
 
-	DEBUG_SERVER_MSG("socket [%x] accepted.. waiting for request message",
-			socket);
+	NFC_DBG("socket [%x] accepted.. waiting for request message", socket);
 
 	npp_server_process(accept_data);
 	g_free(npp_data);
@@ -396,7 +393,7 @@ static void npp_client_disconnected_cb(net_nfc_llcp_socket_t socket,
 		void *extra,
 		void *user_param)
 {
-	DEBUG_SERVER_MSG("disconnected! [%d]", result);
+	NFC_INFO("disconnected! [%d]", result);
 }
 
 static void npp_client_send_cb(net_nfc_error_e result,
@@ -411,7 +408,7 @@ static void npp_client_send_cb(net_nfc_error_e result,
 	if (npp_data == NULL)
 		return;
 
-	DEBUG_SERVER_MSG("send complete... [%d]", result);
+	NFC_DBG("send complete... [%d]", result);
 
 	if (npp_data->callback)
 	{
@@ -440,7 +437,7 @@ static void npp_client_process(NppData *npp_data)
 	result = npp_create_message(&npp_data->data, &data);
 	if (result != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("%s failed [%d]", "npp_create_message", result);
+		NFC_ERR("%s failed [%d]", "npp_create_message", result);
 
 		if (npp_data->callback)
 			npp_data->callback(result, NULL, npp_data->user_data);
@@ -459,7 +456,7 @@ static void npp_client_process(NppData *npp_data)
 			npp_data);
 	if (result != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("%s failed [%d]",
+		NFC_ERR("%s failed [%d]",
 				"net_nfc_server_llcp_simple_send",
 				result);
 
@@ -488,7 +485,7 @@ static void npp_connected_cb(net_nfc_error_e result,
 
 	if (result != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("connect socket failed, [%d]", result);
+		NFC_ERR("connect socket failed, [%d]", result);
 
 		if (npp_data->callback)
 			npp_data->callback(result, NULL, npp_data->user_data);
@@ -500,8 +497,7 @@ static void npp_connected_cb(net_nfc_error_e result,
 	}
 
 	/*start npp client */
-	DEBUG_SERVER_MSG("socket [%x] connected, send request message.",
-			socket);
+	NFC_DBG("socket [%x] connected, send request message.", socket);
 	npp_data->socket = socket;
 
 	npp_client_process(npp_data);
@@ -516,7 +512,7 @@ static void npp_socket_error_cb(net_nfc_error_e result,
 {
 	NppData *npp_data;
 
-	DEBUG_SERVER_MSG("socket [%x], result [%d]", socket, result);
+	NFC_DBG("socket [%x], result [%d]", socket, result);
 
 	npp_data = (NppData *)user_data;
 	if (npp_data == NULL)
@@ -533,18 +529,17 @@ static void npp_default_server_cb(net_nfc_error_e result,
 		data_s *data,
 		gpointer user_data)
 {
-	DEBUG_SERVER_MSG("result [%d], data [%p], user_data [%p]",
-			result, data, user_data);
+	NFC_DBG("result [%d], data [%p], user_data [%p]", result, data, user_data);
 
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("npp server receive failed, [%d]", result);
+		NFC_ERR("npp server receive failed, [%d]", result);
 		return;
 	}
 
 	if (data->buffer == NULL)
 	{
-		DEBUG_ERR_MSG("npp server receive failed, [%d]", result);
+		NFC_ERR("npp server receive failed, [%d]", result);
 		return;
 	}
 
@@ -558,8 +553,7 @@ static void npp_default_client_cb(net_nfc_error_e result,
 {
 	NppClientStartData *npp_client_data;
 
-	DEBUG_SERVER_MSG("result [%d], data [%p], user_data [%p]",
-			result, data, user_data);
+	NFC_DBG("result [%d], data [%p], user_data [%p]", result, data, user_data);
 
 	if (user_data == NULL)
 		return;
@@ -581,13 +575,13 @@ net_nfc_error_e net_nfc_server_npp_server(net_nfc_target_handle_s *handle,
 
 	if (handle == NULL)
 	{
-		DEBUG_ERR_MSG("handle is NULL");
+		NFC_ERR("handle is NULL");
 		return FALSE;
 	}
 
 	if (san == NULL)
 	{
-		DEBUG_ERR_MSG("san is NULL");
+		NFC_ERR("san is NULL");
 		return FALSE;
 	}
 
@@ -605,7 +599,7 @@ net_nfc_error_e net_nfc_server_npp_server(net_nfc_target_handle_s *handle,
 			npp_data);
 	if (result != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("%s failed",
+		NFC_ERR("%s failed",
 				"net_nfc_server_llcp_simple_server");
 
 		if (npp_data->callback)
@@ -616,7 +610,7 @@ net_nfc_error_e net_nfc_server_npp_server(net_nfc_target_handle_s *handle,
 		return FALSE;
 	}
 
-	DEBUG_SERVER_MSG("start npp server, san [%s], sap [%d]", san, sap);
+	NFC_DBG("start npp server, san [%s], sap [%d]", san, sap);
 
 	return result;
 }
@@ -635,7 +629,7 @@ net_nfc_error_e net_nfc_server_npp_client(net_nfc_target_handle_s *handle,
 
 	if (handle == NULL)
 	{
-		DEBUG_ERR_MSG("handle is NULL");
+		NFC_ERR("handle is NULL");
 		return NET_NFC_NULL_PARAMETER;
 	}
 
@@ -643,7 +637,7 @@ net_nfc_error_e net_nfc_server_npp_client(net_nfc_target_handle_s *handle,
 				&config,
 				&result) == false)
 	{
-		DEBUG_ERR_MSG("%s failed [%d]",
+		NFC_ERR("%s failed [%d]",
 				"net_nfc_controller_llcp_get_remote_config",
 				result);
 
@@ -653,7 +647,7 @@ net_nfc_error_e net_nfc_server_npp_client(net_nfc_target_handle_s *handle,
 	if (config.miu <
 			data->length + NPP_HEADER_LEN + NPP_ENTITY_HEADER_LEN)
 	{
-		DEBUG_ERR_MSG("too large message, max [%d], request [%d]",
+		NFC_ERR("too large message, max [%d], request [%d]",
 				config.miu - (NPP_HEADER_LEN + NPP_ENTITY_HEADER_LEN),
 				data->length);
 
@@ -677,7 +671,7 @@ net_nfc_error_e net_nfc_server_npp_client(net_nfc_target_handle_s *handle,
 			npp_data);
 	if (result != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("%s failed",
+		NFC_ERR("%s failed",
 				"net_nfc_server_llcp_simple_client");
 
 		if (npp_data->callback)
@@ -694,15 +688,9 @@ net_nfc_error_e net_nfc_server_npp_client(net_nfc_target_handle_s *handle,
 	}
 
 	if (san != NULL)
-	{
-		DEBUG_SERVER_MSG("start npp client, san [%s], result [%d]",
-				san, result);
-	}
+		NFC_DBG("start npp client, san [%s], result [%d]", san, result);
 	else
-	{
-		DEBUG_SERVER_MSG("start npp client, sap [%d], result [%d]",
-				sap, result);
-	}
+		NFC_DBG("start npp client, sap [%d], result [%d]", sap, result);
 
 	return result;
 }
@@ -723,15 +711,14 @@ static void _npp_default_activate_cb(int event, net_nfc_target_handle_s *handle,
 {
 	net_nfc_error_e result;
 
-	DEBUG_SERVER_MSG("event [%d], handle [%p], sap [%d], san [%s]",
-			event, handle, sap, san);
+	NFC_DBG("event [%d], handle [%p], sap [%d], san [%s]", event, handle, sap, san);
 
 	if (event == NET_NFC_LLCP_START) {
 		/* start default npp server */
 		result = net_nfc_server_npp_server(handle, (char *)san, sap,
 				npp_default_server_cb, user_param);
 		if (result != NET_NFC_OK) {
-			DEBUG_ERR_MSG("net_nfc_server_npp_server failed, [%d]",
+			NFC_ERR("net_nfc_server_npp_server failed, [%d]",
 					result);
 		}
 	} else if (event == NET_NFC_LLCP_UNREGISTERED) {
@@ -776,19 +763,19 @@ net_nfc_error_e net_nfc_server_npp_default_client_start(
 
 	if (handle == NULL)
 	{
-		DEBUG_ERR_MSG("handle is NULL");
+		NFC_ERR("handle is NULL");
 		return NET_NFC_NULL_PARAMETER;
 	}
 
 	if (data == NULL)
 	{
-		DEBUG_ERR_MSG("data is NULL");
+		NFC_ERR("data is NULL");
 		return NET_NFC_NULL_PARAMETER;
 	}
 
 	if (data->buffer == NULL)
 	{
-		DEBUG_ERR_MSG("data->buffer is NULL");
+		NFC_ERR("data->buffer is NULL");
 		return NET_NFC_NULL_PARAMETER;
 	}
 
@@ -807,7 +794,7 @@ net_nfc_error_e net_nfc_server_npp_default_client_start(
 
 	if (result != NET_NFC_OK)
 	{
-		DEBUG_ERR_MSG("net_nfc_server_client failed");
+		NFC_ERR("net_nfc_server_client failed");
 		g_free(npp_client_data);
 	}
 
