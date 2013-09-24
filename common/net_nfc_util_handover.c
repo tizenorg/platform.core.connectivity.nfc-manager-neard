@@ -910,7 +910,7 @@ net_nfc_error_e net_nfc_util_create_handover_carrier_record(ndef_record_s ** rec
 	type.buffer = (uint8_t *)CH_CAR_RECORD_TYPE;
 	type.length = strlen(CH_CAR_RECORD_TYPE);
 
-	net_nfc_util_create_record(NET_NFC_RECORD_MIME_TYPE,
+	net_nfc_util_create_record(NET_NFC_RECORD_WELL_KNOWN_TYPE,
 			&type,
 			NULL,
 			&payload,
