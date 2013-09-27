@@ -20,22 +20,23 @@
 #include <glib.h>
 
 
-void net_nfc_test_p2p_connection_handover(gpointer data,
-				gpointer user_data);
+void net_nfc_test_p2p_connection_handover_with_BT(gpointer data,
+		gpointer user_data);
 
-void net_nfc_test_p2p_connection_handover_sync(gpointer data,
-				gpointer user_data);
+void net_nfc_test_p2p_connection_handover_with_BT_sync(gpointer data,
+		gpointer user_data);
 
-/*
-void net_nfc_test_handover_get_alternative_carrier_data(gpointer data,
-						gpointer user_data);
-*/
+void net_nfc_test_p2p_connection_handover_with_WIFI(gpointer data,
+		gpointer user_data);
+
+void net_nfc_test_p2p_connection_handover_with_WIFI_sync(gpointer data,
+		gpointer user_data);
 
 void net_nfc_test_handover_handle_alternative_carrier_data(gpointer data,
-							gpointer user_datarrierData);
+		gpointer user_data);
 
 void net_nfc_test_handover_get_alternative_carrier_type(gpointer data,
-						gpointer user_data);
+		gpointer user_data);
 
 
 #endif //__NET_NFC_TEST_HANDOVER_H__
