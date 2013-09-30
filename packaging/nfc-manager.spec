@@ -3,7 +3,7 @@ Summary:    NFC framework manager
 Version: 0.1.2
 Release:    0
 Group:      Network & Connectivity/NFC
-License:    Flora Software License
+License:    Flora
 Source0:    %{name}-%{version}.tar.gz
 Source1:    %{name}.service
 Source1001: 	%{name}.manifest
