@@ -43,12 +43,13 @@ static int _net_nfc_handover_process_wifi_direct_setup(
 static gboolean _net_nfc_handover_bss_wfd_get_carrier_record(
 		net_nfc_handover_bss_get_context_t *context);
 
-static void _net_nfc_wifi_process_error(int error);
+static void _net_nfc_wifi_process_error(
+		int error,
+		net_nfc_handover_bss_get_context_t *context);
 
 static int _net_nfc_handover_process_wifi_group_setup(
 		net_nfc_handover_bss_get_context_t *context);
 
-static int _net_nfc_handover_getpassword(uint8_t** password );
 #endif
 
 
@@ -612,39 +613,6 @@ static net_nfc_error_e _net_nfc_handover_bss_create_carrier_record(
 
 
 #ifdef TARGET
-static int _net_nfc_handover_getpassword(uint8_t** password )
-{
-
-	char data[256];
-	int ret_val;
-
-	ret_val = system("wpa_cli -g /var/run/wpa_supplicant/p2p-wlan0-0 p2p_get_passphrase "
-			"> /tmp/nfc_p2p_passphrase.txt");
-
-	NFC_DBG("system command returned with [%d]",ret_val);
-
-	FILE *f = fopen("/tmp/nfc_p2p_passphrase.txt","r");
-	if(f != NULL)
-	{
-		int readlength;
-		int cnt;
-		readlength = fread(data, 1 , 255, f);
-		for(cnt = 0; cnt < readlength; cnt++)
-		{
-			if(data[cnt] == '\n')
-			{
-				break;
-			}
-		}
-		_net_nfc_util_alloc_mem(*password,(readlength - cnt)+1);
-		memcpy(*password, &data[cnt+1], (readlength - cnt));
-		fclose(f);
-		return (readlength-cnt);
-	}
-	else
-		return 0;
-}
-
 
 static net_nfc_error_e _net_nfc_handover_bss_create_config_record(
 		ndef_record_s **record)
@@ -654,7 +622,7 @@ static net_nfc_error_e _net_nfc_handover_bss_create_config_record(
 	net_nfc_carrier_config_s *config = NULL;
 	net_nfc_carrier_property_s *cred_config = NULL;
 	net_nfc_error_e result;
-	uint8_t *password = NULL;
+	char *password = NULL;
 	int pw_length = 0;
 
 	data_s version_data = {NULL,0};
@@ -751,9 +719,9 @@ static net_nfc_error_e _net_nfc_handover_bss_create_config_record(
 			_net_nfc_util_free_mem(enc_type.buffer);
 		}
 
-		pw_length = _net_nfc_handover_getpassword(&password);
+		pw_length = wifi_direct_get_passphrase(&password);
 
-		NFC_ERR("_net_nfc_handover_getpassword[%s]", password);
+		NFC_ERR("wifi_direct_get_passphrase[%s]", password);
 
 		net_nfc_util_add_carrier_config_group_property(
 				cred_config,
@@ -839,7 +807,9 @@ static void _net_nfc_handover_bss_get_carrier_record(
 }
 
 #ifdef TARGET
-static void _net_nfc_wifi_process_error(int error)
+static void _net_nfc_wifi_process_error(
+					int error,
+					net_nfc_handover_bss_get_context_t *context)
 {
 	NFC_ERR("_net_nfc_wifi_process_error - [%d]",error);
 
@@ -990,7 +960,7 @@ static gboolean _net_nfc_handover_bss_wfd_get_carrier_record(
 			if(err != WIFI_DIRECT_ERROR_NONE)
 			{
 				NFC_ERR("_net_nfc_handover_process_wifi_direct_setup failed");
-				_net_nfc_wifi_process_error(err);
+				_net_nfc_wifi_process_error(err,context);
 			}
 			break;
 		case NET_NFC_LLCP_STEP_02:
@@ -999,7 +969,7 @@ static gboolean _net_nfc_handover_bss_wfd_get_carrier_record(
 			if(err != WIFI_DIRECT_ERROR_NONE)
 			{
 				NFC_ERR("_net_nfc_handover_process_wifi_group_setup failed");
-				_net_nfc_wifi_process_error(err);
+				_net_nfc_wifi_process_error(err,context);
 			}
 			break;
 		case NET_NFC_LLCP_STEP_03 :
@@ -1090,7 +1060,7 @@ net_nfc_error_e net_nfc_server_handover_bss_wfd_get_carrier_record(
 		g_idle_add((GSourceFunc)_net_nfc_handover_bss_wfd_get_carrier_record,
 				(gpointer)context);
 
-		return NET_NFC_OK:
+		return NET_NFC_OK;
 	}
 	else
 	{
