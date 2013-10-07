@@ -720,8 +720,7 @@ static net_nfc_error_e _net_nfc_handover_bss_create_config_record(
 		}
 
 		pw_length = wifi_direct_get_passphrase(&password);
-
-		NFC_ERR("wifi_direct_get_passphrase[%s]", password);
+		NFC_DBG("wifi_direct_get_passphrase[%s]", password);
 
 		net_nfc_util_add_carrier_config_group_property(
 				cred_config,
@@ -928,6 +927,7 @@ static int _net_nfc_handover_process_wifi_group_setup(
 		return err;
 	}
 
+	return err;
 }
 
 static gboolean _net_nfc_handover_bss_wfd_get_carrier_record(

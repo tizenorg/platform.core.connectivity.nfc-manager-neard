@@ -9,16 +9,14 @@ SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fPIC -fvisibility=hidden")
 
 #SET(ARM_CFLAGS "-mabi=aapcs-linux -fno-common")
 
-FIND_PROGRAM(UNAME NAMES uname)
-EXEC_PROGRAM("${UNAME}" ARGS "-m" OUTPUT_VARIABLE "ARCH")
-IF("${ARCH}" MATCHES "^arm.*")
+IF(ARM_TARGET)
 	ADD_DEFINITIONS("-DTARGET")
 	MESSAGE("add -DTARGET")
 	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARM_CFLAGS}")
-ENDIF("${ARCH}" MATCHES "^arm.*")
+ENDIF(ARM_TARGET)
 
 SET(CMAKE_SHARED_LINKER_FLAGS " -Wl,--as-needed -Wl,--rpath=${LIB_INSTALL_DIR}")
-SET(CMAKE_EXE_LINKER_FLAGS " -Wl,--as-needed -Wl,--rpath=${LIB_INSTALL_DIR}")
+SET(CMAKE_EXE_LINKER_FLAGS " -Wl,--as-needed -Wl,--hash-style=both")
 
 SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 

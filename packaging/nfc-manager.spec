@@ -1,6 +1,6 @@
 Name:       nfc-manager
 Summary:    NFC framework manager
-Version: 0.1.2
+Version: 	0.1.3
 Release:    0
 Group:      Network & Connectivity/NFC
 License:    Flora
@@ -17,9 +17,6 @@ BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(tapi)
 BuildRequires: pkgconfig(bluetooth-api)
 BuildRequires: pkgconfig(capi-network-wifi)
-%ifarch %arm
-BuildRequires: pkgconfig(wifi-direct)
-%endif
 BuildRequires: pkgconfig(mm-sound)
 BuildRequires: pkgconfig(appsvc)
 BuildRequires: pkgconfig(svi)
@@ -32,6 +29,11 @@ BuildRequires: pkgconfig(pmapi)
 BuildRequires: python
 BuildRequires: python-xml
 BuildRequires: gettext-tools
+%ifarch %arm
+BuildRequires: pkgconfig(wifi-direct)
+%global ARM_DEF "-DARM_TARGET=Y"
+%endif
+
 Requires(post):   /sbin/ldconfig
 Requires(post):   /usr/bin/vconftool
 Requires(postun): /sbin/ldconfig
@@ -88,7 +90,7 @@ NFC manager Client library for developing NFC client applications.
 
 %build
 MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
-%cmake . -DMAJORVER=${MAJORVER} -DFULLVER=%{version}
+%cmake . -DMAJORVER=${MAJORVER} -DFULLVER=%{version} %{?ARM_DEF}
 
 
 %install
