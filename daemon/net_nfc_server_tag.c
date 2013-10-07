@@ -610,7 +610,7 @@ static gboolean tag_handle_get_current_target_handle(NetNfcGDbusTag *tag,
 	/* check privilege and update client context */
 	if (net_nfc_server_gdbus_check_privilege(invocation,
 				smack_privilege,
-				"nfc-manager::tag",
+				"nfc-manager::p2p",
 				"r") == false) {
 		NFC_ERR("permission denied, and finished request");
 
