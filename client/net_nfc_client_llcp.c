@@ -132,7 +132,7 @@ static void llcp_call_listen(GObject *source_object, GAsyncResult *res,
 	gboolean ret;
 	GError *error = NULL;
 	net_nfc_error_e result;
-	guint32 out_client_socket;
+	guint32 out_client_socket = -1;
 	LlcpFuncData *func_data = user_data;
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 
@@ -232,7 +232,7 @@ static void llcp_call_connect(GObject *source_object, GAsyncResult *res,
 	gboolean ret;
 	GError *error = NULL;
 	net_nfc_error_e result;
-	guint32 out_client_socket;
+	guint32 out_client_socket = -1;
 	LlcpFuncData *func_data = user_data;
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 
@@ -273,7 +273,7 @@ static void llcp_call_connect_sap(GObject *source_object,
 	gboolean ret;
 	GError *error = NULL;
 	net_nfc_error_e result;
-	guint32 out_client_socket;
+	guint32 out_client_socket = -1;
 	LlcpFuncData *func_data = user_data;
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 
@@ -313,7 +313,7 @@ static void llcp_call_send(GObject *source_object, GAsyncResult *res,
 	gboolean ret;
 	GError *error = NULL;
 	net_nfc_error_e result;
-	guint32 out_client_socket;
+	guint32 out_client_socket = -1;
 	LlcpFuncData *func_data = user_data;
 
 	g_assert(func_data != NULL);
@@ -344,7 +344,7 @@ static void llcp_call_send_to(GObject *source_object, GAsyncResult *res,
 	gboolean ret;
 	GError *error = NULL;
 	net_nfc_error_e result;
-	guint32 out_client_socket;
+	guint32 out_client_socket = -1;
 	LlcpFuncData *func_data = user_data;
 
 	g_assert(func_data != NULL);
@@ -408,11 +408,11 @@ static void llcp_call_receive(GObject *source_object, GAsyncResult *res,
 static void llcp_call_receive_from(GObject *source_object, GAsyncResult *res,
 		gpointer user_data)
 {
-	sap_t sap;
 	gboolean ret;
-	GVariant *variant;
+	sap_t sap = 0;
 	GError *error = NULL;
 	net_nfc_error_e result;
+	GVariant *variant = NULL;
 	LlcpFuncData *func_data = user_data;
 
 	g_assert(func_data != NULL);
@@ -448,7 +448,7 @@ static void llcp_call_close(GObject *source_object, GAsyncResult *res,
 	gboolean ret;
 	GError *error = NULL;
 	net_nfc_error_e result;
-	guint32 out_client_socket;
+	guint32 out_client_socket = -1;
 	LlcpFuncData *func_data = user_data;
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 
@@ -487,7 +487,7 @@ static void llcp_call_disconnect(GObject *source_object, 	GAsyncResult *res,
 	gboolean ret;
 	GError *error = NULL;
 	net_nfc_error_e result;
-	guint32 out_client_socket;
+	guint32 out_client_socket = -1;
 	LlcpFuncData *func_data = user_data;
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 

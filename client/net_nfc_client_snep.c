@@ -30,13 +30,11 @@ static NetNfcGDbusSnep *snep_proxy = NULL;
 
 /*******************************************************************/
 
-
 static void snep_send_client_request(GObject *source_object,
 		GAsyncResult *res,
 		gpointer user_data);
 
 /*********************************************************************/
-
 
 static void snep_send_client_request(GObject *source_object,
 		GAsyncResult *res,
@@ -44,8 +42,8 @@ static void snep_send_client_request(GObject *source_object,
 {
 	GVariant *parameter = (GVariant *)user_data;
 	net_nfc_error_e out_result;
-	net_nfc_snep_type_t out_type;
-	GVariant *out_data;
+	net_nfc_snep_type_t out_type = NET_NFC_SNEP_GET;
+	GVariant *out_data = NULL;
 	GError *error = NULL;
 	net_nfc_client_snep_event_cb callback;
 	void *user_param;
@@ -74,12 +72,13 @@ static void snep_send_client_request(GObject *source_object,
 			(guint *)&handle);
 
 	if (callback != NULL) {
-		ndef_message_h message = NULL;
+		ndef_message_h message;
 
 		message = net_nfc_util_gdbus_variant_to_ndef_message(out_data);
 
 		callback(handle, out_type, out_result,
 				message, user_param);
+
 		net_nfc_free_ndef_message(message);
 	}
 

@@ -218,7 +218,7 @@ static void tag_is_tag_connected(GObject *source_object,
 		gpointer user_data)
 {
 	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
-	net_nfc_error_e out_result = NET_NFC_OK;
+	net_nfc_error_e out_result;
 	gboolean out_is_connected = false;
 	net_nfc_target_type_e out_dev_type = NET_NFC_UNKNOWN_TARGET;
 	GError *error = NULL;
@@ -442,7 +442,7 @@ static void tag_tag_detached(NetNfcGDbusTag *object,
 	client_target_info = NULL;
 }
 
-/* internal funcion */
+/* internal function */
 gboolean net_nfc_client_tag_is_connected(void)
 {
 	if (client_target_info == NULL)
@@ -459,6 +459,7 @@ net_nfc_target_info_s *net_nfc_client_tag_get_client_target_info(void)
 	return client_target_info;
 }
 
+/* public APIs */
 #if 0
 API net_nfc_error_e net_nfc_client_tag_is_tag_connected(
 		net_nfc_client_tag_is_tag_connected_completed callback,

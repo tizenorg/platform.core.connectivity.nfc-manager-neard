@@ -84,6 +84,7 @@ static GVariant *transceive_data_to_transceive_variant(
 			memcpy(transceive_info.buffer,
 					data->buffer,
 					data->length);
+
 			net_nfc_util_compute_CRC(CRC_B,
 					transceive_info.buffer,
 					transceive_info.length);
@@ -112,7 +113,7 @@ static void transceive_data_call(GObject *source_object,
 		GAsyncResult *res, gpointer user_data)
 {
 	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
-	net_nfc_error_e out_result = NET_NFC_OK;
+	net_nfc_error_e out_result;
 	GVariant *out_data = NULL;
 	GError *error = NULL;
 
@@ -152,7 +153,7 @@ static void transceive_call(GObject *source_object,
 		GAsyncResult *res, gpointer user_data)
 {
 	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
-	net_nfc_error_e out_result = NET_NFC_OK;
+	net_nfc_error_e out_result;
 	GError *error = NULL;
 
 	g_assert(user_data != NULL);

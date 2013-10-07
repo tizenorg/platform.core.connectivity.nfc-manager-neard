@@ -38,7 +38,7 @@ static void p2p_connection_handover(GObject *source_object,
 {
 	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
 	GVariant *data = NULL;
-	net_nfc_error_e result = NET_NFC_OK;
+	net_nfc_error_e result;
 	net_nfc_conn_handover_carrier_type_e type =
 		NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN;
 	GError *error = NULL;

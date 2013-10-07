@@ -36,7 +36,7 @@ static void popup_set_active_callback(GObject *source_object, GAsyncResult *res,
 		gpointer user_data)
 {
 	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
-	net_nfc_error_e result = NET_NFC_OK;
+	net_nfc_error_e result;
 	GError *error = NULL;
 
 	g_assert(user_data != NULL);

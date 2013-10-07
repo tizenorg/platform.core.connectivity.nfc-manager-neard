@@ -75,7 +75,7 @@ static void manager_call_set_active_callback(GObject *source_object,
 		gpointer user_data)
 {
 	ManagerFuncData *func_data = (ManagerFuncData *)user_data;
-	net_nfc_error_e result = NET_NFC_OK;
+	net_nfc_error_e result;
 	GError *error = NULL;
 
 	g_assert(user_data != NULL);
@@ -114,7 +114,7 @@ static void manager_call_get_server_state_callback(GObject *source_object,
 		gpointer user_data)
 {
 	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
-	net_nfc_error_e result = NET_NFC_OK;
+	net_nfc_error_e result;
 	guint out_state = 0;
 	GError *error = NULL;
 

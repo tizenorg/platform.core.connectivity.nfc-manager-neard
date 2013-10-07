@@ -161,7 +161,7 @@ static void set_secure_element(GObject *source_object,
 		gpointer user_data)
 {
 	SeFuncData *func_data = (SeFuncData *)user_data;
-	net_nfc_error_e result = NET_NFC_OK;
+	net_nfc_error_e result;
 	GError *error = NULL;
 
 	g_assert(user_data != NULL);
@@ -171,12 +171,10 @@ static void set_secure_element(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		result = NET_NFC_IPC_FAIL;
-
-		NFC_ERR("Could not set secure element: %s",
-				error->message);
-
+		NFC_ERR("Could not set secure element: %s", error->message);
 		g_error_free(error);
+
+		result = NET_NFC_IPC_FAIL;
 	}
 
 	if (func_data->se_callback != NULL)
@@ -195,7 +193,7 @@ static void get_secure_element(GObject *source_object,
 		gpointer user_data)
 {
 	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
-	net_nfc_error_e result = NET_NFC_OK;
+	net_nfc_error_e result;
 	gint type = 0;
 	GError *error = NULL;
 
@@ -207,9 +205,7 @@ static void get_secure_element(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		NFC_ERR("Could not set secure element: %s",
-				error->message);
-
+		NFC_ERR("Could not set secure element: %s", error->message);
 		g_error_free(error);
 
 		result = NET_NFC_IPC_FAIL;
@@ -231,7 +227,7 @@ static void _set_card_emulation_cb(GObject *source_object,
 		gpointer user_data)
 {
 	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
-	net_nfc_error_e result = NET_NFC_OK;
+	net_nfc_error_e result;
 	GError *error = NULL;
 
 	g_assert(user_data != NULL);
@@ -242,9 +238,7 @@ static void _set_card_emulation_cb(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		NFC_ERR("Could not set card emulation: %s",
-				error->message);
-
+		NFC_ERR("Could not set card emulation: %s", error->message);
 		g_error_free(error);
 
 		result = NET_NFC_IPC_FAIL;
@@ -267,7 +261,7 @@ static void open_secure_element(GObject *source_object,
 		gpointer user_data)
 {
 	SeFuncData *func_data = (SeFuncData *)user_data;
-	net_nfc_error_e result = NET_NFC_OK;
+	net_nfc_error_e result;
 	guint out_handle = 0;
 	GError *error = NULL;
 
@@ -280,12 +274,10 @@ static void open_secure_element(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		result = NET_NFC_IPC_FAIL;
-
-		NFC_ERR("Could not open secure element: %s",
-				error->message);
-
+		NFC_ERR("Could not open secure element: %s", error->message);
 		g_error_free(error);
+
+		result = NET_NFC_IPC_FAIL;
 	}
 
 	if (func_data->se_callback != NULL)
@@ -305,7 +297,7 @@ static void close_secure_element(GObject *source_object,
 		gpointer user_data)
 {
 	SeFuncData *func_data = (SeFuncData *)user_data;
-	net_nfc_error_e result = NET_NFC_OK;
+	net_nfc_error_e result;
 	GError *error = NULL;
 
 	g_assert(user_data != NULL);
@@ -316,11 +308,9 @@ static void close_secure_element(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		result = NET_NFC_IPC_FAIL;
-
 		NFC_ERR("Could not close secure element: %s", error->message);
-
 		g_error_free(error);
+		result = NET_NFC_IPC_FAIL;
 	}
 
 	if (func_data->se_callback != NULL)
@@ -340,7 +330,7 @@ static void send_apdu_secure_element(GObject *source_object,
 		gpointer user_data)
 {
 	SeFuncData *func_data = (SeFuncData *)user_data;
-	net_nfc_error_e result = NET_NFC_OK;
+	net_nfc_error_e result;
 	GVariant *out_response = NULL;
 	GError *error = NULL;
 
@@ -353,11 +343,9 @@ static void send_apdu_secure_element(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		result = NET_NFC_IPC_FAIL;
-
 		NFC_ERR("Could not send apdu: %s", error->message);
-
 		g_error_free(error);
+		result = NET_NFC_IPC_FAIL;
 	}
 
 	if (func_data->se_callback != NULL)
@@ -382,7 +370,7 @@ static void get_atr_secure_element(GObject *source_object,
 		gpointer user_data)
 {
 	SeFuncData *func_data = (SeFuncData *)user_data;
-	net_nfc_error_e result = NET_NFC_OK;
+	net_nfc_error_e result;
 	GVariant *out_atr = NULL;
 	GError *error = NULL;
 
@@ -395,11 +383,9 @@ static void get_atr_secure_element(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		result = NET_NFC_IPC_FAIL;
-
 		NFC_ERR("Could not get atr: %s", error->message);
-
 		g_error_free(error);
+		result = NET_NFC_IPC_FAIL;
 	}
 
 	if (func_data->se_callback != NULL)
@@ -484,9 +470,7 @@ API net_nfc_error_e net_nfc_client_se_set_secure_element_type_sync(
 				&error) == FALSE)
 	{
 		NFC_ERR("Set secure element failed: %s", error->message);
-
 		g_error_free(error);
-
 		result = NET_NFC_IPC_FAIL;
 	}
 
@@ -637,9 +621,7 @@ API net_nfc_error_e net_nfc_set_card_emulation_mode_sync(
 				&error) == FALSE)
 	{
 		NFC_ERR("Set card emulation failed: %s", error->message);
-
 		g_error_free(error);
-
 		result = NET_NFC_IPC_FAIL;
 	}
 
@@ -778,10 +760,8 @@ API net_nfc_error_e net_nfc_client_se_close_internal_secure_element_sync(
 				NULL,
 				&error) == FALSE)
 	{
-		NFC_ERR("close internal secure element failed: %s",
-				error->message);
+		NFC_ERR("close internal secure element failed: %s", error->message);
 		g_error_free(error);
-
 		result = NET_NFC_IPC_FAIL;
 	}
 
@@ -854,7 +834,6 @@ API net_nfc_error_e net_nfc_client_se_get_atr_sync(
 	} else {
 		NFC_ERR("Get attributes failed: %s", error->message);
 		g_error_free(error);
-
 		result = NET_NFC_IPC_FAIL;
 	}
 
@@ -941,10 +920,8 @@ API net_nfc_error_e net_nfc_client_se_send_apdu_sync(
 				&error) == true) {
 		*response = net_nfc_util_gdbus_variant_to_data(out_data);
 	} else {
-		NFC_ERR("Send APDU failed: %s",
-				error->message);
+		NFC_ERR("Send APDU failed: %s", error->message);
 		g_error_free(error);
-
 		result = NET_NFC_IPC_FAIL;
 	}
 
