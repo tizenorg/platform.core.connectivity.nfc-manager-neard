@@ -613,6 +613,40 @@ static net_nfc_error_e _net_nfc_handover_bss_create_carrier_record(
 
 
 #ifdef TARGET
+/*TO DO : This is a work around and needs to be replaced by WIFI-DIRECT API*/
+static int _net_nfc_handover_getpassword(uint8_t** password )
+{
+
+	char data[256];
+	int ret_val;
+
+	ret_val = system("wpa_cli -g /var/run/wpa_supplicant/p2p-wlan0-0 p2p_get_passphrase "
+			"> /tmp/nfc_p2p_passphrase.txt");
+
+	NFC_INFO("system command returned with [%d]",ret_val);
+
+	FILE *f = fopen("/tmp/nfc_p2p_passphrase.txt","r");
+	if(f != NULL)
+	{
+		int readlength;
+		int cnt;
+		readlength = fread(data, 1 , 255, f);
+		for(cnt = 0; cnt < readlength; cnt++)
+		{
+			if(data[cnt] == '\n')
+			{
+				break;
+			}
+		}
+		_net_nfc_util_alloc_mem(*password,(readlength - cnt)+1);
+		memcpy(*password, &data[cnt+1], (readlength - cnt));
+		fclose(f);
+		return (readlength-cnt);
+	}
+	else
+		return 0;
+}
+
 
 static net_nfc_error_e _net_nfc_handover_bss_create_config_record(
 		ndef_record_s **record)
@@ -622,7 +656,11 @@ static net_nfc_error_e _net_nfc_handover_bss_create_config_record(
 	net_nfc_carrier_config_s *config = NULL;
 	net_nfc_carrier_property_s *cred_config = NULL;
 	net_nfc_error_e result;
-	char *password = NULL;
+#if 0
+	char *passphrase = NULL;
+#else
+	uint8_t *password = NULL;
+#endif
 	int pw_length = 0;
 
 	data_s version_data = {NULL,0};
@@ -718,9 +756,14 @@ static net_nfc_error_e _net_nfc_handover_bss_create_config_record(
 
 			_net_nfc_util_free_mem(enc_type.buffer);
 		}
-
-		pw_length = wifi_direct_get_passphrase(&password);
-		NFC_DBG("wifi_direct_get_passphrase[%s]", password);
+/*TO DO : This is a work around,to be replaced by WIFI-DIRECT API*/
+#if 0
+		pw_length = wifi_direct_get_passphrase(&passphrase);
+		NFC_DBG("wifi_direct_get_passphrase[%s]", passphrase);
+#else
+		pw_length = _net_nfc_handover_getpassword(&password);
+		NFC_DBG("_net_nfc_handover_getpassword[%s]", password);
+#endif
 
 		net_nfc_util_add_carrier_config_group_property(
 				cred_config,
