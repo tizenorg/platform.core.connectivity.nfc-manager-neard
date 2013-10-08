@@ -22,6 +22,7 @@
 #include "net_nfc_server_llcp.h"
 #include "net_nfc_server_p2p.h"
 #include "net_nfc_server_controller.h"
+#include "net_nfc_server_tag.h"
 #include "net_nfc_server_snep.h"
 #include "net_nfc_server_util.h"
 #include "net_nfc_server_process_snep.h"
@@ -1358,14 +1359,18 @@ net_nfc_error_e net_nfc_server_snep_server(	net_nfc_target_handle_s *handle,
 		return NET_NFC_NULL_PARAMETER;
 	}
 
-	_net_nfc_util_alloc_mem(context, sizeof(*context));
+	if (net_nfc_server_target_connected(handle) == false) {
+		return NET_NFC_NOT_CONNECTED;
+	}
 
+	_net_nfc_util_alloc_mem(context, sizeof(*context));
 	if (context == NULL)
 	{
 		NFC_ERR("_create_snep_context failed");
 		result = NET_NFC_ALLOC_FAIL;
 		goto ERROR;
 	}
+
 	context->handle = handle;
 	context->cb = cb;
 	context->user_param = user_param;
@@ -1406,6 +1411,10 @@ net_nfc_error_e net_nfc_server_snep_server_send_get_response(
 	{
 		NFC_ERR("invalid handle");
 		return NET_NFC_INVALID_PARAM;
+	}
+
+	if (net_nfc_server_target_connected(context->handle) == false) {
+		return NET_NFC_NOT_CONNECTED;
 	}
 
 	NFC_DBG("send get response, socket [%x]", context->socket);
@@ -1605,7 +1614,7 @@ static void _net_nfc_server_snep_client_process(
 		NFC_ERR("NET_NFC_STATE_ERROR");
 
 		/* error, invoke callback */
-		NFC_ERR("_snep_server_send failed, [%d]",
+		NFC_ERR("_snep_client_send failed, [%d]",
 				job->result);
 		if (job->cb != NULL)
 		{
@@ -1685,6 +1694,10 @@ net_nfc_error_e net_nfc_server_snep_client(net_nfc_target_handle_s *handle,
 		return NET_NFC_NULL_PARAMETER;
 	}
 
+	if (net_nfc_server_target_connected(handle) == false) {
+		return NET_NFC_NOT_CONNECTED;
+	}
+
 	_net_nfc_util_alloc_mem(context, sizeof(*context));
 	if (context == NULL)
 	{
@@ -1741,6 +1754,10 @@ net_nfc_error_e net_nfc_server_snep_client_request(net_nfc_snep_handle_h snep,
 	if (context == NULL || data == NULL || data->buffer == NULL)
 	{
 		return NET_NFC_NULL_PARAMETER;
+	}
+
+	if (net_nfc_server_target_connected(context->handle) == false) {
+		return NET_NFC_NOT_CONNECTED;
 	}
 
 	/* check type */
@@ -1899,7 +1916,7 @@ static net_nfc_error_e _net_nfc_server_default_client_connected_cb_(
 
 	if (result == NET_NFC_OK)
 	{
-		net_nfc_server_snep_client_request(handle,
+		result = net_nfc_server_snep_client_request(handle,
 				context->type,
 				&context->data,
 				_net_nfc_server_default_client_cb_,
