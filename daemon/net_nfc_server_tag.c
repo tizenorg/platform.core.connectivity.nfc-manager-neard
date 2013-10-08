@@ -221,7 +221,7 @@ static void tag_watchdog_thread_func(gpointer user_data)
 
 
 	/* IMPORTANT, TEMPORARY : switching context to another thread
-		for give CPU time */
+	   for give CPU time */
 	g_usleep(10000);
 
 	handle = watch_dog->handle;
@@ -270,7 +270,7 @@ static void tag_get_current_tag_info_thread_func(gpointer user_data)
 
 	/* FIXME : net_nfc_current_target_info_s should be removed */
 	net_nfc_current_target_info_s *target_info;
-	net_nfc_error_e result;
+	net_nfc_error_e result = NET_NFC_OPERATION_FAIL;
 	net_nfc_target_handle_s *handle = NULL;
 	net_nfc_target_type_e dev_type = NET_NFC_UNKNOWN_TARGET;
 	gboolean is_ndef_supported = FALSE;
@@ -319,6 +319,7 @@ static void tag_get_current_tag_info_thread_func(gpointer user_data)
 
 	net_nfc_gdbus_tag_complete_get_current_tag_info(info_data->tag,
 			info_data->invocation,
+			result,
 			(dev_type != NET_NFC_UNKNOWN_TARGET),
 			GPOINTER_TO_UINT(handle),
 			dev_type,
@@ -512,6 +513,7 @@ static gboolean tag_handle_is_tag_connected(NetNfcGDbusTag *tag,
 	net_nfc_current_target_info_s *target_info;
 	net_nfc_target_type_e dev_type = NET_NFC_UNKNOWN_TARGET;
 	gboolean is_connected = FALSE;
+	gint result;
 
 	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
@@ -522,8 +524,9 @@ static gboolean tag_handle_is_tag_connected(NetNfcGDbusTag *tag,
 				"nfc-manager::tag",
 				"r") == false) {
 		NFC_ERR("permission denied, and finished request");
+		result = NET_NFC_SECURITY_FAIL;
 
-		return FALSE;
+		goto END;
 	}
 
 	target_info = net_nfc_server_get_target_info();
@@ -533,8 +536,12 @@ static gboolean tag_handle_is_tag_connected(NetNfcGDbusTag *tag,
 		is_connected = TRUE;
 	}
 
+	result = NET_NFC_OK;
+
+END :
 	net_nfc_gdbus_tag_complete_is_tag_connected(tag,
 			invocation,
+			result,
 			is_connected,
 			(gint32)dev_type);
 
@@ -603,6 +610,7 @@ static gboolean tag_handle_get_current_target_handle(NetNfcGDbusTag *tag,
 	net_nfc_current_target_info_s *target_info;
 	net_nfc_target_handle_s *handle = NULL;
 	uint32_t devType = NET_NFC_UNKNOWN_TARGET;
+	gint result;
 
 	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
@@ -613,8 +621,9 @@ static gboolean tag_handle_get_current_target_handle(NetNfcGDbusTag *tag,
 				"nfc-manager::p2p",
 				"r") == false) {
 		NFC_ERR("permission denied, and finished request");
+		result = NET_NFC_SECURITY_FAIL;
 
-		return FALSE;
+		goto END;
 	}
 
 	target_info = net_nfc_server_get_target_info();
@@ -624,8 +633,12 @@ static gboolean tag_handle_get_current_target_handle(NetNfcGDbusTag *tag,
 		devType = target_info->devType;
 	}
 
+	result = NET_NFC_OK;
+
+END :
 	net_nfc_gdbus_tag_complete_get_current_target_handle(tag,
 			invocation,
+			result,
 			(handle != NULL),
 			GPOINTER_TO_UINT(handle),
 			devType);

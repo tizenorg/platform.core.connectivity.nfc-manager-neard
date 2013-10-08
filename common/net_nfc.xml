@@ -37,6 +37,7 @@
     -->
     <method name="IsTagConnected">
       <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
       <arg type="b" name="is_connected" direction="out" />
       <arg type="i" name="dev_type" direction="out" />
     </method>
@@ -46,6 +47,7 @@
     -->
     <method name="GetCurrentTagInfo">
       <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
       <arg type="b" name="is_connected" direction="out" />
       <arg type="u" name="handle" direction="out" />
       <arg type="i" name="dev_type" direction="out" />
@@ -63,6 +65,7 @@
     -->
     <method name="GetCurrentTargetHandle">
       <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
       <arg type="b" name="is_connected" direction="out" />
       <arg type="u" name="handle" direction="out" />
       <arg type="i" name="dev_type" direction="out" />
@@ -329,8 +332,8 @@
     <signal name="Received">
       <arg type="a(y)" name="data" />
     </signal>
-
   </interface>
+
   <interface name="org.tizen.NetNfcService.Popup">
     <!--
       Set

@@ -227,6 +227,7 @@ static void tag_is_tag_connected(GObject *source_object,
 
 	if (net_nfc_gdbus_tag_call_is_tag_connected_finish(
 				NET_NFC_GDBUS_TAG(source_object),
+				&out_result,
 				&out_is_connected,
 				(gint32 *)&out_dev_type,
 				res,
@@ -277,6 +278,7 @@ static void tag_get_current_tag_info(GObject *source_object,
 
 	if (net_nfc_gdbus_tag_call_get_current_tag_info_finish (
 				NET_NFC_GDBUS_TAG(source_object),
+				&out_result,
 				&out_is_connected,
 				&out_handle,
 				(gint *)&out_dev_type,
@@ -348,6 +350,7 @@ static void tag_get_current_target_handle(GObject *source_object,
 
 	if (net_nfc_gdbus_tag_call_get_current_target_handle_finish(
 				NET_NFC_GDBUS_TAG(source_object),
+				&out_result,
 				&out_is_connected,
 				(guint *)&out_handle,
 				(gint *)&out_dev_type,
@@ -514,6 +517,7 @@ API net_nfc_error_e net_nfc_client_tag_is_tag_connected_sync(
 		/* try to request target information from server */
 		if (net_nfc_gdbus_tag_call_is_tag_connected_sync(tag_proxy,
 					net_nfc_client_gdbus_get_privilege(),
+					&result,
 					&out_is_connected,
 					(gint *)&out_dev_type,
 					NULL,
@@ -607,6 +611,7 @@ API net_nfc_error_e net_nfc_client_tag_get_current_tag_info_sync(
 		/* try to request target information from server */
 		if (net_nfc_gdbus_tag_call_get_current_tag_info_sync(tag_proxy,
 					net_nfc_client_gdbus_get_privilege(),
+					&result,
 					&out_is_connected,
 					&out_handle,
 					(gint *)&out_dev_type,
@@ -716,6 +721,7 @@ API net_nfc_error_e net_nfc_client_tag_get_current_target_handle_sync(
 		if (net_nfc_gdbus_tag_call_get_current_target_handle_sync(
 					tag_proxy,
 					net_nfc_client_gdbus_get_privilege(),
+					&result,
 					&out_is_connected,
 					&out_handle,
 					(gint *)&out_dev_type,
@@ -726,7 +732,7 @@ API net_nfc_error_e net_nfc_client_tag_get_current_target_handle_sync(
 					error->message);
 			g_error_free(error);
 
-			return NET_NFC_IPC_FAIL;
+			return result;
 		}
 
 		if (out_is_connected == true) {
