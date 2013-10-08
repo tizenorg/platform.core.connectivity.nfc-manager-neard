@@ -625,7 +625,8 @@ static void _net_nfc_server_snep_recv(
 					context->socket,
 					op,
 					NULL,
-					_net_nfc_server_snep_recv_send_cb, context);
+					_net_nfc_server_snep_recv_send_cb,
+					context);
 		}
 		break;
 
@@ -637,8 +638,10 @@ static void _net_nfc_server_snep_recv(
 			net_nfc_server_snep_send(
 					context->handle,
 					context->socket,
-					context->type, NULL,
-					_net_nfc_server_snep_recv_send_reject_cb, context);
+					context->type,
+					NULL,
+					_net_nfc_server_snep_recv_send_reject_cb,
+					context);
 		}
 		break;
 
@@ -677,13 +680,14 @@ static void _net_nfc_server_snep_recv(
 	}
 }
 
-static net_nfc_error_e net_nfc_server_snep_recv(net_nfc_target_handle_s *handle,
+static net_nfc_error_e net_nfc_server_snep_recv(
+		net_nfc_target_handle_s *handle,
 		net_nfc_llcp_socket_t socket,
 		_net_nfc_server_snep_operation_cb cb,
 		void *user_param)
 {
 	net_nfc_server_snep_op_context_t *context;
-	net_nfc_error_e result = NET_NFC_OK;
+	net_nfc_error_e result;
 
 	/* create context */
 	context = _net_nfc_server_snep_create_recv_context(
@@ -691,11 +695,17 @@ static net_nfc_error_e net_nfc_server_snep_recv(net_nfc_target_handle_s *handle,
 			socket,
 			cb,
 			user_param);
-
-	if (context != NULL)/* send response */
+	if (context != NULL) {
+		/* send response */
 		_net_nfc_server_snep_recv(context);
-	else
+		result = NET_NFC_OK;
+	} else {
 		result = NET_NFC_ALLOC_FAIL;
+
+		if (cb != NULL) {
+			cb(result, -1, NULL, user_param);
+		}
+	}
 
 	return result;
 }
@@ -923,7 +933,7 @@ net_nfc_error_e net_nfc_server_snep_send(net_nfc_target_handle_s *handle,
 		void *user_param)
 {
 	net_nfc_server_snep_op_context_t *context;
-	net_nfc_error_e result = NET_NFC_OK;
+	net_nfc_error_e result;
 
 	/* create context */
 	context = _net_nfc_server_snep_create_send_context(
@@ -933,15 +943,21 @@ net_nfc_error_e net_nfc_server_snep_send(net_nfc_target_handle_s *handle,
 			data,
 			cb,
 			user_param);
-
 	if (context != NULL)
 	{
 		/* send response */
 		_net_nfc_server_snep_send(context);
+		result = NET_NFC_OK;
 	}
 	else
 	{
+		NFC_ERR("_net_nfc_server_snep_create_send_context failed");
+
 		result = NET_NFC_ALLOC_FAIL;
+
+		if (cb != NULL) {
+			cb(result, type, NULL, user_param);
+		}
 	}
 
 	return result;
