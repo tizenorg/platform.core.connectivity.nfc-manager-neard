@@ -536,6 +536,12 @@ typedef enum
 }
 net_nfc_card_emulation_mode_t;
 
+typedef enum _net_nfc_launch_popup_state_e
+{
+	NET_NFC_NO_LAUNCH_APP_SELECT = 0,
+	NET_NFC_LAUNCH_APP_SELECT,
+} net_nfc_launch_popup_state_e;
+
 /**
  @}
  */

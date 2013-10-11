@@ -370,12 +370,6 @@ typedef enum _net_nfc_launch_popup_check_e
 	NO_CHECK_FOREGROUND,
 } net_nfc_launch_popup_check_e;
 
-typedef enum _net_nfc_launch_popup_state_e
-{
-	NET_NFC_LAUNCH_APP_SELECT = 0x00,
-	NET_NFC_NO_LAUNCH_APP_SELECT,
-} net_nfc_launch_popup_state_e;
-
 /* server state */
 #define NET_NFC_SERVER_IDLE		0
 #define NET_NFC_SERVER_DISCOVERY	(1 << 1)
