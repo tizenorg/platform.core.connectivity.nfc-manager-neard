@@ -1287,8 +1287,7 @@ static void _net_nfc_server_snep_incoming_cb(net_nfc_error_e result,
 		return;
 	}
 
-	NFC_DBG("_net_nfc_server_snep_incoming_cb, incoming socket [%x], result [%d]",
-			socket, result);
+	NFC_DBG("snep incoming socket [%x], result [%d]", socket, result);
 
 	if (result != NET_NFC_OK)
 	{
@@ -1318,7 +1317,6 @@ static void _net_nfc_server_snep_incoming_cb(net_nfc_error_e result,
 			socket,
 			_net_nfc_server_snep_incomming_socket_error_cb,
 			accept_context);
-
 	if (result != NET_NFC_OK)
 	{
 		NFC_ERR("net_nfc_server_llcp_simple_accept failed, [%d]",
@@ -1336,15 +1334,6 @@ ERROR :
 	if (accept_context != NULL)
 	{
 		_net_nfc_util_free_mem(accept_context);
-	}
-
-	if (context->cb != NULL)
-	{
-		context->cb((net_nfc_snep_handle_h)context,
-				result,
-				context->type,
-				NULL,
-				context->user_param);
 	}
 }
 
