@@ -521,7 +521,7 @@ static void llcp_call_disconnect(GObject *source_object, 	GAsyncResult *res,
 
 
 /* Public APIs */
-API net_nfc_error_e net_nfc_client_llcp_config(net_nfc_llcp_config_info_h config,
+API net_nfc_error_e net_nfc_client_llcp_config(net_nfc_llcp_config_info_s *config,
 		net_nfc_client_llcp_config_completed callback, void *user_data)
 {
 	GVariant *var;
@@ -554,7 +554,7 @@ API net_nfc_error_e net_nfc_client_llcp_config(net_nfc_llcp_config_info_h config
 }
 
 API net_nfc_error_e net_nfc_client_llcp_config_sync(
-		net_nfc_llcp_config_info_h config)
+		net_nfc_llcp_config_info_s *config)
 {
 	gboolean ret;
 	GVariant *var = NULL;
@@ -583,11 +583,11 @@ API net_nfc_error_e net_nfc_client_llcp_config_sync(
 }
 
 API net_nfc_error_e net_nfc_client_llcp_get_config(
-		net_nfc_llcp_config_info_h *config)
+		net_nfc_llcp_config_info_s **config)
 {
 	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 
-	*config = (net_nfc_llcp_config_info_h)&llcp_config;
+	*config = &llcp_config;
 
 	return NET_NFC_OK;
 }
@@ -862,8 +862,7 @@ API net_nfc_error_e net_nfc_client_llcp_connect(net_nfc_llcp_socket_t socket,
 }
 
 API net_nfc_error_e net_nfc_client_llcp_connect_sync(net_nfc_llcp_socket_t socket,
-		const char *service_name,
-		net_nfc_llcp_socket_t *out_socket)
+		const char *service_name, net_nfc_llcp_socket_t *out_socket)
 {
 	gboolean ret;
 	GError *error = NULL;
@@ -1023,7 +1022,7 @@ API net_nfc_error_e net_nfc_client_llcp_connect_sap_sync(
 }
 
 API net_nfc_error_e net_nfc_client_llcp_send(net_nfc_llcp_socket_t socket,
-		data_h data, net_nfc_client_llcp_send_completed callback, void *user_data)
+		data_s *data, net_nfc_client_llcp_send_completed callback, void *user_data)
 {
 	GVariant *variant;
 	LlcpFuncData *func_data;
@@ -1068,7 +1067,7 @@ API net_nfc_error_e net_nfc_client_llcp_send(net_nfc_llcp_socket_t socket,
 }
 
 API net_nfc_error_e net_nfc_client_llcp_send_sync(net_nfc_llcp_socket_t socket,
-		data_h data)
+		data_s *data)
 {
 	gboolean ret;
 	GVariant *variant;
@@ -1124,7 +1123,7 @@ API net_nfc_error_e net_nfc_client_llcp_send_sync(net_nfc_llcp_socket_t socket,
 
 API net_nfc_error_e net_nfc_client_llcp_send_to(net_nfc_llcp_socket_t socket,
 		sap_t sap,
-		data_h data,
+		data_s *data,
 		net_nfc_client_llcp_send_to_completed callback,
 		void *user_data)
 {
@@ -1173,7 +1172,7 @@ API net_nfc_error_e net_nfc_client_llcp_send_to(net_nfc_llcp_socket_t socket,
 }
 
 API net_nfc_error_e net_nfc_client_llcp_send_to_sync(net_nfc_llcp_socket_t socket,
-		sap_t sap, data_h data)
+		sap_t sap, data_s *data)
 {
 	gboolean ret;
 	GVariant *variant;
@@ -1274,7 +1273,7 @@ API net_nfc_error_e net_nfc_client_llcp_receive(net_nfc_llcp_socket_t socket,
 }
 
 API net_nfc_error_e net_nfc_client_llcp_receive_sync(net_nfc_llcp_socket_t socket,
-		size_t request_length, data_h *out_data)
+		size_t request_length, data_s **out_data)
 {
 	gboolean ret;
 	GVariant *variant;
@@ -1367,7 +1366,7 @@ API net_nfc_error_e net_nfc_client_llcp_receive_from_sync(
 		net_nfc_llcp_socket_t socket,
 		size_t request_length,
 		sap_t *out_sap,
-		data_h *out_data)
+		data_s **out_data)
 {
 	sap_t sap;
 	gboolean ret;
@@ -1600,7 +1599,7 @@ API net_nfc_error_e net_nfc_client_llcp_disconnect_sync(
 }
 
 API void net_nfc_client_llcp_create_socket(net_nfc_llcp_socket_t *socket,
-		net_nfc_llcp_socket_option_h option)
+		net_nfc_llcp_socket_option_s *option)
 {
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 
@@ -1618,8 +1617,7 @@ API void net_nfc_client_llcp_create_socket(net_nfc_llcp_socket_t *socket,
 	{
 		socket_data->miu = 128;
 		socket_data->rw = 1;
-		socket_data->type =
-			NET_NFC_LLCP_SOCKET_TYPE_CONNECTIONORIENTED;
+		socket_data->type = NET_NFC_LLCP_SOCKET_TYPE_CONNECTIONORIENTED;
 	}
 
 	socket_data->device_id = llcp_handle;
@@ -1632,17 +1630,17 @@ API void net_nfc_client_llcp_create_socket(net_nfc_llcp_socket_t *socket,
 
 
 API net_nfc_error_e net_nfc_client_llcp_get_local_config(
-		net_nfc_llcp_config_info_h *config)
+		net_nfc_llcp_config_info_s **config)
 {
 	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 
-	*config = (net_nfc_llcp_config_info_h)&llcp_config;
+	*config = &llcp_config;
 
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_get_local_socket_option(
-		net_nfc_llcp_socket_t socket, net_nfc_llcp_socket_option_h *info)
+		net_nfc_llcp_socket_t socket, net_nfc_llcp_socket_option_s **info)
 {
 	net_nfc_llcp_internal_socket_s *socket_data = NULL;
 
@@ -1650,18 +1648,18 @@ API net_nfc_error_e net_nfc_client_llcp_get_local_socket_option(
 	if (socket_data == NULL)
 		return NET_NFC_LLCP_INVALID_SOCKET;
 
-	*info = (net_nfc_llcp_socket_option_h)socket_data;
+	*info = (net_nfc_llcp_socket_option_s*)socket_data;
 
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_create_socket_option(
-		net_nfc_llcp_socket_option_h *option,
+		net_nfc_llcp_socket_option_s **option,
 		uint16_t miu,
 		uint8_t rw,
 		net_nfc_socket_type_e type)
 {
-	net_nfc_llcp_socket_option_s *struct_option = NULL;
+	net_nfc_llcp_socket_option_s *tmp_option = NULL;
 
 	RETV_IF(NULL == option, NET_NFC_NULL_PARAMETER);
 	RETVM_IF(miu < 128 || miu > 1152, NET_NFC_OUT_OF_BOUND, "miu = %d", miu);
@@ -1671,14 +1669,14 @@ API net_nfc_error_e net_nfc_client_llcp_create_socket_option(
 			NET_NFC_OUT_OF_BOUND,
 			"type = %d", type);
 
-	_net_nfc_util_alloc_mem(struct_option, sizeof(net_nfc_llcp_socket_option_s));
-	if (struct_option != NULL)
+	_net_nfc_util_alloc_mem(tmp_option, sizeof(net_nfc_llcp_socket_option_s));
+	if (tmp_option != NULL)
 	{
-		struct_option->miu = miu;
-		struct_option->rw = rw;
-		struct_option->type = type;
+		tmp_option->miu = miu;
+		tmp_option->rw = rw;
+		tmp_option->type = type;
 
-		*option = (net_nfc_llcp_socket_option_h)struct_option;
+		*option = tmp_option;
 
 		return NET_NFC_OK;
 	}
@@ -1689,93 +1687,79 @@ API net_nfc_error_e net_nfc_client_llcp_create_socket_option(
 }
 
 API net_nfc_error_e net_nfc_client_llcp_create_socket_option_default(
-		net_nfc_llcp_socket_option_h *option)
+		net_nfc_llcp_socket_option_s **option)
 {
 	return net_nfc_client_llcp_create_socket_option(option, 128, 1,
 			NET_NFC_LLCP_SOCKET_TYPE_CONNECTIONORIENTED);
 }
 
 API net_nfc_error_e net_nfc_client_llcp_get_socket_option_miu(
-		net_nfc_llcp_socket_option_h option, uint16_t *miu)
+		net_nfc_llcp_socket_option_s *option, uint16_t *miu)
 {
-	net_nfc_llcp_socket_option_s *struct_option = (net_nfc_llcp_socket_option_s*)option;
-
 	RETV_IF(NULL == option, NET_NFC_NULL_PARAMETER);
 	RETV_IF(NULL == miu, NET_NFC_NULL_PARAMETER);
 
-	*miu = struct_option->miu;
+	*miu = option->miu;
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_set_socket_option_miu(
-		net_nfc_llcp_socket_option_h option, uint16_t miu)
+		net_nfc_llcp_socket_option_s *option, uint16_t miu)
 {
-	net_nfc_llcp_socket_option_s *struct_option =
-		(net_nfc_llcp_socket_option_s *)option;
-
 	RETV_IF(NULL == option, NET_NFC_NULL_PARAMETER);
 
-	struct_option->miu = miu;
+	option->miu = miu;
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_get_socket_option_rw(
-		net_nfc_llcp_socket_option_h option, uint8_t *rw)
+		net_nfc_llcp_socket_option_s *option, uint8_t *rw)
 {
-	net_nfc_llcp_socket_option_s *struct_option = (net_nfc_llcp_socket_option_s*)option;
-
 	RETV_IF(NULL == option, NET_NFC_NULL_PARAMETER);
 	RETV_IF(NULL == rw, NET_NFC_NULL_PARAMETER);
 
-	*rw = struct_option->rw;
+	*rw = option->rw;
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_set_socket_option_rw(
-		net_nfc_llcp_socket_option_h option, uint8_t rw)
+		net_nfc_llcp_socket_option_s *option, uint8_t rw)
 {
-	net_nfc_llcp_socket_option_s *struct_option = (net_nfc_llcp_socket_option_s*)option;
-
 	RETV_IF(NULL == option, NET_NFC_NULL_PARAMETER);
 
-	struct_option->rw = rw;
+	option->rw = rw;
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_get_socket_option_type(
-		net_nfc_llcp_socket_option_h option, net_nfc_socket_type_e *type)
+		net_nfc_llcp_socket_option_s *option, net_nfc_socket_type_e *type)
 {
-	net_nfc_llcp_socket_option_s *struct_option = (net_nfc_llcp_socket_option_s*)option;
-
 	RETV_IF(NULL == type, NET_NFC_NULL_PARAMETER);
 
-	*type = struct_option->type;
+	*type = option->type;
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_set_socket_option_type(
-		net_nfc_llcp_socket_option_h option, net_nfc_socket_type_e type)
+		net_nfc_llcp_socket_option_s *option, net_nfc_socket_type_e type)
 {
-	net_nfc_llcp_socket_option_s *struct_option = (net_nfc_llcp_socket_option_s*)option;
-
 	RETV_IF(NULL == option, NET_NFC_NULL_PARAMETER);
 
-	struct_option->type = type;
+	option->type = type;
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_free_socket_option(
-		net_nfc_llcp_socket_option_h option)
+		net_nfc_llcp_socket_option_s *option)
 {
 	RETV_IF(NULL == option, NET_NFC_NULL_PARAMETER);
 
 	_net_nfc_util_free_mem(option);
-
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_create_config(
-		net_nfc_llcp_config_info_h *config,
+		net_nfc_llcp_config_info_s **config,
 		uint16_t miu,
 		uint16_t wks,
 		uint8_t lto,
@@ -1794,116 +1778,96 @@ API net_nfc_error_e net_nfc_client_llcp_create_config(
 	tmp_config->lto = lto;
 	tmp_config->option = option;
 
-	*config = (net_nfc_llcp_config_info_h)tmp_config;
+	*config = tmp_config;
 
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_create_config_default(
-		net_nfc_llcp_config_info_h *config)
+		net_nfc_llcp_config_info_s **config)
 {
 	return net_nfc_client_llcp_create_config(config, 128, 1, 10, 0);
 }
 
 API net_nfc_error_e net_nfc_client_llcp_get_config_miu(
-		net_nfc_llcp_config_info_h config, uint16_t *miu)
+		net_nfc_llcp_config_info_s *config, uint16_t *miu)
 {
-	net_nfc_llcp_config_info_s *tmp_config = (net_nfc_llcp_config_info_s*)config;
-
 	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 	RETV_IF(NULL == miu, NET_NFC_NULL_PARAMETER);
 
-	*miu = tmp_config->miu;
-
+	*miu = config->miu;
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_get_config_wks(
-		net_nfc_llcp_config_info_h config, uint16_t *wks)
+		net_nfc_llcp_config_info_s *config, uint16_t *wks)
 {
-	net_nfc_llcp_config_info_s *tmp_config = (net_nfc_llcp_config_info_s*)config;
-
 	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 	RETV_IF(NULL == wks, NET_NFC_NULL_PARAMETER);
 
-	*wks = tmp_config->wks;
-
+	*wks = config->wks;
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_get_config_lto(
-		net_nfc_llcp_config_info_h config, uint8_t *lto)
+		net_nfc_llcp_config_info_s *config, uint8_t *lto)
 {
-	net_nfc_llcp_config_info_s *tmp_config = (net_nfc_llcp_config_info_s*)config;
-
 	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 	RETV_IF(NULL == lto, NET_NFC_NULL_PARAMETER);
 
-	*lto = tmp_config->lto;
-
+	*lto = config->lto;
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_get_config_option(
-		net_nfc_llcp_config_info_h config, uint8_t *option)
+		net_nfc_llcp_config_info_s *config, uint8_t *option)
 {
-	net_nfc_llcp_config_info_s *tmp_config = (net_nfc_llcp_config_info_s*)config;
-
 	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 	RETV_IF(NULL == option, NET_NFC_NULL_PARAMETER);
 
-	*option = tmp_config->option;
-
+	*option = config->option;
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_set_config_miu(
-		net_nfc_llcp_config_info_h config, uint16_t miu)
+		net_nfc_llcp_config_info_s *config, uint16_t miu)
 {
-	net_nfc_llcp_config_info_s * tmp_config = (net_nfc_llcp_config_info_s*)config;
-
 	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 	RETVM_IF(miu < 128 || miu > 1152, NET_NFC_OUT_OF_BOUND, "miu = %d", miu);
 
-	tmp_config->miu = miu;
+	config->miu = miu;
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_set_config_wks(
-		net_nfc_llcp_config_info_h config, uint16_t wks)
+		net_nfc_llcp_config_info_s *config, uint16_t wks)
 {
-	net_nfc_llcp_config_info_s *tmp_config = (net_nfc_llcp_config_info_s*)config;
-
 	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 
-	tmp_config->wks = wks;
+	config->wks = wks;
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_set_config_lto(
-		net_nfc_llcp_config_info_h config, uint8_t lto)
+		net_nfc_llcp_config_info_s *config, uint8_t lto)
 {
-	net_nfc_llcp_config_info_s *tmp_config = (net_nfc_llcp_config_info_s*)config;
-
 	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 
-	tmp_config->lto = lto;
+	config->lto = lto;
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_set_config_option(
-		net_nfc_llcp_config_info_h config, uint8_t option)
+		net_nfc_llcp_config_info_s *config, uint8_t option)
 {
-	net_nfc_llcp_config_info_s *tmp_config = (net_nfc_llcp_config_info_s*)config;
-
 	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 
-	tmp_config->option = option;
+	config->option = option;
 	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_llcp_free_config(
-		net_nfc_llcp_config_info_h config)
+		net_nfc_llcp_config_info_s *config)
 {
 	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 

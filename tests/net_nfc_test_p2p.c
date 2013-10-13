@@ -25,14 +25,15 @@
 #include "net_nfc_typedef.h"
 
 
-static net_nfc_target_handle_h global_handle = NULL;
+static net_nfc_target_handle_s *global_handle = NULL;
+
 static void run_next_callback(gpointer user_data);
 static void p2p_send(net_nfc_error_e result, void *user_data);
-static void p2p_device_discovered(net_nfc_target_handle_h handle,
+static void p2p_device_discovered(net_nfc_target_handle_s *handle,
 		void *user_data);
 
 static void p2p_device_detached(void * user_data);
-static void p2p_device_data_received(data_h p2p_data, void *user_data);
+static void p2p_device_data_received(data_s *p2p_data, void *user_data);
 
 static void run_next_callback(gpointer user_data)
 {
@@ -52,7 +53,7 @@ static void p2p_send(net_nfc_error_e result, void *user_data)
 	run_next_callback(user_data);
 }
 
-static void p2p_device_discovered(net_nfc_target_handle_h handle, void *user_data)
+static void p2p_device_discovered(net_nfc_target_handle_s *handle, void *user_data)
 {
 	g_print("Target is Discovered\n");
 	global_handle = handle;
@@ -68,7 +69,7 @@ static void p2p_device_detached(void * user_data)
 	run_next_callback(user_data);
 }
 
-static void p2p_device_data_received(data_h p2p_data, void *user_data)
+static void p2p_device_data_received(data_s *p2p_data, void *user_data)
 {
 	g_print("P2P data is received\n");
 
@@ -80,9 +81,9 @@ static void p2p_device_data_received(data_h p2p_data, void *user_data)
 void net_nfc_test_p2p_send(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	ndef_message_h msg = NULL;
-	ndef_record_h record = NULL;
-	data_h rawdata = NULL;
+	ndef_message_s *msg = NULL;
+	ndef_record_s *record = NULL;
+	data_s *rawdata = NULL;
 
 	net_nfc_create_ndef_message (&msg);
 	net_nfc_create_uri_type_record (&record ,"http://www.samsung.com" ,NET_NFC_SCHEMA_FULL_URI);
@@ -104,9 +105,9 @@ void net_nfc_test_p2p_send(gpointer data, gpointer user_data)
 void net_nfc_test_p2p_send_sync(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	ndef_message_h msg = NULL;
-	ndef_record_h record = NULL;
-	data_h rawdata = NULL;
+	ndef_message_s *msg = NULL;
+	ndef_record_s *record = NULL;
+	data_s *rawdata = NULL;
 
 	net_nfc_create_ndef_message (&msg);
 	net_nfc_create_uri_type_record (&record ,"http://www.samsung.com", NET_NFC_SCHEMA_FULL_URI);
@@ -141,7 +142,7 @@ void net_nfc_test_p2p_set_data_received(gpointer data, gpointer user_data)
 	net_nfc_client_p2p_set_data_received(p2p_device_data_received, user_data);
 }
 
-net_nfc_target_handle_h net_nfc_test_device_get_target_handle(void)
+net_nfc_target_handle_s *net_nfc_test_device_get_target_handle(void)
 {
 	return global_handle;
 }

@@ -60,7 +60,7 @@ void _activation_complete_cb(net_nfc_message_e message, net_nfc_error_e result,
 	}
 }
 
-int ndef_tool_read_ndef_message_from_file(const char *file_name, ndef_message_h *msg)
+int ndef_tool_read_ndef_message_from_file(const char *file_name, ndef_message_s **msg)
 {
 	int result = -1;
 	FILE *file = NULL;
@@ -77,7 +77,7 @@ int ndef_tool_read_ndef_message_from_file(const char *file_name, ndef_message_h 
 
 		if (file_size > 0)
 		{
-			data_h data;
+			data_s *data;
 
 			net_nfc_create_data(&data, NULL, file_size);
 			if (data != NULL)
@@ -98,11 +98,11 @@ int ndef_tool_read_ndef_message_from_file(const char *file_name, ndef_message_h 
 	return result;
 }
 
-int ndef_tool_write_ndef_message_to_file(const char *file_name, ndef_message_h msg)
+int ndef_tool_write_ndef_message_to_file(const char *file_name, ndef_message_s *msg)
 {
 	int result = -1;
 	FILE *file = NULL;
-	data_h data = NULL;
+	data_s *data = NULL;
 
 	net_nfc_create_rawdata_from_ndef_message(msg, &data);
 	if (data != NULL)
@@ -204,10 +204,10 @@ static net_nfc_record_tnf_e _parse_tnf_string(const char *tnf)
 	return result;
 }
 
-static int _append_record_to_file(const char *file_name, ndef_record_h record)
+static int _append_record_to_file(const char *file_name, ndef_record_s *record)
 {
 	int result = -1;
-	ndef_message_h msg = NULL;
+	ndef_message_s *msg = NULL;
 
 	if (ndef_tool_read_ndef_message_from_file(file_name, &msg) <= 0)
 	{
@@ -225,9 +225,9 @@ static int _append_record_to_file(const char *file_name, ndef_record_h record)
 	return result;
 }
 
-ndef_record_h _create_record(net_nfc_record_tnf_e tnf, data_h type, data_h id , data_h payload, char *encoding)
+ndef_record_s* _create_record(net_nfc_record_tnf_e tnf, data_s *type, data_s *id , data_s *payload, char *encoding)
 {
-	ndef_record_h result = NULL;
+	ndef_record_s *result = NULL;
 
 	switch (tnf)
 	{
@@ -281,7 +281,7 @@ ndef_record_h _create_record(net_nfc_record_tnf_e tnf, data_h type, data_h id , 
 bool _remove_record_from_file(const char *file_name, int index)
 {
 	bool result = false;
-	ndef_message_h msg = NULL;
+	ndef_message_s *msg = NULL;
 
 	if (ndef_tool_read_ndef_message_from_file(file_name, &msg) > 0)
 	{
@@ -319,14 +319,14 @@ int main(int argc, char *argv[])
 	int end_index = -1;
 	int operation = OPERATION_ERROR;
 	net_nfc_record_tnf_e tnf = -1;
-	data_h type = NULL;
-	data_h id = NULL;
-	data_h payload = NULL;
+	data_s *type = NULL;
+	data_s *id = NULL;
+	data_s *payload = NULL;
 	char *file_name = NULL;
 	char *cert_file = NULL;
 	char *password = NULL;
 	char *encoding = NULL;
-	ndef_record_h record = NULL;
+	ndef_record_s *record = NULL;
 
 	int i = 1;
 	int len = 0;

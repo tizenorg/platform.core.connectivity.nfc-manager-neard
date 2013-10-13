@@ -52,7 +52,7 @@ int main()
 
 #if 1
 
-	ndef_message_h ndef_message = NULL;
+	ndef_message_s *ndef_message = NULL;
 	net_nfc_conn_handover_info_h conn_handover_info = NULL;
 
 
@@ -67,14 +67,14 @@ int main()
 		int i = 0;
 		while(i < count)
 		{
-			ndef_record_h record = NULL;
+			ndef_record_s *record = NULL;
 			net_nfc_get_record_by_index(ndef_message, i++, &record);
 
 			if (record != NULL)
 			{
 
 				net_nfc_record_tnf_e TNF = NET_NFC_RECORD_EMPTY;
-				data_h record_type = NULL;
+				data_s *record_type = NULL;
 
 				if ((net_nfc_get_record_tnf(record, &TNF) == NET_NFC_OK)
 						&& (net_nfc_get_record_type(record, &record_type) == NET_NFC_OK ))
@@ -103,7 +103,7 @@ int main()
 
 								if(carrier_info != NULL)
 								{
-									data_h configuration = NULL;
+									data_s *configuration = NULL;
 									net_nfc_get_carrier_configuration(carrier_info, &configuration);
 
 									if(configuration != NULL)

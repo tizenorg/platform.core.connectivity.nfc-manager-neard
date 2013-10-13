@@ -28,7 +28,7 @@ void net_nfc_test_p2p_set_data_received(gpointer data, gpointer user_data);
 void net_nfc_test_p2p_unset_device_discovered(gpointer data, gpointer user_data);
 void net_nfc_test_p2p_unset_device_detached(gpointer data, gpointer user_data);
 void net_nfc_test_p2p_unset_data_received(gpointer data, gpointer user_data);
-net_nfc_target_handle_h net_nfc_test_device_get_target_handle(void);
+net_nfc_target_handle_s* net_nfc_test_device_get_target_handle(void);
 
 #endif //__NET_NFC_TEST_P2P_H__
 

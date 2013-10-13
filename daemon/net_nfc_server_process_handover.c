@@ -47,7 +47,8 @@ typedef struct _net_nfc_handover_context_t
 }
 net_nfc_handover_context_t;
 
-#define NET_NFC_CH_CONTEXT net_nfc_target_handle_s *handle;\
+#define NET_NFC_CH_CONTEXT \
+	net_nfc_target_handle_s *handle;\
 	net_nfc_llcp_socket_t socket;\
 	net_nfc_error_e result;\
 	int step;\
@@ -56,7 +57,13 @@ net_nfc_handover_context_t;
 
 typedef struct _net_nfc_server_handover_create_config_context_t
 {
-	NET_NFC_CH_CONTEXT;
+	net_nfc_target_handle_s *handle;
+	net_nfc_llcp_socket_t socket;
+	net_nfc_error_e result;
+	int step;
+	net_nfc_conn_handover_carrier_type_e type;
+	void *user_param;
+	// TODO: above value MUST be same with NET_NFC_CH_CONTEXT
 
 	_net_nfc_server_handover_create_carrier_msg_cb cb;
 	net_nfc_conn_handover_carrier_type_e current_type;
@@ -69,11 +76,16 @@ net_nfc_server_handover_create_config_context_t;
 
 typedef struct _net_nfc_server_handover_process_config_context_t
 {
-	NET_NFC_CH_CONTEXT;
+	net_nfc_target_handle_s *handle;
+	net_nfc_llcp_socket_t socket;
+	net_nfc_error_e result;
+	int step;
+	net_nfc_conn_handover_carrier_type_e type;
+	void *user_param;
+	// TODO: above value MUST be same with NET_NFC_CH_CONTEXT */
 
 	net_nfc_server_handover_process_carrier_record_cb cb;
 }net_nfc_server_handover_process_config_context_t;
-
 
 
 static void _net_nfc_server_handover_send_response(net_nfc_error_e result,
@@ -296,6 +308,7 @@ static void _net_nfc_server_handover_bss_get_carrier_record_cb(
 
 	/* don't free context */
 }
+
 static void _net_nfc_server_handover_bt_process_carrier_record_cb(
 		net_nfc_error_e result,
 		net_nfc_conn_handover_carrier_type_e type,
@@ -616,16 +629,14 @@ static int _net_nfc_server_handover_iterate_carrier_configs_to_next(
 	{
 		if (context->type == NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN)
 		{
-			if (context->current_type <
-					NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN)
+			if (context->current_type < NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN)
 			{
 				context->current_type++;
 			}
 		}
 		else
 		{
-			context->current_type =
-				NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN;
+			context->current_type = NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN;
 		}
 
 		g_idle_add(
@@ -724,8 +735,7 @@ _net_nfc_server_handover_create_requester_carrier_configs(
 		context->type = type;
 		if (type == NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN)
 		{
-			context->current_type =
-				NET_NFC_CONN_HANDOVER_CARRIER_BT;
+			context->current_type = NET_NFC_CONN_HANDOVER_CARRIER_BT;
 		}
 		else
 			context->current_type = context->type;
@@ -917,15 +927,12 @@ static net_nfc_error_e _net_nfc_server_handover_select_carrier_record(
 }
 
 static void _net_nfc_server_handover_create_carrier_configs_2_cb(
-		net_nfc_error_e result,
-		ndef_message_s *selector,
-		void *user_param)
+		net_nfc_error_e result, ndef_message_s *selector, void *user_param)
 {
-	net_nfc_handover_context_t *context =
-		(net_nfc_handover_context_t *)user_param;
+	net_nfc_handover_context_t *context = user_param;
 
 	NFC_DBG("_net_nfc_server_handover_server_create_carrier_config_cb result [%d]",
-		result);
+			result);
 
 	if (context == NULL)
 	{
@@ -963,7 +970,7 @@ static void _net_nfc_server_handover_process_carrier_record_2_cb(
 		(net_nfc_handover_context_t *)user_param;
 
 	NFC_DBG("_net_nfc_server_handover_server_process_carrier_record_cb result [%d]",
-		result);
+			result);
 
 	context->result = result;
 	if (result == NET_NFC_OK)
@@ -1029,6 +1036,7 @@ static void _net_nfc_server_handover_get_response_process(
 		NFC_DBG("NET_NFC_LLCP_STEP_04");
 
 		/* response select message */
+		// TODO: context->handle may is not valid type. we should find a right function or parameter
 		result = net_nfc_server_snep_server_send_get_response(
 				(net_nfc_snep_handle_h)context->handle,
 				&context->data);
@@ -1064,9 +1072,7 @@ static bool _net_nfc_server_handover_get_response_cb(
 	}
 
 	/* TODO : send select response to requester */
-	result = _net_nfc_server_handover_create_requester_from_rawdata(
-			&request,
-			data);
+	result = _net_nfc_server_handover_create_requester_from_rawdata(&request, data);
 
 	if (result == NET_NFC_OK)
 	{
@@ -1129,7 +1135,7 @@ static void _net_nfc_server_handover_server_process_carrier_record_cb(
 		(net_nfc_handover_context_t *)user_param;
 
 	NFC_DBG("_net_nfc_server_handover_server_process_carrier_record_cb result [%d]",
-		result);
+			result);
 
 	context->result = result;
 
@@ -1150,7 +1156,7 @@ static void _net_nfc_server_handover_server_create_carrier_config_cb(
 		(net_nfc_handover_context_t *)user_param;
 
 	NFC_DBG("_net_nfc_server_handover_server_create_carrier_config_cb,result [%d]",
-		result);
+			result);
 
 	if (context == NULL)
 	{
@@ -1197,7 +1203,7 @@ static void _net_nfc_server_handover_server_recv_cb(
 	ndef_message_s *request;
 
 	NFC_DBG("_net_nfc_server_handover_server_recv_cb, socket [%x], result [%d]",
-		socket, result);
+			socket, result);
 
 	context->result = result;
 
@@ -1258,7 +1264,7 @@ static void _net_nfc_server_handover_server_send_cb(net_nfc_error_e result,
 		(net_nfc_handover_context_t *)user_param;
 
 	NFC_DBG("_net_nfc_server_handover_server_send_cb socket[%x], result[%d]",
-		socket, result);
+			socket, result);
 
 	context->result = result;
 
@@ -1443,8 +1449,7 @@ net_nfc_error_e net_nfc_server_handover_default_server_start(
 	/* start default handover server using snep */
 	result =
 		net_nfc_server_snep_default_server_register_get_response_cb(
-				_net_nfc_server_handover_get_response_cb,
-				NULL);
+				_net_nfc_server_handover_get_response_cb, NULL);
 
 	/* start default handover server */
 	result = net_nfc_server_llcp_simple_server(
@@ -1550,7 +1555,7 @@ static void _net_nfc_server_handover_client_process_carrier_record_cb(
 		(net_nfc_handover_context_t *)user_param;
 
 	NFC_DBG("_net_nfc_server_handover_server_process_carrier_record_cb, result[%d]",
-		result);
+			result);
 
 	context->result = result;
 

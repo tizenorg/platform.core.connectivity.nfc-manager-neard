@@ -29,7 +29,7 @@
 bool ndef_tool_sign_message_from_file(const char *file_name, int begin_index, int end_index, char *cert_file, char *password)
 {
 	bool result = false;
-	ndef_message_h msg = NULL;
+	ndef_message_s *msg = NULL;
 	int32_t count = 0;
 
 	if (ndef_tool_read_ndef_message_from_file(file_name, &msg) > 0)
@@ -56,7 +56,7 @@ bool ndef_tool_sign_message_from_file(const char *file_name, int begin_index, in
 bool ndef_tool_verify_message_from_file(const char *file_name)
 {
 	bool result = false;
-	ndef_message_h msg = NULL;
+	ndef_message_s *msg = NULL;
 
 	if (ndef_tool_read_ndef_message_from_file(file_name, &msg) > 0)
 	{

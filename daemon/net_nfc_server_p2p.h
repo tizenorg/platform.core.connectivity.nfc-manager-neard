@@ -27,9 +27,9 @@ void net_nfc_server_p2p_deinit(void);
 /* server side */
 void net_nfc_server_p2p_detached(void);
 
-void net_nfc_server_p2p_discovered(net_nfc_target_handle_h handle);
+void net_nfc_server_p2p_discovered(net_nfc_target_handle_s *handle);
 
-void net_nfc_server_p2p_received(data_h user_data);
+void net_nfc_server_p2p_received(data_s *user_data);
 
 void net_nfc_server_p2p_data_sent(net_nfc_error_e result, gpointer user_data);
 

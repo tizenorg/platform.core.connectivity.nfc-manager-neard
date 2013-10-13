@@ -55,7 +55,7 @@ static void snep_send_client_request(GObject *source_object, GAsyncResult *res,
 			(guint *)&handle);
 
 	if (callback != NULL) {
-		ndef_message_h message;
+		ndef_message_s *message = NULL;
 
 		message = net_nfc_util_gdbus_variant_to_ndef_message(out_data);
 
@@ -67,7 +67,7 @@ static void snep_send_client_request(GObject *source_object, GAsyncResult *res,
 }
 
 API net_nfc_error_e net_nfc_client_snep_start_server(
-		net_nfc_target_handle_h target,
+		net_nfc_target_handle_s *target,
 		const char *san,
 		sap_t sap,
 		net_nfc_client_snep_event_cb callback,
@@ -108,7 +108,7 @@ API net_nfc_error_e net_nfc_client_snep_start_server(
 }
 
 API net_nfc_error_e net_nfc_client_snep_start_client(
-		net_nfc_target_handle_h target,
+		net_nfc_target_handle_s *target,
 		const char *san,
 		sap_t sap,
 		net_nfc_client_snep_event_cb callback,
@@ -151,7 +151,7 @@ API net_nfc_error_e net_nfc_client_snep_start_client(
 API net_nfc_error_e net_nfc_client_snep_send_client_request(
 		net_nfc_snep_handle_h target,
 		net_nfc_snep_type_t snep_type,
-		ndef_message_h msg,
+		ndef_message_s *msg,
 		net_nfc_client_snep_event_cb callback,
 		void *user_data)
 {
@@ -185,11 +185,11 @@ API net_nfc_error_e net_nfc_client_snep_send_client_request(
 }
 #if 0
 API net_nfc_error_e net_nfc_client_snep_send_client_request_sync(
-		net_nfc_target_handle_h target,
+		net_nfc_target_handle_s *target,
 		net_nfc_snep_type_t snep_type,
-		ndef_message_h msg,
+		ndef_message_s *msg,
 		net_nfc_snep_type_t *resp_type,
-		ndef_message_h *response)
+		ndef_message_s **response)
 {
 	GVariant *resp_msg = NULL;
 	GVariant *arg_msg = NULL;
@@ -251,7 +251,7 @@ API net_nfc_error_e net_nfc_client_snep_send_client_request_sync(
 }
 #endif
 API net_nfc_error_e net_nfc_client_snep_stop_service_sync(
-		net_nfc_target_handle_h target, net_nfc_snep_handle_h service)
+		net_nfc_target_handle_s *target, net_nfc_snep_handle_h service)
 {
 	GError *error = NULL;
 	net_nfc_error_e result = NET_NFC_OK;
@@ -298,8 +298,7 @@ static void _snep_event_cb(NetNfcGDbusSnep *object, guint arg_handle,
 
 		if (callback != NULL)
 		{
-			ndef_message_h message;
-
+			ndef_message_s *message;
 			message = net_nfc_util_gdbus_variant_to_ndef_message(arg_ndef_msg);
 
 			callback(GUINT_TO_POINTER(arg_handle), arg_event, arg_result,

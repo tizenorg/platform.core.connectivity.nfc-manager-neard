@@ -42,7 +42,7 @@ void net_nfc_test_tag_get_current_target_handle_sync(gpointer data,
 void net_nfc_test_tag_set_tag_discovered(gpointer data,
 		gpointer user_data);
 
-net_nfc_target_info_h net_nfc_test_tag_get_target_info(void);
+net_nfc_target_info_s* net_nfc_test_tag_get_target_info(void);
 
 void net_nfc_test_tag_set_tag_detached(gpointer data,
 		gpointer user_data);

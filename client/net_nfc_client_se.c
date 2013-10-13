@@ -107,7 +107,7 @@ static void se_ese_detected(GObject *source_object,
 
 		net_nfc_util_gdbus_variant_to_data_s(arg_data, &buffer_data);
 
-		callback((net_nfc_target_handle_h)arg_handle, arg_se_type, &buffer_data,
+		callback((net_nfc_target_handle_s*)arg_handle, arg_se_type, &buffer_data,
 				se_esedetecthandler.se_ese_detected_data);
 
 		net_nfc_util_free_data(&buffer_data);
@@ -285,7 +285,7 @@ static void open_secure_element(GObject *source_object,
 		net_nfc_se_open_se_cb se_callback =
 			(net_nfc_se_open_se_cb)func_data->se_callback;
 
-		se_callback(result, (net_nfc_target_handle_h)out_handle, func_data->se_data);
+		se_callback(result, (net_nfc_target_handle_s*)out_handle, func_data->se_data);
 	}
 
 	g_free(func_data);
@@ -665,7 +665,7 @@ API net_nfc_error_e net_nfc_client_se_open_internal_secure_element(
 
 
 API net_nfc_error_e net_nfc_client_se_open_internal_secure_element_sync(
-		net_nfc_se_type_e se_type, net_nfc_target_handle_h *handle)
+		net_nfc_se_type_e se_type, net_nfc_target_handle_s **handle)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	guint out_handle = 0;
@@ -705,7 +705,7 @@ API net_nfc_error_e net_nfc_client_se_open_internal_secure_element_sync(
 
 
 API net_nfc_error_e net_nfc_client_se_close_internal_secure_element(
-		net_nfc_target_handle_h handle, net_nfc_se_close_se_cb callback, void *user_data)
+		net_nfc_target_handle_s *handle, net_nfc_se_close_se_cb callback, void *user_data)
 {
 	SeFuncData *func_data;
 
@@ -738,7 +738,7 @@ API net_nfc_error_e net_nfc_client_se_close_internal_secure_element(
 
 
 API net_nfc_error_e net_nfc_client_se_close_internal_secure_element_sync(
-		net_nfc_target_handle_h handle)
+		net_nfc_target_handle_s *handle)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	GError *error = NULL;
@@ -769,7 +769,7 @@ API net_nfc_error_e net_nfc_client_se_close_internal_secure_element_sync(
 }
 
 
-API net_nfc_error_e net_nfc_client_se_get_atr(net_nfc_target_handle_h handle,
+API net_nfc_error_e net_nfc_client_se_get_atr(net_nfc_target_handle_s *handle,
 		net_nfc_se_get_atr_cb callback, void *user_data)
 {
 	SeFuncData *func_data;
@@ -803,7 +803,7 @@ API net_nfc_error_e net_nfc_client_se_get_atr(net_nfc_target_handle_h handle,
 
 
 API net_nfc_error_e net_nfc_client_se_get_atr_sync(
-		net_nfc_target_handle_h handle, data_h *atr)
+		net_nfc_target_handle_s *handle, data_s **atr)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	GVariant *out_atr = NULL;
@@ -841,8 +841,8 @@ API net_nfc_error_e net_nfc_client_se_get_atr_sync(
 }
 
 
-API net_nfc_error_e net_nfc_client_se_send_apdu(net_nfc_target_handle_h handle,
-		data_h apdu_data, net_nfc_se_send_apdu_cb callback, void *user_data)
+API net_nfc_error_e net_nfc_client_se_send_apdu(net_nfc_target_handle_s *handle,
+		data_s *apdu_data, net_nfc_se_send_apdu_cb callback, void *user_data)
 {
 	SeFuncData *func_data;
 	GVariant *arg_data;
@@ -856,7 +856,7 @@ API net_nfc_error_e net_nfc_client_se_send_apdu(net_nfc_target_handle_h handle,
 
 	/* allow this function even nfc is off */
 
-	arg_data = net_nfc_util_gdbus_data_to_variant((data_s *)apdu_data);
+	arg_data = net_nfc_util_gdbus_data_to_variant(apdu_data);
 	if (arg_data == NULL)
 		return NET_NFC_INVALID_PARAM;
 
@@ -884,7 +884,7 @@ API net_nfc_error_e net_nfc_client_se_send_apdu(net_nfc_target_handle_h handle,
 
 
 API net_nfc_error_e net_nfc_client_se_send_apdu_sync(
-		net_nfc_target_handle_h handle, data_h apdu_data, data_h *response)
+		net_nfc_target_handle_s *handle, data_s *apdu_data, data_s **response)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	GVariant *out_data = NULL;
@@ -905,7 +905,7 @@ API net_nfc_error_e net_nfc_client_se_send_apdu_sync(
 
 	/* allow this function even nfc is off */
 
-	arg_data = net_nfc_util_gdbus_data_to_variant((data_s *)apdu_data);
+	arg_data = net_nfc_util_gdbus_data_to_variant(apdu_data);
 	if (arg_data == NULL)
 		return NET_NFC_INVALID_PARAM;
 

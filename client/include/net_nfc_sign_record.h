@@ -44,7 +44,7 @@
   @exception NET_NFC_ALLOC_FAIL			memory allocation is failed
 
   @code
-  ndef_message_h msg = NULL;
+  ndef_message_s *msg = NULL;
 
   // create a ndef message and add some records
   // ...
@@ -52,7 +52,7 @@
   net_nfc_sign_records(msg, 0, 1, "/tmp/cert.p12", "abcdef");
   @endcode
 */
-net_nfc_error_e net_nfc_sign_records(ndef_message_h msg, int begin_index,
+net_nfc_error_e net_nfc_sign_records(ndef_message_s *msg, int begin_index,
 		int end_index, char *cert_file, char *password);
 
 /**
@@ -68,7 +68,7 @@ net_nfc_error_e net_nfc_sign_records(ndef_message_h msg, int begin_index,
   @exception NET_NFC_ALLOC_FAIL			memory allocation is failed
 
   @code
-  ndef_message_h msg = NULL;
+  ndef_message_s *msg = NULL;
 
   // create a ndef message and add some records
   // ...
@@ -76,7 +76,7 @@ net_nfc_error_e net_nfc_sign_records(ndef_message_h msg, int begin_index,
   net_nfc_sign_ndef_message(msg, "/tmp/cert.p12", "abcdef");
   @endcode
 */
-net_nfc_error_e net_nfc_sign_ndef_message(ndef_message_h msg, char *cert_file,
+net_nfc_error_e net_nfc_sign_ndef_message(ndef_message_s *msg, char *cert_file,
 		char *password);
 
 /**
@@ -93,9 +93,9 @@ net_nfc_error_e net_nfc_sign_ndef_message(ndef_message_h msg, char *cert_file,
 
   @code
   net_nfc_error_e error = NET_NFC_OK;
-  ndef_message_h msg = NULL;
-  ndef_record_h begin_record = NULL;
-  ndef_record_h sign_record = NULL;
+  ndef_message_s *msg = NULL;
+  ndef_record_s *begin_record = NULL;
+  ndef_record_s *sign_record = NULL;
 
   // import NDEF message including the signature record.
   // ...
@@ -108,8 +108,8 @@ net_nfc_error_e net_nfc_sign_ndef_message(ndef_message_h msg, char *cert_file,
   return (error == NET_NFC_OK);
   @endcode
 */
-net_nfc_error_e net_nfc_verify_signature_records(ndef_record_h begin_record,
-		ndef_record_h sign_record);
+net_nfc_error_e net_nfc_verify_signature_records(ndef_record_s *begin_record,
+		ndef_record_s *sign_record);
 
 /**
   This function does verify signature in NDEF message
@@ -125,7 +125,7 @@ net_nfc_error_e net_nfc_verify_signature_records(ndef_record_h begin_record,
 
   @code
   net_nfc_error_e error = NET_NFC_OK;
-  ndef_message_h msg = NULL;
+  ndef_message_s *msg = NULL;
 
   // import NDEF message including the signature record.
   // ...
@@ -135,6 +135,6 @@ net_nfc_error_e net_nfc_verify_signature_records(ndef_record_h begin_record,
   return (error == NET_NFC_OK);
   @endcode
 */
-net_nfc_error_e net_nfc_verify_signature_ndef_message(ndef_message_h msg);
+net_nfc_error_e net_nfc_verify_signature_ndef_message(ndef_message_s *msg);
 
 #endif //__NET_NFC_SIGN_RECORD_H__

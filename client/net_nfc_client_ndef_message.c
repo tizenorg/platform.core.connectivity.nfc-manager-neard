@@ -23,17 +23,17 @@
 
 
 /* public functions */
-API net_nfc_error_e net_nfc_create_ndef_message(ndef_message_h *ndef_message)
+API net_nfc_error_e net_nfc_create_ndef_message(ndef_message_s **ndef_message)
 {
-	return net_nfc_util_create_ndef_message((ndef_message_s **)ndef_message);
+	return net_nfc_util_create_ndef_message(ndef_message);
 }
 
 API net_nfc_error_e net_nfc_create_rawdata_from_ndef_message(
-		ndef_message_h ndef_message, data_h *rawdata)
+		ndef_message_s *ndef_message, data_s **rawdata)
 {
 	uint32_t count;
 	net_nfc_error_e result;
-	data_h data;
+	data_s *data;
 
 	if (ndef_message == NULL || rawdata == NULL)
 		return NET_NFC_NULL_PARAMETER;
@@ -50,8 +50,8 @@ API net_nfc_error_e net_nfc_create_rawdata_from_ndef_message(
 		return result;
 	}
 
-	result = net_nfc_util_convert_ndef_message_to_rawdata(
-			(ndef_message_s *)ndef_message, (data_s *)data);
+	result = net_nfc_util_convert_ndef_message_to_rawdata(ndef_message, data);
+
 	if (result == NET_NFC_OK)
 		*rawdata = data;
 	else
@@ -61,10 +61,10 @@ API net_nfc_error_e net_nfc_create_rawdata_from_ndef_message(
 }
 
 API net_nfc_error_e net_nfc_create_ndef_message_from_rawdata(
-		ndef_message_h *ndef_message, data_h rawdata)
+		ndef_message_s **ndef_message, data_s *rawdata)
 {
 	net_nfc_error_e result;
-	ndef_message_h msg;
+	ndef_message_s *msg;
 
 	if (ndef_message == NULL || rawdata == NULL)
 		return NET_NFC_NULL_PARAMETER;
@@ -75,8 +75,7 @@ API net_nfc_error_e net_nfc_create_ndef_message_from_rawdata(
 	if (result != NET_NFC_OK)
 		return result;
 
-	result = net_nfc_util_convert_rawdata_to_ndef_message(
-			(data_s *)rawdata, (ndef_message_s *)msg);
+	result = net_nfc_util_convert_rawdata_to_ndef_message(rawdata, msg);
 	if (result == NET_NFC_OK)
 		*ndef_message = msg;
 	else
@@ -86,14 +85,14 @@ API net_nfc_error_e net_nfc_create_ndef_message_from_rawdata(
 }
 
 API net_nfc_error_e net_nfc_get_ndef_message_byte_length(
-		ndef_message_h ndef_message, uint32_t *length)
+		ndef_message_s *ndef_message, uint32_t *length)
 {
 	net_nfc_error_e result;
 
 	if (ndef_message == NULL || length == NULL)
 		return NET_NFC_NULL_PARAMETER;
 
-	*length = net_nfc_util_get_ndef_message_length((ndef_message_s *)ndef_message);
+	*length = net_nfc_util_get_ndef_message_length(ndef_message);
 	if (*length > 0)
 		result = NET_NFC_OK;
 	else
@@ -103,67 +102,64 @@ API net_nfc_error_e net_nfc_get_ndef_message_byte_length(
 }
 
 API net_nfc_error_e net_nfc_append_record_to_ndef_message(
-		ndef_message_h ndef_message, ndef_record_h  record)
+		ndef_message_s *ndef_message, ndef_record_s *record)
 {
 	if (ndef_message == NULL || record == NULL)
 		return NET_NFC_NULL_PARAMETER;
 
-	return net_nfc_util_append_record((ndef_message_s*)ndef_message, (ndef_record_s *)record);
+	return net_nfc_util_append_record(ndef_message, record);
 }
 
-API net_nfc_error_e net_nfc_free_ndef_message(ndef_message_h ndef_message)
+API net_nfc_error_e net_nfc_free_ndef_message(ndef_message_s *ndef_message)
 {
 	if (ndef_message == NULL)
 		return NET_NFC_NULL_PARAMETER;
 
-	return net_nfc_util_free_ndef_message((ndef_message_s *)ndef_message);
+	return net_nfc_util_free_ndef_message(ndef_message);
 }
 
 API net_nfc_error_e net_nfc_get_ndef_message_record_count(
-		ndef_message_h ndef_message, int *count)
+		ndef_message_s *ndef_message, int *count)
 {
-	ndef_message_s *msg = (ndef_message_s *)ndef_message;
-
 	if (ndef_message == NULL || count == NULL)
 		return NET_NFC_NULL_PARAMETER;
 
-	*count = msg->recordCount;
-
+	*count = ndef_message->recordCount;
 	return NET_NFC_OK;
 }
 
-API void net_nfc_ndef_print_message (ndef_message_h ndef_message )
+API void net_nfc_ndef_print_message (ndef_message_s *ndef_message)
 {
-	net_nfc_util_print_ndef_message((ndef_message_s *)(ndef_message));
+	net_nfc_util_print_ndef_message(ndef_message);
 }
 
 
-API net_nfc_error_e net_nfc_search_record_by_type (ndef_message_h ndef_message,
-		net_nfc_record_tnf_e tnf, data_h type, ndef_record_h* record)
+API net_nfc_error_e net_nfc_search_record_by_type(ndef_message_s *ndef_message,
+		net_nfc_record_tnf_e tnf, data_s *type, ndef_record_s **record)
 {
-	return net_nfc_util_search_record_by_type ((ndef_message_s*)ndef_message, tnf, (data_s *)type, (ndef_record_s**)record);
+	return net_nfc_util_search_record_by_type(ndef_message, tnf, type, record);
 }
 
-API net_nfc_error_e net_nfc_append_record_by_index (ndef_message_h ndef_message,
-		int index, ndef_record_h record)
+API net_nfc_error_e net_nfc_append_record_by_index(ndef_message_s *ndef_message,
+		int index, ndef_record_s *record)
 {
-	return net_nfc_util_append_record_by_index ((ndef_message_s *) ndef_message, index, (ndef_record_s *) record);
+	return net_nfc_util_append_record_by_index(ndef_message, index, record);
 }
 
-API net_nfc_error_e net_nfc_get_record_by_index (ndef_message_h ndef_message,
-		int index, ndef_record_h*  record)
+API net_nfc_error_e net_nfc_get_record_by_index (ndef_message_s *ndef_message,
+		int index, ndef_record_s **record)
 {
-	return net_nfc_util_get_record_by_index ((ndef_message_s*) ndef_message, index, (ndef_record_s**) record);
+	return net_nfc_util_get_record_by_index(ndef_message, index, record);
 }
 
-API net_nfc_error_e net_nfc_remove_record_by_index (ndef_message_h ndef_message,
+API net_nfc_error_e net_nfc_remove_record_by_index(ndef_message_s *ndef_message,
 		int index)
 {
-	return net_nfc_util_remove_record_by_index ((ndef_message_s*)ndef_message, index);
+	return net_nfc_util_remove_record_by_index(ndef_message, index);
 }
 
 API net_nfc_error_e net_nfc_retrieve_current_ndef_message(
-		ndef_message_h* ndef_message)
+		ndef_message_s **ndef_message)
 {
 	net_nfc_error_e result = NET_NFC_UNKNOWN_ERROR;
 	char file_path[PATH_MAX] = { 0, };

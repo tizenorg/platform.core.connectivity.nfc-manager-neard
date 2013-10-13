@@ -25,61 +25,13 @@ typedef enum
 	NET_NFC_POLL_STOP,
 } net_nfc_detect_mode_e;
 
-/**
-  This structure is just data, to express bytes array
-  */
-typedef struct _data_s
-{
-	uint8_t *buffer;
-	uint32_t length;
-} data_s;
-
-typedef struct _net_nfc_data_t
-{
-	uint32_t length;
-	uint8_t buffer[0];
-} net_nfc_data_s;
-
-typedef enum _net_nfc_connection_type_e
-{
-	NET_NFC_TAG_CONNECTION = 0x00,
-	NET_NFC_P2P_CONNECTION_TARGET,
-	NET_NFC_P2P_CONNECTION_INITIATOR,
-	NET_NFC_SE_CONNECTION
-} net_nfc_connection_type_e;
-
-typedef struct _net_nfc_target_handle_s
-{
-	uint32_t connection_id;
-	net_nfc_connection_type_e connection_type;
-	net_nfc_target_type_e target_type;
-	/*++npp++*/
-	llcp_app_protocol_e app_type;
-	/*--npp--*/
-} net_nfc_target_handle_s;
-
 typedef struct _net_nfc_current_target_info_s
 {
 	net_nfc_target_handle_s *handle;
 	uint32_t devType;
 	int number_of_keys;
-	net_nfc_data_s target_info_values;
+	data_s target_info_values;
 }net_nfc_current_target_info_s;
-
-typedef struct _net_nfc_llcp_config_info_s
-{
-	uint16_t miu; /** The remote Maximum Information Unit (NOTE: this is MIU, not MIUX !)*/
-	uint16_t wks; /** The remote Well-Known Services*/
-	uint8_t lto; /** The remote Link TimeOut (in 1/100s)*/
-	uint8_t option; /** The remote options*/
-} net_nfc_llcp_config_info_s;
-
-typedef struct _net_nfc_llcp_socket_option_s
-{
-	uint16_t miu; /** The remote Maximum Information Unit */
-	uint8_t rw; /** The Receive Window size (4 bits)*/
-	net_nfc_socket_type_e type;
-} net_nfc_llcp_socket_option_s;
 
 typedef struct _net_nfc_llcp_internal_socket_s
 {
@@ -94,32 +46,6 @@ typedef struct _net_nfc_llcp_internal_socket_s
 	bool close_requested;
 	void *register_param; /* void param that has been registered in callback register time */
 } net_nfc_llcp_internal_socket_s;
-
-/**
-  ndef_record_s structure has the NDEF record data. it is only a record not a message
-  */
-typedef struct _record_s
-{
-	uint8_t MB :1;
-	uint8_t ME :1;
-	uint8_t CF :1;
-	uint8_t SR :1;
-	uint8_t IL :1;
-	uint8_t TNF :3;
-	data_s type_s;
-	data_s id_s;
-	data_s payload_s;
-	struct _record_s *next;
-} ndef_record_s;
-
-/**
-  NDEF message it has record counts and records (linked listed form)
-  */
-typedef struct _ndef_message_s
-{
-	uint32_t recordCount;
-	ndef_record_s *records; // linked list
-} ndef_message_s;
 
 /**
   Enum value to stop or start the discovery mode
@@ -319,26 +245,6 @@ typedef union net_nfc_remoteDevInfo_t
 	net_nfc_sIso15693Info_t Iso15693_Info;
 } net_nfc_remoteDevInfo_t;
 
-typedef struct _net_nfc_tag_info_s
-{
-	char *key;
-	data_h value;
-} net_nfc_tag_info_s;
-
-typedef struct _net_nfc_target_info_s
-{
-	net_nfc_target_handle_s *handle;
-	net_nfc_target_type_e devType;
-	uint8_t is_ndef_supported;
-	uint8_t ndefCardState;
-	uint32_t maxDataSize;
-	uint32_t actualDataSize;
-	int number_of_keys;
-	net_nfc_tag_info_s *tag_info_list;
-	char **keylist;
-	data_s raw_data;
-} net_nfc_target_info_s;
-
 typedef struct _net_nfc_se_event_info_s
 {
 	data_s aid;
@@ -351,20 +257,13 @@ typedef struct _net_nfc_transceive_info_s
 	data_s trans_data;
 } net_nfc_transceive_info_s;
 
-typedef struct _net_nfc_connection_handover_info_s
-{
-	net_nfc_conn_handover_carrier_type_e type;
-	data_s data;
-}
-net_nfc_connection_handover_info_s;
-
-typedef enum _client_state_e
+typedef enum
 {
 	NET_NFC_CLIENT_INACTIVE_STATE = 0x00,
 	NET_NFC_CLIENT_ACTIVE_STATE,
 } client_state_e;
 
-typedef enum _net_nfc_launch_popup_check_e
+typedef enum
 {
 	CHECK_FOREGROUND = 0x00,
 	NO_CHECK_FOREGROUND,
@@ -392,22 +291,37 @@ typedef enum _net_nfc_launch_popup_check_e
 
 typedef struct _net_nfc_request_msg_t
 {
-	NET_NFC_REQUEST_MSG_HEADER
+	uint32_t length;
+	uint32_t request_type;
+	uint32_t client_fd;
+	uint32_t flags;
+	uint32_t user_param;
+	// TODO: above value MUST be same with NET_NFC_REQUEST_MSG_HEADER
 } net_nfc_request_msg_t;
 
 typedef struct _net_nfc_request_target_detected_t
 {
-	NET_NFC_REQUEST_MSG_HEADER;
+	uint32_t length;
+	uint32_t request_type;
+	uint32_t client_fd;
+	uint32_t flags;
+	uint32_t user_param;
+	// TODO: above value MUST be same with NET_NFC_REQUEST_MSG_HEADER
 
 	net_nfc_target_handle_s *handle;
 	uint32_t devType;
 	int number_of_keys;
-	net_nfc_data_s target_info_values;
+	data_s target_info_values;
 } net_nfc_request_target_detected_t;
 
 typedef struct _net_nfc_request_se_event_t
 {
-	NET_NFC_REQUEST_MSG_HEADER;
+	uint32_t length;
+	uint32_t request_type;
+	uint32_t client_fd;
+	uint32_t flags;
+	uint32_t user_param;
+	// TODO: above value MUST be same with NET_NFC_REQUEST_MSG_HEADER
 
 	data_s aid;
 	data_s param;
@@ -415,7 +329,12 @@ typedef struct _net_nfc_request_se_event_t
 
 typedef struct _net_nfc_request_llcp_msg_t
 {
-	NET_NFC_REQUEST_MSG_HEADER;
+	uint32_t length;
+	uint32_t request_type;
+	uint32_t client_fd;
+	uint32_t flags;
+	uint32_t user_param;
+	// TODO: above value MUST be same with NET_NFC_REQUEST_MSG_HEADER
 
 	uint32_t result;
 	net_nfc_llcp_socket_t llcp_socket;
@@ -423,7 +342,12 @@ typedef struct _net_nfc_request_llcp_msg_t
 
 typedef struct _net_nfc_request_listen_socket_t
 {
-	NET_NFC_REQUEST_MSG_HEADER;
+	uint32_t length;
+	uint32_t request_type;
+	uint32_t client_fd;
+	uint32_t flags;
+	uint32_t user_param;
+	// TODO: above value MUST be same with NET_NFC_REQUEST_MSG_HEADER
 
 	uint32_t result;
 	net_nfc_target_handle_s *handle;
@@ -434,12 +358,17 @@ typedef struct _net_nfc_request_listen_socket_t
 	net_nfc_llcp_socket_t oal_socket;
 	sap_t sap;
 	void *trans_param;
-	net_nfc_data_s service_name;
+	data_s service_name;
 } net_nfc_request_listen_socket_t;
 
 typedef struct _net_nfc_request_receive_socket_t
 {
-	NET_NFC_REQUEST_MSG_HEADER;
+	uint32_t length;
+	uint32_t request_type;
+	uint32_t client_fd;
+	uint32_t flags;
+	uint32_t user_param;
+	// TODO: above value MUST be same with NET_NFC_REQUEST_MSG_HEADER
 
 	uint32_t result;
 	net_nfc_target_handle_s *handle;
@@ -447,12 +376,17 @@ typedef struct _net_nfc_request_receive_socket_t
 	net_nfc_llcp_socket_t oal_socket;
 	size_t req_length;
 	void *trans_param;
-	net_nfc_data_s data;
+	data_s data;
 } net_nfc_request_receive_socket_t;
 
 typedef struct _net_nfc_request_receive_from_socket_t
 {
-	NET_NFC_REQUEST_MSG_HEADER;
+	uint32_t length;
+	uint32_t request_type;
+	uint32_t client_fd;
+	uint32_t flags;
+	uint32_t user_param;
+	// TODO: above value MUST be same with NET_NFC_REQUEST_MSG_HEADER
 
 	uint32_t result;
 	net_nfc_target_handle_s *handle;
@@ -461,10 +395,8 @@ typedef struct _net_nfc_request_receive_from_socket_t
 	size_t req_length;
 	sap_t sap;
 	void *trans_param;
-	net_nfc_data_s data;
+	data_s data;
 } net_nfc_request_receive_from_socket_t;
-
-// these are messages for response
 
 typedef void (*target_detection_listener_cb)(void *data, void *user_param);
 typedef void (*se_transaction_listener_cb)(void *data, void *user_param);
@@ -503,7 +435,6 @@ typedef enum _net_nfc_secure_element_state_e
 {
 	SECURE_ELEMENT_ACTIVE_STATE = 0x00, /**< state of the SE is active  */
 	SECURE_ELEMENT_INACTIVE_STATE = 0x01 /**< state of the SE is In active*/
-
 } net_nfc_secure_element_state_e;
 
 typedef struct _secure_element_info_s
@@ -572,28 +503,11 @@ typedef enum
 	NET_NFC_CONN_HANDOVER_ERR_REASON_CARRIER_SPECIFIC_CONSTRAINT,
 } net_nfc_conn_handover_error_reason_e;
 
-/* WIFI Info */
-typedef struct _net_nfc_carrier_property_s
-{
-	bool is_group;
-	uint16_t attribute;
-	uint16_t length;
-	void *data;
-} net_nfc_carrier_property_s;
-
-typedef struct _net_nfc_carrier_config_s
-{
-	net_nfc_conn_handover_carrier_type_e type;
-	int length;
-	struct _GList *data;
-} net_nfc_carrier_config_s;
-
 typedef struct _net_nfc_sub_field_s
 {
 	uint16_t length;
 	uint8_t value[0];
-}
-__attribute__((packed)) net_nfc_sub_field_s;
+}__attribute__((packed)) net_nfc_sub_field_s;
 
 typedef struct _net_nfc_signature_record_s
 {
@@ -601,8 +515,7 @@ typedef struct _net_nfc_signature_record_s
 	uint8_t sign_type : 7;
 	uint8_t uri_present : 1;
 	net_nfc_sub_field_s signature;
-}
-__attribute__((packed)) net_nfc_signature_record_s;
+}__attribute__((packed)) net_nfc_signature_record_s;
 
 typedef struct _net_nfc_certificate_chain_s
 {
@@ -610,8 +523,7 @@ typedef struct _net_nfc_certificate_chain_s
 	uint8_t cert_format : 3;
 	uint8_t uri_present : 1;
 	uint8_t cert_store[0];
-}
-__attribute__((packed)) net_nfc_certificate_chain_s;
+}__attribute__((packed)) net_nfc_certificate_chain_s;
 
 #define SMART_POSTER_RECORD_TYPE	"Sp"
 #define URI_RECORD_TYPE			"U"
@@ -636,7 +548,6 @@ typedef struct _net_nfc_llcp_param_t
 	net_nfc_service_llcp_cb cb;
 	data_s data;
 	void *user_param;
-}
-net_nfc_llcp_param_t;
+}net_nfc_llcp_param_t;
 
 #endif //__NET_NFC_TYPEDEF_INTERNAL_H__

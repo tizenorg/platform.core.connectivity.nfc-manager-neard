@@ -58,9 +58,9 @@
 */
 
 net_nfc_error_e net_nfc_client_mifare_authenticate_with_keyA(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		uint8_t sector,
-		data_h auth_key,
+		data_s *auth_key,
 		void *callback,
 		void *user_data);
 
@@ -102,9 +102,9 @@ net_nfc_error_e net_nfc_client_mifare_authenticate_with_keyA(
 
 
 net_nfc_error_e net_nfc_client_mifare_authenticate_with_keyB(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		uint8_t sector,
-		data_h auth_key,
+		data_s *auth_key,
 		void *callback,
 		void *user_data);
 
@@ -130,9 +130,9 @@ net_nfc_error_e net_nfc_client_mifare_authenticate_with_keyB(
   @exception NET_NFC_NOT_SUPPORTED	you may recieve this error if you request not supported command
   @exception NET_NFC_INVALID_HANDLE	target handle is not valid
   @exception NET_NFC_TAG_READ_FAILED	received chunked data is not valied (damaged data is recieved) or error ack is recieved
-*/
+  */
 
-net_nfc_error_e net_nfc_client_mifare_read(net_nfc_target_handle_h handle,
+net_nfc_error_e net_nfc_client_mifare_read(net_nfc_target_handle_s *handle,
 		uint8_t addr, void *callback, void *user_data);
 
 /**
@@ -162,9 +162,9 @@ net_nfc_error_e net_nfc_client_mifare_read(net_nfc_target_handle_h handle,
 
 
 net_nfc_error_e net_nfc_client_mifare_write_block(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		uint8_t addr,
-		data_h data,
+		data_s *data,
 		void *callback,
 		void *user_data);
 
@@ -194,9 +194,9 @@ net_nfc_error_e net_nfc_client_mifare_write_block(
 */
 
 net_nfc_error_e net_nfc_client_mifare_write_page(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		uint8_t addr,
-		data_h data,
+		data_s *data,
 		void *callback,
 		void *user_data);
 
@@ -227,7 +227,7 @@ net_nfc_error_e net_nfc_client_mifare_write_page(
 
 */
 
-net_nfc_error_e net_nfc_client_mifare_increment(net_nfc_target_handle_h handle,
+net_nfc_error_e net_nfc_client_mifare_increment(net_nfc_target_handle_s *handle,
 		uint8_t addr, int value, void *callback, void *user_data);
 
 /**
@@ -255,7 +255,7 @@ net_nfc_error_e net_nfc_client_mifare_increment(net_nfc_target_handle_h handle,
 
 */
 
-net_nfc_error_e net_nfc_client_mifare_decrement(net_nfc_target_handle_h handle,
+net_nfc_error_e net_nfc_client_mifare_decrement(net_nfc_target_handle_s *handle,
 		uint8_t addr, int value, void *callback, void *user_data);
 
 /**
@@ -283,7 +283,7 @@ net_nfc_error_e net_nfc_client_mifare_decrement(net_nfc_target_handle_h handle,
 
 */
 
-net_nfc_error_e net_nfc_client_mifare_transfer(net_nfc_target_handle_h handle,
+net_nfc_error_e net_nfc_client_mifare_transfer(net_nfc_target_handle_s *handle,
 		uint8_t addr, void *callback, void *user_data);
 
 /**
@@ -311,7 +311,7 @@ net_nfc_error_e net_nfc_client_mifare_transfer(net_nfc_target_handle_h handle,
 
 */
 
-net_nfc_error_e net_nfc_client_mifare_restore(net_nfc_target_handle_h handle,
+net_nfc_error_e net_nfc_client_mifare_restore(net_nfc_target_handle_s *handle,
 		uint8_t addr, void *callback, void *user_data);
 
 /**
@@ -329,7 +329,7 @@ net_nfc_error_e net_nfc_client_mifare_restore(net_nfc_target_handle_h handle,
 
 */
 
-net_nfc_error_e net_nfc_client_mifare_create_default_key(data_h* key);
+net_nfc_error_e net_nfc_client_mifare_create_default_key(data_s **key);
 
 /**
   create mifare application directory key. The key is 0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5
@@ -347,7 +347,7 @@ net_nfc_error_e net_nfc_client_mifare_create_default_key(data_h* key);
 */
 
 net_nfc_error_e net_nfc_client_mifare_create_application_directory_key(
-		data_h* key);
+		data_s **key);
 
 /**
   create nfc forum key. The key is 0xD3, 0xF7, 0xD3, 0xF7, 0xD3, 0xF7
@@ -364,10 +364,10 @@ net_nfc_error_e net_nfc_client_mifare_create_application_directory_key(
 
 */
 
-net_nfc_error_e net_nfc_client_mifare_create_net_nfc_forum_key(data_h* key);
+net_nfc_error_e net_nfc_client_mifare_create_net_nfc_forum_key(data_s **key);
 
 /**
-@}
-*/
+  @}
+  */
 
 #endif //__NET_NFC_TAG_MIFARE_H__

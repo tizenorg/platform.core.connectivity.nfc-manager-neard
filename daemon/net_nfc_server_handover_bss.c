@@ -180,7 +180,7 @@ error:
 }
 
 void _net_nfc_handover_bss_on_wifi_activated(wifi_error_e errorCode,
-	void* user_data)
+		void* user_data)
 {
 	net_nfc_handover_bss_process_context_t *context = user_data;
 	if(context == NULL)
@@ -362,7 +362,8 @@ void _net_nfc_handover_bss_on_wifi_connected(wifi_error_e error_code, void* user
 	g_idle_add(_net_nfc_handover_bss_process_carrier_record,context);
 }
 
-static gboolean _net_nfc_handover_bss_process_carrier_record(gpointer user_data)
+static gboolean _net_nfc_handover_bss_process_carrier_record(
+		gpointer user_data)
 {
 	NFC_DBG("[%s:%d] START", __func__, __LINE__);
 
@@ -756,7 +757,7 @@ static net_nfc_error_e _net_nfc_handover_bss_create_config_record(
 
 			_net_nfc_util_free_mem(enc_type.buffer);
 		}
-/*TO DO : This is a work around,to be replaced by WIFI-DIRECT API*/
+		/*TO DO : This is a work around,to be replaced by WIFI-DIRECT API*/
 #if 0
 		pw_length = wifi_direct_get_passphrase(&passphrase);
 		NFC_DBG("wifi_direct_get_passphrase[%s]", passphrase);
@@ -850,8 +851,8 @@ static void _net_nfc_handover_bss_get_carrier_record(
 
 #ifdef TARGET
 static void _net_nfc_wifi_process_error(
-					int error,
-					net_nfc_handover_bss_get_context_t *context)
+		int error,
+		net_nfc_handover_bss_get_context_t *context)
 {
 	NFC_ERR("_net_nfc_wifi_process_error - [%d]",error);
 

@@ -19,19 +19,6 @@
 #include "net_nfc_client_manager.h"
 #include "net_nfc_typedef_internal.h"
 
-static void run_next_callback(gpointer user_data);
-
-static void print_server_state(gint state);
-
-static void set_activated_cb(bool state,
-		void *user_data);
-
-static void set_active_completed_cb(net_nfc_error_e result,
-		void *user_data);
-
-static void get_server_state_completed_cb(net_nfc_error_e result,
-		unsigned int state,
-		void *user_data);
 
 static void run_next_callback(gpointer user_data)
 {
@@ -76,8 +63,7 @@ static void set_activated_cb(bool state,
 	g_print("Activated state %d\n", state);
 }
 
-static void set_active_completed_cb(net_nfc_error_e result,
-		void *user_data)
+static void set_active_completed_cb(net_nfc_error_e result, void *user_data)
 {
 	g_print("SetActive Completed %d\n", result);
 	run_next_callback(user_data);
@@ -94,8 +80,7 @@ static void get_server_state_completed_cb(net_nfc_error_e result,
 	run_next_callback(user_data);
 }
 
-void net_nfc_test_manager_set_active(gpointer data,
-		gpointer user_data)
+void net_nfc_test_manager_set_active(gpointer data, gpointer user_data)
 {
 	net_nfc_client_manager_set_activated(set_activated_cb, NULL);
 
@@ -104,15 +89,13 @@ void net_nfc_test_manager_set_active(gpointer data,
 			user_data);
 }
 
-void net_nfc_test_manager_get_server_state(gpointer data,
-		gpointer user_data)
+void net_nfc_test_manager_get_server_state(gpointer data, gpointer user_data)
 {
 	net_nfc_client_manager_get_server_state(get_server_state_completed_cb,
 			user_data);
 }
 
-void net_nfc_test_manager_set_active_sync(gpointer data,
-		gpointer user_data)
+void net_nfc_test_manager_set_active_sync(gpointer data, gpointer user_data)
 {
 	gint i;
 

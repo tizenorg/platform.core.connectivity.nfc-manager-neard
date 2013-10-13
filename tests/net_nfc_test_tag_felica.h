@@ -21,21 +21,21 @@
 
 
 void net_nfc_test_felica_poll(gpointer data,
-					gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_felica_request_service(gpointer data,
-					gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_felica_request_response(gpointer data,
-					gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_felica_read_without_encryption(gpointer data,
-					gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_felica_write_without_encryption(gpointer data,
-					gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_felica_request_system_code(gpointer data,
-					gpointer user_data);
+		gpointer user_data);
 
 #endif

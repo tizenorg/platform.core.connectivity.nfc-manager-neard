@@ -22,20 +22,20 @@ typedef void (* nfc_transceive_callback)(net_nfc_error_e result,
 		void *user_data);
 
 typedef void (*nfc_transceive_data_callback)(net_nfc_error_e result,
-		data_h data,
+		data_s *data,
 		void *user_data);
 
-net_nfc_error_e net_nfc_client_transceive(net_nfc_target_handle_h handle,
-		data_h rawdata, nfc_transceive_callback callback, void *user_data);
+net_nfc_error_e net_nfc_client_transceive(net_nfc_target_handle_s *handle,
+		data_s *rawdata, nfc_transceive_callback callback, void *user_data);
 
-net_nfc_error_e net_nfc_client_transceive_data(net_nfc_target_handle_h handle,
-		data_h rawdata, nfc_transceive_data_callback callback, void *user_data);
+net_nfc_error_e net_nfc_client_transceive_data(net_nfc_target_handle_s *handle,
+		data_s *rawdata, nfc_transceive_data_callback callback, void *user_data);
 
-net_nfc_error_e net_nfc_client_transceive_sync(net_nfc_target_handle_h handle,
-		data_h rawdata);
+net_nfc_error_e net_nfc_client_transceive_sync(net_nfc_target_handle_s *handle,
+		data_s *rawdata);
 
 net_nfc_error_e net_nfc_client_transceive_data_sync(
-		net_nfc_target_handle_h handle, data_h rawdata, data_h *response);
+		net_nfc_target_handle_s *handle, data_s *rawdata, data_s **response);
 
 /* TODO : move to internal header */
 net_nfc_error_e net_nfc_client_transceive_init(void);

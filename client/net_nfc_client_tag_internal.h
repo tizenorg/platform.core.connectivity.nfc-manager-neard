@@ -18,7 +18,7 @@
 
 #include <glib.h>
 
-#include "net_nfc_typedef_internal.h"
+#include "net_nfc_typedef.h"
 
 gboolean net_nfc_client_tag_is_connected(void);
 

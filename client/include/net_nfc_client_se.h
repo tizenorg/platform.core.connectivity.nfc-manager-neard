@@ -33,25 +33,25 @@ typedef void (*net_nfc_se_set_card_emulation_cb)(net_nfc_error_e result,
 		void *user_data);
 
 typedef void (*net_nfc_se_open_se_cb)(net_nfc_error_e result,
-		net_nfc_target_handle_h handle, void *user_data);
+		net_nfc_target_handle_s *handle, void *user_data);
 
 typedef void (*net_nfc_se_close_se_cb)(net_nfc_error_e result, void *user_data);
 
-typedef void (*net_nfc_se_get_atr_cb)(net_nfc_error_e result, data_h data,
+typedef void (*net_nfc_se_get_atr_cb)(net_nfc_error_e result, data_s *data,
 		void *user_data);
 
-typedef void (*net_nfc_se_send_apdu_cb)(net_nfc_error_e result, data_h data,
+typedef void (*net_nfc_se_send_apdu_cb)(net_nfc_error_e result, data_s *data,
 		void *user_data);
 
 typedef void (*net_nfc_client_se_event)(net_nfc_message_e event, void *user_data);
 
-typedef void (*net_nfc_client_se_transaction_event)(data_h aid, data_h param,
+typedef void (*net_nfc_client_se_transaction_event)(data_s *aid, data_s *param,
 		void *user_data);
 
 typedef void (*net_nfc_client_se_ese_detected_event)(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		int dev_type,
-		data_h data,
+		data_s *data,
 		void *user_data);
 
 /************* Secure Element API's*************/
@@ -84,27 +84,25 @@ net_nfc_error_e net_nfc_client_se_open_internal_secure_element(
 		void *user_data);
 
 net_nfc_error_e net_nfc_client_se_open_internal_secure_element_sync(
-		net_nfc_se_type_e se_type, net_nfc_target_handle_h *handle);
+		net_nfc_se_type_e se_type, net_nfc_target_handle_s **handle);
 
 net_nfc_error_e net_nfc_client_se_close_internal_secure_element(
-		net_nfc_target_handle_h handle,
-		net_nfc_se_close_se_cb callback,
-		void *user_data);
+		net_nfc_target_handle_s *handle, net_nfc_se_close_se_cb callback, void *user_data);
 
 net_nfc_error_e net_nfc_client_se_close_internal_secure_element_sync(
-		net_nfc_target_handle_h handle);
+		net_nfc_target_handle_s *handle);
 
-net_nfc_error_e net_nfc_client_se_get_atr(net_nfc_target_handle_h handle,
+net_nfc_error_e net_nfc_client_se_get_atr(net_nfc_target_handle_s *handle,
 		net_nfc_se_get_atr_cb callback, void *user_data);
 
-net_nfc_error_e net_nfc_client_se_get_atr_sync(net_nfc_target_handle_h handle,
-		data_h *atr);
+net_nfc_error_e net_nfc_client_se_get_atr_sync(net_nfc_target_handle_s *handle,
+		data_s **atr);
 
-net_nfc_error_e net_nfc_client_se_send_apdu(net_nfc_target_handle_h handle,
-		data_h apdu_data, net_nfc_se_send_apdu_cb callback, void *user_data);
+net_nfc_error_e net_nfc_client_se_send_apdu(net_nfc_target_handle_s *handle,
+		data_s *apdu_data, net_nfc_se_send_apdu_cb callback, void *user_data);
 
 net_nfc_error_e net_nfc_client_se_send_apdu_sync(
-		net_nfc_target_handle_h handle, data_h apdu_data, data_h *response);
+		net_nfc_target_handle_s *handle, data_s *apdu_data, data_s **response);
 
 /************* Secure Element CallBack Register/Deregister functions*************/
 

@@ -97,7 +97,7 @@ uint8_t net_nfc_get_record_sr (uint8_t flag);
   char uri[] = " yahoo.com";
   ndef_record_s uriRecord;
 
-  data_h payload;
+  data_s *payload;
 
   net_nfc_create_data (&payload, uri, strlen (uri));
   uri[0] = 0x01;
@@ -108,10 +108,11 @@ uint8_t net_nfc_get_record_sr (uint8_t flag);
   }
   @endcode
   */
-net_nfc_error_e net_nfc_create_record(ndef_record_h* record,
-		net_nfc_record_tnf_e tnf, data_h typeName, data_h id,
-		data_h payload );
-
+net_nfc_error_e net_nfc_create_record(ndef_record_s **record,
+		net_nfc_record_tnf_e tnf,
+		const data_s *typeName,
+		const data_s *id,
+		const data_s *payload);
 
 /**
   this function helps to create text type payload
@@ -134,8 +135,8 @@ net_nfc_error_e net_nfc_create_record(ndef_record_h* record,
 
   @code
   net_nfc_error_e result = NET_NFC_OK;
-  ndef_message_h msg = NULL;
-  ndef_record_h record = NULL;
+  ndef_message_s *msg = NULL;
+  ndef_record_s *record = NULL;
 
   char* message = "Hello, NFC World";
 
@@ -146,7 +147,7 @@ net_nfc_error_e net_nfc_create_record(ndef_record_h* record,
   @endcode
 
 */
-net_nfc_error_e net_nfc_create_text_type_record(ndef_record_h* record,
+net_nfc_error_e net_nfc_create_text_type_record(ndef_record_s **record,
 		const char* text, const char* language_code_str, net_nfc_encode_type_e encode);
 
 /**
@@ -166,8 +167,8 @@ net_nfc_error_e net_nfc_create_text_type_record(ndef_record_h* record,
 
   @code
   net_nfc_error_e result = NET_NFC_OK;
-  ndef_message_h msg = NULL;
-  ndef_record_h record = NULL;
+  ndef_message_s *msg = NULL;
+  ndef_record_s *record = NULL;
 
   net_nfc_create_ndef_message (&msg);
   net_nfc_create_uri_type_record (&record ,"http://www.samsung.com" ,NET_NFC_SCHEMA_FULL_URI);
@@ -175,7 +176,7 @@ net_nfc_error_e net_nfc_create_text_type_record(ndef_record_h* record,
   @endcode
   */
 
-net_nfc_error_e net_nfc_create_uri_type_record(ndef_record_h* record,
+net_nfc_error_e net_nfc_create_uri_type_record(ndef_record_s **record,
 		const char *uri, net_nfc_schema_type_e protocol_schema);
 
 /**
@@ -184,15 +185,15 @@ net_nfc_error_e net_nfc_create_uri_type_record(ndef_record_h* record,
   Do not free the payload. it will be freed when the record is freed
 
   @param[in] 	record 		Record handler
-  @param[out] 	payload		data_h type payload pointer (it gives you the pointer of payload; not copied)
+  @param[out] 	payload		data_s* type payload pointer (it gives you the pointer of payload; not copied)
 
   @return		return the result of the calling the function
 
   @exception NET_NFC_NULL_PARAMETER		parameter(s) has(have) illigal NULL pointer(s)
 
 */
-net_nfc_error_e net_nfc_get_record_payload (ndef_record_h record,
-		data_h *payload);
+net_nfc_error_e net_nfc_get_record_payload(ndef_record_s *record,
+		data_s **payload);
 
 /**
   this function is getter of record type.
@@ -207,7 +208,7 @@ net_nfc_error_e net_nfc_get_record_payload (ndef_record_h record,
   @exception NET_NFC_NULL_PARAMETER		parameter(s) has(have) illigal NULL pointer(s)
 
 */
-net_nfc_error_e net_nfc_get_record_type (ndef_record_h record, data_h * type);
+net_nfc_error_e net_nfc_get_record_type(ndef_record_s *record, data_s **type);
 
 /**
   this function is getter of record ID.
@@ -222,7 +223,7 @@ net_nfc_error_e net_nfc_get_record_type (ndef_record_h record, data_h * type);
 
   @exception NET_NFC_NULL_PARAMETER		parameter(s) has(have) illigal NULL pointer(s)
   */
-net_nfc_error_e net_nfc_get_record_id (ndef_record_h record, data_h * id);
+net_nfc_error_e net_nfc_get_record_id(ndef_record_s *record, data_s **id);
 
 /**
   this function is getter of record TNF value.
@@ -236,7 +237,7 @@ net_nfc_error_e net_nfc_get_record_id (ndef_record_h record, data_h * id);
 
 
 */
-net_nfc_error_e net_nfc_get_record_tnf(ndef_record_h record,
+net_nfc_error_e net_nfc_get_record_tnf(ndef_record_s *record,
 		net_nfc_record_tnf_e *tnf);
 
 /**
@@ -252,7 +253,7 @@ net_nfc_error_e net_nfc_get_record_tnf(ndef_record_h record,
 
   @code
 
-  ndef_record_h	 record;
+  ndef_record_s *record;
   uint8_t flag;
 
   net_nfc_get_record_by_index (msg, 0, &record);
@@ -269,7 +270,7 @@ net_nfc_error_e net_nfc_get_record_tnf(ndef_record_h record,
   @endcode
 
 */
-net_nfc_error_e net_nfc_get_record_flags (ndef_record_h record, uint8_t * flag);
+net_nfc_error_e net_nfc_get_record_flags(ndef_record_s *record, uint8_t *flag);
 
 
 /**
@@ -283,7 +284,7 @@ net_nfc_error_e net_nfc_get_record_flags (ndef_record_h record, uint8_t * flag);
   @exception NET_NFC_NULL_PARAMETER		parameter(s) has(have) illigal NULL pointer(s)
 
 */
-net_nfc_error_e net_nfc_set_record_id (ndef_record_h record, data_h id);
+net_nfc_error_e net_nfc_set_record_id (ndef_record_s *record, data_s *id);
 
 /**
   this function free the record handler. do not use this function after appending the ndef message
@@ -295,7 +296,7 @@ net_nfc_error_e net_nfc_set_record_id (ndef_record_h record, data_h id);
   @exception NET_NFC_NULL_PARAMETER		parameter(s) has(have) illigal NULL pointer(s)
 
 */
-net_nfc_error_e net_nfc_free_record (ndef_record_h record);
+net_nfc_error_e net_nfc_free_record(ndef_record_s *record);
 
 
 /**
@@ -313,7 +314,7 @@ net_nfc_error_e net_nfc_free_record (ndef_record_h record);
 */
 
 net_nfc_error_e net_nfc_create_text_string_from_text_record(
-		ndef_record_h record, char** buffer);
+		ndef_record_s *record, char **buffer);
 
 /**
   this function get language code from text record. (ex: US-en)
@@ -329,7 +330,7 @@ net_nfc_error_e net_nfc_create_text_string_from_text_record(
 */
 
 net_nfc_error_e net_nfc_get_languange_code_string_from_text_record(
-		ndef_record_h record, char** lang_code_str);
+		ndef_record_s *record, char **lang_code_str);
 
 
 /**
@@ -346,7 +347,7 @@ net_nfc_error_e net_nfc_get_languange_code_string_from_text_record(
 */
 
 net_nfc_error_e net_nfc_get_encoding_type_from_text_record(
-		ndef_record_h record, net_nfc_encode_type_e * encoding);
+		ndef_record_s *record, net_nfc_encode_type_e *encoding);
 
 
 /**
@@ -363,6 +364,6 @@ net_nfc_error_e net_nfc_get_encoding_type_from_text_record(
 */
 
 net_nfc_error_e net_nfc_create_uri_string_from_uri_record(
-		ndef_record_h record, char ** uri);
+		ndef_record_s *record, char **uri);
 
 #endif //__NET_NFC_NDEF_RECORD_H__

@@ -49,7 +49,7 @@
 
 */
 
-net_nfc_error_e net_nfc_get_tag_type(net_nfc_target_info_h target_info,
+net_nfc_error_e net_nfc_get_tag_type(net_nfc_target_info_s *target_info,
 		net_nfc_target_type_e *type);
 
 /**
@@ -67,8 +67,8 @@ net_nfc_error_e net_nfc_get_tag_type(net_nfc_target_info_h target_info,
 
 */
 
-net_nfc_error_e net_nfc_get_tag_handle(net_nfc_target_info_h target_info,
-		net_nfc_target_handle_h *handle);
+net_nfc_error_e net_nfc_get_tag_handle(net_nfc_target_info_s *target_info,
+		net_nfc_target_handle_s **handle);
 
 /**
   this API returns the NDEF support boolean value.
@@ -86,7 +86,7 @@ net_nfc_error_e net_nfc_get_tag_handle(net_nfc_target_info_h target_info,
 
 */
 
-net_nfc_error_e net_nfc_get_tag_ndef_support(net_nfc_target_info_h target_info,
+net_nfc_error_e net_nfc_get_tag_ndef_support(net_nfc_target_info_s *target_info,
 		bool *is_support);
 
 /**
@@ -104,7 +104,7 @@ net_nfc_error_e net_nfc_get_tag_ndef_support(net_nfc_target_info_h target_info,
 
 */
 
-net_nfc_error_e net_nfc_get_tag_max_data_size(net_nfc_target_info_h target_info,
+net_nfc_error_e net_nfc_get_tag_max_data_size(net_nfc_target_info_s *target_info,
 		uint32_t *max_size);
 
 /**
@@ -123,7 +123,7 @@ net_nfc_error_e net_nfc_get_tag_max_data_size(net_nfc_target_info_h target_info,
 */
 
 net_nfc_error_e net_nfc_get_tag_actual_data_size(
-		net_nfc_target_info_h target_info, uint32_t *actual_data);
+		net_nfc_target_info_s *target_info, uint32_t *actual_data);
 
 
 /**
@@ -149,7 +149,7 @@ net_nfc_error_e net_nfc_get_tag_actual_data_size(
       case NET_NFC_MESSAGE_TAG_DISCOVERED:
         if(info != NULL)
         {
-          net_nfc_target_info_h target_info = (net_nfc_target_info_h)data;
+          net_nfc_target_info_s *target_info = (net_nfc_target_info_s*)data;
 
           char **keys;
           int keys_length;
@@ -173,7 +173,7 @@ net_nfc_error_e net_nfc_get_tag_actual_data_size(
 
 */
 
-net_nfc_error_e net_nfc_get_tag_info_keys(net_nfc_target_info_h target_info,
+net_nfc_error_e net_nfc_get_tag_info_keys(net_nfc_target_info_s *target_info,
 		char ***keys, int *number_of_keys);
 
 /**
@@ -194,7 +194,7 @@ net_nfc_error_e net_nfc_get_tag_info_keys(net_nfc_target_info_h target_info,
       case NET_NFC_MESSAGE_TAG_DISCOVERED:
         if(info != NULL)
         {
-          net_nfc_target_info_h target_info = (net_nfc_target_info_h)data;
+          net_nfc_target_info_s *target_info = (net_nfc_target_info_s*)data;
 
           char** keys;
           int keys_length;
@@ -205,7 +205,7 @@ net_nfc_error_e net_nfc_get_tag_info_keys(net_nfc_target_info_h target_info,
             for(; index < keys_length; index++)
             {
               char* key = keys[index];
-              data_h value;
+              data_s *value;
               net_nfc_get_tag_info_value(target_info, key, &value);
               net_nfc_free_data(value);
             }
@@ -221,29 +221,29 @@ net_nfc_error_e net_nfc_get_tag_info_keys(net_nfc_target_info_h target_info,
   @exception 	NET_NFC_NO_DATA_FOUND		No data is returned
   */
 
-net_nfc_error_e net_nfc_get_tag_info_value(net_nfc_target_info_h target_info,
-		const char *key, data_h *value);
+net_nfc_error_e net_nfc_get_tag_info_value(net_nfc_target_info_s *target_info,
+		const char *key, data_s **value);
 
 /**
   Duplicate a handle of target information
 
-  ** IMPORTANT : After using duplicated handle, you should release a handle returned from this function.
-  **             You can release a handle by net_nfc_release_tag_info function.
+ ** IMPORTANT : After using duplicated handle, you should release a handle returned from this function.
+ **             You can release a handle by net_nfc_release_tag_info function.
 
-  \par Sync (or) Async: Sync
-  This is a Synchronous API
+ \par Sync (or) Async: Sync
+ This is a Synchronous API
 
-  @param[in]	origin 		The original handle you want to duplicate
-  @param[out]	result 		The result of this function.
+ @param[in]	origin 		The original handle you want to duplicate
+ @param[out]	result 		The result of this function.
 
-  @code
+ @code
   void user_cb(net_nfc_message_e message, net_nfc_error_e result, void *data, void *trans_param)
   {
     switch(message)
     {
       case NET_NFC_MESSAGE_TAG_DISCOVERED:
-        net_nfc_target_info_h target_info = (net_nfc_target_info_h)data;
-        net_nfc_target_info_h handle = NULL;
+        net_nfc_target_info_s *target_info = (net_nfc_target_info_s*)data;
+        net_nfc_target_info_s *handle = NULL;
 
         net_nfc_duplicate_target_info(target_info, &handle);
 
@@ -253,46 +253,45 @@ net_nfc_error_e net_nfc_get_tag_info_value(net_nfc_target_info_h target_info,
         break;
     }
   }
-  @endcode
-
-  @return		return the result of calling this functions
-  @exception 	NET_NFC_NULL_PARAMETER		parameter(s) has(have) illegal NULL pointer(s)
+ @endcode
+ @return		return the result of calling this functions
+ @exception 	NET_NFC_NULL_PARAMETER		parameter(s) has(have) illegal NULL pointer(s)
 */
 
-net_nfc_error_e net_nfc_duplicate_target_info(net_nfc_target_info_h origin,
-		net_nfc_target_info_h *result);
+net_nfc_error_e net_nfc_duplicate_target_info(net_nfc_target_info_s *origin,
+		net_nfc_target_info_s **result);
 
 /**
-  After using net_nfc_target_info_h handle, you should release its resource by this function.
+  After using net_nfc_target_info_s *handle, you should release its resource by this function.
 
-  ** IMPORTANT : Never use this function in user callback you registered by net_nfc_set_response_callback function
-  **             This function is for the result of net_nfc_duplicate_target_info or net_nfc_get_current_tag_info_sync
+ ** IMPORTANT : Never use this function in user callback you registered by net_nfc_set_response_callback function
+ **             This function is for the result of net_nfc_duplicate_target_info or net_nfc_get_current_tag_info_sync
 
-  \par Sync (or) Async: Sync
-  This is a Synchronous API
+ \par Sync (or) Async: Sync
+ This is a Synchronous API
 
-  @param[in]	target_info 		target info handle
+ @param[in]	target_info 		target info handle
 
-  @code
-  net_nfc_target_info_h handle;
+ @code
+  net_nfc_target_info_s *handle;
 
   net_nfc_get_current_tag_info_sync(&handle);
 
   // do something...
 
   net_nfc_release_tag_info(handle);
-  @endcode
+ @endcode
 
-  @return		return the result of calling this functions
+ @return		return the result of calling this functions
 
-  @exception 	NET_NFC_NULL_PARAMETER		parameter(s) has(have) illegal NULL pointer(s)
+ @exception 	NET_NFC_NULL_PARAMETER		parameter(s) has(have) illegal NULL pointer(s)
 */
 
-net_nfc_error_e net_nfc_release_tag_info(net_nfc_target_info_h target_info);
+net_nfc_error_e net_nfc_release_tag_info(net_nfc_target_info_s *target_info);
 
 
 /**
-@}
-*/
+  @}
+  */
 
 #endif //__NET_NFC_TARGET_INFO_H__

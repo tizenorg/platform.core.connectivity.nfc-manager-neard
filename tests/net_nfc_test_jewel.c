@@ -22,15 +22,10 @@
 #include "net_nfc_test_tag.h"
 
 
-static net_nfc_target_handle_h get_handle();
-static void run_next_callback(gpointer user_data);
-static void jewel_read_cb(net_nfc_error_e result, data_h resp_data, void *user_data);
-static void jewel_write_cb(net_nfc_error_e result, void* user_data);
-
-static net_nfc_target_handle_h get_handle()
+static net_nfc_target_handle_s* get_handle()
 {
-	net_nfc_target_info_h info = NULL;
-	net_nfc_target_handle_h handle = NULL;
+	net_nfc_target_info_s *info = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 
 	info = net_nfc_test_tag_get_target_info();
 
@@ -55,7 +50,7 @@ static void run_next_callback(gpointer user_data)
 /*********************************** Callbacks *************************************/
 
 static void jewel_read_cb(net_nfc_error_e result,
-		data_h resp_data,
+		data_s *resp_data,
 		void *user_data)
 {
 
@@ -82,7 +77,7 @@ void net_nfc_test_tag_jewel_read_id(gpointer data,
 		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	net_nfc_target_handle_h handle = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 
 	handle = get_handle();
 
@@ -96,7 +91,7 @@ void net_nfc_test_tag_jewel_read_byte(gpointer data,
 		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	net_nfc_target_handle_h handle = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 	uint8_t block = 0x01;
 	uint8_t byte = 1;
 
@@ -114,7 +109,7 @@ void net_nfc_test_tag_jewel_read_all(gpointer data,
 		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	net_nfc_target_handle_h handle = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 
 	handle = get_handle();
 
@@ -128,7 +123,7 @@ void net_nfc_test_tag_jewel_write_with_erase(gpointer data,
 		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	net_nfc_target_handle_h handle = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 	uint8_t block = 0x01;
 	uint8_t byte = 1;
 	uint8_t data_to_write = 'A';
@@ -148,7 +143,7 @@ void net_nfc_test_tag_jewel_write_with_no_erase(gpointer data,
 		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	net_nfc_target_handle_h handle = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 	uint8_t block = 0x01;
 	uint8_t byte = 1;
 	uint8_t data_to_write = 'A';

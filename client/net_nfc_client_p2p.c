@@ -141,8 +141,8 @@ static void p2p_call_send(GObject *source_object, GAsyncResult *res,
 }
 
 
-API net_nfc_error_e net_nfc_client_p2p_send(net_nfc_target_handle_h handle,
-		data_h data, net_nfc_client_p2p_send_completed callback, void *user_data)
+API net_nfc_error_e net_nfc_client_p2p_send(net_nfc_target_handle_s *handle,
+		data_s *data, net_nfc_client_p2p_send_completed callback, void *user_data)
 {
 	GVariant *arg_data;
 	NetNfcCallback *func_data;
@@ -183,8 +183,8 @@ API net_nfc_error_e net_nfc_client_p2p_send(net_nfc_target_handle_h handle,
 
 
 
-API net_nfc_error_e net_nfc_client_p2p_send_sync(net_nfc_target_handle_h handle,
-		data_h data)
+API net_nfc_error_e net_nfc_client_p2p_send_sync(net_nfc_target_handle_s *handle,
+		data_s *data)
 {
 	GVariant *arg_data;
 	GError *error = NULL;

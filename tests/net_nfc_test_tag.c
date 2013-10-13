@@ -20,35 +20,7 @@
 #include "net_nfc_client_tag.h"
 #include "net_nfc_test_tag.h"
 
-static void run_next_callback(gpointer user_data);
-#if 0
-static gchar *tag_type_to_string(net_nfc_target_type_e dev_type);
-#endif
-static void print_is_tag_connected(net_nfc_target_type_e dev_type);
-
-static void print_get_current_tag_info(net_nfc_target_info_h info);
-
-static void print_get_current_target_handle(net_nfc_target_handle_h handle);
-#if 0
-static void is_tag_connected_completed(net_nfc_error_e result,
-		net_nfc_target_type_e dev_type,
-		void *user_data);
-
-static void get_current_tag_info_completed(net_nfc_error_e result,
-		net_nfc_target_info_h info,
-		void *user_data);
-
-static void get_current_target_handle_completed(net_nfc_error_e result,
-		net_nfc_target_handle_h handle,
-		void *user_data);
-#endif
-static void tag_detached(void *user_data);
-
-static void tag_discovered(net_nfc_target_info_h info,
-		void *user_data);
-
-static net_nfc_target_info_h global_info = NULL;
-
+static net_nfc_target_info_s *global_info = NULL;
 
 static void run_next_callback(gpointer user_data)
 {
@@ -121,9 +93,27 @@ static void print_is_tag_connected(net_nfc_target_type_e dev_type)
 	}
 }
 
-static void print_get_current_tag_info(net_nfc_target_info_h info)
+static void print_get_current_target_handle(net_nfc_target_handle_s *handle)
 {
-	net_nfc_target_handle_h handle;
+	net_nfc_target_handle_s *global_handle;
+	guint global_handle_id;
+	guint handle_id;
+
+	net_nfc_get_tag_handle(global_info, &global_handle);
+
+	global_handle_id = GPOINTER_TO_UINT(global_handle);
+	handle_id = GPOINTER_TO_UINT(handle);
+
+	g_print("Tag handle %x, Current Tag handle %x\n",
+			global_handle_id,
+			handle_id);
+	if (global_handle_id == handle_id)
+		g_print("Current Tag is matched discovered Tag\n");
+}
+
+static void print_get_current_tag_info(net_nfc_target_info_s *info)
+{
+	net_nfc_target_handle_s *handle;
 
 	if (global_info == NULL)
 	{
@@ -141,24 +131,6 @@ static void print_get_current_tag_info(net_nfc_target_info_h info)
 	print_get_current_target_handle(handle);
 
 	return;
-}
-
-static void print_get_current_target_handle(net_nfc_target_handle_h handle)
-{
-	net_nfc_target_handle_h global_handle;
-	guint global_handle_id;
-	guint handle_id;
-
-	net_nfc_get_tag_handle(global_info, &global_handle);
-
-	global_handle_id = GPOINTER_TO_UINT(global_handle);
-	handle_id = GPOINTER_TO_UINT(handle);
-
-	g_print("Tag handle %x, Current Tag handle %x\n",
-			global_handle_id,
-			handle_id);
-	if (global_handle_id == handle_id)
-		g_print("Current Tag is matched discovered Tag\n");
 }
 
 static void tag_detached(void *user_data)
@@ -183,8 +155,7 @@ static void is_tag_connected_completed(net_nfc_error_e result,
 }
 
 static void get_current_tag_info_completed(net_nfc_error_e result,
-		net_nfc_target_info_h info,
-		void *user_data)
+		net_nfc_target_info_s *info, void *user_data)
 {
 	g_print("GetCurrentTagInfo Completed %d\n", result);
 
@@ -195,8 +166,7 @@ static void get_current_tag_info_completed(net_nfc_error_e result,
 }
 
 static void get_current_target_handle_completed(net_nfc_error_e result,
-		net_nfc_target_handle_h handle,
-		void *user_data)
+		net_nfc_target_handle_s *handle, void *user_data)
 {
 	g_print("GetCurrentTargetHandle Completed %d\n", result);
 
@@ -207,8 +177,8 @@ static void get_current_target_handle_completed(net_nfc_error_e result,
 }
 #endif
 
-static void tag_discovered(net_nfc_target_info_h info,
-		void *user_data)
+
+static void tag_discovered(net_nfc_target_info_s *info, void *user_data)
 {
 	g_print("TagDiscovered\n");
 
@@ -219,15 +189,13 @@ static void tag_discovered(net_nfc_target_info_h info,
 
 
 #if 0
-void net_nfc_test_tag_is_tag_connected(gpointer data,
-		gpointer user_data)
+void net_nfc_test_tag_is_tag_connected(gpointer data, gpointer user_data)
 {
 	net_nfc_client_tag_is_tag_connected(is_tag_connected_completed,
 			user_data);
 }
 
-void net_nfc_test_tag_get_current_tag_info(gpointer data,
-		gpointer user_data)
+void net_nfc_test_tag_get_current_tag_info(gpointer data, gpointer user_data)
 {
 	net_nfc_client_tag_get_current_tag_info(get_current_tag_info_completed,
 			user_data);
@@ -241,8 +209,7 @@ void net_nfc_test_tag_get_current_target_handle(gpointer data,
 			user_data);
 }
 #endif
-void net_nfc_test_tag_is_tag_connected_sync(gpointer data,
-		gpointer user_data)
+void net_nfc_test_tag_is_tag_connected_sync(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result;
 	net_nfc_target_type_e dev_type;
@@ -261,7 +228,7 @@ void net_nfc_test_tag_get_current_tag_info_sync(gpointer data,
 		gpointer user_data)
 {
 	net_nfc_error_e result;
-	net_nfc_target_info_h info;
+	net_nfc_target_info_s *info;
 
 	result = net_nfc_client_tag_get_current_tag_info_sync(&info);
 
@@ -275,7 +242,7 @@ void net_nfc_test_tag_get_current_target_handle_sync(gpointer data,
 		gpointer user_data)
 {
 	net_nfc_error_e result;
-	net_nfc_target_handle_h handle;
+	net_nfc_target_handle_s *handle;
 
 	result = net_nfc_client_tag_get_current_target_handle_sync(&handle);
 
@@ -285,8 +252,7 @@ void net_nfc_test_tag_get_current_target_handle_sync(gpointer data,
 	run_next_callback(user_data);
 }
 
-void net_nfc_test_tag_set_tag_discovered(gpointer data,
-		gpointer user_data)
+void net_nfc_test_tag_set_tag_discovered(gpointer data, gpointer user_data)
 {
 	g_print("Waiting for TagDiscovered Signal\n");
 
@@ -299,13 +265,12 @@ void net_nfc_test_tag_set_tag_discovered(gpointer data,
 	net_nfc_client_tag_set_tag_discovered(tag_discovered, user_data);
 }
 
-net_nfc_target_info_h net_nfc_test_tag_get_target_info(void)
+net_nfc_target_info_s* net_nfc_test_tag_get_target_info(void)
 {
 	return global_info;
 }
 
-void net_nfc_test_tag_set_tag_detached(gpointer data,
-		gpointer user_data)
+void net_nfc_test_tag_set_tag_detached(gpointer data, gpointer user_data)
 {
 	g_print("Waiting for TagDetached Singal\n");
 

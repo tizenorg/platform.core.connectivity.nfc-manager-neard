@@ -26,27 +26,27 @@
 
 static void run_next_callback(gpointer user_data);
 
-static void send_apdu_cb(net_nfc_error_e result, data_h data, void *user_data);
+static void send_apdu_cb(net_nfc_error_e result, data_s *data, void *user_data);
 
 static void set_secure_element_cb(net_nfc_error_e result, void *user_data);
 
 static void open_secure_element_cb(net_nfc_error_e result,
-		net_nfc_target_handle_h handle, void *user_data);
+		net_nfc_target_handle_s *handle, void *user_data);
 
 static void close_secure_element_cb(net_nfc_error_e result, void *user_data);
 
-static void get_atr_secure_element_cb(net_nfc_error_e result, data_h data,
+static void get_atr_secure_element_cb(net_nfc_error_e result, data_s *data,
 		void *user_data);
 
 static void se_set_event_cb(net_nfc_message_e event, void *user_data);
 
-static void se_ese_detection_cb(net_nfc_target_handle_h handle, int dev_type,
-		data_h data, void *user_data);
+static void se_ese_detection_cb(net_nfc_target_handle_s *handle, int dev_type,
+		data_s *data, void *user_data);
 
-static void se_set_transaction_cb(data_h aid, data_h param, void *user_data);
+static void se_set_transaction_cb(data_s *aid, data_s *param, void *user_data);
 
 /*This handle would be intialized by open secure element callback function*/
-static net_nfc_target_handle_h global_handle = NULL;
+static net_nfc_target_handle_s *global_handle = NULL;
 
 static void run_next_callback(gpointer user_data)
 {
@@ -59,7 +59,7 @@ static void run_next_callback(gpointer user_data)
 	}
 }
 
-static void send_apdu_cb(net_nfc_error_e result, data_h data, void *user_data)
+static void send_apdu_cb(net_nfc_error_e result, data_s *data, void *user_data)
 {
 	g_print(" Send apdu data completed \n");
 	print_received_data(data);
@@ -73,7 +73,7 @@ static void set_secure_element_cb(net_nfc_error_e result, void* user_data)
 }
 
 static void open_secure_element_cb(net_nfc_error_e result,
-		net_nfc_target_handle_h handle, void* user_data)
+		net_nfc_target_handle_s *handle, void* user_data)
 {
 	g_print("Open secure element completed\n");
 	// assigning received handle
@@ -88,7 +88,7 @@ static void close_secure_element_cb(net_nfc_error_e result, void* user_data)
 	run_next_callback(user_data);
 }
 
-static void get_atr_secure_element_cb(net_nfc_error_e result, data_h data,
+static void get_atr_secure_element_cb(net_nfc_error_e result, data_s *data,
 		void* user_data)
 {
 	g_print("get atr completed\n");
@@ -96,15 +96,15 @@ static void get_atr_secure_element_cb(net_nfc_error_e result, data_h data,
 	run_next_callback(user_data);
 }
 
-static void se_set_event_cb(net_nfc_message_e event, void* user_data)
+static void se_set_event_cb(net_nfc_message_e event, void *user_data)
 {
 	g_print("Event callback set successfully\n");
 	g_print(" Event received %d", event);
 	run_next_callback(user_data);
 }
 
-static void se_ese_detection_cb(net_nfc_target_handle_h handle, int dev_type,
-		data_h data, void *user_data)
+static void se_ese_detection_cb(net_nfc_target_handle_s *handle, int dev_type,
+		data_s *data, void *user_data)
 {
 	g_print("Set ese detection callback successfully\n");
 	g_print("Handle is %#x\n", GPOINTER_TO_UINT(handle));
@@ -112,7 +112,7 @@ static void se_ese_detection_cb(net_nfc_target_handle_h handle, int dev_type,
 	print_received_data(data);
 }
 
-static void se_set_transaction_cb(data_h aid, data_h param, void *user_data)
+static void se_set_transaction_cb(data_s *aid, data_s *param, void *user_data)
 {
 	g_print("Set transaction callback successfully\n");
 	g_print("*****displaying Aid data****\n");
@@ -125,7 +125,7 @@ static void se_set_transaction_cb(data_h aid, data_h param, void *user_data)
 void net_nfc_test_se_send_apdu(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	data_h apdu_data = NULL;
+	data_s *apdu_data = NULL;
 	uint8_t apdu_cmd[4] = {0x00, 0xA4, 0x00, 0x0C};
 
 	net_nfc_create_data(&apdu_data, apdu_cmd, 4);
@@ -137,9 +137,9 @@ void net_nfc_test_se_send_apdu(gpointer data, gpointer user_data)
 void net_nfc_test_se_send_apdu_sync(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	data_h apdu_data = NULL;
+	data_s *apdu_data = NULL;
 	uint8_t apdu_cmd[4] = {0x00, 0xA4, 0x00, 0x0C};
-	data_h response = NULL;
+	data_s *response = NULL;
 
 	net_nfc_create_data(&apdu_data, apdu_cmd, 4);
 	result = net_nfc_client_se_send_apdu_sync(global_handle, apdu_data, &response);
@@ -236,7 +236,7 @@ void net_nfc_test_se_get_atr(gpointer data, gpointer user_data)
 void net_nfc_test_se_get_atr_sync(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	data_h attr_data = NULL;
+	data_s *attr_data = NULL;
 
 	result = net_nfc_client_se_get_atr_sync(global_handle, &attr_data);
 

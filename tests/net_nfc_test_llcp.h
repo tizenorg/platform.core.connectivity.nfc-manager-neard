@@ -36,19 +36,19 @@ void net_nfc_test_llcp_set_config_lto(gpointer data, gpointer user_data);
 void net_nfc_test_llcp_set_config_option(gpointer data, gpointer user_data);
 void net_nfc_test_llcp_free_config(gpointer data, gpointer user_data);
 void net_nfc_test_llcp_create_custom_socket_option(gpointer data,
-	gpointer user_data);
+		gpointer user_data);
 void net_nfc_test_llcp_create_default_socket_option(gpointer data,
-	gpointer user_data);
+		gpointer user_data);
 void net_nfc_test_llcp_get_local_socket_option(gpointer data,
-	gpointer user_data);
+		gpointer user_data);
 void net_nfc_test_llcp_get_socket_option_miu(gpointer data, gpointer user_data);
 void net_nfc_test_llcp_set_socket_option_miu(gpointer data, gpointer user_data);
 void net_nfc_test_llcp_get_socket_option_rw(gpointer data, gpointer user_data);
 void net_nfc_test_llcp_set_socket_option_rw(gpointer data, gpointer user_data);
 void net_nfc_test_llcp_get_socket_option_type(gpointer data,
-	gpointer user_data);
+		gpointer user_data);
 void net_nfc_test_llcp_set_socket_option_type(gpointer data,
-	gpointer user_data);
+		gpointer user_data);
 void net_nfc_test_llcp_free_socket_option(gpointer data, gpointer user_data);
 void net_nfc_test_llcp_listen(gpointer data, gpointer user_data);
 void net_nfc_test_llcp_listen_sync(gpointer data, gpointer user_data);

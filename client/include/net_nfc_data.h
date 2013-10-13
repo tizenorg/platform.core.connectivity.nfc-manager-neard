@@ -41,7 +41,7 @@
   @exception NET_NFC_ALLOC_FAIL			memory allocation is failed
   */
 
-net_nfc_error_e net_nfc_create_data_only(data_h *data);
+net_nfc_error_e net_nfc_create_data_only(data_s **data);
 
 /**
   create data handler with initial values, bytes will be copied into the data handler.
@@ -55,7 +55,7 @@ net_nfc_error_e net_nfc_create_data_only(data_h *data);
   @exception NET_NFC_NULL_PARAMETER		parameter(s) has(have) illegal NULL pointer(s)
   @exception NET_NFC_ALLOC_FAIL			memory allocation is failed
   */
-net_nfc_error_e net_nfc_create_data(data_h *data, const uint8_t *bytes, size_t length);
+net_nfc_error_e net_nfc_create_data(data_s **data, const uint8_t *bytes, size_t length);
 
 /**
   get the byes and length from data handler. data handler assume bytes may have '0x0' value.
@@ -69,7 +69,7 @@ net_nfc_error_e net_nfc_create_data(data_h *data, const uint8_t *bytes, size_t l
 
   @exception NET_NFC_NULL_PARAMETER		parameter(s) has(have) illegal NULL pointer(s)
   */
-net_nfc_error_e net_nfc_get_data(const data_h data, uint8_t **bytes, size_t *length);
+net_nfc_error_e net_nfc_get_data(const data_s *data, uint8_t **bytes, size_t *length);
 
 /**
   replace the data handler with given bytes. binary data (bytes) will be copied to data hander.
@@ -84,7 +84,7 @@ net_nfc_error_e net_nfc_get_data(const data_h data, uint8_t **bytes, size_t *len
   @exception NET_NFC_NULL_PARAMETER		parameter(s) has(have) illigal NULL pointer(s)
   */
 
-net_nfc_error_e net_nfc_set_data(data_h data, const uint8_t *bytes, size_t length);
+net_nfc_error_e net_nfc_set_data(data_s *data, const uint8_t *bytes, size_t length);
 
 /**
   get length of data handler's bytes.
@@ -96,7 +96,7 @@ net_nfc_error_e net_nfc_set_data(data_h data, const uint8_t *bytes, size_t lengt
   @exception 	0 is returned if data is NULL
   */
 
-size_t net_nfc_get_data_length(const data_h data);
+size_t net_nfc_get_data_length(const data_s *data);
 
 /**
   get pointer of the handler's bytes (do not free this. it should be freed when the application call "net_nfc_free_data" function
@@ -108,7 +108,7 @@ size_t net_nfc_get_data_length(const data_h data);
   @exception 	NULL is returned if data is NULL
   */
 
-uint8_t* net_nfc_get_data_buffer(const data_h data);
+uint8_t* net_nfc_get_data_buffer(const data_s *data);
 
 /**
   free data handler. (it also free the copied bytes)
@@ -120,11 +120,11 @@ uint8_t* net_nfc_get_data_buffer(const data_h data);
   @exception NET_NFC_NULL_PARAMETER		parameter(s) has(have) illigal NULL pointer(s)
   */
 
-net_nfc_error_e net_nfc_free_data (data_h data);
+net_nfc_error_e net_nfc_free_data (data_s *data);
 
 
 /**
-@}
-*/
+  @}
+  */
 
 #endif //__NET_NFC_DATA_H__

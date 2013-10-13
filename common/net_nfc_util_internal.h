@@ -49,7 +49,6 @@ void __net_nfc_util_free_mem(void **mem, char *filename, unsigned int line);
 #define	 _net_nfc_util_free_mem(mem) __net_nfc_util_free_mem((void **)&mem, basename(__FILE__), __LINE__)
 
 bool net_nfc_util_alloc_data(data_s *data, uint32_t length);
-bool net_nfc_util_duplicate_data(data_s *dest, net_nfc_data_s *src);
 void net_nfc_util_free_data(data_s *data);
 
 net_nfc_conn_handover_carrier_state_e net_nfc_util_get_cps(net_nfc_conn_handover_carrier_type_e carrier_type);

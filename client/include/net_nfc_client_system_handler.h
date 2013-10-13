@@ -19,16 +19,16 @@
 #include "net_nfc_typedef.h"
 
 typedef void (*net_nfc_client_popup_set_state_callback)(
-	net_nfc_error_e result,
-	void *user_data);
+		net_nfc_error_e result,
+		void *user_data);
 
 net_nfc_error_e net_nfc_client_sys_handler_set_state(int state,
-	net_nfc_client_popup_set_state_callback callback,
-	void *user_data);
+		net_nfc_client_popup_set_state_callback callback,
+		void *user_data);
 
 net_nfc_error_e net_nfc_client_sys_handler_set_state_force(int state,
-	net_nfc_client_popup_set_state_callback callback,
-	void *user_data);
+		net_nfc_client_popup_set_state_callback callback,
+		void *user_data);
 
 net_nfc_error_e net_nfc_client_sys_handler_set_state_sync(int state);
 
@@ -37,7 +37,7 @@ net_nfc_error_e net_nfc_client_sys_handler_set_state_force_sync(int state);
 net_nfc_error_e net_nfc_client_sys_handler_set_launch_popup_state(int enable);
 
 net_nfc_error_e net_nfc_client_sys_handler_set_launch_popup_state_force(
-	int enable);
+		int enable);
 
 net_nfc_error_e net_nfc_client_sys_handler_get_launch_popup_state(int *state);
 

@@ -51,7 +51,7 @@ typedef struct _llcp_client_data
 {
 	GDBusConnection *connection;
 	char *id;
-	net_nfc_target_handle_h handle;
+	net_nfc_target_handle_s *handle;
 	net_nfc_llcp_socket_t socket;
 	void *user_data;
 }
@@ -695,7 +695,7 @@ static void llcp_handle_listen_thread_func(gpointer user_data)
 			data->invocation);
 	client_data->id = g_strdup(
 			g_dbus_method_invocation_get_sender(data->invocation));
-	client_data->handle = (net_nfc_target_handle_h)data->handle;
+	client_data->handle = (net_nfc_target_handle_s*)data->handle;
 
 	if (net_nfc_controller_llcp_create_socket(&socket,
 				data->type,
@@ -783,7 +783,7 @@ static void llcp_handle_accept_thread_func(gpointer user_data)
 			data->invocation);
 	client_data->id = g_strdup(
 			g_dbus_method_invocation_get_sender(data->invocation));
-	client_data->handle = (net_nfc_target_handle_h)data->handle;
+	client_data->handle = (net_nfc_target_handle_s*)data->handle;
 	client_data->socket = data->client_socket;
 
 	if (net_nfc_controller_llcp_accept(data->client_socket, &result,
@@ -863,7 +863,7 @@ static void llcp_handle_connect_thread_func(gpointer user_data)
 			data->invocation);
 	client_data->id = g_strdup(
 			g_dbus_method_invocation_get_sender(data->invocation));
-	client_data->handle = (net_nfc_target_handle_h)data->handle;
+	client_data->handle = (net_nfc_target_handle_s*)data->handle;
 
 	if (net_nfc_controller_llcp_create_socket(&socket,
 				data->type,
@@ -941,7 +941,7 @@ static void llcp_handle_connect_sap_thread_func(gpointer user_data)
 			data->invocation);
 	client_data->id = g_strdup(
 			g_dbus_method_invocation_get_sender(data->invocation));
-	client_data->handle = (net_nfc_target_handle_h)data->handle;
+	client_data->handle = (net_nfc_target_handle_s*)data->handle;
 
 	if (net_nfc_controller_llcp_create_socket(&socket,
 				data->type,

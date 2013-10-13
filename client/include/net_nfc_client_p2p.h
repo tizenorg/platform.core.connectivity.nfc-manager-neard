@@ -23,19 +23,19 @@
 typedef void (*net_nfc_client_p2p_send_completed)(net_nfc_error_e result,
 		void *user_data);
 
-typedef void (*net_nfc_client_p2p_device_discovered)(net_nfc_target_handle_h handle_info,
-		void *user_data);
+typedef void (*net_nfc_client_p2p_device_discovered)(
+		net_nfc_target_handle_s *handle_info,void *user_data);
 
 typedef void (*net_nfc_client_p2p_device_detached)(void *user_data);
 
-typedef void (*net_nfc_client_p2p_data_received)(data_h p2p_data, void *user_data);
+typedef void (*net_nfc_client_p2p_data_received)(data_s *p2p_data, void *user_data);
 
 /* P2P client API's*/
-net_nfc_error_e net_nfc_client_p2p_send(net_nfc_target_handle_h handle,
-		data_h data, net_nfc_client_p2p_send_completed callback, void *user_data);
+net_nfc_error_e net_nfc_client_p2p_send(net_nfc_target_handle_s *handle,
+		data_s *data, net_nfc_client_p2p_send_completed callback, void *user_data);
 
-net_nfc_error_e net_nfc_client_p2p_send_sync(net_nfc_target_handle_h handle,
-		data_h data);
+net_nfc_error_e net_nfc_client_p2p_send_sync(net_nfc_target_handle_s *handle,
+		data_s *data);
 
 
 /* P2P client API's - used for registering callbacks*/

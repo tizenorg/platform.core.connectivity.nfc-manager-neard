@@ -19,120 +19,116 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <glib.h>
 
 /**
- NFC Manager
- NFC Manager controls the nfc device with high level APIs such as SmartPoster and Connection handover.
- It also support the JSR257 push handling.
- This file describe the structure and defines of the NFC manager
-
- @version		0.1
-
- */
+  NFC Manager
+  NFC Manager controls the nfc device with high level APIs such as SmartPoster and Connection handover.
+  It also support the JSR257 push handling.
+  This file describe the structure and defines of the NFC manager
+  */
 
 /**
- @defgroup NET_NFC_MANAGER The description of NFC Manager
- @defgroup NET_NFC_TYPEDEF Defines and structures
- @defgroup NET_NFC_MANAGER_API NFC Manager
- @defgroup NET_NFC_MANAGER_INFO Tag Information and data APIs
- @defgroup NET_NFC_MANAGER_TAG Tag Read/Write APIs
- @defgroup NET_NFC_MANAGER_NDEF NDEF Message APIs
- @defgroup NET_NFC_MANAGER_RECORD NDEF Record APIs
- @defgroup NET_NFC_MANAGER_LLCP NFC LLCP APIs
- @defgroup NET_NFC_MANAGER_APDU Internal APDU APIs
- @defgroup NET_NFC_MANAGER_EXCHANGE App Exchanger APIs
+  @defgroup NET_NFC_MANAGER The description of NFC Manager
+  @defgroup NET_NFC_TYPEDEF Defines and structures
+  @defgroup NET_NFC_MANAGER_API NFC Manager
+  @defgroup NET_NFC_MANAGER_INFO Tag Information and data APIs
+  @defgroup NET_NFC_MANAGER_TAG Tag Read/Write APIs
+  @defgroup NET_NFC_MANAGER_NDEF NDEF Message APIs
+  @defgroup NET_NFC_MANAGER_RECORD NDEF Record APIs
+  @defgroup NET_NFC_MANAGER_LLCP NFC LLCP APIs
+  @defgroup NET_NFC_MANAGER_APDU Internal APDU APIs
+  @defgroup NET_NFC_MANAGER_EXCHANGE App Exchanger APIs
 
 
- @addtogroup NET_NFC_MANAGER
- @{
- <P> "NFC Manager" is the framework that provide NFC APIs,
- and it also provide high level services such as Smart Poster, Connection Handover,
- and JSR257 push registry.  </P>
+  @addtogroup NET_NFC_MANAGER
+  @{
+  <P> "NFC Manager" is the framework that provide NFC APIs,
+  and it also provide high level services such as Smart Poster, Connection Handover,
+  and JSR257 push registry.  </P>
 
- NFC Manager APIs are defined in <net_nfc.h>, <net_nfc_typedef.h>
+  NFC Manager APIs are defined in <net_nfc.h>, <net_nfc_typedef.h>
 
- <P>
- Memory management rules <br>
- depends on the the verb of each function it describe memory management roles
+  <P>
+  Memory management rules <br>
+  depends on the the verb of each function it describe memory management roles
 
- 1. set: copy the parameters and used inside of nfc-manager, you should free the parameter you have used
- 2. append: it is similar to "set" but, it does not make copy, you SHOULD NOT free the parameter after use it belongs to nfc-manager and it will be freed later
- (example "net_nfc_append_record_to_ndef_message") the appended record will be free the at the ndef message free time.
- 3. get, search : it gives original pointer to you, DO NOT free the pointer get from nfc-manager API
- 4. remove: automatically free inside of the this function do not free again.
- 5. create: it allocate handle, therefore, you should consider free after using (for example "net_nfc_create_rawdata_from_ndef_message(ndef_message_h ndef_message, data_h *rawdata)"
- this function allocate the data_h, you should free data with the function net_nfc_free_data())
- </p>
+  1. set: copy the parameters and used inside of nfc-manager, you should free the parameter you have used
+  2. append: it is similar to "set" but, it does not make copy, you SHOULD NOT free the parameter after use it belongs to nfc-manager and it will be freed later
+  (example "net_nfc_append_record_to_ndef_message") the appended record will be free the at the ndef message free time.
+  3. get, search : it gives original pointer to you, DO NOT free the pointer get from nfc-manager API
+  4. remove: automatically free inside of the this function do not free again.
+  5. create: it allocate handle, therefore, you should consider free after using
+  </p>
 
- @}
- */
-
-/**
- @addtogroup NET_NFC_TYPEDEF
- @{
- This documents provide the NFC defines
-
- */
+  @}
+  */
 
 /**
- net_nfc_error_e is enum type that returned from each functions
- it mostly contains the error codes and it may contains status codes.
- */
+  @addtogroup NET_NFC_TYPEDEF
+  @{
+  This documents provide the NFC defines
+
+*/
+
+/**
+  net_nfc_error_e is enum type that returned from each functions
+  it mostly contains the error codes and it may contains status codes.
+  */
 typedef enum
 {
-/*000*/NET_NFC_OK = 0, /**< Status is OK	*/
-/*999*/NET_NFC_UNKNOWN_ERROR = -999, /**< Unknown error */
-/*998*/NET_NFC_ALLOC_FAIL, /**< Memory allocation is failed */
-/*997*/NET_NFC_THREAD_CREATE_FAIL, /**< Thread creation is failed */
-/*996*/NET_NFC_INVALID_STATE, /**< State of NFC-Manager or nfc-stack is not normal */
-/*995*/NET_NFC_IPC_FAIL, /**< Communication with ipc is failed. (from client to server)*/
-/*994*/NET_NFC_OUT_OF_BOUND, /**< Index is out of bound */
-/*993*/NET_NFC_NULL_PARAMETER, /**< Unexpected NULL parameter is received */
-/*992*/NET_NFC_BUFFER_TOO_SMALL, /**< Requested buffer is too small to store data, this error should be received */
-/*991*/NET_NFC_ALREADY_INITIALIZED, /**< You tried to initialized again without de-init */
-/*990*/NET_NFC_COMMUNICATE_WITH_CONTROLLER_FAILED, /**< Communication with Controller Chipset is failed this is Fatal Error */
-/*989*/NET_NFC_RF_TIMEOUT, /**< Timeout is raised while communicate with a tag */
-/*988*/NET_NFC_RF_ERROR, /**< Unexpected package is received from target, you may receive this error comes by the low level RF communication fault*/
-/*987*/NET_NFC_NOT_INITIALIZED, /**< Application tries to request without initialization */
-/*986*/NET_NFC_NOT_SUPPORTED, /**< Request information or command is not supported in current connected target */
-/*985*/NET_NFC_ALREADY_REGISTERED, /**< Requested SAP number is already used by other socket or data is already appended or registered */
-/*984*/NET_NFC_NOT_ALLOWED_OPERATION, /**< Requested Operation is not allowed in the situation in critical time (such as write data on target)*/
-/*983*/NET_NFC_BUSY, /**< Previous operation is not finished. don't worry to get this message, most of request will be executed in the serial queue */
-/*982*/NET_NFC_INVALID_HANDLE, /**< Requested Device in not valid device */
-/*981*/NET_NFC_TAG_READ_FAILED, /**< Tag reading is failed because of unexpected chunk data is received or error ack is received */
-/*980*/NET_NFC_TAG_WRITE_FAILED, /**< When you try to write on read only tag or error ack is received */
-/*979*/NET_NFC_NO_NDEF_SUPPORT, /**< Tag is not supported NDEF format for tag is not formatted for NDEF */
-/*978*/NET_NFC_NO_NDEF_MESSAGE, /**< No data is received after NDEF reading */
-/*977*/NET_NFC_INVALID_FORMAT, /**< Received data is not readable or it has illegal values or format */
-/*976*/NET_NFC_INSUFFICIENT_STORAGE, /**< The connected tag does not have enough information */
-/*975*/NET_NFC_OPERATION_FAIL, /**< The remote target returned error while doing a operation*/
-/*974*/NET_NFC_NOT_CONNECTED, /**< remote is not connected correctly. This can be happened when the RF does not have enough strength */
-/*973*/NET_NFC_NO_DATA_FOUND, /**< Requested data is not found in the list or properties */
-/*972*/NET_NFC_SECURITY_FAIL, /**< Authentication is failed while communication with nfc-manager server */
-/*971*/NET_NFC_TARGET_IS_MOVED_AWAY, /**< Target is lost while doing a operation */
-/*970*/NET_NFC_TAG_IS_ALREADY_FORMATTED, /** Target is already formatted */
-/*969*/NET_NFC_NOT_REGISTERED, /**< removal is requested but requested data is not registered */
-/*968*/NET_NFC_INVALID_PARAM, /**< removal is requested but requested data is not registered */
-/*499*/NET_NFC_NDEF_TYPE_LENGTH_IS_NOT_OK = -499, /**< Illegal ndef record type length */
-/*498*/NET_NFC_NDEF_PAYLOAD_LENGTH_IS_NOT_OK, /**< Illegal ndef record payload length */
-/*497*/NET_NFC_NDEF_ID_LENGTH_IS_NOT_OK, /**< Illegal ndef record id length */
-/*496*/NET_NFC_NDEF_RECORD_IS_NOT_EXPECTED_TYPE, /**< Parameter record is not expected record. for example, try to URI from text record */
-/*495*/NET_NFC_NDEF_BUF_END_WITHOUT_ME, /**< NDEF messages is terminated without ME flag */
-/*494*/NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC, /**< Current device does not support NFC feature or this manager does not found plugin library */
+	/*000*/NET_NFC_OK = 0, /**< Status is OK	*/
+	/*999*/NET_NFC_UNKNOWN_ERROR = -999, /**< Unknown error */
+	/*998*/NET_NFC_ALLOC_FAIL, /**< Memory allocation is failed */
+	/*997*/NET_NFC_THREAD_CREATE_FAIL, /**< Thread creation is failed */
+	/*996*/NET_NFC_INVALID_STATE, /**< State of NFC-Manager or nfc-stack is not normal */
+	/*995*/NET_NFC_IPC_FAIL, /**< Communication with ipc is failed. (from client to server)*/
+	/*994*/NET_NFC_OUT_OF_BOUND, /**< Index is out of bound */
+	/*993*/NET_NFC_NULL_PARAMETER, /**< Unexpected NULL parameter is received */
+	/*992*/NET_NFC_BUFFER_TOO_SMALL, /**< Requested buffer is too small to store data, this error should be received */
+	/*991*/NET_NFC_ALREADY_INITIALIZED, /**< You tried to initialized again without de-init */
+	/*990*/NET_NFC_COMMUNICATE_WITH_CONTROLLER_FAILED, /**< Communication with Controller Chipset is failed this is Fatal Error */
+	/*989*/NET_NFC_RF_TIMEOUT, /**< Timeout is raised while communicate with a tag */
+	/*988*/NET_NFC_RF_ERROR, /**< Unexpected package is received from target, you may receive this error comes by the low level RF communication fault*/
+	/*987*/NET_NFC_NOT_INITIALIZED, /**< Application tries to request without initialization */
+	/*986*/NET_NFC_NOT_SUPPORTED, /**< Request information or command is not supported in current connected target */
+	/*985*/NET_NFC_ALREADY_REGISTERED, /**< Requested SAP number is already used by other socket or data is already appended or registered */
+	/*984*/NET_NFC_NOT_ALLOWED_OPERATION, /**< Requested Operation is not allowed in the situation in critical time (such as write data on target)*/
+	/*983*/NET_NFC_BUSY, /**< Previous operation is not finished. don't worry to get this message, most of request will be executed in the serial queue */
+	/*982*/NET_NFC_INVALID_HANDLE, /**< Requested Device in not valid device */
+	/*981*/NET_NFC_TAG_READ_FAILED, /**< Tag reading is failed because of unexpected chunk data is received or error ack is received */
+	/*980*/NET_NFC_TAG_WRITE_FAILED, /**< When you try to write on read only tag or error ack is received */
+	/*979*/NET_NFC_NO_NDEF_SUPPORT, /**< Tag is not supported NDEF format for tag is not formatted for NDEF */
+	/*978*/NET_NFC_NO_NDEF_MESSAGE, /**< No data is received after NDEF reading */
+	/*977*/NET_NFC_INVALID_FORMAT, /**< Received data is not readable or it has illegal values or format */
+	/*976*/NET_NFC_INSUFFICIENT_STORAGE, /**< The connected tag does not have enough information */
+	/*975*/NET_NFC_OPERATION_FAIL, /**< The remote target returned error while doing a operation*/
+	/*974*/NET_NFC_NOT_CONNECTED, /**< remote is not connected correctly. This can be happened when the RF does not have enough strength */
+	/*973*/NET_NFC_NO_DATA_FOUND, /**< Requested data is not found in the list or properties */
+	/*972*/NET_NFC_SECURITY_FAIL, /**< Authentication is failed while communication with nfc-manager server */
+	/*971*/NET_NFC_TARGET_IS_MOVED_AWAY, /**< Target is lost while doing a operation */
+	/*970*/NET_NFC_TAG_IS_ALREADY_FORMATTED, /** Target is already formatted */
+	/*969*/NET_NFC_NOT_REGISTERED, /**< removal is requested but requested data is not registered */
+	/*968*/NET_NFC_INVALID_PARAM, /**< removal is requested but requested data is not registered */
+	/*499*/NET_NFC_NDEF_TYPE_LENGTH_IS_NOT_OK = -499, /**< Illegal ndef record type length */
+	/*498*/NET_NFC_NDEF_PAYLOAD_LENGTH_IS_NOT_OK, /**< Illegal ndef record payload length */
+	/*497*/NET_NFC_NDEF_ID_LENGTH_IS_NOT_OK, /**< Illegal ndef record id length */
+	/*496*/NET_NFC_NDEF_RECORD_IS_NOT_EXPECTED_TYPE, /**< Parameter record is not expected record. for example, try to URI from text record */
+	/*495*/NET_NFC_NDEF_BUF_END_WITHOUT_ME, /**< NDEF messages is terminated without ME flag */
+	/*494*/NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC, /**< Current device does not support NFC feature or this manager does not found plugin library */
 
-/*399*/NET_NFC_LLCP_INVALID_SOCKET = -399, /**< socket is not valid socket */
-/*398*/NET_NFC_LLCP_SOCKET_DISCONNECTED, /**< socket is disconnected */
-/*397*/NET_NFC_LLCP_SOCKET_FRAME_REJECTED, /**< send data is rejected from remote side */
+	/*399*/NET_NFC_LLCP_INVALID_SOCKET = -399, /**< socket is not valid socket */
+	/*398*/NET_NFC_LLCP_SOCKET_DISCONNECTED, /**< socket is disconnected */
+	/*397*/NET_NFC_LLCP_SOCKET_FRAME_REJECTED, /**< send data is rejected from remote side */
 
-/*299*/NET_NFC_P2P_SEND_FAIL = -299, /**< P2P data send fail */
+	/*299*/NET_NFC_P2P_SEND_FAIL = -299, /**< P2P data send fail */
 } net_nfc_error_e;
 
 /**
- Enum value of the record type  ( TNF value )
- */
+  Enum value of the record type  ( TNF value )
+  */
 typedef enum
 {
 	NET_NFC_RECORD_EMPTY = 0x0,
@@ -145,39 +141,39 @@ typedef enum
 } net_nfc_record_tnf_e;
 
 /**
- net_nfc_message_e is identify the events comes from nfc-manager.
- most of the events response event that you requested operations.
- and some of the events are generated by nfc-manager. (example, NET_NFC_MESSAGE_TAG_DISCOVERED, NET_NFC_MESSAGE_TAG_DETACHED,
- NET_NFC_MESSAGE_LLCP_DISCOVERED and NET_NFC_MESSAGE_LLCP_DETACHED)
+  net_nfc_message_e is identify the events comes from nfc-manager.
+  most of the events response event that you requested operations.
+  and some of the events are generated by nfc-manager. (example, NET_NFC_MESSAGE_TAG_DISCOVERED, NET_NFC_MESSAGE_TAG_DETACHED,
+  NET_NFC_MESSAGE_LLCP_DISCOVERED and NET_NFC_MESSAGE_LLCP_DETACHED)
 
- All of the events are delivered by the the callback function that registered with "net_nfc_set_response_callback"
- */
+  All of the events are delivered by the the callback function that registered with "net_nfc_set_response_callback"
+  */
 
 typedef enum
 {
 	NET_NFC_MESSAGE_TRANSCEIVE = 0, /**< Type: Response Event, <br> This events is received after calling the "net_nfc_tranceive"
-	 	 	 	 	 	 	 	 	 <br> if the operation is success, the data parameter should cast into data_h or it return NULL*/
+									  <br> if the operation is success, the data parameter should cast into data_s *or it return NULL*/
 	NET_NFC_MESSAGE_READ_NDEF, /**< Type: Response Event, <br> This events is received after calling the "net_nfc_read_tag"
-	 	 	 	 	 	 	 	 <br> if the operation is success, the data parameter should cast into ndef_message_h or it return NULL */
+								 <br> if the operation is success, the data parameter should cast into ndef_message_s* or it return NULL */
 	NET_NFC_MESSAGE_WRITE_NDEF, /**< Type: Response Event, <br> This events is received after calling the "net_nfc_write_ndef"
-	 	 	 	 	 	 	 	 <br> data pointer always returns NULL */
+								  <br> data pointer always returns NULL */
 	NET_NFC_MESSAGE_MAKE_READ_ONLY_NDEF, /**< Type: Response Event, <br> This events is received after calling the "net_nfc_make_read_only_ndef"
-	 	 	 	 	 	 	 	 	 	 <br> data pointer always returns NULL */
+										   <br> data pointer always returns NULL */
 	NET_NFC_MESSAGE_IS_TAG_CONNECTED, /**< Type: Response Event, <br> This events is received after calling the "net_nfc_is_tag_conneced"
-	 	 	 	 	 	 	 	 	 	 <br> data pointer always returns NULL */
+										<br> data pointer always returns NULL */
 	NET_NFC_MESSAGE_GET_CURRENT_TAG_INFO, /**< Type: Response Event, <br> This events is received after calling the "net_nfc_get_current_tag_infof"
-	 	 	 	 	 	 	 	 <br> if the operation is success, the data parameter should cast into net_nfc_target_info_h or it return NULL */
+											<br> if the operation is success, the data parameter should cast into net_nfc_target_info_s* or it return NULL */
 	NET_NFC_MESSAGE_GET_CURRENT_TARGET_HANDLE,  /**< Type: Response Event, <br> This events is received after calling the "net_nfc_get_current_target_handle"
-	 	 	 	 	 	 	 	 <br> if the operation is success, the data parameter should cast into net_nfc_target_handle_h or it return NULL */
+												  <br> if the operation is success, the data parameter should cast into net_nfc_target_handle_s* or it return NULL */
 	NET_NFC_MESSAGE_TAG_DISCOVERED, /**< Type: Notify Event, <br> When a tag or SE is detected, you got this event.
-	 	 	 	 	 	 	 	 	 <br> The data contains the target info , need to cast to net_nfc_target_info_h*/
+									  <br> The data contains the target info , need to cast to net_nfc_target_info_s* */
 	NET_NFC_MESSAGE_NOTIFY, /**< This Notify Event <br> when the unexpected error has occurred, this event is delivered. data pointer always returns NULL  */
 	NET_NFC_MESSAGE_TAG_DETACHED, /**< Type: Notify Event, <br> When a tag or SE is disappeared, you got this event.
-	 	 	 	 	 	 	 	 	 <br> The data contains the target info , need to cast to net_nfc_target_info_h but it does not have detail target info
-	 	 	 	 	 	 	 	 	 <br> please, do not use "net_nfc_get_tag_info_keys" when you got this event*/
-/*10*/	NET_NFC_MESSAGE_FORMAT_NDEF, /**< Type: Response Event <br> After complete "net_nfc_format_ndef", this event is delivered */
+									<br> The data contains the target info , need to cast to net_nfc_target_info_s* but it does not have detail target info
+									<br> please, do not use "net_nfc_get_tag_info_keys" when you got this event*/
+	/*10*/	NET_NFC_MESSAGE_FORMAT_NDEF, /**< Type: Response Event <br> After complete "net_nfc_format_ndef", this event is delivered */
 	NET_NFC_MESSAGE_LLCP_DISCOVERED,/**< Type: Notify Event <br> When LLCP is discovered and remote device is support llcp, you receive this event
-	 	 	 	 	 	 	 	 	 <br> data pointer contains the remote llcp configuration info. Cast to net_nfc_llcp_config_info_h*/
+									  <br> data pointer contains the remote llcp configuration info. Cast to net_nfc_llcp_config_info_s* */
 	NET_NFC_MESSAGE_P2P_DETACHED, /**< Type: Notify Event <br> When LLCP is de-activated by removing the device, you receive this event*/
 	NET_NFC_MESSAGE_LLCP_CONFIG, /**< Type: Response Event. <br> The operation of "net_nfc_set_llcp_local_configure" is completed */
 
@@ -188,7 +184,7 @@ typedef enum
 	NET_NFC_MESSAGE_SE_START_TRANSACTION, /**< Type: Notify Event, indicates external reader start transaction*/
 	NET_NFC_MESSAGE_SE_END_TRANSACTION, /**< Type: Notify Event, indicates external reader end transaction*/
 	NET_NFC_MESSAGE_SE_TYPE_TRANSACTION, /**< Type: Notify Event, Indicates external reader trying to access secure element */
-/*20*/	NET_NFC_MESSAGE_SE_CONNECTIVITY, /**< Type: Notify Event, This event notifies the terminal host that it shall send a connectivity event from UICC */
+	/*20*/	NET_NFC_MESSAGE_SE_CONNECTIVITY, /**< Type: Notify Event, This event notifies the terminal host that it shall send a connectivity event from UICC */
 	NET_NFC_MESSAGE_SE_FIELD_ON, /**< Type: Notify Event, indicates external reader field is on*/
 	NET_NFC_MESSAGE_SE_FIELD_OFF, /**< Type: Notify Event, indicates external reader field is off*/
 	NET_NFC_MESSAGE_SE_TYPE_CHANGED, /**< Type: Notify Event, indicates secure element type is changed*/
@@ -200,7 +196,7 @@ typedef enum
 	NET_NFC_MESSAGE_OPEN_INTERNAL_SE,
 	NET_NFC_MESSAGE_CLOSE_INTERNAL_SE,
 	NET_NFC_MESSAGE_SEND_APDU_SE,
-/*30*/	NET_NFC_MESSAGE_GET_ATR_SE,
+	/*30*/	NET_NFC_MESSAGE_GET_ATR_SE,
 	NET_NFC_GET_SERVER_STATE,
 
 	NET_NFC_MESSAGE_SIM_TEST,
@@ -216,7 +212,7 @@ typedef enum
 
 	NET_NFC_MESSAGE_SNEP_START_SERVER,
 	NET_NFC_MESSAGE_SNEP_START_CLIENT,
-/*40*/	NET_NFC_MESSAGE_SNEP_REQUEST,
+	/*40*/	NET_NFC_MESSAGE_SNEP_REQUEST,
 	NET_NFC_MESSAGE_SNEP_STOP_SERVICE,
 	NET_NFC_MESSAGE_SNEP_REGISTER_SERVER,
 	NET_NFC_MESSAGE_SNEP_UNREGISTER_SERVER,
@@ -228,8 +224,8 @@ typedef enum
 
 
 /**
- Card states for nfc tag
- */
+  Card states for nfc tag
+  */
 typedef enum
 {
 	NET_NFC_NDEF_CARD_INVALID = 0x00, /**<  The card is not NFC forum specified tag. The ndef format will be needed. */
@@ -239,8 +235,8 @@ typedef enum
 } net_nfc_ndef_card_state_e;
 
 /**
- Encoding type for string message
- */
+  Encoding type for string message
+  */
 typedef enum
 {
 	NET_NFC_ENCODE_UTF_8 = 0x00,
@@ -248,8 +244,8 @@ typedef enum
 } net_nfc_encode_type_e;
 
 /**
- URI scheme type defined in the NFC forum  "URI Record Type Definition"
- */
+  URI scheme type defined in the NFC forum  "URI Record Type Definition"
+  */
 typedef enum
 {
 	NET_NFC_SCHEMA_FULL_URI = 0x00, /**< protocol is specify by payload  	*/
@@ -312,22 +308,22 @@ typedef enum
  **************************************
  */
 /**
- These events are delivered to the each socket callback. These events are separated events that comes from "net_nfc_set_response_callback" callback
- */
+  These events are delivered to the each socket callback. These events are separated events that comes from "net_nfc_set_response_callback" callback
+  */
 typedef enum
 {
 	/* start number should be larger than "net_nfc_message_e"
-	 because  to make seperate with net_nfc_message_e event it may conflict in
-	 the dispatcher and ipc part */
+	   because  to make seperate with net_nfc_message_e event it may conflict in
+	   the dispatcher and ipc part */
 	NET_NFC_MESSAGE_LLCP_LISTEN = 1000, /**< Type: Response Event <br> this event indicates "net_nfc_listen_llcp" requested is completed*/
 	NET_NFC_MESSAGE_LLCP_ACCEPTED, /**< Type: Notify Event. <br>  Remote socket is accepted to listening socket
-	 	 	 	 	 	 	 	 	 <br> data pointer contains the remote socket info (Cast to net_nfc_llcp_socket_option_h)*/
+									 <br> data pointer contains the remote socket info (Cast to net_nfc_llcp_socket_option_s*)*/
 	NET_NFC_MESSAGE_LLCP_CONNECT, /**< Type: Response Event. <br> "net_nfc_connect_llcp_with" request is completed and your socket is connected to remote site with url*/
 	NET_NFC_MESSAGE_LLCP_CONNECT_SAP, /**< Type: Response Event.<br>  "net_nfc_connect_llcp_with_sap" request is completed and your socket is connected to remote site with sap number*/
 	NET_NFC_MESSAGE_LLCP_SEND, /**< Type: Response Event,<br>  "net_nfc_send_llcp" operation is completed (connection mode)*/
 	NET_NFC_MESSAGE_LLCP_SEND_TO, /**< Type: Response Event,<br>  "net_nfc_send_llcp_to"operation is completed (connectionless mode)*/
 	NET_NFC_MESSAGE_LLCP_RECEIVE, /**< Type: Response Event,<br>  "net_nfc_receive_llcp" operation is completed (connection mode)
-	 	 	 	 	 	 	 	 	 <br> data pointer contains received data (Cast to data_h)*/
+									<br> data pointer contains received data (Cast to data_s*)*/
 	NET_NFC_MESSAGE_LLCP_RECEIVE_FROM, /**< Type: Response Event,<br>  "net_nfc_receive_llcp_from" operation is completed (connectionless mode)*/
 	NET_NFC_MESSAGE_LLCP_DISCONNECT, /**< Type: Response Event,<br>  "net_nfc_disconnect_llcp" request is completed */
 	NET_NFC_MESSAGE_LLCP_ERROR, /**< Type: Notify Event,<br>  when the socket is disconnected, you may receive this event */
@@ -378,21 +374,107 @@ typedef enum
 	NET_NFC_NPP,
 } llcp_app_protocol_e;
 
-typedef struct _data_s *data_h;
+typedef enum
+{
+	NET_NFC_TAG_CONNECTION = 0x00,
+	NET_NFC_P2P_CONNECTION_TARGET,
+	NET_NFC_P2P_CONNECTION_INITIATOR,
+	NET_NFC_SE_CONNECTION
+} net_nfc_connection_type_e;
 
-typedef struct _ndef_record_s *ndef_record_h;
+typedef enum
+{
+	NET_NFC_CONN_HANDOVER_CARRIER_BT = 0x00,
+	NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS, /* infrastructure */
+	NET_NFC_CONN_HANDOVER_CARRIER_WIFI_IBSS, /* add hoc */
+	NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN,
+} net_nfc_conn_handover_carrier_type_e;
 
-typedef struct _ndef_message_s *ndef_message_h;
+/**
+  This structure is just data, to express bytes array
+  */
+typedef struct
+{
+	uint8_t *buffer;
+	uint32_t length;
+} data_s;
 
-typedef struct _net_nfc_target_info_s *net_nfc_target_info_h;
+/**
+  ndef_record_s structure has the NDEF record data. it is only a record not a message
+  */
+typedef struct _ndef_record_s
+{
+	uint8_t MB :1;
+	uint8_t ME :1;
+	uint8_t CF :1;
+	uint8_t SR :1;
+	uint8_t IL :1;
+	uint8_t TNF :3;
+	data_s type_s;
+	data_s id_s;
+	data_s payload_s;
+	struct _ndef_record_s *next;
+}ndef_record_s;
 
-typedef struct _net_nfc_llcp_config_info_s *net_nfc_llcp_config_info_h;
+/**
+  NDEF message it has record counts and records (linked listed form)
+  */
+typedef struct _ndef_message_s
+{
+	uint32_t recordCount;
+	ndef_record_s *records; // linked list
+} ndef_message_s;
 
-typedef struct _net_nfc_llcp_socket_option_s *net_nfc_llcp_socket_option_h;
+typedef struct _net_nfc_target_handle_s
+{
+	uint32_t connection_id;
+	net_nfc_connection_type_e connection_type;
+	net_nfc_target_type_e target_type;
+	/*++npp++*/
+	llcp_app_protocol_e app_type;
+	/*--npp--*/
+}net_nfc_target_handle_s;
 
-typedef struct _net_nfc_target_handle_s *net_nfc_target_handle_h;
+typedef struct _net_nfc_tag_info_s
+{
+	char *key;
+	data_s *value;
+} net_nfc_tag_info_s;
 
-typedef struct _net_nfc_connection_handover_info_s *net_nfc_connection_handover_info_h;
+typedef struct _net_nfc_target_info_s
+{
+	net_nfc_target_handle_s *handle;
+	net_nfc_target_type_e devType;
+	uint8_t is_ndef_supported;
+	uint8_t ndefCardState;
+	uint32_t maxDataSize;
+	uint32_t actualDataSize;
+	int number_of_keys;
+	net_nfc_tag_info_s *tag_info_list;
+	char **keylist;
+	data_s raw_data;
+}net_nfc_target_info_s;
+
+typedef struct _net_nfc_llcp_config_info_s
+{
+	uint16_t miu; /** The remote Maximum Information Unit (NOTE: this is MIU, not MIUX !)*/
+	uint16_t wks; /** The remote Well-Known Services*/
+	uint8_t lto; /** The remote Link TimeOut (in 1/100s)*/
+	uint8_t option; /** The remote options*/
+}net_nfc_llcp_config_info_s;
+
+typedef struct _net_nfc_llcp_socket_option_s
+{
+	uint16_t miu; /** The remote Maximum Information Unit */
+	uint8_t rw; /** The Receive Window size (4 bits)*/
+	net_nfc_socket_type_e type;
+}net_nfc_llcp_socket_option_s;
+
+typedef struct _net_nfc_connection_handover_info_s
+{
+	net_nfc_conn_handover_carrier_type_e type;
+	data_s data;
+}net_nfc_connection_handover_info_s;
 
 typedef uint8_t sap_t;
 
@@ -415,14 +497,6 @@ typedef void (* net_nfc_set_activation_completed_cb)(net_nfc_error_e error,
 		void *user_data);
 
 // handover
-
-typedef enum
-{
-	NET_NFC_CONN_HANDOVER_CARRIER_BT = 0x00,
-	NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS, /* infrastructure */
-	NET_NFC_CONN_HANDOVER_CARRIER_WIFI_IBSS, /* add hoc */
-	NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN,
-} net_nfc_conn_handover_carrier_type_e;
 
 typedef enum
 {
@@ -449,8 +523,8 @@ typedef enum
 } net_nfc_felica_poll_request_code_e;
 
 /**
- WIFI configuration key enums for connection handover.
- */
+  WIFI configuration key enums for connection handover.
+  */
 
 typedef enum
 {
@@ -486,8 +560,21 @@ typedef enum
 	NET_NFC_BT_ATTRIBUTE_ADDRESS = 0xF0, /* Bluetooth device Address */
 } net_nfc_handover_bt_attribute_e;
 
-typedef struct _net_nfc_carrier_config_s *net_nfc_carrier_config_h;
-typedef struct _net_nfc_carrier_property_s *net_nfc_property_group_h;
+typedef struct _net_nfc_carrier_config_s
+{
+	net_nfc_conn_handover_carrier_type_e type;
+	int length;
+	GList *data;
+} net_nfc_carrier_config_s;
+
+/* WIFI Info */
+typedef struct _net_nfc_carrier_property_s
+{
+	bool is_group;
+	uint16_t attribute;
+	uint16_t length;
+	void *data;
+} net_nfc_carrier_property_s;
 
 typedef enum
 {
@@ -526,24 +613,22 @@ typedef enum
 	NET_NFC_LLCP_UNREGISTERED = -2,
 	NET_NFC_LLCP_START  = -3,
 	NET_NFC_LLCP_STOP  = -4,
-}
-net_nfc_llcp_state_t;
+}net_nfc_llcp_state_t;
 
 typedef enum
 {
 	NET_NFC_CARD_EMELATION_ENABLE = 0,
 	NET_NFC_CARD_EMULATION_DISABLE,
-}
-net_nfc_card_emulation_mode_t;
+}net_nfc_card_emulation_mode_t;
 
-typedef enum _net_nfc_launch_popup_state_e
+typedef enum
 {
 	NET_NFC_NO_LAUNCH_APP_SELECT = 0,
 	NET_NFC_LAUNCH_APP_SELECT,
 } net_nfc_launch_popup_state_e;
 
 /**
- @}
- */
+  @}
+  */
 
 #endif //__NET_NFC_TYPEDEF_H__

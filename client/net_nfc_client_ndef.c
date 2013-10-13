@@ -29,23 +29,18 @@
 
 static NetNfcGDbusNdef *ndef_proxy = NULL;
 
-
 static gboolean ndef_is_supported_tag(void);
 
-static void ndef_call_read(GObject *source_object,
-		GAsyncResult *res,
+static void ndef_call_read(GObject *source_object, GAsyncResult *res,
 		gpointer user_data);
 
-static void ndef_call_write(GObject *source_object,
-		GAsyncResult *res,
+static void ndef_call_write(GObject *source_object, GAsyncResult *res,
 		gpointer user_data);
 
-static void ndef_call_make_read_only(GObject *source_object,
-		GAsyncResult *res,
+static void ndef_call_make_read_only(GObject *source_object, GAsyncResult *res,
 		gpointer user_data);
 
-static void ndef_call_format(GObject *source_object,
-		GAsyncResult *res,
+static void ndef_call_format(GObject *source_object, GAsyncResult *res,
 		gpointer user_data);
 
 static gboolean ndef_is_supported_tag(void)
@@ -104,7 +99,7 @@ static void ndef_call_read(GObject *source_object,
 	{
 		net_nfc_client_ndef_read_completed callback =
 			(net_nfc_client_ndef_read_completed)func_data->callback;
-		ndef_message_h message;
+		ndef_message_s *message;
 
 		message = net_nfc_util_gdbus_variant_to_ndef_message(out_data);
 
@@ -215,7 +210,7 @@ static void ndef_call_format(GObject *source_object,
 	g_free(func_data);
 }
 
-API net_nfc_error_e net_nfc_client_ndef_read(net_nfc_target_handle_h handle,
+API net_nfc_error_e net_nfc_client_ndef_read(net_nfc_target_handle_s *handle,
 		net_nfc_client_ndef_read_completed callback, void *user_data)
 {
 	NetNfcCallback *func_data;
@@ -257,8 +252,8 @@ API net_nfc_error_e net_nfc_client_ndef_read(net_nfc_target_handle_h handle,
 	return NET_NFC_OK;
 }
 
-API net_nfc_error_e net_nfc_client_ndef_read_sync(net_nfc_target_handle_h handle,
-		ndef_message_h *message)
+API net_nfc_error_e net_nfc_client_ndef_read_sync(net_nfc_target_handle_s *handle,
+		ndef_message_s **message)
 {
 	net_nfc_error_e out_result = NET_NFC_OK;
 	GVariant *out_data = NULL;
@@ -301,8 +296,8 @@ API net_nfc_error_e net_nfc_client_ndef_read_sync(net_nfc_target_handle_h handle
 	return out_result;
 }
 
-API net_nfc_error_e net_nfc_client_ndef_write(net_nfc_target_handle_h handle,
-		ndef_message_h message,
+API net_nfc_error_e net_nfc_client_ndef_write(net_nfc_target_handle_s *handle,
+		ndef_message_s *message,
 		net_nfc_client_ndef_write_completed callback,
 		void *user_data)
 {
@@ -347,8 +342,8 @@ API net_nfc_error_e net_nfc_client_ndef_write(net_nfc_target_handle_h handle,
 	return NET_NFC_OK;
 }
 
-API net_nfc_error_e net_nfc_client_ndef_write_sync(net_nfc_target_handle_h handle,
-		ndef_message_h message)
+API net_nfc_error_e net_nfc_client_ndef_write_sync(net_nfc_target_handle_s *handle,
+		ndef_message_s *message)
 {
 	net_nfc_error_e out_result = NET_NFC_OK;
 	GError *error = NULL;
@@ -391,7 +386,7 @@ API net_nfc_error_e net_nfc_client_ndef_write_sync(net_nfc_target_handle_h handl
 }
 
 API net_nfc_error_e net_nfc_client_ndef_make_read_only(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		net_nfc_client_ndef_make_read_only_completed callback,
 		void *user_data)
 {
@@ -436,7 +431,7 @@ API net_nfc_error_e net_nfc_client_ndef_make_read_only(
 }
 
 API net_nfc_error_e net_nfc_client_ndef_make_read_only_sync(
-		net_nfc_target_handle_h handle)
+		net_nfc_target_handle_s *handle)
 {
 	net_nfc_error_e out_result = NET_NFC_OK;
 	GError *error = NULL;
@@ -477,8 +472,8 @@ API net_nfc_error_e net_nfc_client_ndef_make_read_only_sync(
 	return out_result;
 }
 
-API net_nfc_error_e net_nfc_client_ndef_format(net_nfc_target_handle_h handle,
-		data_h key, net_nfc_client_ndef_format_completed callback, void *user_data)
+API net_nfc_error_e net_nfc_client_ndef_format(net_nfc_target_handle_s *handle,
+		data_s *key, net_nfc_client_ndef_format_completed callback, void *user_data)
 {
 	NetNfcCallback *func_data;
 	GVariant *arg_data;
@@ -522,7 +517,7 @@ API net_nfc_error_e net_nfc_client_ndef_format(net_nfc_target_handle_h handle,
 }
 
 API net_nfc_error_e net_nfc_client_ndef_format_sync(
-		net_nfc_target_handle_h handle, data_h key)
+		net_nfc_target_handle_s *handle, data_s *key)
 {
 	net_nfc_error_e out_result = NET_NFC_OK;
 	GVariant *arg_data;
@@ -538,9 +533,8 @@ API net_nfc_error_e net_nfc_client_ndef_format_sync(
 	}
 
 	/* prevent executing daemon when nfc is off */
-	if (net_nfc_client_manager_is_activated() == false) {
+	if (net_nfc_client_manager_is_activated() == false)
 		return NET_NFC_INVALID_STATE;
-	}
 
 	if (net_nfc_client_tag_is_connected() == FALSE)
 		return NET_NFC_NOT_CONNECTED;

@@ -138,7 +138,7 @@ static void tag_get_info_list(guint8 *buffer,
 	while (i < number_of_keys)
 	{
 		gchar *str = NULL;
-		data_h value = NULL;
+		data_s *value = NULL;
 
 		/* key */
 		length = *pos;	/* first values is length of key */
@@ -300,7 +300,7 @@ static void tag_get_current_tag_info(GObject *source_object,
 	}
 
 	if (out_result == NET_NFC_OK && out_is_connected == true) {
-		net_nfc_release_tag_info((net_nfc_target_info_h)client_target_info);
+		net_nfc_release_tag_info(client_target_info);
 		client_target_info = NULL;
 
 		if (tag_check_filter(out_dev_type) == true) {
@@ -341,7 +341,7 @@ static void tag_get_current_target_handle(GObject *source_object,
 {
 	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
 	net_nfc_error_e out_result = NET_NFC_OK;
-	net_nfc_target_handle_h out_handle = NULL;
+	net_nfc_target_handle_s *out_handle = NULL;
 	net_nfc_target_type_e out_dev_type = NET_NFC_UNKNOWN_TARGET;
 	gboolean out_is_connected = false;
 	GError *error = NULL;
@@ -394,7 +394,7 @@ static void tag_tag_discovered(NetNfcGDbusTag *object,
 {
 	NFC_INFO(">>> SIGNAL arrived");
 
-	net_nfc_release_tag_info((net_nfc_target_info_h)client_target_info);
+	net_nfc_release_tag_info(client_target_info);
 	client_target_info = NULL;
 
 	if (tag_check_filter(arg_dev_type) == FALSE) {
@@ -441,7 +441,7 @@ static void tag_tag_detached(NetNfcGDbusTag *object,
 		NFC_INFO("The detected target is filtered out, type [%d]", arg_dev_type);
 	}
 
-	net_nfc_release_tag_info((net_nfc_target_info_h)client_target_info);
+	net_nfc_release_tag_info(client_target_info);
 	client_target_info = NULL;
 }
 
@@ -584,7 +584,7 @@ API net_nfc_error_e net_nfc_client_tag_get_current_tag_info(
 #endif
 
 API net_nfc_error_e net_nfc_client_tag_get_current_tag_info_sync(
-		net_nfc_target_info_h *info)
+		net_nfc_target_info_s **info)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_target_type_e out_dev_type = NET_NFC_UNKNOWN_TARGET;
@@ -699,7 +699,7 @@ API net_nfc_error_e net_nfc_client_tag_get_current_target_handle(
 #endif
 
 API net_nfc_error_e net_nfc_client_tag_get_current_target_handle_sync(
-		net_nfc_target_handle_h *handle)
+		net_nfc_target_handle_s **handle)
 {
 	net_nfc_target_info_s *info;
 	net_nfc_error_e result;
@@ -810,8 +810,7 @@ net_nfc_error_e net_nfc_client_tag_init(void)
 
 	if (client_target_info)
 	{
-		net_nfc_release_tag_info(
-				(net_nfc_target_info_h)client_target_info);
+		net_nfc_release_tag_info(client_target_info);
 		client_target_info = NULL;
 	}
 
@@ -845,7 +844,7 @@ void net_nfc_client_tag_deinit(void)
 {
 	client_filter = NET_NFC_ALL_ENABLE;
 
-	net_nfc_release_tag_info((net_nfc_target_info_h)client_target_info);
+	net_nfc_release_tag_info(client_target_info);
 	client_target_info = NULL;
 
 	net_nfc_client_tag_unset_tag_discovered();

@@ -191,7 +191,7 @@ void net_nfc_server_p2p_detached(void)
 	}
 }
 
-void net_nfc_server_p2p_discovered(net_nfc_target_handle_h handle)
+void net_nfc_server_p2p_discovered(net_nfc_target_handle_s *handle)
 {
 	NFC_INFO("====== p2p target discovered ======");
 
@@ -206,7 +206,7 @@ void net_nfc_server_p2p_discovered(net_nfc_target_handle_h handle)
 			GPOINTER_TO_UINT(handle));
 }
 
-void net_nfc_server_p2p_received(data_h user_data)
+void net_nfc_server_p2p_received(data_s *user_data)
 {
 	GVariant *arg_data;
 

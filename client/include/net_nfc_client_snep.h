@@ -22,18 +22,18 @@ typedef void (*net_nfc_client_snep_event_cb)(
 		net_nfc_snep_handle_h target,
 		net_nfc_snep_type_t event,
 		net_nfc_error_e result,
-		ndef_message_h msg,
+		ndef_message_s *msg,
 		void *user_data);
 
 net_nfc_error_e net_nfc_client_snep_start_server(
-		net_nfc_target_handle_h target,
+		net_nfc_target_handle_s *target,
 		const char *san,
 		sap_t sap,
 		net_nfc_client_snep_event_cb callback,
 		void *user_data);
 
 net_nfc_error_e net_nfc_client_snep_start_client(
-		net_nfc_target_handle_h target,
+		net_nfc_target_handle_s *target,
 		const char *san,
 		sap_t sap,
 		net_nfc_client_snep_event_cb callback,
@@ -42,25 +42,25 @@ net_nfc_error_e net_nfc_client_snep_start_client(
 net_nfc_error_e net_nfc_client_snep_send_client_request(
 		net_nfc_snep_handle_h handle,
 		net_nfc_snep_type_t snep_type,
-		ndef_message_h msg,
+		ndef_message_s *msg,
 		net_nfc_client_snep_event_cb callback,
 		void *user_data);
 
 net_nfc_error_e net_nfc_client_snep_send_client_request_sync(
-		net_nfc_target_handle_h target,
+		net_nfc_target_handle_s *target,
 		net_nfc_snep_type_t snep_type,
-		ndef_message_h msg,
+		ndef_message_s *msg,
 		net_nfc_snep_type_t *resp_type,
-		ndef_message_h *response);
+		ndef_message_s **response);
 
 net_nfc_error_e net_nfc_client_snep_stop_service(
-		net_nfc_target_handle_h target,
+		net_nfc_target_handle_s *target,
 		net_nfc_snep_handle_h service,
 		net_nfc_client_snep_event_cb callback,
 		void *user_data);
 
 net_nfc_error_e net_nfc_client_snep_stop_service_sync(
-		net_nfc_target_handle_h target, net_nfc_snep_handle_h service);
+		net_nfc_target_handle_s *target, net_nfc_snep_handle_h service);
 
 net_nfc_error_e net_nfc_client_snep_register_server(const char *san, sap_t sap,
 		net_nfc_client_snep_event_cb callback, void *user_data);

@@ -22,7 +22,7 @@
 #include "net_nfc_data.h"
 
 
-void print_received_data(data_h data);
+void print_received_data(data_s *data);
 
 
 #endif

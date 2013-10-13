@@ -23,12 +23,12 @@ typedef void (*net_nfc_client_tag_is_tag_connected_completed)(
 		net_nfc_error_e result, net_nfc_target_type_e dev_type, void *user_data);
 
 typedef void (*net_nfc_client_tag_get_current_tag_info_completed)(
-		net_nfc_error_e result, net_nfc_target_info_h info, void *user_data);
+		net_nfc_error_e result, net_nfc_target_info_s *info, void *user_data);
 
 typedef void (*net_nfc_client_tag_get_current_target_handle_completed)(
-		net_nfc_error_e result, net_nfc_target_handle_h handle, void *user_data);
+		net_nfc_error_e result, net_nfc_target_handle_s *handle, void *user_data);
 #endif
-typedef void (*net_nfc_client_tag_tag_discovered)(net_nfc_target_info_h info,
+typedef void (*net_nfc_client_tag_tag_discovered)(net_nfc_target_info_s *info,
 		void *user_data);
 
 typedef void (*net_nfc_client_tag_tag_detached)(void *user_data);
@@ -47,10 +47,10 @@ net_nfc_error_e net_nfc_client_tag_is_tag_connected_sync(
 		net_nfc_target_type_e *dev_type);
 
 net_nfc_error_e net_nfc_client_tag_get_current_tag_info_sync(
-		net_nfc_target_info_h *info);
+		net_nfc_target_info_s **info);
 
 net_nfc_error_e net_nfc_client_tag_get_current_target_handle_sync(
-		net_nfc_target_handle_h *handle);
+		net_nfc_target_handle_s **handle);
 
 void net_nfc_client_tag_set_tag_discovered(
 		net_nfc_client_tag_tag_discovered callback, void *user_data);

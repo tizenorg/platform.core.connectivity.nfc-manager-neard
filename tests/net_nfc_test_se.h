@@ -20,51 +20,51 @@
 
 
 void net_nfc_test_se_send_apdu(gpointer data,
-				gpointer user_data );
+		gpointer user_data );
 
 void net_nfc_test_se_send_apdu_sync(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_se_set_secure_element_type(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_se_set_secure_element_type_sync(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_se_open_internal_secure_element(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_se_open_internal_secure_element_sync(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_se_close_internal_secure_element(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_se_close_internal_secure_element_sync(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_se_get_atr(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_se_get_atr_sync(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_se_set_event_cb(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_se_unset_event_cb(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_se_set_ese_detection_cb(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_se_unset_ese_detection_cb(gpointer data,
-					gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_se_set_transaction_event_cb(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_se_unset_transaction_event_cb(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 #endif

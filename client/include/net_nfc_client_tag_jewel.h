@@ -46,7 +46,7 @@
 
 */
 
-net_nfc_error_e net_nfc_client_jewel_read_id(net_nfc_target_handle_h handle,
+net_nfc_error_e net_nfc_client_jewel_read_id(net_nfc_target_handle_s *handle,
 		nfc_transceive_data_callback callback, void *user_data);
 
 /**
@@ -74,7 +74,7 @@ net_nfc_error_e net_nfc_client_jewel_read_id(net_nfc_target_handle_h handle,
 
 */
 
-net_nfc_error_e net_nfc_client_jewel_read_byte(net_nfc_target_handle_h handle,
+net_nfc_error_e net_nfc_client_jewel_read_byte(net_nfc_target_handle_s *handle,
 		uint8_t block, uint8_t byte, nfc_transceive_data_callback callback, void *user_data);
 
 /**
@@ -101,7 +101,7 @@ net_nfc_error_e net_nfc_client_jewel_read_byte(net_nfc_target_handle_h handle,
 */
 
 
-net_nfc_error_e net_nfc_client_jewel_read_all(net_nfc_target_handle_h handle,
+net_nfc_error_e net_nfc_client_jewel_read_all(net_nfc_target_handle_s *handle,
 		nfc_transceive_data_callback callback, void *user_data);
 
 
@@ -133,7 +133,7 @@ net_nfc_error_e net_nfc_client_jewel_read_all(net_nfc_target_handle_h handle,
 */
 
 net_nfc_error_e net_nfc_client_jewel_write_with_erase(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		uint8_t block,
 		uint8_t byte,
 		uint8_t data,
@@ -173,7 +173,7 @@ net_nfc_error_e net_nfc_client_jewel_write_with_erase(
 */
 
 net_nfc_error_e net_nfc_client_jewel_write_with_no_erase(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		uint8_t block,
 		uint8_t byte,
 		uint8_t data,
@@ -181,7 +181,7 @@ net_nfc_error_e net_nfc_client_jewel_write_with_no_erase(
 		void *user_data);
 
 /**
-@}
-*/
+  @}
+  */
 
 #endif //__NET_NFC_CLIENT_TAG_JEWEL_H__

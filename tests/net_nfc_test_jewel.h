@@ -21,18 +21,18 @@
 
 
 void net_nfc_test_tag_jewel_read_id(gpointer data,
-					gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_tag_jewel_read_byte(gpointer data,
-					gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_tag_jewel_read_all(gpointer data,
-					gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_tag_jewel_write_with_erase(gpointer data,
-					gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_tag_jewel_write_with_no_erase(gpointer data,
-					gpointer user_data);
+		gpointer user_data);
 
 #endif //__NET_NFC_TEST_JEWEL_TAG_H__

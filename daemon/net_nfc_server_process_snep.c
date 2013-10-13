@@ -51,20 +51,6 @@ typedef struct _net_nfc_server_cb_data_t
 }
 net_nfc_server_cb_data_t;
 
-typedef struct _net_nfc_server_snep_context_t
-{
-	net_nfc_target_handle_s *handle;
-	net_nfc_error_e result;
-	net_nfc_llcp_socket_t socket;
-	uint32_t state;
-	uint32_t type;
-	data_s data;
-	net_nfc_server_snep_cb cb;
-	void *user_param;
-	GQueue queue;
-}
-net_nfc_server_snep_context_t;
-
 typedef struct _net_nfc_server_snep_job_t
 {
 	net_nfc_server_snep_context_t *context;
@@ -76,17 +62,14 @@ typedef struct _net_nfc_server_snep_job_t
 	data_s data;
 	net_nfc_server_snep_cb cb;
 	void *user_param;
-}
-net_nfc_server_snep_job_t;
-
+}net_nfc_server_snep_job_t;
 
 typedef struct __net_nfc_server_snep_server_context_t
 {
 	net_nfc_target_handle_s *handle;
 	int client;
 	void *user_param;
-}
-_net_nfc_server_snep_server_context_t;
+}_net_nfc_server_snep_server_context_t;
 
 typedef struct __net_nfc_server_snep_service_context_t
 {
@@ -95,8 +78,7 @@ typedef struct __net_nfc_server_snep_service_context_t
 	uint32_t type;
 	data_s data;
 	void *user_param;
-}
-_net_nfc_server_snep_service_context_t;
+}_net_nfc_server_snep_service_context_t;
 
 typedef void (*_net_nfc_server_snep_operation_cb)(
 		net_nfc_error_e result,
@@ -1390,37 +1372,35 @@ ERROR :
 }
 
 net_nfc_error_e net_nfc_server_snep_server_send_get_response(
-		net_nfc_snep_handle_h snep_handle, data_s *data)
+		net_nfc_server_snep_context_t *snep_handle, data_s *data)
 {
-	net_nfc_server_snep_context_t *context =
-		(net_nfc_server_snep_context_t *)snep_handle;
 	net_nfc_error_e result = NET_NFC_OK;
 
-	if (context == NULL/* && check valid handle */)
+	if (snep_handle == NULL/* && check valid handle */)
 	{
 		NFC_ERR("invalid handle");
 		return NET_NFC_INVALID_PARAM;
 	}
 
-	if (net_nfc_server_target_connected(context->handle) == false) {
+	if (net_nfc_server_target_connected(snep_handle->handle) == false) {
 		return NET_NFC_NOT_CONNECTED;
 	}
 
-	NFC_DBG("send get response, socket [%x]", context->socket);
+	NFC_DBG("send get response, socket [%x]", snep_handle->socket);
 
 	/* check correct status */
-	if (context->type == SNEP_REQ_GET)
+	if (snep_handle->type == SNEP_REQ_GET)
 	{
-		if (context->data.buffer != NULL)
-			net_nfc_util_free_data(&context->data);
+		if (snep_handle->data.buffer != NULL)
+			net_nfc_util_free_data(&snep_handle->data);
 
 		if (data != NULL)
 		{
-			context->type = SNEP_RESP_SUCCESS;
+			snep_handle->type = SNEP_RESP_SUCCESS;
 
-			if (net_nfc_util_alloc_data(&context->data, data->length) == true)
+			if (net_nfc_util_alloc_data(&snep_handle->data, data->length) == true)
 			{
-				memcpy(context->data.buffer, data->buffer,
+				memcpy(snep_handle->data.buffer, data->buffer,
 						data->length);
 			}
 			else
@@ -1432,10 +1412,10 @@ net_nfc_error_e net_nfc_server_snep_server_send_get_response(
 		else
 		{
 			/* not found */
-			context->type = SNEP_RESP_NOT_FOUND;
+			snep_handle->type = SNEP_RESP_NOT_FOUND;
 		}
 
-		_net_nfc_server_snep_server_process(context);
+		_net_nfc_server_snep_server_process(snep_handle);
 	}
 	else
 	{
@@ -1733,19 +1713,22 @@ ERROR :
 }
 
 
-net_nfc_error_e net_nfc_server_snep_client_request(net_nfc_snep_handle_h snep,
-		uint8_t type, data_s *data, net_nfc_server_snep_cb cb, void *user_param)
+net_nfc_error_e net_nfc_server_snep_client_request(
+		net_nfc_server_snep_context_t *snep,
+		uint8_t type,
+		data_s *data,
+		net_nfc_server_snep_cb cb,
+		void *user_param)
 {
-	net_nfc_server_snep_context_t *context = (net_nfc_server_snep_context_t *)snep;
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_server_snep_job_t *job;
 
-	if (context == NULL || data == NULL || data->buffer == NULL)
+	if (snep == NULL || data == NULL || data->buffer == NULL)
 	{
 		return NET_NFC_NULL_PARAMETER;
 	}
 
-	if (net_nfc_server_target_connected(context->handle) == false) {
+	if (net_nfc_server_target_connected(snep->handle) == false) {
 		return NET_NFC_NOT_CONNECTED;
 	}
 
@@ -1762,23 +1745,23 @@ net_nfc_error_e net_nfc_server_snep_client_request(net_nfc_snep_handle_h snep,
 		job->cb = cb;
 		job->user_param = user_param;
 
-		job->context = context;
-		job->handle = context->handle;
-		job->socket = context->socket;
+		job->context = snep;
+		job->handle = snep->handle;
+		job->socket = snep->socket;
 
-		g_queue_push_tail(&context->queue, job);
+		g_queue_push_tail(&snep->queue, job);
 	}
 	else
 	{
 		return NET_NFC_ALLOC_FAIL;
 	}
 
-	NFC_INFO("enqueued jobs [%d]", g_queue_get_length(&context->queue));
+	NFC_INFO("enqueued jobs [%d]", g_queue_get_length(&snep->queue));
 
 	/* if client is idle, starts sending request */
-	if (context->state == NET_NFC_LLCP_IDLE)
+	if (snep->state == NET_NFC_LLCP_IDLE)
 	{
-		_net_nfc_server_snep_client_do_job(context);
+		_net_nfc_server_snep_client_do_job(snep);
 	} else {
 		NFC_INFO("client is working. this job will be enqueued");
 	}
@@ -1998,23 +1981,21 @@ net_nfc_error_e net_nfc_server_snep_default_server_unregister_get_response_cb(
 }
 
 net_nfc_error_e net_nfc_server_snep_default_server_send_get_response(
-		net_nfc_snep_handle_h snep_handle, data_s *data)
+		net_nfc_server_snep_context_t *snep, data_s *data)
 {
-	net_nfc_server_snep_context_t *context =
-		(net_nfc_server_snep_context_t *)snep_handle;
 	net_nfc_error_e result = NET_NFC_OK;
 
-	if (context == NULL/* && check valid handle */)
+	if (snep == NULL/* && check valid handle */)
 	{
 		NFC_ERR("invalid handle");
 		return NET_NFC_INVALID_PARAM;
 	}
 
 	/* check correct status */
-	if (context->type == SNEP_REQ_GET &&
-			context->state == NET_NFC_LLCP_STEP_03)
+	if (snep->type == SNEP_REQ_GET &&
+			snep->state == NET_NFC_LLCP_STEP_03)
 	{
-		net_nfc_server_snep_server_send_get_response(snep_handle, data);
+		net_nfc_server_snep_server_send_get_response(snep, data);
 	}
 	else
 	{

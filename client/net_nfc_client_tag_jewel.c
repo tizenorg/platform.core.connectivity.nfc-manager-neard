@@ -35,7 +35,7 @@
 #define JEWEL_CMD_WRITE_NE 0x1A
 #define JEWEL_TAG_KEY	"UID"
 
-API net_nfc_error_e net_nfc_client_jewel_read_id(net_nfc_target_handle_h handle,
+API net_nfc_error_e net_nfc_client_jewel_read_id(net_nfc_target_handle_s *handle,
 		nfc_transceive_data_callback callback, void *user_data)
 {
 	net_nfc_target_info_s *target_info = NULL;
@@ -69,20 +69,17 @@ API net_nfc_error_e net_nfc_client_jewel_read_id(net_nfc_target_handle_h handle,
 	rawdata.buffer = send_buffer;
 	rawdata.length = 9;
 
-	return net_nfc_client_transceive_data(handle,
-			(data_h)&rawdata,
-			callback,
-			user_data);
+	return net_nfc_client_transceive_data(handle, &rawdata, callback, user_data);
 }
 
-API net_nfc_error_e net_nfc_client_jewel_read_byte(net_nfc_target_handle_h handle,
+API net_nfc_error_e net_nfc_client_jewel_read_byte(net_nfc_target_handle_s *handle,
 		uint8_t block, uint8_t byte, nfc_transceive_data_callback callback, void *user_data)
 {
 	net_nfc_target_info_s *target_info = NULL;
 
 	data_s rawdata;
 
-	data_h UID = NULL;
+	data_s *UID = NULL;
 
 	uint8_t send_buffer[9] = {0x00, };
 
@@ -105,15 +102,12 @@ API net_nfc_error_e net_nfc_client_jewel_read_byte(net_nfc_target_handle_h handl
 		return NET_NFC_NOT_ALLOWED_OPERATION;
 	}
 
-	if(net_nfc_get_tag_info_value((net_nfc_target_info_h)target_info,
-				JEWEL_TAG_KEY,
-				&UID) != NET_NFC_OK)
+	if(net_nfc_get_tag_info_value(target_info, JEWEL_TAG_KEY, &UID) != NET_NFC_OK)
 	{
 		return NET_NFC_NO_DATA_FOUND;
 	}
 
-
-	if(((data_s*)UID)->length != 4)
+	if(UID->length != 4)
 		return NET_NFC_OUT_OF_BOUND;
 
 	/* command */
@@ -126,9 +120,7 @@ API net_nfc_error_e net_nfc_client_jewel_read_byte(net_nfc_target_handle_h handl
 	send_buffer[2] = 0x00;
 
 	/* UID0 ~ 3 */
-	memcpy(&(send_buffer[3]),
-			((data_s*)UID)->buffer,
-			((data_s*)UID)->length);
+	memcpy(&(send_buffer[3]), UID->buffer, UID->length);
 
 	net_nfc_util_compute_CRC(CRC_B, send_buffer, 9);
 
@@ -137,20 +129,17 @@ API net_nfc_error_e net_nfc_client_jewel_read_byte(net_nfc_target_handle_h handl
 	rawdata.buffer = send_buffer;
 	rawdata.length = 9;
 
-	return net_nfc_client_transceive_data(handle,
-			(data_h)&rawdata,
-			callback,
-			user_data);
+	return net_nfc_client_transceive_data(handle, &rawdata, callback, user_data);
 }
 
-API net_nfc_error_e net_nfc_client_jewel_read_all(net_nfc_target_handle_h handle,
+API net_nfc_error_e net_nfc_client_jewel_read_all(net_nfc_target_handle_s *handle,
 		nfc_transceive_data_callback callback, void *user_data)
 {
 	net_nfc_target_info_s *target_info = NULL;
 
 	data_s rawdata;
 
-	data_h UID = NULL;
+	data_s *UID = NULL;
 
 	uint8_t send_buffer[9] = {0x00, };
 
@@ -170,14 +159,12 @@ API net_nfc_error_e net_nfc_client_jewel_read_all(net_nfc_target_handle_h handle
 		return NET_NFC_NOT_ALLOWED_OPERATION;
 	}
 
-	if(net_nfc_get_tag_info_value((net_nfc_target_info_h)target_info,
-				JEWEL_TAG_KEY,
-				&UID) != NET_NFC_OK)
+	if(net_nfc_get_tag_info_value(target_info, JEWEL_TAG_KEY, &UID) != NET_NFC_OK)
 	{
 		return NET_NFC_NO_DATA_FOUND;
 	}
 
-	if(((data_s*)UID)->length != 4)
+	if(UID->length != 4)
 		return NET_NFC_OUT_OF_BOUND;
 
 	/* command */
@@ -190,9 +177,7 @@ API net_nfc_error_e net_nfc_client_jewel_read_all(net_nfc_target_handle_h handle
 	send_buffer[2] = 0x00;
 
 	/* UID0 ~ 3 */
-	memcpy(&(send_buffer[3]),
-			((data_s*)UID)->buffer,
-			((data_s*)UID)->length);
+	memcpy(&(send_buffer[3]), UID->buffer, UID->length);
 
 	net_nfc_util_compute_CRC(CRC_B, send_buffer, 9);
 
@@ -201,14 +186,11 @@ API net_nfc_error_e net_nfc_client_jewel_read_all(net_nfc_target_handle_h handle
 	rawdata.buffer = send_buffer;
 	rawdata.length = 9;
 
-	return net_nfc_client_transceive_data(handle,
-			(data_h)&rawdata,
-			callback,
-			user_data);
+	return net_nfc_client_transceive_data(handle, &rawdata, callback, user_data);
 }
 
 API net_nfc_error_e net_nfc_client_jewel_write_with_erase(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		uint8_t block,
 		uint8_t byte,
 		uint8_t data,
@@ -217,7 +199,7 @@ API net_nfc_error_e net_nfc_client_jewel_write_with_erase(
 {
 	net_nfc_target_info_s *target_info = NULL;
 	data_s rawdata;
-	data_h UID = NULL;
+	data_s *UID = NULL;
 	uint8_t send_buffer[9] = {0x00, };
 
 	if(handle == NULL)
@@ -234,14 +216,12 @@ API net_nfc_error_e net_nfc_client_jewel_write_with_erase(
 	if (target_info == NULL)
 		return NET_NFC_NO_DATA_FOUND;
 
-	if(net_nfc_get_tag_info_value((net_nfc_target_info_h)target_info,
-				JEWEL_TAG_KEY,
-				&UID) != NET_NFC_OK)
+	if(net_nfc_get_tag_info_value(target_info, JEWEL_TAG_KEY, &UID) != NET_NFC_OK)
 	{
 		return NET_NFC_NO_DATA_FOUND;
 	}
 
-	if(((data_s*)UID)->length != 4)
+	if(UID->length != 4)
 		return NET_NFC_OUT_OF_BOUND;
 
 	/* command */
@@ -254,9 +234,7 @@ API net_nfc_error_e net_nfc_client_jewel_write_with_erase(
 	send_buffer[2] = data;
 
 	/* UID0 ~ 3 */
-	memcpy(&(send_buffer[3]),
-			((data_s*)UID)->buffer,
-			((data_s*)UID)->length);
+	memcpy(&(send_buffer[3]), UID->buffer, UID->length);
 
 	net_nfc_util_compute_CRC(CRC_B, send_buffer, 9);
 
@@ -265,15 +243,11 @@ API net_nfc_error_e net_nfc_client_jewel_write_with_erase(
 	rawdata.buffer = send_buffer;
 	rawdata.length = 9;
 
-	return net_nfc_client_transceive(handle,
-			(data_h)&rawdata,
-			callback,
-			user_data);
-
+	return net_nfc_client_transceive(handle, &rawdata, callback, user_data);
 }
 
 API net_nfc_error_e net_nfc_client_jewel_write_with_no_erase(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		uint8_t block,
 		uint8_t byte,
 		uint8_t data,
@@ -284,7 +258,7 @@ API net_nfc_error_e net_nfc_client_jewel_write_with_no_erase(
 
 	data_s rawdata;
 
-	data_h UID = NULL;
+	data_s *UID = NULL;
 
 	uint8_t send_buffer[9] = {0x00, };
 
@@ -307,14 +281,12 @@ API net_nfc_error_e net_nfc_client_jewel_write_with_no_erase(
 		return NET_NFC_NOT_ALLOWED_OPERATION;
 	}
 
-	if(net_nfc_get_tag_info_value((net_nfc_target_info_h)target_info,
-				JEWEL_TAG_KEY,
-				&UID) != NET_NFC_OK)
+	if(net_nfc_get_tag_info_value(target_info, JEWEL_TAG_KEY, &UID) != NET_NFC_OK)
 	{
 		return NET_NFC_NO_DATA_FOUND;
 	}
 
-	if(((data_s*)UID)->length != 4)
+	if(UID->length != 4)
 		return NET_NFC_OUT_OF_BOUND;
 
 	/* command */
@@ -327,9 +299,7 @@ API net_nfc_error_e net_nfc_client_jewel_write_with_no_erase(
 	send_buffer[2] = data;
 
 	/* UID0 ~ 3 */
-	memcpy(&(send_buffer[3]),
-			((data_s*)UID)->buffer,
-			((data_s*)UID)->length);
+	memcpy(&(send_buffer[3]), UID->buffer, UID->length);
 
 	net_nfc_util_compute_CRC(CRC_B, send_buffer, 9);
 
@@ -338,8 +308,5 @@ API net_nfc_error_e net_nfc_client_jewel_write_with_no_erase(
 	rawdata.buffer = send_buffer;
 	rawdata.length = 9;
 
-	return net_nfc_client_transceive(handle,
-			(data_h)&rawdata,
-			callback,
-			user_data);
+	return net_nfc_client_transceive(handle, &rawdata, callback, user_data);
 }

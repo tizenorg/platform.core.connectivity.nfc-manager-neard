@@ -95,7 +95,7 @@ static int read_count = 0;
 static int write_count = 0;
 static int detect_count = 0;
 
-static net_nfc_target_handle_h tag_handle = NULL;
+static net_nfc_target_handle_s *tag_handle = NULL;
 static int test_count = 0;
 
 
@@ -231,9 +231,9 @@ static void net_nfc_test_reader_cb(net_nfc_message_e message,
 	{
 		case NET_NFC_MESSAGE_TAG_DISCOVERED:{
 			net_nfc_target_type_e type;
-			net_nfc_target_handle_h id;
+			net_nfc_target_handle_s *id;
 			bool is_ndef;
-			net_nfc_target_info_h target_info = (net_nfc_target_info_h)data;
+			net_nfc_target_info_s *target_info = (net_nfc_target_info_s*)data;
 
 			net_nfc_get_tag_type (target_info, &type);
 			net_nfc_get_tag_handle(target_info, &id);
@@ -258,8 +258,8 @@ static void net_nfc_test_reader_cb(net_nfc_message_e message,
 		}
 		case NET_NFC_MESSAGE_READ_NDEF:{
 			if(data != NULL){
-				ndef_message_h ndef = (ndef_message_h)(data);
-				data_h rawdata;
+				ndef_message_s *ndef = (ndef_message_s*)data;
+				data_s *rawdata;
 				net_nfc_create_rawdata_from_ndef_message (ndef ,&rawdata);
 				PRINT_INFO("read ndef message is ok, length is [%d]", net_nfc_get_data_length(rawdata));
 				net_nfc_free_data(rawdata);
@@ -295,9 +295,9 @@ static void net_nfc_test_format_cb(net_nfc_message_e message, net_nfc_error_e re
 			PRINT_INFO("NET_NFC_MESSAGE_TAG_DISCOVERED");
 
 			net_nfc_target_type_e type;
-			net_nfc_target_handle_h id;
+			net_nfc_target_handle_s *id;
 			bool is_ndef;
-			net_nfc_target_info_h target_info = (net_nfc_target_info_h)data;
+			net_nfc_target_info_s *target_info = (net_nfc_target_info_s*)data;
 
 			net_nfc_get_tag_type (target_info, &type);
 			net_nfc_get_tag_handle(target_info, &id);
@@ -306,7 +306,7 @@ static void net_nfc_test_format_cb(net_nfc_message_e message, net_nfc_error_e re
 			PRINT_INFO("target id: %X\n", (unsigned int)id);
 			PRINT_INFO("Is NDEF supoort: %d\n", is_ndef);
 
-			data_h ndef_key = NULL;
+			data_s *ndef_key = NULL;
 			net_nfc_mifare_create_net_nfc_forum_key(&ndef_key);
 			net_nfc_format_ndef(id, ndef_key, NULL);
 			net_nfc_free_data(ndef_key);
@@ -350,10 +350,10 @@ static void net_nfc_test_se_cb(net_nfc_message_e message, net_nfc_error_e result
 		case NET_NFC_MESSAGE_OPEN_INTERNAL_SE :
 		{
 			PRINT_INFO("NET_NFC_MESSAGE_OPEN_INTERNAL_SE result = [%d] and handle = [0x%x]", result, (unsigned int)data);
-			data_h apdu = NULL;
+			data_s *apdu = NULL;
 			uint8_t apdu_cmd[4] = {0x00, 0xA4, 0x00, 0x0C} ; // CLA 0-> use default channel and no secure message. 0xA4 -> select instruction
 			net_nfc_create_data(&apdu, apdu_cmd, 4);
-			net_nfc_send_apdu((net_nfc_target_handle_h)(data), apdu, data);
+			net_nfc_send_apdu((net_nfc_target_handle_s*)data, apdu, data);
 			net_nfc_free_data(apdu);
 
 		}
@@ -375,7 +375,7 @@ static void net_nfc_test_se_cb(net_nfc_message_e message, net_nfc_error_e result
 				}printf ("\n");
 			}
 
-			net_nfc_close_internal_secure_element((net_nfc_target_handle_h)trans_data, NULL);
+			net_nfc_close_internal_secure_element((net_nfc_target_handle_s*)trans_data, NULL);
 		}
 		break;
 		case NET_NFC_MESSAGE_CLOSE_INTERNAL_SE :
@@ -399,11 +399,11 @@ static void net_nfc_test_static_handover_cb(net_nfc_message_e message, net_nfc_e
 	{
 		case NET_NFC_MESSAGE_TAG_DISCOVERED:{
 			net_nfc_target_type_e type;
-			net_nfc_target_handle_h id;
+			net_nfc_target_handle_s *id;
 			bool is_ndef;
-			net_nfc_target_info_h target_info = (net_nfc_target_info_h)data;
-			net_nfc_carrier_config_h config;
-			ndef_record_h record;
+			net_nfc_target_info_s *target_info = (net_nfc_target_info_s*)data;
+			net_nfc_carrier_config_s *config;
+			ndef_record_s *record;
 
 			net_nfc_get_tag_type (target_info, &type);
 			net_nfc_get_tag_handle(target_info, &id);
@@ -414,8 +414,8 @@ static void net_nfc_test_static_handover_cb(net_nfc_message_e message, net_nfc_e
 
 			if (is_ndef){
 
-				ndef_message_h ndef = NULL;
-				data_h bt_config = NULL;
+				ndef_message_s *ndef = NULL;
+				data_s *bt_config = NULL;
 				net_nfc_create_data_only(&bt_config);
 
 				// 2byte :: OOB length, 6byte :: bt addr
@@ -484,7 +484,7 @@ int nfcConnHandover(uint8_t testNumber,void* arg_ptr2)
 #else
 
 /*
-	ndef_message_h ndef = NULL;
+	ndef_message_s *ndef = NULL;
 
 	if(net_nfc_retrieve_current_ndef_message(&ndef) == NET_NFC_OK){
 		PRINT_INFO("retrieve is ok");
@@ -494,8 +494,8 @@ int nfcConnHandover(uint8_t testNumber,void* arg_ptr2)
 		return NET_NFC_TEST_FAIL;
 	}
 */
-	ndef_message_h ndef = NULL;
-	data_h bt_config = NULL;
+	ndef_message_s *ndef = NULL;
+	data_s *bt_config = NULL;
 	net_nfc_create_data_only(&bt_config);
 
 	// 2byte :: OOB length, 6byte :: bt addr
@@ -529,7 +529,7 @@ int nfcConnHandover(uint8_t testNumber,void* arg_ptr2)
 			PRINT_INFO("get random_number is failed = [%d]", result);
 		}
 
-		data_h record_type = NULL;
+		data_s *record_type = NULL;
 		net_nfc_get_connection_handover_record_type(handover_info, &record_type);
 		PRINT_INFO("record type = [%c] [%c]", (net_nfc_get_data_buffer(record_type))[0], (net_nfc_get_data_buffer(record_type))[1]);
 
@@ -559,7 +559,7 @@ int nfcConnHandover(uint8_t testNumber,void* arg_ptr2)
 					PRINT_INFO("carrier is unknown");
 				}
 
-				data_h id = NULL;
+				data_s *id = NULL;
 				net_nfc_get_carrier_id(carrier_info, &id);
 
 				PRINT_INFO("id = [0x%x]", (net_nfc_get_data_buffer(id))[0]);
@@ -569,7 +569,7 @@ int nfcConnHandover(uint8_t testNumber,void* arg_ptr2)
 
 				PRINT_INFO("cps is = [0x%x]", carrier_state);
 
-				data_h config = NULL;
+				data_s *config = NULL;
 				if((result = net_nfc_get_carrier_configuration(carrier_info, &config)) == NET_NFC_OK)
 				{
 					PRINT_INFO("good to get config");
@@ -732,9 +732,9 @@ static void net_nfc_test_write_cb(net_nfc_message_e message, net_nfc_error_e res
 	{
 		case NET_NFC_MESSAGE_TAG_DISCOVERED:{
 			net_nfc_target_type_e type;
-			net_nfc_target_handle_h handle;
+			net_nfc_target_handle_s *handle;
 			bool is_ndef;
-			net_nfc_target_info_h target_info = (net_nfc_target_info_h)data;
+			net_nfc_target_info_s *target_info = (net_nfc_target_info_s*)data;
 
 			net_nfc_get_tag_type (target_info, &type);
 			net_nfc_get_tag_handle (target_info, &handle);
@@ -748,8 +748,8 @@ static void net_nfc_test_write_cb(net_nfc_message_e message, net_nfc_error_e res
 			if (is_ndef){
 
 				net_nfc_error_e error = NET_NFC_OK;
-				ndef_message_h msg = NULL;
-				ndef_record_h record = NULL;
+				ndef_message_s *msg = NULL;
+				ndef_record_s *record = NULL;
 
 				if( (error = net_nfc_create_uri_type_record(&record, "http://www.samsung.com", NET_NFC_SCHEMA_FULL_URI)) == NET_NFC_OK)
 				{
@@ -837,8 +837,8 @@ static void net_nfc_test_write_cb(net_nfc_message_e message, net_nfc_error_e res
 			{
 
 				net_nfc_error_e error = NET_NFC_OK;
-				ndef_message_h msg = NULL;
-				ndef_record_h record = NULL;
+				ndef_message_s *msg = NULL;
+				ndef_record_s *record = NULL;
 
 				if( (error = net_nfc_create_text_type_record(&record, "This is real NFC", "en-US", NET_NFC_ENCODE_UTF_8)) == NET_NFC_OK)
 				{
@@ -968,9 +968,9 @@ static void net_nfc_test_transceive_cb(net_nfc_message_e message, net_nfc_error_
 	{
 		case NET_NFC_MESSAGE_TAG_DISCOVERED:{
 			net_nfc_target_type_e type;
-			net_nfc_target_handle_h id;
+			net_nfc_target_handle_s *id;
 			bool is_ndef;
-			net_nfc_target_info_h target_info = (net_nfc_target_info_h)data;
+			net_nfc_target_info_s *target_info = (net_nfc_target_info_s*)data;
 			net_nfc_error_e result = NET_NFC_OK;
 
 			net_nfc_get_tag_type (target_info, &type);
@@ -991,9 +991,9 @@ static void net_nfc_test_transceive_cb(net_nfc_message_e message, net_nfc_error_
 
 			else if(type >= NET_NFC_MIFARE_MINI_PICC && type <= NET_NFC_MIFARE_4K_PICC){
 
-				data_h mad_key = NULL;
-				data_h net_nfc_forum_key = NULL;
-				data_h default_key = NULL;
+				data_s *mad_key = NULL;
+				data_s *net_nfc_forum_key = NULL;
+				data_s *default_key = NULL;
 
 				net_nfc_mifare_create_application_directory_key(&mad_key);
 				net_nfc_mifare_create_net_nfc_forum_key(&net_nfc_forum_key);
@@ -1001,7 +1001,7 @@ static void net_nfc_test_transceive_cb(net_nfc_message_e message, net_nfc_error_
 
 				int sector = 1;
 
-				data_h key = NULL;
+				data_s *key = NULL;
 				test_count = 4;
 
 				if(sector == 0){
@@ -1044,7 +1044,7 @@ static void net_nfc_test_transceive_cb(net_nfc_message_e message, net_nfc_error_
 					}
 */
 /*
-					data_h write_block = NULL;
+					data_s *write_block = NULL;
 					uint8_t buffer[16] = {0x00,};
 					uint8_t* temp = buffer;
 
@@ -1109,7 +1109,7 @@ static void net_nfc_test_transceive_cb(net_nfc_message_e message, net_nfc_error_
 */
 
 /*
-					data_h write_block = NULL;
+					data_s *write_block = NULL;
 					uint8_t buffer[16] = {0x00, 0x00, 0x03, 0xE8, 0xFF, 0xFF, 0xFC, 0x18, 0x00, 0x00, 0x03, 0xE8, 0x05, 0xFB, 0x05, 0xFB};
 
 					net_nfc_create_data(&write_block, buffer, 16);
@@ -1224,7 +1224,7 @@ static void net_nfc_test_transceive_cb(net_nfc_message_e message, net_nfc_error_
 
 				if(test_count == 0){
 					int idx;
-					data_h r_data = (data_h) data;
+					data_s *r_data = (data_s*)data;
 
 					uint8_t * r_buffer = net_nfc_get_data_buffer (r_data);
 					uint32_t r_buffer_length = net_nfc_get_data_length (r_data);
@@ -1245,7 +1245,7 @@ static void net_nfc_test_transceive_cb(net_nfc_message_e message, net_nfc_error_
 				}
 				else if(test_count == 1){
 					int idx;
-					data_h r_data = (data_h) data;
+					data_s *r_data = (data_s*)data;
 
 					uint8_t * r_buffer = net_nfc_get_data_buffer (r_data);
 					uint32_t r_buffer_length = net_nfc_get_data_length (r_data);
@@ -1270,7 +1270,7 @@ static void net_nfc_test_transceive_cb(net_nfc_message_e message, net_nfc_error_
 				}
 				else if(test_count == 2){
 					int idx;
-					data_h r_data = (data_h) data;
+					data_s *r_data = (data_s*)data;
 
 					uint8_t * r_buffer = net_nfc_get_data_buffer (r_data);
 					uint32_t r_buffer_length = net_nfc_get_data_length (r_data);
@@ -1293,7 +1293,7 @@ static void net_nfc_test_transceive_cb(net_nfc_message_e message, net_nfc_error_
 				}
 				else if(test_count == 3){
 					int idx;
-					data_h r_data = (data_h) data;
+					data_s *r_data = (data_s*)data;
 
 					uint8_t * r_buffer = net_nfc_get_data_buffer (r_data);
 					uint32_t r_buffer_length = net_nfc_get_data_length (r_data);
@@ -1317,7 +1317,7 @@ static void net_nfc_test_transceive_cb(net_nfc_message_e message, net_nfc_error_
 				else if(test_count == 4){
 
 					int idx;
-					data_h r_data = (data_h) data;
+					data_s *r_data = (data_s*)data;
 
 					uint8_t * r_buffer = net_nfc_get_data_buffer (r_data);
 					uint32_t r_buffer_length = net_nfc_get_data_length (r_data);
@@ -1368,7 +1368,7 @@ static int number_of_read_completed = 0;
 
 static void* net_nfc_read_ndef_test(void* handle)
 {
-	net_nfc_target_handle_h target_handle = (net_nfc_target_handle_h)handle;
+	net_nfc_target_handle_s *target_handle = (net_nfc_target_handle_s*)handle;
 	int count = 0;
 
 	for (count = 0; count < REQUEST_PER_THREAD ; count ++)
@@ -1396,9 +1396,9 @@ static void net_nfc_test_multiple_request_cb(net_nfc_message_e message, net_nfc_
 		case NET_NFC_MESSAGE_TAG_DISCOVERED:
 		{
 			net_nfc_target_type_e type;
-			net_nfc_target_handle_h handle;
+			net_nfc_target_handle_s *handle;
 			bool is_ndef;
-			net_nfc_target_info_h target_info = (net_nfc_target_info_h)data;
+			net_nfc_target_info_s *target_info = (net_nfc_target_info_s*)data;
 
 			net_nfc_get_tag_type (target_info, &type);
 			net_nfc_get_tag_handle (target_info, &handle);
@@ -1433,7 +1433,7 @@ static void net_nfc_test_multiple_request_cb(net_nfc_message_e message, net_nfc_
 				PRINT_INFO("read ndef msg");
 				number_of_read_completed ++;
 
-				//ndef_message_h ndef = (ndef_message_h)(data);
+				//ndef_message_s *ndef = (ndef_message_s*)data;
 
 				////net_nfc_ndef_print_message(ndef);
 
@@ -1480,9 +1480,9 @@ static void net_nfc_test_detected_cb(net_nfc_message_e message, net_nfc_error_e 
 		case NET_NFC_MESSAGE_TAG_DISCOVERED:
 		{
 			net_nfc_target_type_e type;
-			net_nfc_target_handle_h id;
+			net_nfc_target_handle_s *id;
 			bool is_ndef;
-			net_nfc_target_info_h target_info = (net_nfc_target_info_h)data;
+			net_nfc_target_info_s *target_info = (net_nfc_target_info_s*)data;
 
 			net_nfc_get_tag_type (target_info, &type);
 			net_nfc_get_tag_handle (target_info, &id);
@@ -1503,7 +1503,7 @@ static void net_nfc_test_detected_cb(net_nfc_message_e message, net_nfc_error_e 
 				{
 					PRINT_INFO("key [%s]", keys[i]);
 
-					data_h value = NULL;
+					data_s *value = NULL;
 					if((error = net_nfc_get_tag_info_value(target_info, keys[i], &value)) == NET_NFC_OK)
 					{
 						int index = 0;
@@ -1580,7 +1580,7 @@ static void net_nfc_test_detected_cb(net_nfc_message_e message, net_nfc_error_e 
 
 static void* net_nfc_read_stress_ndef_test(void* handle)
 {
-	net_nfc_target_handle_h target_handle = (net_nfc_target_handle_h)handle;
+	net_nfc_target_handle_s *target_handle = (net_nfc_target_handle_s*)handle;
 	int count = 0;
 
 	for (count = 0; count < 200 ; count ++)
@@ -1608,9 +1608,9 @@ static void net_nfc_test_read_cb(net_nfc_message_e message, net_nfc_error_e resu
 		case NET_NFC_MESSAGE_TAG_DISCOVERED:
 		{
 			net_nfc_target_type_e type;
-			net_nfc_target_handle_h handle;
+			net_nfc_target_handle_s *handle;
 			bool is_ndef;
-			net_nfc_target_info_h target_info = (net_nfc_target_info_h)data;
+			net_nfc_target_info_s *target_info = (net_nfc_target_info_s*)data;
 
 			net_nfc_get_tag_type (target_info, &type);
 			net_nfc_get_tag_handle (target_info, &handle);
@@ -1646,7 +1646,7 @@ static void net_nfc_test_read_cb(net_nfc_message_e message, net_nfc_error_e resu
 		{
 			if(data != NULL){
 
-				//ndef_message_h ndef = (ndef_message_h)(data);
+				//ndef_message_s *ndef = (ndef_message_s*)data;
 
 				////net_nfc_ndef_print_message(ndef);
 
@@ -1705,9 +1705,9 @@ static void net_nfc_test_read_write_cb(net_nfc_message_e message, net_nfc_error_
 		case NET_NFC_MESSAGE_TAG_DISCOVERED:
 		{
 			net_nfc_target_type_e type;
-			net_nfc_target_handle_h handle;
+			net_nfc_target_handle_s *handle;
 			bool is_ndef;
-			net_nfc_target_info_h target_info = (net_nfc_target_info_h)data;
+			net_nfc_target_info_s *target_info = (net_nfc_target_info_s*)data;
 
 			net_nfc_get_tag_type (target_info, &type);
 			net_nfc_get_tag_handle (target_info, &handle);
@@ -1747,15 +1747,15 @@ static void net_nfc_test_read_write_cb(net_nfc_message_e message, net_nfc_error_
 			}
 			if(data != NULL){
 
-				//ndef_message_h ndef = (ndef_message_h)(data);
+				//ndef_message_s *ndef = (ndef_message_s*)data;
 
 				////net_nfc_ndef_print_message(ndef);
 
 				test_case_result = NET_NFC_TEST_OK;
 
 				net_nfc_error_e error = NET_NFC_OK;
-				ndef_message_h msg = NULL;
-				ndef_record_h record = NULL;
+				ndef_message_s *msg = NULL;
+				ndef_record_s *record = NULL;
 
 				if( (error = net_nfc_create_text_type_record(&record, "This is real NFC", "en-US", NET_NFC_ENCODE_UTF_8)) == NET_NFC_OK)
 				{
@@ -1998,7 +1998,7 @@ int nfcTestAPIBasicTest3(uint8_t testNumber,void* arg_ptr2)
 	//net_nfc_error_e result;
 	test_case_result = NET_NFC_TEST_FAIL;
 
-	ndef_message_h ndef_message = NULL;
+	ndef_message_s *ndef_message = NULL;
 
 	if(net_nfc_retrieve_current_ndef_message(&ndef_message) == NET_NFC_OK)
 	{
@@ -2008,7 +2008,7 @@ int nfcTestAPIBasicTest3(uint8_t testNumber,void* arg_ptr2)
 			int i = 0;
 			for(; i < count; i++)
 			{
-				ndef_record_h record = NULL;
+				ndef_record_s *record = NULL;
 				if(net_nfc_get_record_by_index(ndef_message, i, &record) == NET_NFC_OK)
 				{
 					net_nfc_record_tnf_e tnf;
@@ -2018,8 +2018,8 @@ int nfcTestAPIBasicTest3(uint8_t testNumber,void* arg_ptr2)
 						{
 							case NET_NFC_RECORD_WELL_KNOWN_TYPE:
 							{
-								data_h type = NULL;
-								data_h payload = NULL;
+								data_s *type = NULL;
+								data_s *payload = NULL;
 
 								if(net_nfc_get_record_type(record, &type) == NET_NFC_OK && net_nfc_get_record_payload(record, &payload) == NET_NFC_OK)
 								{
@@ -2194,14 +2194,14 @@ int nfcTestNdefParser(uint8_t testNumber,void* arg_ptr2)
 {
 	net_nfc_error_e result;
 
-	ndef_message_h uriMsg = NULL;
-	ndef_message_h spMsg = NULL;
-	ndef_record_h  uriRecord  = NULL;
-	ndef_record_h  spRecord = NULL;
-	data_h type_data = NULL;
-	data_h raw_data = NULL;
+	ndef_message_s *uriMsg = NULL;
+	ndef_message_s *spMsg = NULL;
+	ndef_record_s *uriRecord  = NULL;
+	ndef_record_s *spRecord = NULL;
+	data_s *type_data = NULL;
+	data_s *raw_data = NULL;
 	char smart_poster_type[] = "Sp";
-	ndef_record_h record = NULL;
+	ndef_record_s *record = NULL;
 	test_case_result = NET_NFC_TEST_OK;
 
 	result = net_nfc_create_ndef_message (&uriMsg);
@@ -2329,7 +2329,7 @@ static void net_nfc_client_socket_cb (net_nfc_llcp_message_e message, net_nfc_er
 		case NET_NFC_MESSAGE_LLCP_CONNECT:
 		{
 			PRINT_INFO ("LLCP connect is completed with error code %d", result);
-			data_h data;
+			data_s *data;
 			char * str = "Client message: Hello, server!";
 			net_nfc_create_data (&data, (const uint8_t*)str ,strlen (str) + 1);
 			net_nfc_send_llcp (client_socket, data, NULL);
@@ -2347,7 +2347,7 @@ static void net_nfc_client_socket_cb (net_nfc_llcp_message_e message, net_nfc_er
 
 		case NET_NFC_MESSAGE_LLCP_RECEIVE:
 			PRINT_INFO ("LLCP receive is completed with error code %d", result);
-			data_h received_data = (data_h) data;
+			data_s *received_data = (data_s*)data;
 			PRINT_INFO ("Server --> Client : %s" , net_nfc_get_data_buffer (received_data));
 
 			net_nfc_disconnect_llcp (client_socket ,NULL);
@@ -2402,10 +2402,10 @@ static void net_nfc_server_socket_cb (net_nfc_llcp_message_e message, net_nfc_er
 		case NET_NFC_MESSAGE_LLCP_RECEIVE:
 		{
 			PRINT_INFO ("LLCP receive is completed with error code %d", result);
-			data_h received_data = (data_h) data;
+			data_s *received_data = (data_s*)data;
 			PRINT_INFO ("Server <-- Client : %s" , net_nfc_get_data_buffer (received_data));
 
-			data_h data;
+			data_s *data;
 			char * str = "Server message: Welcome NFC llcp world!";
 			net_nfc_create_data (&data, (const uint8_t*)str ,strlen (str) + 1);
 			net_nfc_send_llcp (accepted_socket, data, NULL);
@@ -2431,7 +2431,7 @@ static void net_nfc_server_socket_cb (net_nfc_llcp_message_e message, net_nfc_er
 	}
 }
 
-net_nfc_target_handle_h snep_handle;
+net_nfc_target_handle_s *snep_handle;
 int temp_count;
 
 static void net_nfc_test_snep_cb(net_nfc_message_e message, net_nfc_error_e result, void* data, void* user_param, void * trans_data)
@@ -2442,8 +2442,8 @@ static void net_nfc_test_snep_cb(net_nfc_message_e message, net_nfc_error_e resu
 #if 0
 		case NET_NFC_MESSAGE_P2P_DISCOVERED:
 		{
-			snep_handle = (net_nfc_target_handle_h) data;
-			//= (net_nfc_target_handle_h) target_info->handle;
+			snep_handle = (net_nfc_target_handle_s*) data;
+			//= (net_nfc_target_handle_s*) target_info->handle;
 			/* Fill the data to send. */
 
 			if(NET_NFC_OK == net_nfc_create_exchanger_data(&snep_ex_data, nfcTestUri))
@@ -2482,7 +2482,7 @@ static void net_nfc_test_snep_cb(net_nfc_message_e message, net_nfc_error_e resu
 		case NET_NFC_MESSAGE_P2P_RECEIVE:
 		{
 //			int i;
-//			data_h received_data = (data_h)data;
+//			data_s *received_data = (data_s*)data;
 
 //			PRINT_INFO ("NET_NFC_MESSAGE_P2P_RECEIVE [%s]", net_nfc_get_data_buffer(received_data));
 //			PRINT_INFO ("	length [%d]", net_nfc_get_data_length(received_data));
@@ -2500,7 +2500,7 @@ static void net_nfc_test_llcp_cb(net_nfc_message_e message, net_nfc_error_e resu
 	switch (message) {
 		case NET_NFC_MESSAGE_LLCP_DISCOVERED:
 		{
-			net_nfc_llcp_config_info_h config =  (net_nfc_llcp_config_info_h) data;
+			net_nfc_llcp_config_info_s *config = (net_nfc_llcp_config_info_s*)data;
 			uint8_t lto, option;
 			uint16_t wks, miu;
 			net_nfc_get_llcp_configure_lto (config , &lto);
@@ -2553,7 +2553,7 @@ int nfcTestSnep(uint8_t testNumber,void* arg_ptr)
 int nfcTestLLCP(uint8_t testNumber,void* arg_ptr2)
 {
 	net_nfc_error_e result;
-	net_nfc_llcp_config_info_h config;
+	net_nfc_llcp_config_info_s *config;
 	result = net_nfc_client_initialize();
 	CHECK_RESULT(result);
 	net_nfc_state_activate ();
@@ -2597,7 +2597,7 @@ static void net_nfc_client_stress_socket_cb (net_nfc_llcp_message_e message, net
 		case NET_NFC_MESSAGE_LLCP_CONNECT:
 		{
 			PRINT_INFO ("LLCP connect is completed with error code %d", result);
-			data_h data;
+			data_s *data;
 			char * str = "Client message: Hello, server!";
 			net_nfc_create_data (&data, (const uint8_t*)str ,strlen (str) + 1);
 			net_nfc_send_llcp (client_socket, data, NULL);
@@ -2615,7 +2615,7 @@ static void net_nfc_client_stress_socket_cb (net_nfc_llcp_message_e message, net
 
 		case NET_NFC_MESSAGE_LLCP_RECEIVE:
 			PRINT_INFO ("LLCP receive is completed with error code %d", result);
-			data_h received_data = (data_h) data;
+			data_s *received_data = (data_s*)data;
 			PRINT_INFO ("Server --> Client : %s" , net_nfc_get_data_buffer (received_data));
 
 			net_nfc_disconnect_llcp (client_socket ,NULL);
@@ -2668,10 +2668,10 @@ static void net_nfc_server_stress_socket_cb (net_nfc_llcp_message_e message, net
 		case NET_NFC_MESSAGE_LLCP_RECEIVE:
 		{
 			PRINT_INFO ("LLCP receive is completed with error code %d", result);
-			data_h received_data = (data_h) data;
+			data_s *received_data = (data_s*)data;
 			PRINT_INFO ("Server <-- Client : %s" , net_nfc_get_data_buffer (received_data));
 
-			data_h data;
+			data_s *data;
 			char * str = "Server message: Welcome NFC llcp world!";
 			net_nfc_create_data (&data, (const uint8_t*)str ,strlen (str) + 1);
 			net_nfc_send_llcp (server_socket, data, NULL);
@@ -2703,7 +2703,7 @@ static void net_nfc_test_llcp_stress_cb(net_nfc_message_e message, net_nfc_error
 	switch (message) {
 		case NET_NFC_MESSAGE_LLCP_DISCOVERED:
 		{
-			net_nfc_llcp_config_info_h config =  (net_nfc_llcp_config_info_h) data;
+			net_nfc_llcp_config_info_s *config = (net_nfc_llcp_config_info_s*)data;
 			uint8_t lto, option;
 			uint16_t wks, miu;
 			net_nfc_get_llcp_configure_lto (config , &lto);
@@ -2743,8 +2743,8 @@ static void net_nfc_test_llcp_stress_cb(net_nfc_message_e message, net_nfc_error
 int nfcTestStressLLCP(uint8_t testNumber,void* arg_ptr2)
 {
 	net_nfc_error_e result;
-	net_nfc_llcp_config_info_h config;
-	result = net_nfc_initialize();
+	net_nfc_llcp_config_info_s *config;
+	result = net_nfc_client_initialize();
 	CHECK_RESULT(result);
 	net_nfc_state_activate ();
 	result = net_nfc_set_response_callback (net_nfc_test_llcp_stress_cb, NULL);
@@ -2759,7 +2759,7 @@ int nfcTestStressLLCP(uint8_t testNumber,void* arg_ptr2)
 
 	result = net_nfc_unset_response_callback ();
 	CHECK_RESULT(result);
-	result = net_nfc_deinitialize ();
+	result = net_nfc_client_deinitialize ();
 	CHECK_RESULT(result);
 */
 	net_nfc_free_llcp_configure(config);
@@ -2922,9 +2922,9 @@ static void net_nfc_test_API_exception_tagAPI(net_nfc_message_e message, net_nfc
 				case 0: // transceive
 				{
 					net_nfc_target_type_e type;
-					net_nfc_target_handle_h id;
+					net_nfc_target_handle_s *id;
 					bool is_ndef;
-					net_nfc_target_info_h target_info = (net_nfc_target_info_h)data;
+					net_nfc_target_info_s *target_info = (net_nfc_target_info_s*)data;
 					//net_nfc_error_e e_ret ;
 
 					net_nfc_get_tag_type (target_info, &type);
@@ -2940,8 +2940,8 @@ static void net_nfc_test_API_exception_tagAPI(net_nfc_message_e message, net_nfc
 				break;
 				case 1:
 				{
-					net_nfc_target_info_h target_info = (net_nfc_target_info_h)data;
-					net_nfc_target_handle_h id;
+					net_nfc_target_info_s *target_info = (net_nfc_target_info_s*)data;
+					net_nfc_target_handle_s *id;
 					net_nfc_get_tag_handle (target_info, &id);
 					net_nfc_client_deinitialize();
 					if (NET_NFC_OK == net_nfc_read_tag (id ,NULL)){
@@ -2951,10 +2951,10 @@ static void net_nfc_test_API_exception_tagAPI(net_nfc_message_e message, net_nfc
 				break;
 				case 2:
 				{
-					net_nfc_target_info_h target_info = (net_nfc_target_info_h)data;
-					net_nfc_target_handle_h id;
-					ndef_message_h message = NULL;
-					ndef_record_h record = NULL;
+					net_nfc_target_info_s *target_info = (net_nfc_target_info_s*)data;
+					net_nfc_target_handle_s *id;
+					ndef_message_s *message = NULL;
+					ndef_record_s *record = NULL;
 
 					net_nfc_get_tag_handle (target_info, &id);
 					net_nfc_client_deinitialize();
@@ -2971,9 +2971,9 @@ static void net_nfc_test_API_exception_tagAPI(net_nfc_message_e message, net_nfc
 				break;
 				case 3:
 				{
-					net_nfc_target_info_h target_info = (net_nfc_target_info_h)data;
-					net_nfc_target_handle_h id;
-					data_h key;
+					net_nfc_target_info_s *target_info = (net_nfc_target_info_s*)data;
+					net_nfc_target_handle_s *id;
+					data_s *key;
 					char data [] = {0xff,0xff,0xff,0xff,0xff,0xff};
 					net_nfc_create_data (&key, (const uint8_t*)data, 6);
 					net_nfc_get_tag_handle (target_info, &id);
@@ -3005,46 +3005,48 @@ int nfcTestAPIException_tagAPI (uint8_t testNumber,void* arg_ptr)
 
 	/* Call API before initailize */
 
-	data_h key;
+	data_s *key;
 	net_nfc_error_e result;
 	uint8_t data [] = {0xff,0xff,0xff,0xff,0xff,0xff};
 	net_nfc_create_data (&key, data, 6);
-	result = net_nfc_format_ndef((net_nfc_target_handle_h) 0x302023, key, NULL);
+	result = net_nfc_format_ndef((net_nfc_target_handle_s*) 0x302023, key, NULL);
 	if(NET_NFC_OK == result){
 		net_nfc_free_data(key);
 	}
 	CHECK_ASSULT (NET_NFC_OK != result);
 	result = net_nfc_format_ndef(NULL, key, NULL);
 	if((NET_NFC_NULL_PARAMETER != result)
-		||(NET_NFC_OK == net_nfc_format_ndef((net_nfc_target_handle_h) 0x302023, NULL, NULL))
-		||(NET_NFC_OK == net_nfc_read_tag ((net_nfc_target_handle_h) 0x302023 ,NULL))
+		||(NET_NFC_OK == net_nfc_format_ndef((net_nfc_target_handle_s*) 0x302023, NULL, NULL))
+		||(NET_NFC_OK == net_nfc_read_tag ((net_nfc_target_handle_s*) 0x302023 ,NULL))
 		||(NET_NFC_NULL_PARAMETER != net_nfc_read_tag (NULL ,NULL)))
 	{
 		net_nfc_free_data(key);
 	}
 	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == result);
-	CHECK_ASSULT (NET_NFC_OK != net_nfc_format_ndef((net_nfc_target_handle_h) 0x302023, NULL, NULL));
+	CHECK_ASSULT (NET_NFC_OK != net_nfc_format_ndef((net_nfc_target_handle_s*) 0x302023, NULL, NULL));
 
-	CHECK_ASSULT (NET_NFC_OK != net_nfc_read_tag ((net_nfc_target_handle_h) 0x302023 ,NULL));
+	CHECK_ASSULT (NET_NFC_OK != net_nfc_read_tag ((net_nfc_target_handle_s*) 0x302023 ,NULL));
 	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_read_tag (NULL ,NULL));
 	net_nfc_free_data(key);
 
-	ndef_message_h message = NULL;
-	ndef_record_h record = NULL;
+	ndef_message_s *message = NULL;
+	ndef_record_s *record = NULL;
 	net_nfc_create_ndef_message (&message);
 	net_nfc_create_text_type_record (&record, "abc" ,"en-US" ,NET_NFC_ENCODE_UTF_8);
 	net_nfc_append_record_to_ndef_message (message ,record);
-	result = net_nfc_write_ndef ((net_nfc_target_handle_h)0x302023 ,message,NULL);
+	result = net_nfc_write_ndef ((net_nfc_target_handle_s*)0x302023 ,message,NULL);
 	if(NET_NFC_OK == result){
 		net_nfc_free_ndef_message (message);
 	}
 	CHECK_ASSULT (NET_NFC_OK != result);
 	result = net_nfc_write_ndef (NULL ,message,NULL);
-	if((NET_NFC_NULL_PARAMETER != result)||(NET_NFC_NULL_PARAMETER != net_nfc_write_ndef ((net_nfc_target_handle_h)0x302023 ,NULL,NULL))){
+	if((NET_NFC_NULL_PARAMETER != result)
+		||(NET_NFC_NULL_PARAMETER != net_nfc_write_ndef((net_nfc_target_handle_s*)0x302023 ,NULL,NULL)))
+	{
 		net_nfc_free_ndef_message (message);
 	}
 	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == result);
-	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_write_ndef ((net_nfc_target_handle_h)0x302023 ,NULL,NULL));
+	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_write_ndef((net_nfc_target_handle_s*)0x302023 ,NULL,NULL));
 	net_nfc_free_ndef_message (message);
 
 
@@ -3073,19 +3075,19 @@ static void net_nfc_test_API_exception_targetInfo(net_nfc_message_e message, net
 
 	char **keys;
 	int length;
-	data_h value;
+	data_s *value;
 
 	switch(message)
 	{
 		case NET_NFC_MESSAGE_TAG_DISCOVERED:
 		{
 
-			if (NET_NFC_OK != net_nfc_get_tag_info_keys((net_nfc_target_info_h)data, &keys, &length)){
+			if (NET_NFC_OK != net_nfc_get_tag_info_keys((net_nfc_target_info_s*)data, &keys, &length)){
 				test_case_result = NET_NFC_TEST_FAIL;
 				return;
 			}
 
-			if (NET_NFC_OK == net_nfc_get_tag_info_value ((net_nfc_target_info_h)data, "abc", &value)){
+			if (NET_NFC_OK == net_nfc_get_tag_info_value ((net_nfc_target_info_s*)data, "abc", &value)){
 				test_case_result = NET_NFC_TEST_FAIL;
 				return;
 			}
@@ -3095,7 +3097,7 @@ static void net_nfc_test_API_exception_targetInfo(net_nfc_message_e message, net
 		break;
 		case NET_NFC_MESSAGE_TAG_DETACHED:
 
-			if (NET_NFC_OK == net_nfc_get_tag_info_keys((net_nfc_target_info_h)data, &keys, &length)){
+			if (NET_NFC_OK == net_nfc_get_tag_info_keys((net_nfc_target_info_s*)data, &keys, &length)){
 				test_case_result = NET_NFC_TEST_FAIL;
 				return;
 			}
@@ -3114,35 +3116,35 @@ static void net_nfc_test_API_exception_targetInfo(net_nfc_message_e message, net
 int nfcTestAPIException_targetInfo (uint8_t testNumber,void* arg_ptr)
 {
 	net_nfc_target_type_e target_type;
-	net_nfc_target_handle_h target_id;
+	net_nfc_target_handle_s *target_id;
 	bool is_support;
 	unsigned int size;
-	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_type ((net_nfc_target_info_h)0x302023, NULL));
+	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_type ((net_nfc_target_info_s*)0x302023, NULL));
 	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_type (NULL, &target_type));
 
-	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_handle((net_nfc_target_info_h)0x302023, NULL));
+	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_handle((net_nfc_target_info_s*)0x302023, NULL));
 	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_handle(NULL, &target_id));
 
-	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_ndef_support ((net_nfc_target_info_h)0x302023, NULL));
+	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_ndef_support ((net_nfc_target_info_s*)0x302023, NULL));
 	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_ndef_support (NULL, &is_support));
 
-	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_max_data_size ((net_nfc_target_info_h)0x302023, NULL));
+	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_max_data_size ((net_nfc_target_info_s*)0x302023, NULL));
 	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_max_data_size (NULL, &size));
 
-	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_actual_data_size ((net_nfc_target_info_h)0x302023, NULL));
+	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_actual_data_size ((net_nfc_target_info_s*)0x302023, NULL));
 	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_actual_data_size (NULL, &size));
 
 	char **keys;
 	int length;
-	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_info_keys((net_nfc_target_info_h)0x302023, NULL, &length));
-	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_info_keys((net_nfc_target_info_h)0x302023, &keys, NULL));
+	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_info_keys((net_nfc_target_info_s*)0x302023, NULL, &length));
+	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_info_keys((net_nfc_target_info_s*)0x302023, &keys, NULL));
 	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_info_keys(NULL, &keys, &length));
 
 	const char* key = "hello";
-	data_h value;
+	data_s *value;
 
-	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_info_value((net_nfc_target_info_h)0x302023, key , NULL));
-	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_info_value((net_nfc_target_info_h)0x302023, NULL, &value));
+	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_info_value((net_nfc_target_info_s*)0x302023, key , NULL));
+	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_info_value((net_nfc_target_info_s*)0x302023, NULL, &value));
 	CHECK_ASSULT (NET_NFC_NULL_PARAMETER == net_nfc_get_tag_info_value(NULL, key, &value));
 
 	CHECK_ASSULT(net_nfc_client_initialize() == NET_NFC_OK);
@@ -3161,10 +3163,10 @@ int nfcTestAPIException_targetInfo (uint8_t testNumber,void* arg_ptr)
 
 int nfcConnHandoverMessageTest (uint8_t testNumber,void* arg_ptr)
 {
-	net_nfc_carrier_config_h carrier;
-	net_nfc_property_group_h group;
-	ndef_record_h carrier_record;
-	ndef_message_h message;
+	net_nfc_carrier_config_s *carrier;
+	net_nfc_carrier_property_s *group;
+	ndef_record_s *carrier_record;
+	ndef_message_s *message;
 	uint8_t buffer[256] = {0,};
 	uint8_t * pdata;
 	unsigned int length = 0;

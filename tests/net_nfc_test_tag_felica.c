@@ -22,17 +22,10 @@
 #include "net_nfc_client_tag_felica.h"
 
 
-static net_nfc_target_handle_h get_handle();
-
-static void run_next_callback(gpointer user_data);
-
-static void felica_cb(net_nfc_error_e result, data_h resp_data, void *user_data);
-
-
-static net_nfc_target_handle_h get_handle()
+static net_nfc_target_handle_s* get_handle()
 {
-	net_nfc_target_info_h info = NULL;
-	net_nfc_target_handle_h handle = NULL;
+	net_nfc_target_info_s *info = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 
 	info = net_nfc_test_tag_get_target_info();
 
@@ -53,7 +46,7 @@ static void run_next_callback(gpointer user_data)
 	}
 }
 
-static void felica_cb(net_nfc_error_e result, data_h resp_data, void *user_data)
+static void felica_cb(net_nfc_error_e result, data_s *resp_data, void *user_data)
 {
 	g_print("felica_cb Completed %d\n", result);
 
@@ -65,7 +58,7 @@ static void felica_cb(net_nfc_error_e result, data_h resp_data, void *user_data)
 void net_nfc_test_felica_poll(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	net_nfc_target_handle_h handle = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 	net_nfc_felica_poll_request_code_e req_code = 0x00;
 	uint8_t time_slot = 2;
 
@@ -81,7 +74,7 @@ void net_nfc_test_felica_poll(gpointer data, gpointer user_data)
 void net_nfc_test_felica_request_service(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	net_nfc_target_handle_h handle = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 	uint8_t number_of_area_service = 4;
 	uint16_t area_service_list[10] = { 0,};
 	uint8_t number_of_services = 5;
@@ -102,7 +95,7 @@ void net_nfc_test_felica_request_service(gpointer data, gpointer user_data)
 void net_nfc_test_felica_request_response(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	net_nfc_target_handle_h handle = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 
 	handle = get_handle();
 	if (handle == NULL)
@@ -116,7 +109,7 @@ void net_nfc_test_felica_read_without_encryption(gpointer data,
 		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	net_nfc_target_handle_h handle = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 	uint8_t number_of_services = 10;
 	uint16_t service_list[10] = {0,};
 	uint8_t number_of_blocks = 1;
@@ -140,12 +133,12 @@ void net_nfc_test_felica_write_without_encryption(gpointer data,
 		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	net_nfc_target_handle_h handle = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 	uint8_t number_of_services = 10;
 	uint16_t service_list[10] = {0,};
 	uint8_t number_of_blocks = 1;
 	uint8_t block_list[3] = {0,};
-	data_h data_to_write = NULL;
+	data_s *data_to_write = NULL;
 
 	handle = get_handle();
 	if (handle == NULL)
@@ -165,7 +158,7 @@ void net_nfc_test_felica_write_without_encryption(gpointer data,
 void net_nfc_test_felica_request_system_code(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	net_nfc_target_handle_h handle = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 
 	handle = get_handle();
 	if (handle == NULL)

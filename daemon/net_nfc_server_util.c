@@ -540,7 +540,7 @@ net_nfc_error_e net_nfc_app_util_process_ndef(data_s *data)
 	}
 
 	/* check state of launch popup */
-	if(net_nfc_app_util_check_launch_state() == TRUE)
+	if(net_nfc_app_util_check_launch_state() == NET_NFC_NO_LAUNCH_APP_SELECT)
 	{
 		NFC_DBG("skip launch popup!!!");
 		result = NET_NFC_OK;

@@ -30,10 +30,6 @@ static NetNfcGDbusHandover *handover_proxy = NULL;
 
 static void p2p_connection_handover(GObject *source_object,
 		GAsyncResult *res,
-		gpointer user_data);
-
-static void p2p_connection_handover(GObject *source_object,
-		GAsyncResult *res,
 		gpointer user_data)
 {
 	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
@@ -77,12 +73,9 @@ static void p2p_connection_handover(GObject *source_object,
 
 
 API net_nfc_error_e net_nfc_client_handover_free_alternative_carrier_data(
-		net_nfc_connection_handover_info_h info_handle)
+		net_nfc_connection_handover_info_s *info)
 {
-	net_nfc_connection_handover_info_s *info =
-		(net_nfc_connection_handover_info_s *)info_handle;
-
-	if (info_handle == NULL)
+	if (info == NULL)
 		return NET_NFC_NULL_PARAMETER;
 
 	if (info->data.buffer != NULL)
@@ -97,13 +90,10 @@ API net_nfc_error_e net_nfc_client_handover_free_alternative_carrier_data(
 
 
 API net_nfc_error_e net_nfc_client_handover_get_alternative_carrier_type(
-		net_nfc_connection_handover_info_h info_handle,
+		net_nfc_connection_handover_info_s *info,
 		net_nfc_conn_handover_carrier_type_e *type)
 {
-	net_nfc_connection_handover_info_s *info =
-		(net_nfc_connection_handover_info_s *)info_handle;
-
-	if (info_handle == NULL || type == NULL)
+	if (info == NULL || type == NULL)
 		return NET_NFC_NULL_PARAMETER;
 
 	*type = info->type;
@@ -112,12 +102,9 @@ API net_nfc_error_e net_nfc_client_handover_get_alternative_carrier_type(
 }
 
 API net_nfc_error_e net_nfc_client_handover_get_alternative_carrier_data(
-		net_nfc_connection_handover_info_h info_handle, data_h *data)
+		net_nfc_connection_handover_info_s *info, data_s **data)
 {
-	net_nfc_connection_handover_info_s *info =
-		(net_nfc_connection_handover_info_s *)info_handle;
-
-	if (info_handle == NULL || data == NULL)
+	if (info == NULL || data == NULL)
 		return NET_NFC_NULL_PARAMETER;
 
 	return net_nfc_create_data(data, info->data.buffer, info->data.length);
@@ -125,7 +112,7 @@ API net_nfc_error_e net_nfc_client_handover_get_alternative_carrier_data(
 
 
 API net_nfc_error_e net_nfc_client_p2p_connection_handover(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		net_nfc_conn_handover_carrier_type_e arg_type,
 		net_nfc_p2p_connection_handover_completed_cb callback,
 		void *cb_data)
@@ -165,10 +152,10 @@ API net_nfc_error_e net_nfc_client_p2p_connection_handover(
 
 
 API net_nfc_error_e net_nfc_client_p2p_connection_handover_sync(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		net_nfc_conn_handover_carrier_type_e arg_type,
 		net_nfc_conn_handover_carrier_type_e *out_carrier,
-		data_h *out_ac_data)
+		data_s **out_ac_data)
 {
 	GVariant *out_data = NULL;
 	net_nfc_error_e out_result = NET_NFC_OK;

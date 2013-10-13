@@ -33,7 +33,7 @@
 #define FELICA_CMD_REQ_SYSTEM_CODE 0x0C
 #define FELICA_TAG_KEY	"IDm"
 
-API net_nfc_error_e net_nfc_client_felica_poll(net_nfc_target_handle_h handle,
+API net_nfc_error_e net_nfc_client_felica_poll(net_nfc_target_handle_s *handle,
 		net_nfc_felica_poll_request_code_e req_code,
 		uint8_t time_slote,
 		nfc_transceive_data_callback callback,
@@ -78,13 +78,13 @@ API net_nfc_error_e net_nfc_client_felica_poll(net_nfc_target_handle_h handle,
 	rawdata.length = 6;
 
 	return net_nfc_client_transceive_data(handle,
-			(data_h)&rawdata,
+			&rawdata,
 			callback,
 			user_data);
 }
 
 API net_nfc_error_e net_nfc_client_felica_request_service(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		uint8_t number_of_area_service,
 		uint16_t area_service_list[],
 		uint8_t number_of_services,
@@ -95,7 +95,7 @@ API net_nfc_error_e net_nfc_client_felica_request_service(
 
 	data_s rawdata;
 
-	data_h IDm = NULL;
+	data_s *IDm = NULL;
 
 	uint32_t send_buffer_length;
 	uint8_t* send_buffer = NULL;
@@ -119,14 +119,12 @@ API net_nfc_error_e net_nfc_client_felica_request_service(
 		return NET_NFC_NOT_ALLOWED_OPERATION;
 	}
 
-	if (net_nfc_get_tag_info_value((net_nfc_target_info_h)target_info,
-				FELICA_TAG_KEY,
-				&IDm) != NET_NFC_OK)
+	if (net_nfc_get_tag_info_value(target_info, FELICA_TAG_KEY, &IDm) != NET_NFC_OK)
 	{
 		return NET_NFC_NO_DATA_FOUND;
 	}
 
-	if (((data_s*)IDm)->length != 8)
+	if (IDm->length != 8)
 		return NET_NFC_OUT_OF_BOUND;
 
 	if (number_of_area_service > 32)
@@ -150,8 +148,8 @@ API net_nfc_error_e net_nfc_client_felica_request_service(
 	send_buffer++;
 
 	/* set IDm */
-	memcpy(send_buffer, ((data_s*)IDm)->buffer, ((data_s*)IDm)->length);
-	send_buffer = send_buffer + ((data_s*)IDm)->length;
+	memcpy(send_buffer, IDm->buffer, IDm->length);
+	send_buffer = send_buffer + IDm->length;
 
 	/* set the number of service codes */
 	*send_buffer = number_of_area_service;
@@ -170,7 +168,7 @@ API net_nfc_error_e net_nfc_client_felica_request_service(
 
 	net_nfc_error_e result = NET_NFC_OK;
 	result = net_nfc_client_transceive_data(handle,
-			(data_h)&rawdata,
+			&rawdata,
 			callback,
 			user_data);
 
@@ -181,7 +179,7 @@ API net_nfc_error_e net_nfc_client_felica_request_service(
 }
 
 API net_nfc_error_e net_nfc_client_felica_request_response(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		nfc_transceive_data_callback callback,
 		void *user_data)
 {
@@ -189,7 +187,7 @@ API net_nfc_error_e net_nfc_client_felica_request_response(
 
 	data_s rawdata;
 
-	data_h IDm = NULL;
+	data_s *IDm = NULL;
 
 	uint8_t send_buffer[10] = { 0x00, };
 
@@ -209,20 +207,18 @@ API net_nfc_error_e net_nfc_client_felica_request_response(
 		return NET_NFC_NOT_ALLOWED_OPERATION;
 	}
 
-	if (net_nfc_get_tag_info_value((net_nfc_target_info_h)target_info,
-				FELICA_TAG_KEY,
-				&IDm) != NET_NFC_OK)
+	if (net_nfc_get_tag_info_value(target_info, FELICA_TAG_KEY, &IDm) != NET_NFC_OK)
 	{
 		return NET_NFC_NO_DATA_FOUND;
 	}
 
-	if (((data_s*)IDm)->length != 8)
+	if (IDm->length != 8)
 		return NET_NFC_OUT_OF_BOUND;
 
 	send_buffer[0] = 0xA;
 	send_buffer[1] = FELICA_CMD_REQ_RESPONSE;
 
-	memcpy(send_buffer + 2, ((data_s*)IDm)->buffer, ((data_s*)IDm)->length);
+	memcpy(send_buffer + 2, IDm->buffer, IDm->length);
 
 	DEBUG_MSG_PRINT_BUFFER(send_buffer, 10);
 
@@ -230,13 +226,13 @@ API net_nfc_error_e net_nfc_client_felica_request_response(
 	rawdata.length = 10;
 
 	return net_nfc_client_transceive_data(handle,
-			(data_h)&rawdata,
+			&rawdata,
 			callback,
 			user_data);
 }
 
 API net_nfc_error_e net_nfc_client_felica_read_without_encryption(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		uint8_t number_of_services,
 		uint16_t service_list[],
 		uint8_t number_of_blocks,
@@ -248,7 +244,7 @@ API net_nfc_error_e net_nfc_client_felica_read_without_encryption(
 
 	data_s rawdata;
 
-	data_h IDm = NULL;
+	data_s *IDm = NULL;
 
 	uint32_t send_buffer_length;
 	uint8_t* send_buffer = NULL;
@@ -272,14 +268,12 @@ API net_nfc_error_e net_nfc_client_felica_read_without_encryption(
 		return NET_NFC_NOT_ALLOWED_OPERATION;
 	}
 
-	if (net_nfc_get_tag_info_value((net_nfc_target_info_h)target_info,
-				FELICA_TAG_KEY,
-				&IDm) != NET_NFC_OK)
+	if (net_nfc_get_tag_info_value(target_info, FELICA_TAG_KEY, &IDm) != NET_NFC_OK)
 	{
 		return NET_NFC_NO_DATA_FOUND;
 	}
 
-	if (((data_s*)IDm)->length != 8)
+	if (IDm->length != 8)
 		return NET_NFC_OUT_OF_BOUND;
 
 	if (number_of_services > 16)
@@ -301,8 +295,8 @@ API net_nfc_error_e net_nfc_client_felica_read_without_encryption(
 	*send_buffer = FELICA_CMD_READ_WITHOUT_ENC;
 	send_buffer++;
 
-	memcpy(send_buffer, ((data_s*)IDm)->buffer, ((data_s*)IDm)->length);
-	send_buffer = send_buffer + ((data_s*)IDm)->length;
+	memcpy(send_buffer, IDm->buffer, IDm->length);
+	send_buffer = send_buffer + IDm->length;
 
 	*send_buffer = number_of_services;
 	send_buffer++;
@@ -329,7 +323,7 @@ API net_nfc_error_e net_nfc_client_felica_read_without_encryption(
 
 	net_nfc_error_e result = NET_NFC_OK;
 	result = net_nfc_client_transceive_data(handle,
-			(data_h)&rawdata,
+			&rawdata,
 			callback,
 			user_data);
 
@@ -340,12 +334,12 @@ API net_nfc_error_e net_nfc_client_felica_read_without_encryption(
 }
 
 API net_nfc_error_e net_nfc_client_felica_write_without_encryption(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		uint8_t number_of_services,
 		uint16_t service_list[],
 		uint8_t number_of_blocks,
 		uint8_t block_list[],
-		data_h data,
+		data_s *data,
 		nfc_transceive_data_callback callback,
 		void *user_data)
 {
@@ -353,7 +347,7 @@ API net_nfc_error_e net_nfc_client_felica_write_without_encryption(
 
 	data_s rawdata;
 
-	data_h IDm = NULL;
+	data_s *IDm = NULL;
 
 	uint32_t send_buffer_length;
 	uint8_t* send_buffer = NULL;
@@ -379,28 +373,24 @@ API net_nfc_error_e net_nfc_client_felica_write_without_encryption(
 		return NET_NFC_NOT_ALLOWED_OPERATION;
 	}
 
-	if (net_nfc_get_tag_info_value((net_nfc_target_info_h)target_info,
-				FELICA_TAG_KEY,
-				&IDm) != NET_NFC_OK)
+	if (net_nfc_get_tag_info_value(target_info, FELICA_TAG_KEY, &IDm) != NET_NFC_OK)
 	{
 		return NET_NFC_NO_DATA_FOUND;
 	}
 
-	if (((data_s*)IDm)->length != 8)
+	if (IDm->length != 8)
 		return NET_NFC_OUT_OF_BOUND;
 
 	if (number_of_services > 16)
 		return NET_NFC_OUT_OF_BOUND;
 
-	if (((data_s*)data)->length > 16 * number_of_blocks)
+	if (data->length > 16 * number_of_blocks)
 		return NET_NFC_OUT_OF_BOUND;
 
 	send_buffer_length = 1 + 1 + 8 + 1 + (2 * number_of_services)
-		+ 1 + number_of_blocks
-		+((data_s*)data)->length;
+		+ 1 + number_of_blocks + data->length;
 
-	_net_nfc_util_alloc_mem(send_buffer,
-			send_buffer_length * sizeof(uint8_t));
+	_net_nfc_util_alloc_mem(send_buffer, send_buffer_length * sizeof(uint8_t));
 	if (send_buffer == NULL)
 		return NET_NFC_ALLOC_FAIL;
 
@@ -412,8 +402,8 @@ API net_nfc_error_e net_nfc_client_felica_write_without_encryption(
 	*send_buffer = FELICA_CMD_WRITE_WITHOUT_ENC;
 	send_buffer++;
 
-	memcpy(send_buffer, ((data_s*)IDm)->buffer, ((data_s*)IDm)->length);
-	send_buffer = send_buffer + ((data_s*)IDm)->length;
+	memcpy(send_buffer, IDm->buffer, IDm->length);
+	send_buffer = send_buffer + IDm->length;
 
 	*send_buffer = number_of_services;
 	send_buffer++;
@@ -433,7 +423,7 @@ API net_nfc_error_e net_nfc_client_felica_write_without_encryption(
 		send_buffer++;
 	}
 
-	memcpy(send_buffer, ((data_s*)data)->buffer, ((data_s*)data)->length);
+	memcpy(send_buffer, data->buffer, data->length);
 
 	DEBUG_MSG_PRINT_BUFFER(temp, send_buffer_length);
 
@@ -443,7 +433,7 @@ API net_nfc_error_e net_nfc_client_felica_write_without_encryption(
 	net_nfc_error_e result = NET_NFC_OK;
 
 	result = net_nfc_client_transceive_data(handle,
-			(data_h)&rawdata,
+			&rawdata,
 			callback,
 			user_data);
 
@@ -454,7 +444,7 @@ API net_nfc_error_e net_nfc_client_felica_write_without_encryption(
 }
 
 API net_nfc_error_e net_nfc_client_felica_request_system_code(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		nfc_transceive_data_callback callback,
 		void *user_data)
 {
@@ -462,7 +452,7 @@ API net_nfc_error_e net_nfc_client_felica_request_system_code(
 
 	data_s rawdata;
 
-	data_h IDm = NULL;
+	data_s *IDm = NULL;
 
 	uint8_t send_buffer[10] = { 0x00, };
 
@@ -482,22 +472,18 @@ API net_nfc_error_e net_nfc_client_felica_request_system_code(
 		return NET_NFC_NOT_ALLOWED_OPERATION;
 	}
 
-	if (net_nfc_get_tag_info_value((net_nfc_target_info_h)target_info,
-				FELICA_TAG_KEY,
-				&IDm) != NET_NFC_OK)
+	if (net_nfc_get_tag_info_value(target_info, FELICA_TAG_KEY, &IDm) != NET_NFC_OK)
 	{
 		return NET_NFC_NO_DATA_FOUND;
 	}
 
-	if (((data_s*)IDm)->length != 8)
+	if (IDm->length != 8)
 		return NET_NFC_OUT_OF_BOUND;
 
 	send_buffer[0] = 0xA;
 	send_buffer[1] = FELICA_CMD_REQ_SYSTEM_CODE;
 
-	memcpy(send_buffer + 2,
-			((data_s *)IDm)->buffer,
-			((data_s *)IDm)->length);
+	memcpy(send_buffer + 2, IDm->buffer, IDm->length);
 
 	DEBUG_MSG_PRINT_BUFFER(send_buffer, 10);
 
@@ -505,7 +491,7 @@ API net_nfc_error_e net_nfc_client_felica_request_system_code(
 	rawdata.length = 10;
 
 	return net_nfc_client_transceive_data(handle,
-			(data_h)&rawdata,
+			&rawdata,
 			callback,
 			user_data);
 }

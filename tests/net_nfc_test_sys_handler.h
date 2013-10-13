@@ -26,12 +26,12 @@ void net_nfc_test_sys_handler_get_launch_popup_state(gpointer data,
 		gpointer user_data);
 
 void net_nfc_test_sys_handler_set_launch_popup_state_sync(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_sys_handler_set_launch_popup_state_force(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_sys_handler_set_launch_popup_state_force_sync(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 #endif//__NET_NFC_TEST_SYS_HANDLER_H__

@@ -28,10 +28,10 @@ static void run_next_callback(gpointer user_data);
 
 static void p2p_connection_handover_cb(net_nfc_error_e result,
 		net_nfc_conn_handover_carrier_type_e type,
-		data_h data,
+		data_s *data,
 		void *user_data);
 
-static net_nfc_connection_handover_info_h global_info = NULL;
+static net_nfc_connection_handover_info_s *global_info = NULL;
 
 
 static void run_next_callback(gpointer user_data)
@@ -46,7 +46,7 @@ static void run_next_callback(gpointer user_data)
 
 static void p2p_connection_handover_cb(net_nfc_error_e result,
 		net_nfc_conn_handover_carrier_type_e type,
-		data_h data,
+		data_s *data,
 		void *user_data)
 {
 	g_print("Connection handover completed\n");
@@ -70,17 +70,17 @@ static void _p2p_connection_handover(
 		net_nfc_conn_handover_carrier_type_e type, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	net_nfc_target_handle_h handle = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 
 	handle = net_nfc_test_device_get_target_handle();
 
 	g_print("handle for handover : %p \n", handle);
 
 	result = net_nfc_client_p2p_connection_handover(
-		handle,
-		type,
-		p2p_connection_handover_cb,
-		user_data);
+			handle,
+			type,
+			p2p_connection_handover_cb,
+			user_data);
 	g_print("net_nfc_client_p2p_connection_handover() : %d\n", result);
 }
 
@@ -89,8 +89,8 @@ static void _p2p_connection_handover_sync(
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	net_nfc_conn_handover_carrier_type_e out_carrier;
-	data_h out_data = NULL;
-	net_nfc_target_handle_h handle = NULL;
+	data_s *out_data = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 
 	handle = net_nfc_test_device_get_target_handle();
 
@@ -145,8 +145,8 @@ void net_nfc_test_handover_handle_alternative_carrier_data(gpointer data,
 		gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
-	data_h out_data = NULL;
-	net_nfc_connection_handover_info_h hand_info = NULL;
+	data_s *out_data = NULL;
+	net_nfc_connection_handover_info_s *hand_info = NULL;
 
 	result = net_nfc_client_handover_get_alternative_carrier_data(global_info, &out_data);
 	g_print(" Get alternative carrier data  %d", result);

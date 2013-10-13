@@ -21,36 +21,35 @@
 typedef void (*net_nfc_p2p_connection_handover_completed_cb)(
 		net_nfc_error_e result,
 		net_nfc_conn_handover_carrier_type_e carrier,
-		data_h ac_data,
+		data_s *ac_data,
 		void *user_data);
 
 
 net_nfc_error_e net_nfc_client_handover_free_alternative_carrier_data(
-		net_nfc_connection_handover_info_h info_handle);
+		net_nfc_connection_handover_info_s *info_handle);
 
 
 net_nfc_error_e net_nfc_client_handover_get_alternative_carrier_type(
-		net_nfc_connection_handover_info_h info_handle,
+		net_nfc_connection_handover_info_s *info_handle,
 		net_nfc_conn_handover_carrier_type_e *type);
 
 
 net_nfc_error_e net_nfc_client_handover_get_alternative_carrier_data(
-		net_nfc_connection_handover_info_h info_handle,
-		data_h *data);
+		net_nfc_connection_handover_info_s *info_handle, data_s **data);
 
 
 net_nfc_error_e net_nfc_client_p2p_connection_handover(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		net_nfc_conn_handover_carrier_type_e arg_type,
 		net_nfc_p2p_connection_handover_completed_cb callback,
 		void *cb_data);
 
 
 net_nfc_error_e net_nfc_client_p2p_connection_handover_sync(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		net_nfc_conn_handover_carrier_type_e arg_type,
 		net_nfc_conn_handover_carrier_type_e *out_carrier,
-		data_h *out_ac_data);
+		data_s **out_ac_data);
 
 /* TODO : move to internal header */
 net_nfc_error_e net_nfc_client_handover_init(void);

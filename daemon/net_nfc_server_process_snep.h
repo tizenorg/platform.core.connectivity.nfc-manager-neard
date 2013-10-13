@@ -38,6 +38,8 @@ typedef enum
 	SNEP_RESP_REJECT		= 0xFF,
 } snep_command_field_e;
 
+typedef struct _net_nfc_server_snep_context_t net_nfc_server_snep_context_t;
+
 typedef bool (*net_nfc_server_snep_listen_cb)(net_nfc_snep_handle_h handle,
 		uint32_t type,
 		uint32_t max_len,
@@ -50,6 +52,19 @@ typedef net_nfc_error_e (*net_nfc_server_snep_cb)(net_nfc_snep_handle_h handle,
 		data_s *data,
 		void *user_param);
 
+struct _net_nfc_server_snep_context_t
+{
+	net_nfc_target_handle_s *handle;
+	net_nfc_error_e result;
+	net_nfc_llcp_socket_t socket;
+	uint32_t state;
+	uint32_t type;
+	data_s data;
+	net_nfc_server_snep_cb cb;
+	void *user_param;
+	GQueue queue;
+};
+
 net_nfc_error_e net_nfc_server_snep_server(	net_nfc_target_handle_s *handle,
 		const char *san, sap_t sap, net_nfc_server_snep_cb cb, void *user_param);
 
@@ -57,10 +72,14 @@ net_nfc_error_e net_nfc_server_snep_client(net_nfc_target_handle_s *handle,
 		const char *san, sap_t sap, net_nfc_server_snep_cb cb, void *user_param);
 
 net_nfc_error_e net_nfc_server_snep_server_send_get_response(
-		net_nfc_snep_handle_h snep_handle, data_s *data);
+		net_nfc_server_snep_context_t *snep_handle, data_s *data);
 
-net_nfc_error_e net_nfc_server_snep_client_request(net_nfc_snep_handle_h snep,
-		uint8_t type, data_s *data, net_nfc_server_snep_cb cb, void *user_param);
+net_nfc_error_e net_nfc_server_snep_client_request(
+		net_nfc_server_snep_context_t *snep,
+		uint8_t type,
+		data_s *data,
+		net_nfc_server_snep_cb cb,
+		void *user_param);
 
 net_nfc_error_e net_nfc_server_snep_default_server_start(
 		net_nfc_target_handle_s *handle);
@@ -79,7 +98,7 @@ net_nfc_error_e net_nfc_server_snep_default_server_unregister_get_response_cb(
 		net_nfc_server_snep_listen_cb cb);
 
 net_nfc_error_e net_nfc_server_snep_default_server_send_get_response(
-		net_nfc_snep_handle_h snep_handle, data_s *data);
+		net_nfc_server_snep_context_t *snep, data_s *data);
 
 net_nfc_error_e net_nfc_server_snep_default_server_register();
 

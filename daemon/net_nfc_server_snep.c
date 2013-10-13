@@ -497,7 +497,7 @@ static void snep_client_send_request_thread_func(gpointer user_data)
 {
 	NetNfcGDbusSnep *object;
 	GDBusMethodInvocation *invocation;
-	net_nfc_snep_handle_h arg_snep_handle;
+	net_nfc_server_snep_context_t *arg_snep_handle;
 	net_nfc_snep_type_t arg_type;
 	GVariant *arg_ndef_msg;
 	data_s data = { NULL, };
@@ -638,11 +638,11 @@ static void snep_stop_service_thread_func(gpointer user_data)
 	g_assert(invocation != NULL);
 
 	/* TODO :
-		g_dbus_method_invocation_return_dbus_error(
-		invocation,
-		"org.tizen.NetNfcService.Snep.DataError",
-		"Cannot stop SNEP service");
-		*/
+	   g_dbus_method_invocation_return_dbus_error(
+	   invocation,
+	   "org.tizen.NetNfcService.Snep.DataError",
+	   "Cannot stop SNEP service");
+	   */
 
 	net_nfc_gdbus_snep_complete_stop_snep(object,
 			invocation,

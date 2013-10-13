@@ -51,13 +51,13 @@ typedef struct _net_nfc_certificate_chain_s
 }
 __attribute__((packed)) net_nfc_certificate_chain_s;
 
-void _display_ndef_message(ndef_message_h msg);
+void _display_ndef_message(ndef_message_s *msg);
 
 static void _display_buffer(char *title, uint8_t *buffer, uint32_t length)
 {
 	int32_t i;
 
-	if (length > 0)
+	if (0 < length)
 	{
 		fprintf(stdout, " %s[%d] = {", title, length);
 
@@ -80,9 +80,9 @@ static void _display_buffer(char *title, uint8_t *buffer, uint32_t length)
 	}
 }
 
-static void _display_id(ndef_record_h record)
+static void _display_id(ndef_record_s *record)
 {
-	data_h data = NULL;
+	data_s *data = NULL;
 
 	net_nfc_get_record_id(record, &data);
 	if (net_nfc_get_data_length(data) > 0)
@@ -94,9 +94,9 @@ static void _display_id(ndef_record_h record)
 	}
 }
 
-static void _display_signature(ndef_record_h record)
+static void _display_signature(ndef_record_s *record)
 {
-	data_h data = NULL;
+	data_s *data = NULL;
 
 	_display_id(record);
 
@@ -186,9 +186,9 @@ static void _display_signature(ndef_record_h record)
 	}
 }
 
-static void _display_smart_poster(ndef_record_h record)
+static void _display_smart_poster(ndef_record_s *record)
 {
-	data_h data = NULL;
+	data_s *data = NULL;
 
 	_display_id(record);
 
@@ -202,9 +202,9 @@ static void _display_smart_poster(ndef_record_h record)
 	}
 }
 
-static void _display_text(ndef_record_h record)
+static void _display_text(ndef_record_s *record)
 {
-	data_h data = NULL;
+	data_s *data = NULL;
 	net_nfc_encode_type_e encoding = 0;
 
 	_display_id(record);
@@ -239,9 +239,9 @@ static void _display_text(ndef_record_h record)
 	}
 }
 
-static void _display_uri(ndef_record_h record)
+static void _display_uri(ndef_record_s *record)
 {
-	data_h data = NULL;
+	data_s *data = NULL;
 
 	_display_id(record);
 
@@ -267,9 +267,9 @@ static void _display_uri(ndef_record_h record)
 	}
 }
 
-static void _display_hs(ndef_record_h record)
+static void _display_hs(ndef_record_s *record)
 {
-	data_h data = NULL;
+	data_s *data = NULL;
 
 	_display_id(record);
 
@@ -283,8 +283,8 @@ static void _display_hs(ndef_record_h record)
 				(*buffer) & 0x0F);
 		fprintf(stdout, " -- Containing NDEF message -- \n");
 
-		ndef_message_h msg;
-		data_h temp;
+		ndef_message_s *msg;
+		data_s *temp;
 
 		net_nfc_create_data(&temp, buffer + 1, length - 1);
 		net_nfc_create_ndef_message_from_rawdata(&msg, temp);
@@ -296,9 +296,9 @@ static void _display_hs(ndef_record_h record)
 	}
 }
 
-static void _display_hr(ndef_record_h record)
+static void _display_hr(ndef_record_s *record)
 {
-	data_h data = NULL;
+	data_s *data = NULL;
 
 	_display_id(record);
 
@@ -312,8 +312,8 @@ static void _display_hr(ndef_record_h record)
 				(*buffer) & 0x0F);
 		fprintf(stdout, " -- Containing NDEF message -- \n");
 
-		ndef_message_h msg;
-		data_h temp;
+		ndef_message_s *msg;
+		data_s *temp;
 
 		net_nfc_create_data(&temp, buffer + 1, length - 1);
 		net_nfc_create_ndef_message_from_rawdata(&msg, temp);
@@ -325,9 +325,9 @@ static void _display_hr(ndef_record_h record)
 	}
 }
 
-static void _display_ac(ndef_record_h record)
+static void _display_ac(ndef_record_s *record)
 {
-	data_h data = NULL;
+	data_s *data = NULL;
 
 	_display_id(record);
 
@@ -375,9 +375,9 @@ static void _display_ac(ndef_record_h record)
 	}
 }
 
-static void _display_hc(ndef_record_h record)
+static void _display_hc(ndef_record_s *record)
 {
-	data_h data = NULL;
+	data_s *data = NULL;
 
 	_display_id(record);
 
@@ -431,9 +431,9 @@ static void _display_hc(ndef_record_h record)
 	}
 }
 
-static void _display_cr(ndef_record_h record)
+static void _display_cr(ndef_record_s *record)
 {
-	data_h data = NULL;
+	data_s *data = NULL;
 
 	_display_id(record);
 
@@ -446,9 +446,9 @@ static void _display_cr(ndef_record_h record)
 	}
 }
 
-static void _display_err(ndef_record_h record)
+static void _display_err(ndef_record_s *record)
 {
-	data_h data = NULL;
+	data_s *data = NULL;
 
 	_display_id(record);
 
@@ -481,9 +481,9 @@ static void _display_err(ndef_record_h record)
 	}
 }
 
-static void _display_well_known(ndef_record_h record)
+static void _display_well_known(ndef_record_s *record)
 {
-	data_h data = NULL;
+	data_s *data = NULL;
 
 	net_nfc_get_record_type(record, &data);
 	if (net_nfc_get_data_length(data) > 0)
@@ -555,9 +555,9 @@ static void _display_well_known(ndef_record_h record)
 	}
 }
 
-static void _display_general_record(ndef_record_h record)
+static void _display_general_record(ndef_record_s *record)
 {
-	data_h data = NULL;
+	data_s *data = NULL;
 
 	net_nfc_get_record_type(record, &data);
 	if (net_nfc_get_data_length(data) > 0)
@@ -593,9 +593,9 @@ static void _display_general_record(ndef_record_h record)
 	}
 }
 
-static void _display_absolute_uri(ndef_record_h record)
+static void _display_absolute_uri(ndef_record_s *record)
 {
-	data_h data = NULL;
+	data_s *data = NULL;
 
 	_display_id(record);
 
@@ -612,7 +612,7 @@ static void _display_absolute_uri(ndef_record_h record)
 	}
 #if 0
 	nfc_ndef_record_get_payload(record, &buffer, &length);
-	if (length > 0)
+	if (0 < length)
 	{
 		char temp_buffer[512] = { 0, };
 
@@ -631,7 +631,7 @@ static void _display_absolute_uri(ndef_record_h record)
 #endif
 }
 
-static void _display_tnf(ndef_record_h record)
+static void _display_tnf(ndef_record_s *record)
 {
 	net_nfc_record_tnf_e tnf = NET_NFC_RECORD_UNKNOWN;
 
@@ -679,7 +679,7 @@ static void _display_tnf(ndef_record_h record)
 	}
 }
 
-static void _display_record_length(ndef_record_h record)
+static void _display_record_length(ndef_record_s *record)
 {
 	int length = 2; /* header : 1 byte, type length : 1 byte */
 
@@ -690,7 +690,7 @@ static void _display_record_length(ndef_record_h record)
 			tnf != NET_NFC_RECORD_UNKNOWN &&
 			tnf != NET_NFC_RECORD_UNCHAGNED)
 	{
-		data_h data;
+		data_s *data;
 
 		net_nfc_get_record_type(record, &data);
 		length += net_nfc_get_data_length(data);
@@ -714,7 +714,7 @@ static void _display_record_length(ndef_record_h record)
 	/* for non empty record */
 	if (tnf != NET_NFC_RECORD_EMPTY)
 	{
-		data_h data;
+		data_s *data;
 
 		net_nfc_get_record_payload(record, &data);
 		length += net_nfc_get_data_length(data);
@@ -723,7 +723,7 @@ static void _display_record_length(ndef_record_h record)
 	/* ID and IDlength are present only if IL flag is set*/
 	if (net_nfc_get_record_il(header) == 1)
 	{
-		data_h data;
+		data_s *data;
 
 		/* ++ is for the ID Length Byte */
 		length++;
@@ -735,7 +735,7 @@ static void _display_record_length(ndef_record_h record)
 	fprintf(stdout, " Length : %d\n", length);
 }
 
-static void _display_record(ndef_record_h record, int index)
+static void _display_record(ndef_record_s *record, int index)
 {
 	uint8_t header;
 
@@ -753,12 +753,12 @@ static void _display_record(ndef_record_h record, int index)
 	fprintf(stdout, "----------------------------------------------------\n");
 }
 
-void _display_ndef_message(ndef_message_h msg)
+void _display_ndef_message(ndef_message_s *msg)
 {
 	uint32_t length;
 	int count = 0;
 	int32_t i = 0;
-	ndef_record_h record = NULL;
+	ndef_record_s *record = NULL;
 
 	net_nfc_get_ndef_message_byte_length(msg, &length);
 
@@ -781,7 +781,7 @@ void _display_ndef_message(ndef_message_h msg)
 void ndef_tool_display_ndef_message_from_file(const char *file_name)
 {
 	int length = 0;
-	ndef_message_h msg = NULL;
+	ndef_message_s *msg = NULL;
 
 	if ((length = ndef_tool_read_ndef_message_from_file(file_name, &msg)) > 0)
 	{
@@ -881,11 +881,11 @@ void _display_target_type(net_nfc_target_type_e type)
 	fprintf(stdout, "Target Type : %s (%d)\n", text, type);
 }
 
-void _display_tag_info(net_nfc_target_info_h target)
+void _display_tag_info(net_nfc_target_info_s *target)
 {
 	int count, i;
 	char **keys;
-	data_h data;
+	data_s *data;
 
 	fprintf(stdout, "Target information\n");
 	net_nfc_get_tag_info_keys(target, &keys, &count);
@@ -901,7 +901,7 @@ void _display_tag_info(net_nfc_target_info_h target)
 	}
 }
 
-void ndef_tool_display_discovered_tag(net_nfc_target_info_h target)
+void ndef_tool_display_discovered_tag(net_nfc_target_info_s *target)
 {
 	net_nfc_target_type_e type;
 	bool is_ndef;
@@ -931,7 +931,7 @@ void ndef_tool_display_discovered_tag(net_nfc_target_info_h target)
 	fprintf(stdout, "******************************************\n");
 }
 
-void ndef_tool_display_discovered_target(net_nfc_target_handle_h handle)
+void ndef_tool_display_discovered_target(net_nfc_target_handle_s *handle)
 {
 	if (handle == NULL)
 		return;

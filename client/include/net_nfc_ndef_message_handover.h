@@ -31,7 +31,8 @@
   @exception NET_NFC_ALLOC_FAIL			allocation is failed
   */
 
-net_nfc_error_e net_nfc_create_carrier_config (net_nfc_carrier_config_h * config, net_nfc_conn_handover_carrier_type_e type);
+net_nfc_error_e net_nfc_create_carrier_config(net_nfc_carrier_config_s **config,
+		net_nfc_conn_handover_carrier_type_e type);
 
 /**
   Add property key and value for configuration.
@@ -48,7 +49,8 @@ net_nfc_error_e net_nfc_create_carrier_config (net_nfc_carrier_config_h * config
   @exception NET_NFC_ALLOC_FAIL			allocation is failed
   */
 
-net_nfc_error_e net_nfc_add_carrier_config_property (net_nfc_carrier_config_h config, uint16_t attribute, uint16_t size, uint8_t * data);
+net_nfc_error_e net_nfc_add_carrier_config_property(
+		net_nfc_carrier_config_s *config, uint16_t attribute, uint16_t size, uint8_t *data);
 
 /**
   Remove the key and value from configuration, you can also remove the group  withe CREDENTIAL key.
@@ -64,7 +66,8 @@ net_nfc_error_e net_nfc_add_carrier_config_property (net_nfc_carrier_config_h co
   @exception NET_NFC_ALREADY_REGISTERED	the given attribute is already registered
   */
 
-net_nfc_error_e net_nfc_remove_carrier_config_property (net_nfc_carrier_config_h config, uint16_t attribute);
+net_nfc_error_e net_nfc_remove_carrier_config_property(
+		net_nfc_carrier_config_s *config, uint16_t attribute);
 /**
   Get the property value by attribute.
 
@@ -79,7 +82,11 @@ net_nfc_error_e net_nfc_remove_carrier_config_property (net_nfc_carrier_config_h
   @exception NET_NFC_NO_DATA_FOUND		The given key is not found
   */
 
-net_nfc_error_e net_nfc_get_carrier_config_property (net_nfc_carrier_config_h config, uint16_t attribute, uint16_t * size, uint8_t ** data);
+net_nfc_error_e net_nfc_get_carrier_config_property(
+		net_nfc_carrier_config_s *config,
+		uint16_t attribute,
+		uint16_t *size,
+		uint8_t **data);
 
 /**
   The group will be joined into the configure
@@ -93,7 +100,8 @@ net_nfc_error_e net_nfc_get_carrier_config_property (net_nfc_carrier_config_h co
   @exception NET_NFC_ALREADY_REGISTERED	The given group is already registered
   */
 
-net_nfc_error_e net_nfc_append_carrier_config_group (net_nfc_carrier_config_h config, net_nfc_property_group_h group);
+net_nfc_error_e net_nfc_append_carrier_config_group(
+		net_nfc_carrier_config_s *config, net_nfc_carrier_property_s *group);
 
 /**
   Remove the group from configure handle
@@ -107,7 +115,8 @@ net_nfc_error_e net_nfc_append_carrier_config_group (net_nfc_carrier_config_h co
   @exception NET_NFC_NO_DATA_FOUND		given handle pointer is not exist in the configure handle
   */
 
-net_nfc_error_e net_nfc_remove_carrier_config_group (net_nfc_carrier_config_h config, net_nfc_property_group_h group);
+net_nfc_error_e net_nfc_remove_carrier_config_group(
+		net_nfc_carrier_config_s *config, net_nfc_carrier_property_s *group);
 
 /**
   Get the group from configure handle by index
@@ -123,7 +132,8 @@ net_nfc_error_e net_nfc_remove_carrier_config_group (net_nfc_carrier_config_h co
   @exception NET_NFC_NO_DATA_FOUND		this is should be happened if the configure handle is dammaged
   */
 
-net_nfc_error_e net_nfc_get_carrier_config_group (net_nfc_carrier_config_h config, int index, net_nfc_property_group_h * group);
+net_nfc_error_e net_nfc_get_carrier_config_group(
+		net_nfc_carrier_config_s *config, int index, net_nfc_carrier_property_s **group);
 
 /**
   free the configure handle
@@ -135,7 +145,7 @@ net_nfc_error_e net_nfc_get_carrier_config_group (net_nfc_carrier_config_h confi
   @exception NET_NFC_NULL_PARAMETER		parameter(s) has(have) illigal NULL pointer(s)
   */
 
-net_nfc_error_e net_nfc_free_carrier_config (net_nfc_carrier_config_h config);
+net_nfc_error_e net_nfc_free_carrier_config(net_nfc_carrier_config_s *config);
 
 /**
   create the group handle
@@ -148,7 +158,8 @@ net_nfc_error_e net_nfc_free_carrier_config (net_nfc_carrier_config_h config);
   @exception NET_NFC_ALLOC_FAIL			allocation is failed
   */
 
-net_nfc_error_e net_nfc_create_carrier_config_group (net_nfc_property_group_h * group, uint16_t attribute);
+net_nfc_error_e net_nfc_create_carrier_config_group (
+		net_nfc_carrier_property_s **group, uint16_t attribute);
 
 /**
   add property into the group
@@ -165,7 +176,11 @@ net_nfc_error_e net_nfc_create_carrier_config_group (net_nfc_property_group_h * 
   @exception NET_NFC_ALREADY_REGISTERED	the given key is already registered
   */
 
-net_nfc_error_e net_nfc_add_carrier_config_group_property (net_nfc_property_group_h group, uint16_t attribute, uint16_t size, uint8_t * data);
+net_nfc_error_e net_nfc_add_carrier_config_group_property(
+		net_nfc_carrier_property_s *group,
+		uint16_t attribute,
+		uint16_t size,
+		uint8_t *data);
 
 /**
   get property from group handle
@@ -181,7 +196,11 @@ net_nfc_error_e net_nfc_add_carrier_config_group_property (net_nfc_property_grou
   @exception NET_NFC_NO_DATA_FOUND		the attribute does not exist in the group
   */
 
-net_nfc_error_e net_nfc_get_carrier_config_group_property (net_nfc_property_group_h group, uint16_t attribute, uint16_t *size, uint8_t ** data);
+net_nfc_error_e net_nfc_get_carrier_config_group_property(
+		net_nfc_carrier_property_s *group,
+		uint16_t attribute,
+		uint16_t *size,
+		uint8_t **data);
 
 /**
   remove the property from the group
@@ -195,7 +214,8 @@ net_nfc_error_e net_nfc_get_carrier_config_group_property (net_nfc_property_grou
   @exception NET_NFC_NO_DATA_FOUND		the attribute does not exist in the group
   */
 
-net_nfc_error_e net_nfc_remove_carrier_config_group_property (net_nfc_property_group_h group, uint16_t attribute);
+net_nfc_error_e net_nfc_remove_carrier_config_group_property(
+		net_nfc_carrier_property_s *group, uint16_t attribute);
 
 
 /**
@@ -208,7 +228,7 @@ net_nfc_error_e net_nfc_remove_carrier_config_group_property (net_nfc_property_g
   @exception NET_NFC_NULL_PARAMETER		parameter(s) has(have) illigal NULL pointer(s)
   */
 
-net_nfc_error_e net_nfc_free_carrier_group (net_nfc_property_group_h group);
+net_nfc_error_e net_nfc_free_carrier_group(net_nfc_carrier_property_s *group);
 
 /**
   Create record handler with config.
@@ -222,7 +242,8 @@ net_nfc_error_e net_nfc_free_carrier_group (net_nfc_property_group_h group);
   @exception NET_NFC_ALLOC_FAIL			allocation is failed
   */
 
-net_nfc_error_e net_nfc_create_ndef_record_with_carrier_config (ndef_record_h * record, net_nfc_carrier_config_h config);
+net_nfc_error_e net_nfc_create_ndef_record_with_carrier_config(
+		ndef_record_s **record, net_nfc_carrier_config_s *config);
 
 
 /**
@@ -239,7 +260,8 @@ net_nfc_error_e net_nfc_create_ndef_record_with_carrier_config (ndef_record_h * 
   @exception NET_NFC_INVALID_FORMAT		if the record does not contained the valid format.
   */
 
-net_nfc_error_e net_nfc_create_carrier_config_from_config_record (net_nfc_carrier_config_h* config, ndef_record_h record);
+net_nfc_error_e net_nfc_create_carrier_config_from_config_record(
+		net_nfc_carrier_config_s **config, ndef_record_s *record);
 
 /**
   append record into the connection handover request for reponse message;
@@ -255,7 +277,8 @@ net_nfc_error_e net_nfc_create_carrier_config_from_config_record (net_nfc_carrie
   @exception NET_NFC_INVALID_FORMAT		if the record does not contained the valid format.
   @exception NET_NFC_NO_DATA_FOUND		the attribute does not exist in the group
   */
-net_nfc_error_e net_nfc_append_carrier_config_record (ndef_message_h message, ndef_record_h record, net_nfc_conn_handover_carrier_state_e power_status);
+net_nfc_error_e net_nfc_append_carrier_config_record(ndef_message_s *message,
+		ndef_record_s *record, net_nfc_conn_handover_carrier_state_e power_status);
 
 /**
   append record into the connection handover request for reponse message;
@@ -271,7 +294,8 @@ net_nfc_error_e net_nfc_append_carrier_config_record (ndef_message_h message, nd
   @exception NET_NFC_NO_DATA_FOUND		Given record does not exist in the ndef message
   */
 
-net_nfc_error_e net_nfc_remove_carrier_config_record (ndef_message_h message, ndef_record_h record);
+net_nfc_error_e net_nfc_remove_carrier_config_record(ndef_message_s *message,
+		ndef_record_s *record);
 
 /**
   get configure record from ndef message by index
@@ -287,7 +311,8 @@ net_nfc_error_e net_nfc_remove_carrier_config_record (ndef_message_h message, nd
   @exception NET_NFC_INVALID_FORMAT		if the record does not contained the valid format.
   */
 
-net_nfc_error_e net_nfc_get_carrier_config_record (ndef_message_h message, int index, ndef_record_h * record);
+net_nfc_error_e net_nfc_get_carrier_config_record(ndef_message_s *message,
+		int index, ndef_record_s **record);
 
 /**
   get randome number from the connection request message
@@ -301,7 +326,8 @@ net_nfc_error_e net_nfc_get_carrier_config_record (ndef_message_h message, int i
   @exception NET_NFC_INVALID_FORMAT		if the record does not contained the valid format.
   */
 
-net_nfc_error_e net_nfc_get_handover_random_number(ndef_message_h message, unsigned short* random_number);
+net_nfc_error_e net_nfc_get_handover_random_number(ndef_message_s *message,
+		unsigned short *random_number);
 
 /**
   get the count of the alternative (configuration) in the message
@@ -314,7 +340,8 @@ net_nfc_error_e net_nfc_get_handover_random_number(ndef_message_h message, unsig
   @exception NET_NFC_NULL_PARAMETER		parameter(s) has(have) illigal NULL pointer(s)
   @exception NET_NFC_INVALID_FORMAT		if the record does not contained the valid format.
   */
-net_nfc_error_e net_nfc_get_alternative_carrier_record_count (ndef_message_h message,  unsigned int * count);
+net_nfc_error_e net_nfc_get_alternative_carrier_record_count(
+		ndef_message_s *message,  unsigned int *count);
 
 
 /**
@@ -332,7 +359,10 @@ net_nfc_error_e net_nfc_get_alternative_carrier_record_count (ndef_message_h mes
   @exception NET_NFC_OUT_OF_BOUND			index number is out of message count
   */
 
-net_nfc_error_e net_nfc_get_alternative_carrier_power_status (ndef_message_h message, int index, net_nfc_conn_handover_carrier_state_e * power_state);
+net_nfc_error_e net_nfc_get_alternative_carrier_power_status(
+		ndef_message_s *message,
+		int index,
+		net_nfc_conn_handover_carrier_state_e *power_state);
 
 /**
   set power status of the given configruation
@@ -348,7 +378,10 @@ net_nfc_error_e net_nfc_get_alternative_carrier_power_status (ndef_message_h mes
   @exception NET_NFC_NO_DATA_FOUND		there is no alternative record is found
   @exception NET_NFC_OUT_OF_BOUND			index number is out of message count
   */
-net_nfc_error_e net_nfc_set_alternative_carrier_power_status (ndef_message_h message, int index, net_nfc_conn_handover_carrier_state_e power_status);
+net_nfc_error_e net_nfc_set_alternative_carrier_power_status(
+		ndef_message_s *message,
+		int index,
+		net_nfc_conn_handover_carrier_state_e power_status);
 
 /**
   this function will get carrier type.
@@ -361,8 +394,10 @@ net_nfc_error_e net_nfc_set_alternative_carrier_power_status (ndef_message_h mes
   @exception NET_NFC_NULL_PARAMETER		parameter(s) has(have) illigal NULL pointer(s)
   */
 
-net_nfc_error_e net_nfc_get_alternative_carrier_type (ndef_message_h message, int index, net_nfc_conn_handover_carrier_type_e * power_state);
-
+net_nfc_error_e net_nfc_get_alternative_carrier_type(
+		ndef_message_s *message,
+		int index,
+		net_nfc_conn_handover_carrier_type_e *power_state);
 
 /**
   craete the connection handover request message
@@ -375,7 +410,8 @@ net_nfc_error_e net_nfc_get_alternative_carrier_type (ndef_message_h message, in
   @exception NET_NFC_ALLOC_FAIL			allocation is failed
   */
 
-net_nfc_error_e net_nfc_create_handover_request_message (ndef_message_h * message);
+net_nfc_error_e net_nfc_create_handover_request_message(
+		ndef_message_s **message);
 
 /**
   craete the connection handover select message
@@ -388,7 +424,8 @@ net_nfc_error_e net_nfc_create_handover_request_message (ndef_message_h * messag
   @exception NET_NFC_ALLOC_FAIL			allocation is failed
   */
 
-net_nfc_error_e net_nfc_create_handover_select_message (ndef_message_h * message);
+net_nfc_error_e net_nfc_create_handover_select_message(
+		ndef_message_s **message);
 
 /**
   craete the connection handover error record message
@@ -402,6 +439,7 @@ net_nfc_error_e net_nfc_create_handover_select_message (ndef_message_h * message
   @exception NET_NFC_NULL_PARAMETER		parameter(s) has(have) illigal NULL pointer(s)
   @exception NET_NFC_ALLOC_FAIL			allocation is failed
   */
-net_nfc_error_e net_nfc_create_handover_error_record (ndef_record_h * record, uint8_t reason, uint32_t data);
+net_nfc_error_e net_nfc_create_handover_error_record(ndef_record_s **record,
+		uint8_t reason, uint32_t data);
 
 #endif //__NET_NFC_NDEF_MESSAGE_HANDOVER_H__

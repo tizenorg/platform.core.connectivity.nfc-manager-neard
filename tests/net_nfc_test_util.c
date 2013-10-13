@@ -18,7 +18,7 @@
 #include "net_nfc_test_util.h"
 
 
-void print_received_data(data_h data)
+void print_received_data(data_s *data)
 {
 	guint8 *buffer = NULL;
 	gint i;

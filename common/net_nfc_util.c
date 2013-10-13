@@ -160,19 +160,6 @@ API bool net_nfc_util_alloc_data(data_s *data, uint32_t length)
 	return true;
 }
 
-API bool net_nfc_util_duplicate_data(data_s *dest, net_nfc_data_s *src)
-{
-	if (dest == NULL || src == NULL || src->length == 0)
-		return false;
-
-	if (net_nfc_util_alloc_data(dest, src->length) == false)
-		return false;
-
-	memcpy(dest->buffer, src->buffer, dest->length);
-
-	return true;
-}
-
 API void net_nfc_util_free_data(data_s *data)
 {
 	if (data == NULL || data->buffer == NULL)

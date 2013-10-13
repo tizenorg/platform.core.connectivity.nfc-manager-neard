@@ -21,37 +21,37 @@
 
 
 void net_nfc_test_tag_mifare_read(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_tag_mifare_authenticate_with_keyA(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_tag_mifare_authenticate_with_keyB(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_tag_mifare_write_block(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_tag_mifare_write_page(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_tag_mifare_increment(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_tag_mifare_decrement(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_tag_mifare_transfer(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_tag_mifare_restore(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_tag_mifare_create_default_key(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_tag_mifare_create_net_nfc_forum_key(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 #endif
 

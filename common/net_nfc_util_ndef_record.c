@@ -273,11 +273,11 @@ uint32_t net_nfc_util_get_record_length(ndef_record_s *Record)
 		return 0;
 
 	/* Type length is present only for following TNF
-		NET_NFC_TNF_NFCWELLKNOWN
-		NET_NFC_TNF_MEDIATYPE
-		SLP_FRINET_NFC_NDEFRECORD_TNF_ABSURI
-		SLP_FRINET_NFC_NDEFRECORD_TNF_NFCEXT
-		*/
+	   NET_NFC_TNF_NFCWELLKNOWN
+	   NET_NFC_TNF_MEDIATYPE
+	   SLP_FRINET_NFC_NDEFRECORD_TNF_ABSURI
+	   SLP_FRINET_NFC_NDEFRECORD_TNF_NFCEXT
+	   */
 
 	/* ++ is for the Type Length Byte */
 	RecordLength++;

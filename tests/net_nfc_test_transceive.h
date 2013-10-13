@@ -21,16 +21,16 @@
 
 
 void net_nfc_test_transceive(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_transceive_sync(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_transceive_data(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 void net_nfc_test_transceive_data_sync(gpointer data,
-				gpointer user_data);
+		gpointer user_data);
 
 #endif
 

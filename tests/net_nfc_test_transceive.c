@@ -23,7 +23,7 @@
 
 
 static void call_transceive_data_cb(net_nfc_error_e result,
-		data_h resp_data,
+		data_s *resp_data,
 		void *user_data);
 
 static void call_transceive_cb(net_nfc_error_e result,
@@ -53,7 +53,7 @@ static void call_transceive_cb(net_nfc_error_e result,
 }
 
 static void call_transceive_data_cb(net_nfc_error_e result,
-		data_h resp_data,
+		data_s *resp_data,
 		void *user_data)
 {
 	g_print("call_transceive_data_cb Completed %d\n", result);
@@ -66,15 +66,15 @@ void net_nfc_test_transceive(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	data_s raw_data = {NULL,};
-	net_nfc_target_info_h info = NULL;
-	net_nfc_target_handle_h handle = NULL;
+	net_nfc_target_info_s *info = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 
 	info = net_nfc_test_tag_get_target_info();
 
 	net_nfc_get_tag_handle(info, &handle);
 
 	result =net_nfc_client_transceive(handle,
-			(data_h)&raw_data,
+			&raw_data,
 			call_transceive_cb,
 			user_data);
 	g_print("net_nfc_client_transceive() : %d\n", result);
@@ -84,14 +84,14 @@ void net_nfc_test_transceive_sync(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	data_s raw_data = {NULL,};
-	net_nfc_target_info_h info = NULL;
-	net_nfc_target_handle_h handle = NULL;
+	net_nfc_target_info_s *info = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 
 	info = net_nfc_test_tag_get_target_info();
 
 	net_nfc_get_tag_handle(info, &handle);
 
-	result = net_nfc_client_transceive_sync(handle, (data_h)& raw_data);
+	result = net_nfc_client_transceive_sync(handle, &raw_data);
 
 	g_print("Transceive Sync is completed(%d)\n", result);
 }
@@ -100,15 +100,15 @@ void net_nfc_test_transceive_data(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	data_s raw_data = {NULL,};
-	net_nfc_target_info_h info = NULL;
-	net_nfc_target_handle_h handle = NULL;
+	net_nfc_target_info_s *info = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 
 	info = net_nfc_test_tag_get_target_info();
 
 	net_nfc_get_tag_handle(info, &handle);
 
 	result = net_nfc_client_transceive_data(handle,
-			(data_h) &raw_data,
+			&raw_data,
 			call_transceive_data_cb,
 			user_data);
 	g_print("net_nfc_client_transceive_data() : %d\n", result);
@@ -118,9 +118,9 @@ void net_nfc_test_transceive_data_sync(gpointer data, gpointer user_data)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 	data_s raw_data = {NULL};
-	data_h response = NULL;
-	net_nfc_target_info_h info = NULL;
-	net_nfc_target_handle_h handle = NULL;
+	data_s *response = NULL;
+	net_nfc_target_info_s *info = NULL;
+	net_nfc_target_handle_s *handle = NULL;
 
 	info = net_nfc_test_tag_get_target_info();
 

@@ -64,7 +64,7 @@
 
 */
 
-net_nfc_error_e net_nfc_client_felica_poll(net_nfc_target_handle_h handle,
+net_nfc_error_e net_nfc_client_felica_poll(net_nfc_target_handle_s *handle,
 		net_nfc_felica_poll_request_code_e req_code,
 		uint8_t time_slote,
 		nfc_transceive_data_callback callback,
@@ -99,7 +99,7 @@ net_nfc_error_e net_nfc_client_felica_poll(net_nfc_target_handle_h handle,
 */
 
 net_nfc_error_e net_nfc_client_felica_request_service(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		uint8_t number_of_area_service,
 		uint16_t area_service_list[],
 		uint8_t number_of_services,
@@ -139,7 +139,7 @@ net_nfc_error_e net_nfc_client_felica_request_service(
 */
 
 net_nfc_error_e net_nfc_client_felica_request_response(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		nfc_transceive_data_callback callback,
 		void *user_data);
 
@@ -172,7 +172,7 @@ net_nfc_error_e net_nfc_client_felica_request_response(
 */
 
 net_nfc_error_e net_nfc_client_felica_read_without_encryption(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		uint8_t number_of_services,
 		uint16_t service_list[],
 		uint8_t number_of_blocks,
@@ -210,12 +210,12 @@ net_nfc_error_e net_nfc_client_felica_read_without_encryption(
 */
 
 net_nfc_error_e net_nfc_client_felica_write_without_encryption(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		uint8_t number_of_services,
 		uint16_t service_list[],
 		uint8_t number_of_blocks,
 		uint8_t block_list[],
-		data_h data,
+		data_s *data,
 		nfc_transceive_data_callback callback,
 		void *user_data);
 
@@ -245,12 +245,12 @@ net_nfc_error_e net_nfc_client_felica_write_without_encryption(
 */
 
 net_nfc_error_e net_nfc_client_felica_request_system_code(
-		net_nfc_target_handle_h handle,
+		net_nfc_target_handle_s *handle,
 		nfc_transceive_data_callback callback,
 		void* trans_param);
 
 /**
-@}
-*/
+  @}
+  */
 
 #endif //__NET_NFC_CLIENT_TAG_FELICA_H__
