@@ -26,6 +26,6 @@ TARGET_LINK_LIBRARIES(${NFC_DAEMON} ${daemon_pkgs_LDFLAGS} pthread dl rt nfc-com
 
 INSTALL(TARGETS ${NFC_DAEMON} DESTINATION bin)
 
-INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/org.tizen.NetNfcService.service DESTINATION share/dbus-1/services)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/org.tizen.NetNfcService.service DESTINATION share/dbus-1/system-services)
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/nfc-manager.xml DESTINATION share/packages)
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sounds DESTINATION share/nfc-manager-daemon)

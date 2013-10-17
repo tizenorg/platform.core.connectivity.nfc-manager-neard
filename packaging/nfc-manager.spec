@@ -137,7 +137,7 @@ systemctl daemon-reload
 #%%{_bindir}/ndef-tool
 %{_libdir}/systemd/system/%{name}.service
 %{_libdir}/systemd/system/multi-user.target.wants/%{name}.service
-%{_datadir}/dbus-1/services/org.tizen.NetNfcService.service
+%{_datadir}/dbus-1/system-services/org.tizen.NetNfcService.service
 %{_datadir}/packages/%{name}.xml
 %{_datadir}/nfc-manager-daemon/sounds/*
 %attr(0775,-,5000) %dir /opt/usr/share/nfc_debug
