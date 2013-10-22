@@ -94,9 +94,13 @@ uint32_t net_nfc_server_get_server_state()
 	return g_server_info.state;
 }
 
+
+
 bool net_nfc_server_ipc_initialize()
 {
 	int result = 0;
+
+	pthread_mutex_lock(&g_server_socket_lock);
 
 	/* initialize server context */
 	g_server_info.server_src_id = 0;
@@ -113,7 +117,7 @@ bool net_nfc_server_ipc_initialize()
 	if (g_server_info.server_sock_fd == -1)
 	{
 		DEBUG_SERVER_MSG("get socket is failed");
-		return false;
+		goto ERROR;
 	}
 
 	net_nfc_util_set_non_block_socket(g_server_info.server_sock_fd);
@@ -143,7 +147,7 @@ bool net_nfc_server_ipc_initialize()
 	if (g_server_info.server_sock_fd == -1)
 	{
 		DEBUG_SERVER_MSG("get socket is failed");
-		return false;
+		goto ERROR;
 	}
 
 	net_nfc_util_set_non_block_socket(g_server_info.server_sock_fd);
@@ -219,6 +223,7 @@ bool net_nfc_server_ipc_initialize()
 	if (vconf_set_bool(NET_NFC_DISABLE_LAUNCH_POPUP_KEY, TRUE) != 0)
 		DEBUG_ERR_MSG("SERVER : launch state set vconf fail");
 
+	pthread_mutex_unlock(&g_server_socket_lock);
 	return true;
 
 ERROR :
@@ -248,6 +253,7 @@ ERROR :
 		g_server_info.server_sock_fd = -1;
 	}
 
+	pthread_mutex_unlock(&g_server_socket_lock);
 	return false;
 }
 

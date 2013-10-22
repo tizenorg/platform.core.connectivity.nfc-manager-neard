@@ -918,8 +918,7 @@ bool _net_nfc_check_dispatcher_privilege(net_nfc_request_msg_t *request_msg)
 {
 	int client_fd_request = request_msg->client_fd;
 	int ret_value;
-	
-	DEBUG_SERVER_MSG("enter check privilege function");
+
 	switch(request_msg->request_type)
 	{
 #if 0
