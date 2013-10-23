@@ -24,6 +24,7 @@ typedef struct _se_setting_t
 	net_nfc_target_handle_s *current_ese_handle;
 	void *open_request_trans_param;
 	uint8_t type;
+	uint8_t return_type;
 	uint8_t mode;
 }
 net_nfc_se_setting_t;
@@ -55,5 +56,6 @@ void net_nfc_service_se_open_se(net_nfc_request_msg_t *msg);
 void net_nfc_service_se_set_se(net_nfc_request_msg_t *msg);
 void net_nfc_service_se_get_se(net_nfc_request_msg_t *msg);
 void net_nfc_service_se_cleanup();
+void net_nfc_service_se_change_card_emulation_mode(net_nfc_request_msg_t *req_msg);
 
 #endif

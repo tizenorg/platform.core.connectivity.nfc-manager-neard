@@ -50,7 +50,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_create_ndef_message (ndef_message_h* 
 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_create_rawdata_from_ndef_message (ndef_message_h ndef_message, data_h* rawdata)
 {
-	int count;
+	uint32_t count;
 	net_nfc_error_e result;
 	data_h tmp_data;
 
@@ -94,7 +94,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_create_ndef_message_from_rawdata (nde
 }
 
 
-NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_ndef_message_byte_length(ndef_message_h ndef_message, int * length)
+NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_ndef_message_byte_length(ndef_message_h ndef_message, uint32_t *length)
 {
 	if (ndef_message == NULL || length == NULL){
 		return NET_NFC_NULL_PARAMETER;

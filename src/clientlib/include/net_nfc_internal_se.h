@@ -202,6 +202,37 @@ net_nfc_error_e net_nfc_get_atr(net_nfc_target_handle_h handle, void *trans_para
 */
 net_nfc_error_e net_nfc_get_atr_sync(net_nfc_target_handle_h handle, data_h *atr);
 
+/**
+	set card emulation mode of secure element
+
+	\par Sync (or) Async: Sync
+	This is a Synchronous API
+
+	@param[in]   se_mode		the mode of card emulation
+
+	@return		return the result of the calling the function
+
+	@exception NET_NFC_INVALID_PARAM 	invalid
+
+*/
+net_nfc_error_e net_nfc_set_card_emulation_mode_sync(net_nfc_card_emulation_mode_t se_mode);
+
+
+/**
+	set type of secure element
+
+	\par Sync (or) Async: Sync
+	This is a Synchronous API
+
+	@param[in]   se_type		the type of secure element
+
+	@return		return the result of the calling the function
+
+	@exception NET_NFC_INVALID_PARAM 	invalid
+
+*/
+net_nfc_error_e net_nfc_set_secure_element_type_sync(net_nfc_se_type_e se_type);
+
 #ifdef __cplusplus
 }
 #endif

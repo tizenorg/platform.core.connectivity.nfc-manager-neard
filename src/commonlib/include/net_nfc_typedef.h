@@ -181,7 +181,7 @@ typedef enum
 	NET_NFC_MESSAGE_TAG_DETACHED, /**< Type: Notify Event, <br> When a tag or SE is disappeared, you got this event.
 	 	 	 	 	 	 	 	 	 <br> The data contains the target info , need to cast to net_nfc_target_info_h but it does not have detail target info
 	 	 	 	 	 	 	 	 	 <br> please, do not use "net_nfc_get_tag_info_keys" when you got this event*/
-	NET_NFC_MESSAGE_FORMAT_NDEF, /**< Type: Response Event <br> After complete "net_nfc_format_ndef", this event is delivered */
+	/*10*/NET_NFC_MESSAGE_FORMAT_NDEF, /**< Type: Response Event <br> After complete "net_nfc_format_ndef", this event is delivered */
 	NET_NFC_MESSAGE_LLCP_DISCOVERED,/**< Type: Notify Event <br> When LLCP is discovered and remote device is support llcp, you receive this event
 	 	 	 	 	 	 	 	 	 <br> data pointer contains the remote llcp configuration info. Cast to net_nfc_llcp_config_info_h*/
 	NET_NFC_MESSAGE_P2P_DETACHED, /**< Type: Notify Event <br> When LLCP is de-activated by removing the device, you receive this event*/
@@ -194,10 +194,11 @@ typedef enum
 	NET_NFC_MESSAGE_SE_START_TRANSACTION, /**< Type: Notify Event, indicates external reader start transaction*/
 	NET_NFC_MESSAGE_SE_END_TRANSACTION, /**< Type: Notify Event, indicates external reader end transaction*/
 	NET_NFC_MESSAGE_SE_TYPE_TRANSACTION, /**< Type: Notify Event, Indicates external reader trying to access secure element */
-	NET_NFC_MESSAGE_SE_CONNECTIVITY, /**< Type: Notify Event, This event notifies the terminal host that it shall send a connectivity event from UICC */
+	/*20*/NET_NFC_MESSAGE_SE_CONNECTIVITY, /**< Type: Notify Event, This event notifies the terminal host that it shall send a connectivity event from UICC */
 	NET_NFC_MESSAGE_SE_FIELD_ON, /**< Type: Notify Event, indicates external reader field is on*/
 	NET_NFC_MESSAGE_SE_FIELD_OFF, /**< Type: Notify Event, indicates external reader field is off*/
 	NET_NFC_MESSAGE_SE_TYPE_CHANGED, /**< Type: Notify Event, indicates secure element type is changed*/
+	NET_NFC_MESSAGE_SE_CARD_EMULATION_CHANGED, /**< Type: Notify Event, indicates card emulation mode is changed*/
 
 	NET_NFC_MESSAGE_CONNECTION_HANDOVER, /**< Type: Response Event. <br> The result of connection handover. If it has been completed successfully, this event will include the information of alternative carrier. */
 
@@ -205,13 +206,14 @@ typedef enum
 	NET_NFC_MESSAGE_GET_SE,
 	NET_NFC_MESSAGE_OPEN_INTERNAL_SE,
 	NET_NFC_MESSAGE_CLOSE_INTERNAL_SE,
-	NET_NFC_MESSAGE_SEND_APDU_SE,
+	/*30*/NET_NFC_MESSAGE_SEND_APDU_SE,
 	NET_NFC_MESSAGE_GET_ATR_SE,
+	NET_NFC_MESSAGE_CARD_EMULATION_CHANGE_SE,
 	NET_NFC_GET_SERVER_STATE,
 
 	NET_NFC_MESSAGE_SIM_TEST,
 
-	NET_NFC_MESSAGE_INIT,/*31*/
+	NET_NFC_MESSAGE_INIT,
 	NET_NFC_MESSAGE_DEINIT,
 
 	NET_NFC_MESSAGE_PRBS_TEST,
@@ -498,6 +500,13 @@ typedef enum
 	NET_NFC_SE_TYPE_UICC = 0x02,/**< UICC */
 	NET_NFC_SE_TYPE_SDCARD = 0x03, /* SDCard type is not currently supported */
 } net_nfc_se_type_e;
+
+typedef enum
+{
+    NET_NFC_CARD_EMELATION_ENABLE = 0,
+    NET_NFC_CARD_EMULATION_DISABLE,
+}
+net_nfc_card_emulation_mode_t;
 
 typedef enum
 {

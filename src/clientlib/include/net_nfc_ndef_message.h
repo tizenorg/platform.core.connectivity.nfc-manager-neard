@@ -240,7 +240,7 @@ net_nfc_error_e net_nfc_create_ndef_message_from_rawdata (ndef_message_h* ndef_m
 
 */
 
-net_nfc_error_e net_nfc_get_ndef_message_byte_length(ndef_message_h ndef_message, int * length) ;
+net_nfc_error_e net_nfc_get_ndef_message_byte_length(ndef_message_h ndef_message, uint32_t *length) ;
 /**
 	Append a record to ndef message structure.
 	This API help to create NDEF message and it control Record flags to follow the NDEF forum specification

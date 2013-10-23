@@ -162,7 +162,7 @@ static void utc_net_nfc_get_ndef_message_byte_length_p(void)
 	char url[] = "samsung.com";
 	ndef_record_h record = NULL;
 	ndef_message_h msg = NULL;
-	int length = 0;
+	uint32_t length = 0;
 
 	net_nfc_create_uri_type_record(&record, url, NET_NFC_SCHEMA_HTTPS_WWW);
 

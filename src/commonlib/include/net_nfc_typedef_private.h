@@ -341,10 +341,21 @@ typedef struct _net_nfc_target_info_s
 	data_s raw_data;
 } net_nfc_target_info_s;
 
+typedef enum _net_nfc_secure_element_type_e
+{
+	SECURE_ELEMENT_TYPE_INVALID = 0x00, /**< Indicates SE type is Invalid */
+	SECURE_ELEMENT_TYPE_ESE = 0x01, /**< Indicates SE type is SmartMX */
+	SECURE_ELEMENT_TYPE_UICC = 0x02, /**<Indicates SE type is   UICC */
+	SECURE_ELEMENT_TYPE_UNKNOWN = 0x03 /**< Indicates SE type is Unknown */
+} net_nfc_secure_element_type_e;
+
 typedef struct _net_nfc_se_event_info_s
 {
 	data_s aid;
 	data_s param;
+	bool fg_dispatch;
+	pid_t focus_app_pid;
+	net_nfc_secure_element_type_e se_type;
 }net_nfc_se_event_info_s;
 
 typedef struct _net_nfc_transceive_info_s
@@ -792,6 +803,14 @@ typedef struct _net_nfc_request_get_atr_t
 	net_nfc_target_handle_s *handle;
 } net_nfc_request_get_atr_t;
 
+typedef struct _net_nfc_request_se_change_card_emulation_t
+{
+	NET_NFC_REQUEST_MSG_HEADER
+
+	void *trans_param;
+	uint8_t se_mode;
+} net_nfc_request_se_change_card_emulation_t;
+
 typedef struct _net_nfc_request_connection_handover_t
 {
 	NET_NFC_REQUEST_MSG_HEADER
@@ -861,6 +880,9 @@ typedef struct _net_nfc_response_se_event_t
 
 	data_s aid;
 	data_s param;
+	bool fg_dispatch;
+	pid_t focus_app_pid;
+	net_nfc_secure_element_type_e se_type;
 } net_nfc_response_se_event_t;
 
 typedef struct _net_nfc_response_get_current_tag_info_t
@@ -1090,6 +1112,14 @@ typedef struct _net_nfc_response_get_se_t
 	void *trans_param;
 } net_nfc_response_get_se_t;
 
+typedef struct _net_nfc_response_se_change_card_emulation_t
+{
+	NET_NFC_RESPONSE_MSG_HEADER
+
+	uint8_t se_mode;
+	void *trans_param;
+} net_nfc_response_se_change_card_emulation_t;
+
 typedef struct _net_nfc_response_open_internal_se_t
 {
 	NET_NFC_RESPONSE_MSG_HEADER
@@ -1192,14 +1222,6 @@ typedef enum _net_nfc_discovery_mode_e
 	NET_NFC_DISCOVERY_MODE_STOP,
 	NET_NFC_DISCOVERY_MODE_RESUME,
 } net_nfc_discovery_mode_e;
-
-typedef enum _net_nfc_secure_element_type_e
-{
-	SECURE_ELEMENT_TYPE_INVALID = 0x00, /**< Indicates SE type is Invalid */
-	SECURE_ELEMENT_TYPE_ESE = 0x01, /**< Indicates SE type is SmartMX */
-	SECURE_ELEMENT_TYPE_UICC = 0x02, /**<Indicates SE type is   UICC */
-	SECURE_ELEMENT_TYPE_UNKNOWN = 0x03 /**< Indicates SE type is Unknown */
-} net_nfc_secure_element_type_e;
 
 typedef enum _net_nfc_secure_element_state_e
 {

@@ -71,7 +71,13 @@ uint8_t net_nfc_service_se_get_se_type()
 
 void net_nfc_service_se_set_se_type(uint8_t type)
 {
+	g_se_setting.return_type = g_se_setting.type;
 	g_se_setting.type = type;
+}
+
+uint8_t net_nfc_service_se_get_return_se_mode()
+{
+    return g_se_setting.return_type;
 }
 
 uint8_t net_nfc_service_se_get_se_mode()
@@ -82,6 +88,28 @@ uint8_t net_nfc_service_se_get_se_mode()
 void net_nfc_service_se_set_se_mode(uint8_t mode)
 {
 	g_se_setting.mode = mode;
+}
+
+net_nfc_error_e net_nfc_service_se_disable_card_emulation()
+{
+    net_nfc_error_e result;
+
+    net_nfc_service_se_set_se_type(SECURE_ELEMENT_TYPE_INVALID);
+    net_nfc_service_se_set_se_mode(SECURE_ELEMENT_OFF_MODE);
+
+    /*turn off ESE*/
+    net_nfc_controller_set_secure_element_mode(
+        SECURE_ELEMENT_TYPE_ESE,
+        SECURE_ELEMENT_OFF_MODE,
+        &result);
+
+    /*turn off UICC*/
+    net_nfc_controller_set_secure_element_mode(
+        SECURE_ELEMENT_TYPE_UICC,
+        SECURE_ELEMENT_OFF_MODE,
+        &result);
+
+    return NET_NFC_OK;
 }
 
 net_nfc_error_e net_nfc_service_se_change_se(uint8_t type)
@@ -438,16 +466,40 @@ void _uicc_status_noti_cb(TapiHandle *handle, const char *noti_id, void *data, v
 bool net_nfc_service_se_transaction_receive(net_nfc_request_msg_t* msg)
 {
 	bool res = true;
+	bool fg_dispatch;
+	pid_t focus_app_pid;
+	net_nfc_secure_element_type_e se_type;
 	net_nfc_request_se_event_t *se_event = (net_nfc_request_se_event_t *)msg;
 
 	if (se_event->request_type == NET_NFC_MESSAGE_SE_START_TRANSACTION)
 	{
 		DEBUG_SERVER_MSG("launch se app");
 
-		net_nfc_app_util_launch_se_transaction_app(se_event->aid.buffer,
+		se_type = net_nfc_service_se_get_se_type();
+		fg_dispatch = net_nfc_app_util_check_launch_state();
+		focus_app_pid = net_nfc_app_util_get_focus_app_pid();
+
+		res = net_nfc_app_util_launch_se_transaction_app(se_type, se_event->aid.buffer,
 			se_event->aid.length, se_event->param.buffer, se_event->param.length);
 
 		DEBUG_SERVER_MSG("launch se app end");
+
+		if (net_nfc_server_check_client_is_running(msg->client_fd))
+		{
+			net_nfc_response_se_event_t resp = { 0 };
+
+			resp.length = sizeof(net_nfc_response_se_event_t);
+			resp.flags = se_event->flags;
+			resp.result = res;
+			resp.aid = se_event->aid;
+			resp.param = se_event->param;
+			resp.fg_dispatch = fg_dispatch;
+			resp.focus_app_pid = focus_app_pid;
+			resp.se_type = se_type;
+
+			net_nfc_broadcast_response_msg(NET_NFC_MESSAGE_SE_START_TRANSACTION,
+				(void *)&resp, sizeof(net_nfc_response_se_event_t), NULL);
+		}
 	}
 
 	return res;
@@ -706,6 +758,54 @@ void net_nfc_service_se_open_se(net_nfc_request_msg_t *msg)
 
 		net_nfc_send_response_msg(msg->client_fd, msg->request_type,
 			(void *)&resp, sizeof(net_nfc_response_open_internal_se_t), NULL);
+	}
+}
+
+void net_nfc_service_se_change_card_emulation_mode(net_nfc_request_msg_t *msg)
+{
+   bool isModeChange = false;
+   uint8_t current_mode, return_mode;
+	net_nfc_error_e result = NET_NFC_OK;
+	net_nfc_request_se_change_card_emulation_t *detail
+		= (net_nfc_request_se_change_card_emulation_t *)msg;
+
+	current_mode = net_nfc_service_se_get_se_mode();
+
+	if(detail->se_mode == SECURE_ELEMENT_ACTIVE_STATE
+			&& current_mode == SECURE_ELEMENT_TYPE_INVALID)
+	{
+		return_mode = net_nfc_service_se_get_return_se_mode();
+		result = net_nfc_service_se_change_se(return_mode);
+		isModeChange = true;
+	}
+	else if(detail->se_mode == SECURE_ELEMENT_INACTIVE_STATE
+			&& current_mode != SECURE_ELEMENT_TYPE_INVALID)
+	{
+		result = net_nfc_service_se_disable_card_emulation();
+		isModeChange = true;
+	}
+
+	if (net_nfc_server_check_client_is_running(msg->client_fd))
+	{
+		net_nfc_response_se_change_card_emulation_t resp = { 0 };
+
+		resp.length = sizeof(net_nfc_response_se_change_card_emulation_t);
+		resp.flags = detail->flags;
+		resp.user_param = detail->user_param;
+		resp.trans_param = detail->trans_param;
+		resp.result = result;
+		resp.se_mode = detail->se_mode;
+
+		net_nfc_send_response_msg(msg->client_fd, msg->request_type,
+			(void *)&resp, sizeof(net_nfc_response_se_change_card_emulation_t), NULL);
+	}
+
+	if(isModeChange)
+	{
+		net_nfc_response_notify_t noti_se = { 0, };
+
+		net_nfc_broadcast_response_msg(NET_NFC_MESSAGE_SE_CARD_EMULATION_CHANGED,
+			(void *)&noti_se, sizeof(net_nfc_response_notify_t), NULL);
 	}
 }
 

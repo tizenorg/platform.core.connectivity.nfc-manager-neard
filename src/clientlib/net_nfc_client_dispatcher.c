@@ -198,6 +198,15 @@ static bool net_nfc_client_dispatch_response(client_dispatcher_param_t *param)
 		}
 		break;
 
+	case NET_NFC_MESSAGE_SE_CARD_EMULATION_CHANGED :
+		{
+			if (client_cb != NULL)
+			{
+				client_cb(msg->response_type, NET_NFC_OK, NULL, NULL, NULL);
+			}
+		}
+		break;
+
 	case NET_NFC_MESSAGE_OPEN_INTERNAL_SE :
 		{
 			DEBUG_CLIENT_MSG("handle = [0x%p]", ((net_nfc_response_open_internal_se_t *)(msg->detail_message))->handle);
@@ -555,6 +564,9 @@ static bool net_nfc_client_dispatch_response(client_dispatcher_param_t *param)
 
 			info.aid = se_event->aid;
 			info.param = se_event->param;
+			info.se_type = se_event->se_type;
+			info.fg_dispatch = se_event->fg_dispatch;
+			info.focus_app_pid = se_event->focus_app_pid;
 
 			if (client_cb != NULL)
 				client_cb(msg->response_type, NET_NFC_OK, (void *)&info, client_context->register_user_param, NULL);
@@ -891,6 +903,16 @@ net_nfc_error_e net_nfc_client_dispatch_sync_response(net_nfc_response_msg_t *ms
 		break;
 
 	case NET_NFC_MESSAGE_SE_TYPE_CHANGED :
+		break;
+
+	case NET_NFC_MESSAGE_CARD_EMULATION_CHANGE_SE :
+		{
+			net_nfc_response_se_change_card_emulation_t *response
+				= (net_nfc_response_se_change_card_emulation_t *)msg->detail_message;
+
+			/* return */
+			result = response->result;
+		}
 		break;
 
 	case NET_NFC_MESSAGE_OPEN_INTERNAL_SE :

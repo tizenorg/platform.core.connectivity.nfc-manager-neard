@@ -243,6 +243,12 @@ static void *_net_nfc_dispatcher_thread_func(void *data)
 			}
 			break;
 
+		case NET_NFC_MESSAGE_CARD_EMULATION_CHANGE_SE :
+			{
+				net_nfc_service_se_change_card_emulation_mode(req_msg);
+			}
+			break;
+
 		case NET_NFC_MESSAGE_P2P_SEND :
 			{
 				net_nfc_request_p2p_send_t *exchanger = (net_nfc_request_p2p_send_t *)req_msg;

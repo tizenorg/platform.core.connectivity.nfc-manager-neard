@@ -26,6 +26,53 @@
 #define NET_NFC_EXPORT_API __attribute__((visibility("default")))
 #endif
 
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_set_card_emulation_mode_sync(
+    net_nfc_card_emulation_mode_t se_mode)
+{
+   net_nfc_error_e ret = NET_NFC_OK;
+	net_nfc_request_se_change_card_emulation_t request = { 0, };
+
+	if (se_mode < NET_NFC_SE_TYPE_NONE || se_mode > NET_NFC_SE_TYPE_UICC)
+	{
+		return NET_NFC_INVALID_PARAM;
+	}
+
+	request.length = sizeof(net_nfc_request_se_change_card_emulation_t);
+	request.request_type = NET_NFC_MESSAGE_CARD_EMULATION_CHANGE_SE;
+	request.se_mode = se_mode;
+
+	ret = net_nfc_client_send_request_sync((net_nfc_request_msg_t *)&request, NULL);
+
+	if (ret != NET_NFC_OK)
+		DEBUG_ERR_MSG("net_nfc_set_card_emulation_mode_sync failed [%d]", ret);
+
+	return ret;
+}
+
+NET_NFC_EXPORT_API net_nfc_error_e net_nfc_set_secure_element_type_sync(
+	net_nfc_se_type_e se_type)
+{
+	net_nfc_error_e ret = NET_NFC_OK;
+	net_nfc_request_set_se_t request = { 0, };
+
+	if (se_type < NET_NFC_SE_TYPE_NONE || se_type > NET_NFC_SE_TYPE_UICC)
+	{
+		return NET_NFC_INVALID_PARAM;
+	}
+
+	request.length = sizeof(net_nfc_request_set_se_t);
+	request.request_type = NET_NFC_MESSAGE_SET_SE;
+	request.se_type = se_type;
+
+	ret = net_nfc_client_send_request_sync((net_nfc_request_msg_t *)&request, NULL);
+	if (ret != NET_NFC_OK)
+		DEBUG_ERR_MSG("net_nfc_set_secure_element_type_sync failed [%d]", ret);
+
+	return ret;
+}
+
+
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_set_secure_element_type(net_nfc_se_type_e se_type, void *trans_param)
 {
 	net_nfc_error_e ret;
