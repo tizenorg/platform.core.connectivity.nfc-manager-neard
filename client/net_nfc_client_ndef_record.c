@@ -50,10 +50,8 @@ API net_nfc_error_e net_nfc_free_record(ndef_record_s *record)
 API net_nfc_error_e net_nfc_get_record_payload(ndef_record_s *record,
 		data_s **payload)
 {
-	if (record == NULL || payload == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == record, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == payload, NET_NFC_NULL_PARAMETER);
 
 	*payload = &(record->payload_s);
 
@@ -62,10 +60,8 @@ API net_nfc_error_e net_nfc_get_record_payload(ndef_record_s *record,
 
 API net_nfc_error_e net_nfc_get_record_type(ndef_record_s *record, data_s **type)
 {
-	if (record == NULL || type == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == record, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == type, NET_NFC_NULL_PARAMETER);
 
 	*type = &(record->type_s);
 
@@ -74,10 +70,8 @@ API net_nfc_error_e net_nfc_get_record_type(ndef_record_s *record, data_s **type
 
 API net_nfc_error_e net_nfc_get_record_id(ndef_record_s *record, data_s **id)
 {
-	if (record == NULL || id == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == record, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == id, NET_NFC_NULL_PARAMETER);
 
 	*id = &(record->id_s);
 
@@ -87,10 +81,8 @@ API net_nfc_error_e net_nfc_get_record_id(ndef_record_s *record, data_s **id)
 API net_nfc_error_e net_nfc_get_record_tnf(ndef_record_s *record,
 		net_nfc_record_tnf_e *TNF)
 {
-	if (record == NULL || TNF == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == record, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == TNF, NET_NFC_NULL_PARAMETER);
 
 	*TNF = (net_nfc_record_tnf_e)record->TNF;
 
@@ -99,19 +91,16 @@ API net_nfc_error_e net_nfc_get_record_tnf(ndef_record_s *record,
 
 API net_nfc_error_e net_nfc_set_record_id(ndef_record_s *record, data_s *id)
 {
-	if (record == NULL || id == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == record, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == id, NET_NFC_NULL_PARAMETER);
+
 	return net_nfc_util_set_record_id(record, id->buffer, id->length);
 }
 
 API net_nfc_error_e net_nfc_get_record_flags(ndef_record_s *record, uint8_t *flag)
 {
-	if (record == NULL || flag == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == record, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == flag, NET_NFC_NULL_PARAMETER);
 
 	*flag = record->MB;
 	*flag <<= 1;
@@ -155,8 +144,8 @@ API uint8_t net_nfc_get_record_il(uint8_t flag)
 
 static bool _is_text_record(ndef_record_s *record)
 {
-	bool result = false;
 	data_s *type;
+	bool result = false;
 
 	if ((net_nfc_get_record_type(record, &type) == NET_NFC_OK)
 			&& (strncmp((char *)net_nfc_get_data_buffer(type),
@@ -172,11 +161,11 @@ static bool _is_text_record(ndef_record_s *record)
 API net_nfc_error_e net_nfc_create_text_string_from_text_record(
 		ndef_record_s *record, char **buffer)
 {
-	net_nfc_error_e result;
 	data_s *payload;
+	net_nfc_error_e result;
 
-	if (record == NULL || buffer == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == record, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == buffer, NET_NFC_NULL_PARAMETER);
 
 	*buffer = NULL;
 
@@ -222,11 +211,11 @@ API net_nfc_error_e net_nfc_create_text_string_from_text_record(
 API net_nfc_error_e net_nfc_get_languange_code_string_from_text_record(
 		ndef_record_s *record, char **lang_code_str)
 {
-	net_nfc_error_e result;
 	data_s *payload;
+	net_nfc_error_e result;
 
-	if (record == NULL || lang_code_str == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == record, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == lang_code_str, NET_NFC_NULL_PARAMETER);
 
 	*lang_code_str = NULL;
 
@@ -239,6 +228,7 @@ API net_nfc_error_e net_nfc_get_languange_code_string_from_text_record(
 	result = net_nfc_get_record_payload(record, &payload);
 	if (result == NET_NFC_OK)
 	{
+		int index = 1;
 		char *buffer = NULL;
 		uint8_t *buffer_temp = net_nfc_get_data_buffer(payload);
 
@@ -247,7 +237,6 @@ API net_nfc_error_e net_nfc_get_languange_code_string_from_text_record(
 
 		int controllbyte = buffer_temp[0];
 		int lang_code_length = controllbyte & 0x3F;
-		int index = 1;
 
 		_net_nfc_util_alloc_mem(buffer, lang_code_length + 1);
 		if (buffer != NULL)
@@ -269,11 +258,11 @@ API net_nfc_error_e net_nfc_get_languange_code_string_from_text_record(
 API net_nfc_error_e net_nfc_get_encoding_type_from_text_record(
 		ndef_record_s *record, net_nfc_encode_type_e *encoding)
 {
-	net_nfc_error_e result;
 	data_s *payload;
+	net_nfc_error_e result;
 
-	if (record == NULL || encoding == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == record, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == encoding, NET_NFC_NULL_PARAMETER);
 
 	*encoding = NET_NFC_ENCODE_UTF_8;
 
