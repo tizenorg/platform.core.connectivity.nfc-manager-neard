@@ -31,8 +31,7 @@ API net_nfc_error_e net_nfc_create_data(data_s **data, const uint8_t *bytes,
 {
 	data_s *tmp_data = NULL;
 
-	if (data == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == data, NET_NFC_NULL_PARAMETER);
 
 	_net_nfc_util_alloc_mem(tmp_data, sizeof(data_s));
 	if (tmp_data == NULL)
@@ -50,9 +49,7 @@ API net_nfc_error_e net_nfc_create_data(data_s **data, const uint8_t *bytes,
 		tmp_data->length = length;
 
 		if (bytes != NULL)
-		{
 			memcpy(tmp_data->buffer, bytes, length);
-		}
 	}
 
 	*data = tmp_data;
@@ -63,8 +60,9 @@ API net_nfc_error_e net_nfc_create_data(data_s **data, const uint8_t *bytes,
 API net_nfc_error_e net_nfc_get_data(const data_s *data, uint8_t **bytes,
 		size_t *length)
 {
-	if (bytes == NULL || length == NULL || NULL == data)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == bytes, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == length, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == data, NET_NFC_NULL_PARAMETER);
 
 	*bytes = data->buffer;
 	*length = data->length;
@@ -72,10 +70,10 @@ API net_nfc_error_e net_nfc_get_data(const data_s *data, uint8_t **bytes,
 	return NET_NFC_OK;
 }
 
-API net_nfc_error_e net_nfc_set_data(data_s *data, const uint8_t *bytes, const size_t length)
+API net_nfc_error_e net_nfc_set_data(data_s *data, const uint8_t *bytes,
+		const size_t length)
 {
-	if (data == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == data, NET_NFC_NULL_PARAMETER);
 
 	if (data->buffer == bytes && data->length == length)
 		return NET_NFC_OK;
@@ -103,24 +101,21 @@ API net_nfc_error_e net_nfc_set_data(data_s *data, const uint8_t *bytes, const s
 
 API size_t net_nfc_get_data_length(const data_s *data)
 {
-	if (data == NULL)
-		return 0;
+	RETV_IF(NULL == data, 0);
 
 	return data->length;
 }
 
 API uint8_t* net_nfc_get_data_buffer(const data_s *data)
 {
-	if (data == NULL)
-		return NULL;
+	RETV_IF(NULL == data, NULL);
 
 	return data->buffer;
 }
 
 API net_nfc_error_e net_nfc_free_data(data_s *data)
 {
-	if (data == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == data, NET_NFC_NULL_PARAMETER);
 
 	if (data->buffer != NULL)
 		_net_nfc_util_free_mem(data->buffer);
