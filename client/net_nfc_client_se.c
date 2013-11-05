@@ -64,112 +64,75 @@ static SeEventHandler se_eventhandler;
 static SeTransEventHandler se_transeventhandler;
 static SeESEDetectedHandler se_esedetecthandler;
 
-static void se_ese_detected(GObject *source_object,
-		guint arg_handle,
-		gint arg_se_type,
-		GVariant *arg_data);
-
-static void se_type_changed(GObject *source_object,
-		gint arg_se_type);
-
-static void set_secure_element(GObject *source_object,
-		GAsyncResult *res,
-		gpointer user_data);
-
-static void open_secure_element(GObject *source_object,
-		GAsyncResult *res,
-		gpointer user_data);
-
-static void close_secure_element(GObject *source_object,
-		GAsyncResult *res,
-		gpointer user_data);
-
-static void send_apdu_secure_element(GObject *source_object,
-		GAsyncResult *res,
-		gpointer user_data);
-
-static void get_atr_secure_element(GObject *source_object,
-		GAsyncResult *res,
-		gpointer user_data);
-
-
-static void se_ese_detected(GObject *source_object,
-		guint arg_handle,
-		gint arg_se_type,
-		GVariant *arg_data)
+static void se_ese_detected(GObject *source_object, guint arg_handle,
+		gint arg_se_type, GVariant *arg_data)
 {
+	data_s buffer_data = { NULL, 0 };
+	net_nfc_client_se_ese_detected_event callback;
+
 	NFC_INFO(">>> SIGNAL arrived");
 
-	if (se_esedetecthandler.se_ese_detected_cb != NULL) {
-		data_s buffer_data = { NULL, 0 };
-		net_nfc_client_se_ese_detected_event callback =
-			(net_nfc_client_se_ese_detected_event)se_esedetecthandler.se_ese_detected_cb;
+	RET_IF(NULL == se_esedetecthandler.se_ese_detected_cb);
 
-		net_nfc_util_gdbus_variant_to_data_s(arg_data, &buffer_data);
+	net_nfc_util_gdbus_variant_to_data_s(arg_data, &buffer_data);
 
-		callback((net_nfc_target_handle_s*)arg_handle, arg_se_type, &buffer_data,
-				se_esedetecthandler.se_ese_detected_data);
+	callback = se_esedetecthandler.se_ese_detected_cb;
+	callback((net_nfc_target_handle_s*)arg_handle, arg_se_type, &buffer_data,
+			se_esedetecthandler.se_ese_detected_data);
 
-		net_nfc_util_free_data(&buffer_data);
-	}
+	net_nfc_util_free_data(&buffer_data);
 }
 
 
-static void se_type_changed(GObject *source_object,
-		gint arg_se_type)
+static void se_type_changed(GObject *source_object, gint arg_se_type)
 {
+	net_nfc_client_se_event callback;
+
 	NFC_INFO(">>> SIGNAL arrived");
 
-	if (se_eventhandler.se_event_cb != NULL)
-	{
-		net_nfc_client_se_event callback =
-			(net_nfc_client_se_event)se_eventhandler.se_event_cb;
+	RET_IF(NULL == se_eventhandler.se_event_cb);
 
-		callback((net_nfc_message_e)arg_se_type,
-				se_eventhandler.se_event_data);
-	}
+	callback = se_eventhandler.se_event_cb;
+	callback((net_nfc_message_e)arg_se_type, se_eventhandler.se_event_data);
 }
 
 
 static void se_transaction_event(GObject *source_object,
-		gint arg_se_type,
-		GVariant *arg_aid,
-		GVariant *arg_param)
+		gint arg_se_type, GVariant *arg_aid, GVariant *arg_param)
 {
+	data_s aid = { NULL, 0 };
+	data_s param = { NULL, 0 };
+	net_nfc_client_se_transaction_event callback;
+
 	NFC_INFO(">>> SIGNAL arrived");
 
-	if (se_transeventhandler.se_transaction_event_cb != NULL) {
-		net_nfc_client_se_transaction_event callback =
-			(net_nfc_client_se_transaction_event)se_transeventhandler.se_transaction_event_cb;
-		data_s aid = { NULL, 0 };
-		data_s param = { NULL, 0 };
+	RET_IF(NULL == se_transeventhandler.se_transaction_event_cb);
 
-		net_nfc_util_gdbus_variant_to_data_s(arg_aid, &aid);
-		net_nfc_util_gdbus_variant_to_data_s(arg_param, &param);
+	net_nfc_util_gdbus_variant_to_data_s(arg_aid, &aid);
+	net_nfc_util_gdbus_variant_to_data_s(arg_param, &param);
 
-		callback(&aid, &param,
-				se_transeventhandler.se_transaction_event_data);
+	callback = se_transeventhandler.se_transaction_event_cb;
+	callback(&aid, &param, se_transeventhandler.se_transaction_event_data);
 
-		net_nfc_util_free_data(&param);
-		net_nfc_util_free_data(&aid);
-	}
+	net_nfc_util_free_data(&param);
+	net_nfc_util_free_data(&aid);
 }
 
 
 static void set_secure_element(GObject *source_object,
-		GAsyncResult *res,
-		gpointer user_data)
+		GAsyncResult *res, gpointer user_data)
 {
-	SeFuncData *func_data = (SeFuncData *)user_data;
-	net_nfc_error_e result;
+	gboolean ret;
 	GError *error = NULL;
+	net_nfc_error_e result;
+	net_nfc_se_set_se_cb se_callback;
+	SeFuncData *func_data = user_data;
 
 	g_assert(user_data != NULL);
 
-	if (net_nfc_gdbus_secure_element_call_set_finish(se_proxy,
-				&result,
-				res,
-				&error) == FALSE)
+	ret = net_nfc_gdbus_secure_element_call_set_finish(se_proxy, &result, res, &error);
+
+	if(FALSE == ret)
 	{
 		NFC_ERR("Could not set secure element: %s", error->message);
 		g_error_free(error);
@@ -179,8 +142,7 @@ static void set_secure_element(GObject *source_object,
 
 	if (func_data->se_callback != NULL)
 	{
-		net_nfc_se_set_se_cb se_callback =
-			(net_nfc_se_set_se_cb)func_data->se_callback;
+		se_callback = (net_nfc_se_set_se_cb)func_data->se_callback;
 
 		se_callback(result, func_data->se_data);
 	}
@@ -189,21 +151,21 @@ static void set_secure_element(GObject *source_object,
 }
 
 static void get_secure_element(GObject *source_object,
-		GAsyncResult *res,
-		gpointer user_data)
+		GAsyncResult *res, gpointer user_data)
 {
-	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
-	net_nfc_error_e result;
+	gboolean ret;
 	gint type = 0;
 	GError *error = NULL;
+	net_nfc_error_e result;
+	net_nfc_se_get_se_cb se_callback;
+	NetNfcCallback *func_data = user_data;
 
 	g_assert(user_data != NULL);
 
-	if (net_nfc_gdbus_secure_element_call_get_finish(se_proxy,
-				&result,
-				&type,
-				res,
-				&error) == FALSE)
+	ret = net_nfc_gdbus_secure_element_call_get_finish(se_proxy,
+			&result, &type, res, &error);
+
+	if (FALSE == ret)
 	{
 		NFC_ERR("Could not set secure element: %s", error->message);
 		g_error_free(error);
@@ -213,8 +175,7 @@ static void get_secure_element(GObject *source_object,
 
 	if (func_data->callback != NULL)
 	{
-		net_nfc_se_get_se_cb se_callback =
-			(net_nfc_se_get_se_cb)func_data->callback;
+		se_callback = (net_nfc_se_get_se_cb)func_data->callback;
 
 		se_callback(result, type, func_data->user_data);
 	}
@@ -223,20 +184,21 @@ static void get_secure_element(GObject *source_object,
 }
 
 static void _set_card_emulation_cb(GObject *source_object,
-		GAsyncResult *res,
-		gpointer user_data)
+		GAsyncResult *res, gpointer user_data)
 {
-	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
-	net_nfc_error_e result;
+	gboolean ret;
 	GError *error = NULL;
+	net_nfc_error_e result;
+	net_nfc_se_set_se_cb se_callback;
+	NetNfcCallback *func_data = user_data;
 
 	g_assert(user_data != NULL);
 
-	if (net_nfc_gdbus_secure_element_call_set_card_emulation_finish(
-				se_proxy,
-				&result,
-				res,
-				&error) == FALSE)
+
+	ret = net_nfc_gdbus_secure_element_call_set_card_emulation_finish(
+			se_proxy, &result, res, &error);
+
+	if(FALSE == ret)
 	{
 		NFC_ERR("Could not set card emulation: %s", error->message);
 		g_error_free(error);
@@ -246,8 +208,7 @@ static void _set_card_emulation_cb(GObject *source_object,
 
 	if (func_data->callback != NULL)
 	{
-		net_nfc_se_set_se_cb se_callback =
-			(net_nfc_se_set_se_cb)func_data->callback;
+		se_callback = (net_nfc_se_set_se_cb)func_data->callback;
 
 		se_callback(result, func_data->user_data);
 	}
@@ -257,22 +218,21 @@ static void _set_card_emulation_cb(GObject *source_object,
 
 
 static void open_secure_element(GObject *source_object,
-		GAsyncResult *res,
-		gpointer user_data)
+		GAsyncResult *res, gpointer user_data)
 {
-	SeFuncData *func_data = (SeFuncData *)user_data;
-	net_nfc_error_e result;
-	guint out_handle = 0;
+	gboolean ret;
 	GError *error = NULL;
+	guint out_handle = 0;
+	net_nfc_error_e result;
+	SeFuncData *func_data = user_data;
+	net_nfc_se_open_se_cb se_callback;
 
 	g_assert(user_data != NULL);
 
-	if (net_nfc_gdbus_secure_element_call_open_secure_element_finish(
-				se_proxy,
-				&result,
-				&out_handle,
-				res,
-				&error) == FALSE)
+	ret = net_nfc_gdbus_secure_element_call_open_secure_element_finish(
+			se_proxy, &result, &out_handle, res, &error);
+
+	if (FALSE == ret)
 	{
 		NFC_ERR("Could not open secure element: %s", error->message);
 		g_error_free(error);
@@ -282,8 +242,7 @@ static void open_secure_element(GObject *source_object,
 
 	if (func_data->se_callback != NULL)
 	{
-		net_nfc_se_open_se_cb se_callback =
-			(net_nfc_se_open_se_cb)func_data->se_callback;
+		se_callback = (net_nfc_se_open_se_cb)func_data->se_callback;
 
 		se_callback(result, (net_nfc_target_handle_s*)out_handle, func_data->se_data);
 	}
@@ -293,20 +252,20 @@ static void open_secure_element(GObject *source_object,
 
 
 static void close_secure_element(GObject *source_object,
-		GAsyncResult *res,
-		gpointer user_data)
+		GAsyncResult *res, gpointer user_data)
 {
-	SeFuncData *func_data = (SeFuncData *)user_data;
-	net_nfc_error_e result;
+	gboolean ret;
 	GError *error = NULL;
+	net_nfc_error_e result;
+	SeFuncData *func_data = user_data;
+	net_nfc_se_close_se_cb se_callback;
 
 	g_assert(user_data != NULL);
 
-	if (net_nfc_gdbus_secure_element_call_close_secure_element_finish(
-				se_proxy,
-				&result,
-				res,
-				&error) == FALSE)
+	ret = net_nfc_gdbus_secure_element_call_close_secure_element_finish(
+			se_proxy, &result, res, &error);
+
+	if (FALSE == ret)
 	{
 		NFC_ERR("Could not close secure element: %s", error->message);
 		g_error_free(error);
@@ -315,8 +274,7 @@ static void close_secure_element(GObject *source_object,
 
 	if (func_data->se_callback != NULL)
 	{
-		net_nfc_se_close_se_cb se_callback =
-			(net_nfc_se_close_se_cb)func_data->se_callback;
+		se_callback = (net_nfc_se_close_se_cb)func_data->se_callback;
 
 		se_callback(result, func_data->se_data);
 	}
@@ -326,22 +284,21 @@ static void close_secure_element(GObject *source_object,
 
 
 static void send_apdu_secure_element(GObject *source_object,
-		GAsyncResult *res,
-		gpointer user_data)
+		GAsyncResult *res, gpointer user_data)
 {
-	SeFuncData *func_data = (SeFuncData *)user_data;
+	gboolean ret;
+	GError *error = NULL;
 	net_nfc_error_e result;
 	GVariant *out_response = NULL;
-	GError *error = NULL;
+	SeFuncData *func_data = user_data;
+	net_nfc_se_send_apdu_cb se_callback;
 
 	g_assert(user_data != NULL);
 
-	if (net_nfc_gdbus_secure_element_call_send_apdu_finish(
-				se_proxy,
-				&result,
-				&out_response,
-				res,
-				&error) == FALSE)
+	ret = net_nfc_gdbus_secure_element_call_send_apdu_finish(
+			se_proxy, &result, &out_response, res, &error);
+
+	if (FALSE == ret)
 	{
 		NFC_ERR("Could not send apdu: %s", error->message);
 		g_error_free(error);
@@ -350,8 +307,7 @@ static void send_apdu_secure_element(GObject *source_object,
 
 	if (func_data->se_callback != NULL)
 	{
-		net_nfc_se_send_apdu_cb se_callback =
-			(net_nfc_se_send_apdu_cb)func_data->se_callback;
+		se_callback = (net_nfc_se_send_apdu_cb)func_data->se_callback;
 		data_s data = { NULL, };
 
 		net_nfc_util_gdbus_variant_to_data_s(out_response, &data);
@@ -366,22 +322,23 @@ static void send_apdu_secure_element(GObject *source_object,
 
 
 static void get_atr_secure_element(GObject *source_object,
-		GAsyncResult *res,
-		gpointer user_data)
+		GAsyncResult *res, gpointer user_data)
 {
-	SeFuncData *func_data = (SeFuncData *)user_data;
+	gboolean ret;
+	GError *error = NULL;
 	net_nfc_error_e result;
 	GVariant *out_atr = NULL;
-	GError *error = NULL;
+	SeFuncData *func_data = user_data;
+	net_nfc_se_get_atr_cb se_callback;
 
 	g_assert(user_data != NULL);
 
-	if (net_nfc_gdbus_secure_element_call_get_atr_finish(
-				se_proxy,
-				&result,
-				&out_atr,
-				res,
-				&error) == FALSE)
+	RET_IF(NULL == func_data->se_callback);
+
+	ret = net_nfc_gdbus_secure_element_call_get_atr_finish(
+			se_proxy, &result, &out_atr, res, &error);
+
+	if (FALSE == ret)
 	{
 		NFC_ERR("Could not get atr: %s", error->message);
 		g_error_free(error);
@@ -390,8 +347,7 @@ static void get_atr_secure_element(GObject *source_object,
 
 	if (func_data->se_callback != NULL)
 	{
-		net_nfc_se_get_atr_cb se_callback =
-			(net_nfc_se_get_atr_cb)func_data->se_callback;
+		se_callback = (net_nfc_se_get_atr_cb)func_data->se_callback;
 		data_s data = { NULL, };
 
 		net_nfc_util_gdbus_variant_to_data_s(out_atr, &data);
@@ -406,38 +362,24 @@ static void get_atr_secure_element(GObject *source_object,
 
 
 API net_nfc_error_e net_nfc_client_se_set_secure_element_type(
-		net_nfc_se_type_e se_type,
-		net_nfc_se_set_se_cb callback,
-		void *user_data)
+		net_nfc_se_type_e se_type, net_nfc_se_set_se_cb callback, void *user_data)
 {
 	SeFuncData *func_data;
 
-	if (se_proxy == NULL)
-	{
-		NFC_ERR("Can not get se_proxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* prevent executing daemon when nfc is off */
-	if (net_nfc_client_manager_is_activated() == false) {
-		return NET_NFC_INVALID_STATE;
-	}
+	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
 
 	func_data = g_try_new0(SeFuncData, 1);
-	if (func_data == NULL)
+	if (NULL == func_data)
 		return NET_NFC_ALLOC_FAIL;
 
 	func_data->se_callback = (gpointer)callback;
 	func_data->se_data = user_data;
 
-	net_nfc_gdbus_secure_element_call_set(
-			se_proxy,
-			(gint)se_type,
-			net_nfc_client_gdbus_get_privilege(),
-			NULL,
-			set_secure_element,
-			func_data);
+	net_nfc_gdbus_secure_element_call_set(se_proxy, (gint)se_type,
+			net_nfc_client_gdbus_get_privilege(), NULL, set_secure_element, func_data);
 
 	return NET_NFC_OK;
 }
@@ -446,28 +388,19 @@ API net_nfc_error_e net_nfc_client_se_set_secure_element_type(
 API net_nfc_error_e net_nfc_client_se_set_secure_element_type_sync(
 		net_nfc_se_type_e se_type)
 {
-	net_nfc_error_e result = NET_NFC_OK;
+	gboolean ret;
 	GError *error = NULL;
+	net_nfc_error_e result = NET_NFC_OK;
 
-	if (se_proxy == NULL)
-	{
-		NFC_ERR("Can not get se_proxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* prevent executing daemon when nfc is off */
-	if (net_nfc_client_manager_is_activated() == false) {
-		return NET_NFC_INVALID_STATE;
-	}
+	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
 
-	if (net_nfc_gdbus_secure_element_call_set_sync(
-				se_proxy,
-				(gint)se_type,
-				net_nfc_client_gdbus_get_privilege(),
-				&result,
-				NULL,
-				&error) == FALSE)
+	ret = net_nfc_gdbus_secure_element_call_set_sync(se_proxy, (gint)se_type,
+			net_nfc_client_gdbus_get_privilege(), &result, NULL, &error);
+
+	if (FALSE == ret)
 	{
 		NFC_ERR("Set secure element failed: %s", error->message);
 		g_error_free(error);
@@ -478,36 +411,24 @@ API net_nfc_error_e net_nfc_client_se_set_secure_element_type_sync(
 }
 
 API net_nfc_error_e net_nfc_client_se_get_secure_element_type(
-		net_nfc_se_get_se_cb callback,
-		void *user_data)
+		net_nfc_se_get_se_cb callback, void *user_data)
 {
 	NetNfcCallback *func_data;
 
-	if (se_proxy == NULL)
-	{
-		NFC_ERR("Can not get se_proxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* prevent executing daemon when nfc is off */
-	if (net_nfc_client_manager_is_activated() == false) {
-		return NET_NFC_INVALID_STATE;
-	}
+	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
 
 	func_data = g_try_new0(NetNfcCallback, 1);
-	if (func_data == NULL)
+	if (NULL == func_data)
 		return NET_NFC_ALLOC_FAIL;
 
 	func_data->callback = (gpointer)callback;
 	func_data->user_data = user_data;
 
-	net_nfc_gdbus_secure_element_call_get(
-			se_proxy,
-			net_nfc_client_gdbus_get_privilege(),
-			NULL,
-			get_secure_element,
-			func_data);
+	net_nfc_gdbus_secure_element_call_get(se_proxy, net_nfc_client_gdbus_get_privilege(),
+			NULL, get_secure_element, func_data);
 
 	return NET_NFC_OK;
 }
@@ -515,38 +436,33 @@ API net_nfc_error_e net_nfc_client_se_get_secure_element_type(
 API net_nfc_error_e net_nfc_client_se_get_secure_element_type_sync(
 		net_nfc_se_type_e *se_type)
 {
-	net_nfc_error_e result = NET_NFC_OK;
 	gint type;
+	net_nfc_error_e result = NET_NFC_OK;
+
 #if 0
+	gboolean ret;
 	GError *error = NULL;
 #endif
-	if (se_proxy == NULL)
-	{
-		NFC_ERR("Can not get se_proxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* prevent executing daemon when nfc is off */
-	if (net_nfc_client_manager_is_activated() == false) {
-		return NET_NFC_INVALID_STATE;
-	}
+	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
+
 #if 1
-	if (vconf_get_int(VCONFKEY_NFC_SE_TYPE, &type) == 0) {
+	if (vconf_get_int(VCONFKEY_NFC_SE_TYPE, &type) == 0)
 		*se_type = type;
-	} else {
+	else
 		result = NET_NFC_OPERATION_FAIL;
-	}
 #else
-	if (net_nfc_gdbus_secure_element_call_get_sync(
-				se_proxy,
-				net_nfc_client_gdbus_get_privilege(),
-				&result,
-				(gint)&type,
-				NULL,
-				&error) == true) {
+	ret = net_nfc_gdbus_secure_element_call_get_sync(se_proxy,
+			net_nfc_client_gdbus_get_privilege(), &result, (gint)&type, NULL, &error);
+
+	if (TRUE == ret)
+	{
 		*se_type = type;
-	} else {
+	}
+	else
+	{
 		NFC_ERR("Set secure element failed: %s", error->message);
 
 		g_error_free(error);
@@ -564,31 +480,20 @@ API net_nfc_error_e net_nfc_set_card_emulation_mode(
 {
 	NetNfcCallback *func_data;
 
-	if (se_proxy == NULL) {
-		NFC_ERR("Can not get se_proxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* prevent executing daemon when nfc is off */
-	if (net_nfc_client_manager_is_activated() == false) {
-		return NET_NFC_INVALID_STATE;
-	}
+	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
 
 	func_data = g_try_new0(NetNfcCallback, 1);
-	if (func_data == NULL)
+	if (NULL == func_data)
 		return NET_NFC_ALLOC_FAIL;
 
 	func_data->callback = (gpointer)callback;
 	func_data->user_data = user_data;
 
-	net_nfc_gdbus_secure_element_call_set_card_emulation(
-			se_proxy,
-			(gint)mode,
-			net_nfc_client_gdbus_get_privilege(),
-			NULL,
-			_set_card_emulation_cb,
-			func_data);
+	net_nfc_gdbus_secure_element_call_set_card_emulation(se_proxy, (gint)mode,
+			net_nfc_client_gdbus_get_privilege(), NULL, _set_card_emulation_cb, func_data);
 
 	return NET_NFC_OK;
 }
@@ -597,28 +502,19 @@ API net_nfc_error_e net_nfc_set_card_emulation_mode(
 API net_nfc_error_e net_nfc_set_card_emulation_mode_sync(
 		net_nfc_card_emulation_mode_t mode)
 {
-	net_nfc_error_e result = NET_NFC_OK;
+	gboolean ret;
 	GError *error = NULL;
+	net_nfc_error_e result = NET_NFC_OK;
 
-	if (se_proxy == NULL)
-	{
-		NFC_ERR("Can not get se_proxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* prevent executing daemon when nfc is off */
-	if (net_nfc_client_manager_is_activated() == false) {
-		return NET_NFC_INVALID_STATE;
-	}
+	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
 
-	if (net_nfc_gdbus_secure_element_call_set_card_emulation_sync(
-				se_proxy,
-				(gint)mode,
-				net_nfc_client_gdbus_get_privilege(),
-				&result,
-				NULL,
-				&error) == FALSE)
+	ret = net_nfc_gdbus_secure_element_call_set_card_emulation_sync(se_proxy, (gint)mode,
+			net_nfc_client_gdbus_get_privilege(), &result, NULL, &error);
+
+	if (FALSE == ret)
 	{
 		NFC_ERR("Set card emulation failed: %s", error->message);
 		g_error_free(error);
@@ -630,35 +526,23 @@ API net_nfc_error_e net_nfc_set_card_emulation_mode_sync(
 
 
 API net_nfc_error_e net_nfc_client_se_open_internal_secure_element(
-		net_nfc_se_type_e se_type,
-		net_nfc_se_open_se_cb callback,
-		void *user_data)
+		net_nfc_se_type_e se_type, net_nfc_se_open_se_cb callback, void *user_data)
 {
 	SeFuncData *func_data;
 
-	if (se_proxy == NULL)
-	{
-		NFC_ERR("Can not get se_proxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* allow this function even nfc is off */
 
 	func_data = g_try_new0(SeFuncData, 1);
-	if (func_data == NULL)
+	if (NULL == func_data)
 		return NET_NFC_ALLOC_FAIL;
 
 	func_data->se_callback = (gpointer)callback;
 	func_data->se_data = user_data;
 
-	net_nfc_gdbus_secure_element_call_open_secure_element(
-			se_proxy,
-			(gint)se_type,
-			net_nfc_client_gdbus_get_privilege(),
-			NULL,
-			open_secure_element,
-			func_data);
+	net_nfc_gdbus_secure_element_call_open_secure_element(se_proxy, (gint)se_type,
+			net_nfc_client_gdbus_get_privilege(), NULL, open_secure_element, func_data);
 
 	return NET_NFC_OK;
 }
@@ -667,33 +551,25 @@ API net_nfc_error_e net_nfc_client_se_open_internal_secure_element(
 API net_nfc_error_e net_nfc_client_se_open_internal_secure_element_sync(
 		net_nfc_se_type_e se_type, net_nfc_target_handle_s **handle)
 {
-	net_nfc_error_e result = NET_NFC_OK;
+	gboolean ret;
 	guint out_handle = 0;
 	GError *error =  NULL;
+	net_nfc_error_e result = NET_NFC_OK;
 
-	if (handle == NULL) {
-		return NET_NFC_NULL_PARAMETER;
-	}
-
-	if (se_proxy == NULL)
-	{
-		NFC_ERR("Can not get se_proxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* allow this function even nfc is off */
 
-	if (net_nfc_gdbus_secure_element_call_open_secure_element_sync(
-				se_proxy,
-				se_type,
-				net_nfc_client_gdbus_get_privilege(),
-				&result,
-				&out_handle,
-				NULL,
-				&error) == true) {
+	ret = net_nfc_gdbus_secure_element_call_open_secure_element_sync(se_proxy, se_type,
+			net_nfc_client_gdbus_get_privilege(), &result, &out_handle, NULL, &error);
+
+	if (TRUE == ret)
+	{
 		*handle = GUINT_TO_POINTER(out_handle);
-	} else {
+	}
+	else
+	{
 		NFC_ERR("Open internal secure element failed: %s", error->message);
 		g_error_free(error);
 
@@ -709,17 +585,12 @@ API net_nfc_error_e net_nfc_client_se_close_internal_secure_element(
 {
 	SeFuncData *func_data;
 
-	if (se_proxy == NULL)
-	{
-		NFC_ERR("Can not get se_proxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* allow this function even nfc is off */
 
 	func_data = g_try_new0(SeFuncData, 1);
-	if (func_data == NULL)
+	if (NULL == func_data)
 		return NET_NFC_ALLOC_FAIL;
 
 	func_data->se_callback = (gpointer)callback;
@@ -740,25 +611,23 @@ API net_nfc_error_e net_nfc_client_se_close_internal_secure_element(
 API net_nfc_error_e net_nfc_client_se_close_internal_secure_element_sync(
 		net_nfc_target_handle_s *handle)
 {
-	net_nfc_error_e result = NET_NFC_OK;
+	gboolean ret;
 	GError *error = NULL;
+	net_nfc_error_e result = NET_NFC_OK;
 
-	if (se_proxy == NULL)
-	{
-		NFC_ERR("Can not get se_proxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* allow this function even nfc is off */
 
-	if (net_nfc_gdbus_secure_element_call_close_secure_element_sync(
-				se_proxy,
-				GPOINTER_TO_UINT(handle),
-				net_nfc_client_gdbus_get_privilege(),
-				&result,
-				NULL,
-				&error) == FALSE)
+	ret = net_nfc_gdbus_secure_element_call_close_secure_element_sync(
+			se_proxy,
+			GPOINTER_TO_UINT(handle),
+			net_nfc_client_gdbus_get_privilege(),
+			&result,
+			NULL,
+			&error);
+
+	if (FALSE == ret)
 	{
 		NFC_ERR("close internal secure element failed: %s", error->message);
 		g_error_free(error);
@@ -774,29 +643,19 @@ API net_nfc_error_e net_nfc_client_se_get_atr(net_nfc_target_handle_s *handle,
 {
 	SeFuncData *func_data;
 
-	if (se_proxy == NULL)
-	{
-		NFC_ERR("Can not get se_proxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* allow this function even nfc is off */
 
 	func_data = g_try_new0(SeFuncData, 1);
-	if (func_data == NULL)
+	if (NULL == func_data)
 		return NET_NFC_ALLOC_FAIL;
 
 	func_data->se_callback = (gpointer)callback;
 	func_data->se_data = user_data;
 
-	net_nfc_gdbus_secure_element_call_get_atr(
-			se_proxy,
-			GPOINTER_TO_UINT(handle),
-			net_nfc_client_gdbus_get_privilege(),
-			NULL,
-			get_atr_secure_element,
-			func_data);
+	net_nfc_gdbus_secure_element_call_get_atr(se_proxy, GPOINTER_TO_UINT(handle),
+			net_nfc_client_gdbus_get_privilege(), NULL, get_atr_secure_element, func_data);
 
 	return NET_NFC_OK;
 }
@@ -805,33 +664,33 @@ API net_nfc_error_e net_nfc_client_se_get_atr(net_nfc_target_handle_s *handle,
 API net_nfc_error_e net_nfc_client_se_get_atr_sync(
 		net_nfc_target_handle_s *handle, data_s **atr)
 {
-	net_nfc_error_e result = NET_NFC_OK;
-	GVariant *out_atr = NULL;
+	gboolean ret;
 	GError *error = NULL;
+	GVariant *out_atr = NULL;
+	net_nfc_error_e result = NET_NFC_OK;
 
-	if (atr == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == atr, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
 
 	*atr = NULL;
 
-	if (se_proxy == NULL)
-	{
-		NFC_ERR("Can not get se_proxy");
-		return NET_NFC_NOT_INITIALIZED;
-	}
-
 	/* allow this function even nfc is off */
 
-	if (net_nfc_gdbus_secure_element_call_get_atr_sync(
-				se_proxy,
-				GPOINTER_TO_UINT(handle),
-				net_nfc_client_gdbus_get_privilege(),
-				&result,
-				&out_atr,
-				NULL,
-				&error) == true) {
+	ret = net_nfc_gdbus_secure_element_call_get_atr_sync(
+			se_proxy,
+			GPOINTER_TO_UINT(handle),
+			net_nfc_client_gdbus_get_privilege(),
+			&result,
+			&out_atr,
+			NULL,
+			&error);
+
+	if (TRUE == ret)
+	{
 		*atr = net_nfc_util_gdbus_variant_to_data(out_atr);
-	} else {
+	}
+	else
+	{
 		NFC_ERR("Get attributes failed: %s", error->message);
 		g_error_free(error);
 		result = NET_NFC_IPC_FAIL;
@@ -844,15 +703,10 @@ API net_nfc_error_e net_nfc_client_se_get_atr_sync(
 API net_nfc_error_e net_nfc_client_se_send_apdu(net_nfc_target_handle_s *handle,
 		data_s *apdu_data, net_nfc_se_send_apdu_cb callback, void *user_data)
 {
-	SeFuncData *func_data;
 	GVariant *arg_data;
+	SeFuncData *func_data;
 
-	if (se_proxy == NULL)
-	{
-		NFC_ERR("Can not get se_proxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* allow this function even nfc is off */
 
@@ -861,7 +715,8 @@ API net_nfc_error_e net_nfc_client_se_send_apdu(net_nfc_target_handle_s *handle,
 		return NET_NFC_INVALID_PARAM;
 
 	func_data = g_try_new0(SeFuncData, 1);
-	if (func_data == NULL) {
+	if (NULL == func_data)
+	{
 		g_variant_unref(arg_data);
 
 		return NET_NFC_ALLOC_FAIL;
@@ -886,40 +741,39 @@ API net_nfc_error_e net_nfc_client_se_send_apdu(net_nfc_target_handle_s *handle,
 API net_nfc_error_e net_nfc_client_se_send_apdu_sync(
 		net_nfc_target_handle_s *handle, data_s *apdu_data, data_s **response)
 {
-	net_nfc_error_e result = NET_NFC_OK;
-	GVariant *out_data = NULL;
-	GError *error = NULL;
+	gboolean ret;
 	GVariant *arg_data;
+	GError *error = NULL;
+	GVariant *out_data = NULL;
+	net_nfc_error_e result = NET_NFC_OK;
 
-	if (response == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == response, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
 
 	*response = NULL;
-
-	if (se_proxy == NULL)
-	{
-		NFC_ERR("Can not get se_proxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
 
 	/* allow this function even nfc is off */
 
 	arg_data = net_nfc_util_gdbus_data_to_variant(apdu_data);
-	if (arg_data == NULL)
+	if (NULL == arg_data)
 		return NET_NFC_INVALID_PARAM;
 
-	if (net_nfc_gdbus_secure_element_call_send_apdu_sync(
-				se_proxy,
-				GPOINTER_TO_UINT(handle),
-				arg_data,
-				net_nfc_client_gdbus_get_privilege(),
-				&result,
-				&out_data,
-				NULL,
-				&error) == true) {
+	ret = net_nfc_gdbus_secure_element_call_send_apdu_sync(
+			se_proxy,
+			GPOINTER_TO_UINT(handle),
+			arg_data,
+			net_nfc_client_gdbus_get_privilege(),
+			&result,
+			&out_data,
+			NULL,
+			&error);
+
+	if (TRUE == ret)
+	{
 		*response = net_nfc_util_gdbus_variant_to_data(out_data);
-	} else {
+	}
+	else
+	{
 		NFC_ERR("Send APDU failed: %s", error->message);
 		g_error_free(error);
 		result = NET_NFC_IPC_FAIL;
@@ -930,8 +784,7 @@ API net_nfc_error_e net_nfc_client_se_send_apdu_sync(
 
 
 API void net_nfc_client_se_set_ese_detection_cb(
-		net_nfc_client_se_ese_detected_event callback,
-		void *user_data)
+		net_nfc_client_se_ese_detected_event callback, void *user_data)
 {
 	se_esedetecthandler.se_ese_detected_cb = callback;
 	se_esedetecthandler.se_ese_detected_data = user_data;
@@ -945,8 +798,7 @@ API void net_nfc_client_se_unset_ese_detection_cb(void)
 
 
 API void net_nfc_client_se_set_transaction_event_cb(
-		net_nfc_client_se_transaction_event callback,
-		void *user_data)
+		net_nfc_client_se_transaction_event callback, void *user_data)
 {
 	se_transeventhandler.se_transaction_event_cb = callback;
 	se_transeventhandler.se_transaction_event_data = user_data;
@@ -990,7 +842,7 @@ net_nfc_error_e net_nfc_client_se_init(void)
 			"/org/tizen/NetNfcService/SecureElement",
 			NULL,
 			&error);
-	if (se_proxy == NULL)
+	if (NULL == se_proxy)
 	{
 		NFC_ERR("Can not create proxy : %s", error->message);
 
@@ -999,12 +851,8 @@ net_nfc_error_e net_nfc_client_se_init(void)
 		return NET_NFC_UNKNOWN_ERROR;
 	}
 
-	g_signal_connect(se_proxy, "se-type-changed",
-			G_CALLBACK(se_type_changed), NULL);
-
-	g_signal_connect(se_proxy, "ese-detected",
-			G_CALLBACK(se_ese_detected), NULL);
-
+	g_signal_connect(se_proxy, "se-type-changed", G_CALLBACK(se_type_changed), NULL);
+	g_signal_connect(se_proxy, "ese-detected", G_CALLBACK(se_ese_detected), NULL);
 	g_signal_connect(se_proxy, "transaction-event",
 			G_CALLBACK(se_transaction_event), NULL);
 
