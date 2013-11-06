@@ -40,6 +40,7 @@ typedef struct _nfc_se_setting_t
 {
 	bool busy;
 	uint8_t type;
+	uint8_t return_type;
 	uint8_t mode;
 }
 net_nfc_server_se_setting_t;
@@ -106,6 +107,15 @@ struct _SeDataApdu
 	GVariant *data;
 };
 
+typedef struct _ChangeCardEmulMode ChangeCardEmulMode;
+
+struct _ChangeCardEmulMode
+{
+	NetNfcGDbusSecureElement *object;
+	GDBusMethodInvocation *invocation;
+	gint mode;
+};
+
 static void se_close_secure_element_thread_func(gpointer user_data);
 
 static void se_get_atr_thread_func(gpointer user_data);
@@ -155,6 +165,11 @@ uint8_t net_nfc_server_se_get_se_type()
 	return gdbus_se_setting.type;
 }
 
+uint8_t net_nfc_server_se_get_return_se_mode()
+{
+	return gdbus_se_setting.return_type;
+}
+
 uint8_t net_nfc_server_se_get_se_mode()
 {
 	return gdbus_se_setting.mode;
@@ -162,6 +177,7 @@ uint8_t net_nfc_server_se_get_se_mode()
 
 static void net_nfc_server_se_set_se_type(uint8_t type)
 {
+	gdbus_se_setting.return_type = gdbus_se_setting.type;
 	gdbus_se_setting.type = type;
 }
 
@@ -1186,6 +1202,100 @@ static gboolean se_handle_get(
 	return result;
 }
 
+static void _se_change_card_emulation_mode_thread_func(gpointer user_data)
+{
+	ChangeCardEmulMode *data = (ChangeCardEmulMode *)user_data;
+	net_nfc_error_e result = NET_NFC_OK;
+	uint8_t current_mode, return_mode;
+	bool isChanged = false;
+
+	g_assert(data != NULL);
+	g_assert(data->object != NULL);
+	g_assert(data->invocation != NULL);
+
+	current_mode = net_nfc_server_se_get_se_mode();
+
+	if(data->mode == SECURE_ELEMENT_ACTIVE_STATE && current_mode == SECURE_ELEMENT_TYPE_INVALID)
+	{
+		return_mode = net_nfc_server_se_get_return_se_mode();
+		result = net_nfc_server_se_change_se(return_mode);
+		isChanged = true;
+	}
+	else if(data->mode == SECURE_ELEMENT_INACTIVE_STATE && current_mode != SECURE_ELEMENT_TYPE_INVALID)
+	{
+		result = net_nfc_server_se_disable_card_emulation();
+		isChanged = true;
+	}
+
+	net_nfc_gdbus_secure_element_complete_change_card_emulation_mode(data->object,
+			data->invocation, result);
+
+	if(isChanged)
+	{
+		net_nfc_gdbus_secure_element_emit_card_emulation_mode_changed(data->object, data->mode);
+	}
+
+	g_object_unref(data->invocation);
+	g_object_unref(data->object);
+
+	g_free(data);
+}
+
+
+static gboolean se_handle_change_card_emulation_mode(
+		NetNfcGDbusSecureElement *object,
+		GDBusMethodInvocation *invocation,
+		gint arg_mode,
+		GVariant *smack_privilege)
+{
+	SeSetCardEmul *data;
+	gboolean result;
+
+	NFC_DBG(">>> REQUEST from [%s]",
+			g_dbus_method_invocation_get_sender(invocation));
+
+	/* check privilege and update client context */
+	if (net_nfc_server_gdbus_check_privilege(invocation,
+				smack_privilege,
+				"nfc-manager",
+				"w") == false) {
+		NFC_ERR("permission denied, and finished request");
+
+		return FALSE;
+	}
+
+	data = g_try_new0(ChangeCardEmulMode, 1);
+	if (data == NULL)
+	{
+		NFC_ERR("Memory allocation failed");
+		g_dbus_method_invocation_return_dbus_error(invocation,
+				"org.tizen.NetNfcService.AllocationError",
+				"Can not allocate memory");
+
+		return FALSE;
+	}
+
+	data->object = g_object_ref(object);
+	data->invocation = g_object_ref(invocation);
+	data->mode = arg_mode;
+
+	result = net_nfc_server_controller_async_queue_push(
+			_se_change_card_emulation_mode_thread_func, data);
+	if (result == FALSE)
+	{
+		g_dbus_method_invocation_return_dbus_error(invocation,
+				"org.tizen.NetNfcService.Se.ThreadError",
+				"can not push to controller thread");
+
+		g_object_unref(data->object);
+		g_object_unref(data->invocation);
+
+		g_free(data);
+	}
+
+	return result;
+}
+
 gboolean net_nfc_server_se_init(GDBusConnection *connection)
 {
 	GError *error = NULL;
@@ -1232,6 +1342,11 @@ gboolean net_nfc_server_se_init(GDBusConnection *connection)
 	g_signal_connect(se_skeleton,
 			"handle-send-apdu",
 			G_CALLBACK(se_handle_send_apdu),
+			NULL);
+
+	g_signal_connect(se_skeleton,
+			"handle-change-card-emulation-mode",
+			G_CALLBACK(se_handle_change_card_emulation_mode),
 			NULL);
 
 	result = g_dbus_interface_skeleton_export(
@@ -1308,14 +1423,36 @@ static void se_detected_thread_func(gpointer user_data)
 static void se_transcation_thread_func(gpointer user_data)
 {
 	ServerSeData *detail = (ServerSeData *)user_data;
+	bool fg_dispatch;
+	pid_t focus_app_pid;
 
 	g_assert(user_data != NULL);
 
 	if (detail->event == NET_NFC_MESSAGE_SE_START_TRANSACTION)
 	{
+		GVariant *aid = NULL;
+		GVariant *param = NULL;
+		uint8_t se_type;
+
 		NFC_DBG("launch se app");
 
+		aid = net_nfc_util_gdbus_data_to_variant(&(detail->aid));
+		param = net_nfc_util_gdbus_data_to_variant(&(detail->param));
+		se_type = net_nfc_server_se_get_se_type();
+		focus_app_pid = net_nfc_app_util_get_focus_app_pid();
+		fg_dispatch = net_nfc_app_util_check_launch_state();
+
+		/* TODO : check access control */
+		net_nfc_gdbus_secure_element_emit_transaction_event (
+				se_skeleton,
+				se_type,
+				aid,
+				param,
+				fg_dispatch,
+				focus_app_pid);
+
 		net_nfc_app_util_launch_se_transaction_app(
+				se_type,
 				detail->aid.buffer,
 				detail->aid.length,
 				detail->param.buffer,

@@ -787,7 +787,8 @@ void _string_to_binary(const char *input, uint8_t *output, uint32_t *length)
 	*length = current / 2;
 }
 
-int net_nfc_app_util_launch_se_transaction_app(uint8_t *aid, uint32_t aid_len, uint8_t *param, uint32_t param_len)
+int net_nfc_app_util_launch_se_transaction_app(net_nfc_secure_element_type_e se_type,
+		uint8_t *aid, uint32_t aid_len, uint8_t *param, uint32_t param_len)
 {
 	bundle *bd = NULL;
 
@@ -803,7 +804,21 @@ int net_nfc_app_util_launch_se_transaction_app(uint8_t *aid, uint32_t aid_len, u
 		char aid_string[1024] = { 0, };
 
 		_binary_to_string(aid, aid_len, temp_string, sizeof(temp_string));
-		snprintf(aid_string, sizeof(aid_string), "nfc://secure/aid/%s", temp_string);
+
+		switch(se_type)
+		{
+		case SECURE_ELEMENT_TYPE_UICC:
+			snprintf(aid_string, sizeof(aid_string), "nfc://secure/SIM1/aid/%s", temp_string);
+			break;
+
+		case SECURE_ELEMENT_TYPE_ESE:
+			snprintf(aid_string, sizeof(aid_string), "nfc://secure/eSE/aid/%s", temp_string);
+			break;
+		default:
+			snprintf(aid_string, sizeof(aid_string), "nfc://secure/aid/%s", temp_string);
+			break;
+		}
+
 		NFC_DBG("aid_string : %s", aid_string);
 		appsvc_set_uri(bd, aid_string);
 	}
@@ -892,7 +907,7 @@ int net_nfc_app_util_decode_base64(const char *buffer, uint32_t buf_len, uint8_t
 	return ret;
 }
 
-static pid_t _net_nfc_app_util_get_focus_app_pid()
+pid_t net_nfc_app_util_get_focus_app_pid()
 {
 	Ecore_X_Window focus;
 	pid_t pid;
@@ -912,7 +927,7 @@ bool net_nfc_app_util_check_launch_state()
 	net_nfc_launch_popup_state_e popup_state;
 	bool result = false;
 
-	focus_app_pid = _net_nfc_app_util_get_focus_app_pid();
+	focus_app_pid = net_nfc_app_util_get_focus_app_pid();
 
 	popup_state = net_nfc_server_gdbus_get_client_popup_state(focus_app_pid);
 

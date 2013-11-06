@@ -45,7 +45,10 @@ typedef void (*net_nfc_se_send_apdu_cb)(net_nfc_error_e result, data_s *data,
 
 typedef void (*net_nfc_client_se_event)(net_nfc_message_e event, void *user_data);
 
-typedef void (*net_nfc_client_se_transaction_event)(data_s *aid, data_s *param,
+typedef void (*net_nfc_client_se_transaction_event)(
+		net_nfc_se_type_e se_type,
+		data_s *aid,
+		data_s *param,
 		void *user_data);
 
 typedef void (*net_nfc_client_se_ese_detected_event)(
@@ -112,7 +115,9 @@ void net_nfc_client_se_set_ese_detection_cb(
 void net_nfc_client_se_unset_ese_detection_cb(void);
 
 void net_nfc_client_se_set_transaction_event_cb(
-		net_nfc_client_se_transaction_event callback, void *user_data);
+		net_nfc_se_type_e se_type,
+		net_nfc_client_se_transaction_event callback,
+		void *user_data);
 
 void net_nfc_client_se_unset_transaction_event_cb(void);
 

@@ -188,15 +188,15 @@ typedef enum
 	NET_NFC_MESSAGE_SE_FIELD_ON, /**< Type: Notify Event, indicates external reader field is on*/
 	NET_NFC_MESSAGE_SE_FIELD_OFF, /**< Type: Notify Event, indicates external reader field is off*/
 	NET_NFC_MESSAGE_SE_TYPE_CHANGED, /**< Type: Notify Event, indicates secure element type is changed*/
-
+	NET_NFC_MESSAGE_SE_CARD_EMULATION_CHANGED, /**< Type: Notify Event, indicates card emulation mode is changed*/
 	NET_NFC_MESSAGE_CONNECTION_HANDOVER, /**< Type: Response Event. <br> The result of connection handover. If it has been completed successfully, this event will include the information of alternative carrier. */
 
 	NET_NFC_MESSAGE_SET_SE,
 	NET_NFC_MESSAGE_GET_SE,
 	NET_NFC_MESSAGE_OPEN_INTERNAL_SE,
 	NET_NFC_MESSAGE_CLOSE_INTERNAL_SE,
-	NET_NFC_MESSAGE_SEND_APDU_SE,
-	/*30*/	NET_NFC_MESSAGE_GET_ATR_SE,
+	/*30*/	NET_NFC_MESSAGE_SEND_APDU_SE,
+	NET_NFC_MESSAGE_GET_ATR_SE,
 	NET_NFC_GET_SERVER_STATE,
 
 	NET_NFC_MESSAGE_SIM_TEST,

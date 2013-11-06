@@ -424,6 +424,15 @@
     </method>
 
     <!--
+      EnableCardEmulation
+    -->
+    <method name="ChangeCardEmulationMode">
+      <arg type="i" name="mode" direction="in" />
+      <arg type="a(y)" name="privilege" direction="in" />
+      <arg type="i" name="result" direction="out" />
+    </method>
+
+    <!--
       EseDetected
     -->
     <signal name="EseDetected">
@@ -440,12 +449,21 @@
     </signal>
 
     <!--
+      CardEmulationModeChanged
+    -->
+    <signal name="CardEmulationModeChanged">
+       <arg type="i" name="mode" />
+    </signal>
+
+    <!--
       TransactionEvent
     -->
     <signal name="TransactionEvent">
        <arg type="i" name="se_type" />
        <arg type="a(y)" name="aid" />
        <arg type="a(y)" name="param" />
+       <arg type="i" name="fg_dispatch" />
+		<arg type="i" name="focus_pgid" />
     </signal>
   </interface>
 

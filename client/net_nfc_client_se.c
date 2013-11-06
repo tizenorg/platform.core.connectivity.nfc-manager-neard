@@ -45,6 +45,7 @@ typedef struct _SeTransEventHandler SeTransEventHandler;
 
 struct _SeTransEventHandler
 {
+	net_nfc_se_type_e se_type;
 	net_nfc_client_se_transaction_event se_transaction_event_cb;
 	gpointer se_transaction_event_data;
 };
@@ -98,7 +99,11 @@ static void se_type_changed(GObject *source_object, gint arg_se_type)
 
 
 static void se_transaction_event(GObject *source_object,
-		gint arg_se_type, GVariant *arg_aid, GVariant *arg_param)
+		gint arg_se_type,
+		GVariant *arg_aid,
+		GVariant *arg_param,
+		gint fg_dispatch,
+		gint focus_app_pid)
 {
 	data_s aid = { NULL, 0 };
 	data_s param = { NULL, 0 };
@@ -108,16 +113,37 @@ static void se_transaction_event(GObject *source_object,
 
 	RET_IF(NULL == se_transeventhandler.se_transaction_event_cb);
 
-	net_nfc_util_gdbus_variant_to_data_s(arg_aid, &aid);
-	net_nfc_util_gdbus_variant_to_data_s(arg_param, &param);
+	if (se_transeventhandler.se_type == arg_se_type)
+	{
+		pid_t mypid = getpid();
+		if(fg_dispatch == false ||
+				(fg_dispatch == true && focus_app_pid == (getpgid(mypid))))
+		{
+			net_nfc_util_gdbus_variant_to_data_s(arg_aid, &aid);
+			net_nfc_util_gdbus_variant_to_data_s(arg_param, &param);
 
-	callback = se_transeventhandler.se_transaction_event_cb;
-	callback(&aid, &param, se_transeventhandler.se_transaction_event_data);
+			callback = se_transeventhandler.se_transaction_event_cb;
+			callback(arg_se_type, &aid, &param,
+					se_transeventhandler.se_transaction_event_data);
 
-	net_nfc_util_free_data(&param);
-	net_nfc_util_free_data(&aid);
+			net_nfc_util_free_data(&param);
+			net_nfc_util_free_data(&aid);
+		}
+	}
 }
 
+static void se_card_emulation_mode_changed(GObject *source_object,
+		gint arg_se_type)
+{
+	net_nfc_client_se_event callback;
+	NFC_DBG(">>> SIGNAL arrived");
+
+	RET_IF(NULL == se_eventhandler.se_event_cb);
+
+	callback = se_eventhandler.se_event_cb;
+	callback((net_nfc_message_e)NET_NFC_MESSAGE_SE_CARD_EMULATION_CHANGED,
+			se_eventhandler.se_event_data);
+}
 
 static void set_secure_element(GObject *source_object,
 		GAsyncResult *res, gpointer user_data)
@@ -798,8 +824,11 @@ API void net_nfc_client_se_unset_ese_detection_cb(void)
 
 
 API void net_nfc_client_se_set_transaction_event_cb(
-		net_nfc_client_se_transaction_event callback, void *user_data)
+		net_nfc_se_type_e se_type,
+		net_nfc_client_se_transaction_event callback,
+		void *user_data)
 {
+	se_transeventhandler.se_type = se_type;
 	se_transeventhandler.se_transaction_event_cb = callback;
 	se_transeventhandler.se_transaction_event_data = user_data;
 }
@@ -807,7 +836,7 @@ API void net_nfc_client_se_set_transaction_event_cb(
 
 API void net_nfc_client_se_unset_transaction_event_cb(void)
 {
-	net_nfc_client_se_set_transaction_event_cb(NULL, NULL);
+	net_nfc_client_se_set_transaction_event_cb(NET_NFC_SE_TYPE_NONE, NULL, NULL);
 }
 
 
@@ -853,8 +882,12 @@ net_nfc_error_e net_nfc_client_se_init(void)
 
 	g_signal_connect(se_proxy, "se-type-changed", G_CALLBACK(se_type_changed), NULL);
 	g_signal_connect(se_proxy, "ese-detected", G_CALLBACK(se_ese_detected), NULL);
+
 	g_signal_connect(se_proxy, "transaction-event",
 			G_CALLBACK(se_transaction_event), NULL);
+
+	g_signal_connect(se_proxy, "card-emulation-mode-changed",
+			G_CALLBACK(se_card_emulation_mode_changed), NULL);
 
 	return NET_NFC_OK;
 }

@@ -269,7 +269,8 @@ void net_nfc_test_se_unset_ese_detection_cb(gpointer data, gpointer user_data)
 
 void net_nfc_test_se_set_transaction_event_cb(gpointer data, gpointer user_data)
 {
-	net_nfc_client_se_set_transaction_event_cb(se_set_transaction_cb, user_data);
+	net_nfc_client_se_set_transaction_event_cb(NET_NFC_SE_TYPE_UICC, se_set_transaction_cb,
+				user_data);
 }
 
 void net_nfc_test_se_unset_transaction_event_cb(gpointer data,
