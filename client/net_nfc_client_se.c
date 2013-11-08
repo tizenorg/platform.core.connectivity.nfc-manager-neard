@@ -609,27 +609,53 @@ API net_nfc_error_e net_nfc_client_se_open_internal_secure_element_sync(
 API net_nfc_error_e net_nfc_client_se_close_internal_secure_element(
 		net_nfc_target_handle_s *handle, net_nfc_se_close_se_cb callback, void *user_data)
 {
+	GError *error = NULL;
 	SeFuncData *func_data;
+	NetNfcGDbusSecureElement* auto_proxy;
 
-	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
+	if(se_proxy != NULL)
+	{
+		auto_proxy = se_proxy;
+	}
+	else
+	{
+		auto_proxy = net_nfc_gdbus_secure_element_proxy_new_for_bus_sync(
+				G_BUS_TYPE_SYSTEM,
+				G_DBUS_PROXY_FLAGS_NONE,
+				"org.tizen.NetNfcService",
+				"/org/tizen/NetNfcService/SecureElement",
+				NULL,
+				&error);
+		if(NULL == auto_proxy)
+		{
+			NFC_ERR("Can not create proxy : %s", error->message);
+			g_error_free(error);
+
+			return NET_NFC_UNKNOWN_ERROR;
+		}
+	}
 
 	/* allow this function even nfc is off */
 
 	func_data = g_try_new0(SeFuncData, 1);
 	if (NULL == func_data)
+	{
+		g_object_unref(auto_proxy);
 		return NET_NFC_ALLOC_FAIL;
+	}
 
 	func_data->se_callback = (gpointer)callback;
 	func_data->se_data = user_data;
 
 	net_nfc_gdbus_secure_element_call_close_secure_element(
-			se_proxy,
+			auto_proxy,
 			GPOINTER_TO_UINT(handle),
 			net_nfc_client_gdbus_get_privilege(),
 			NULL,
 			close_secure_element,
 			func_data);
 
+	g_object_unref(auto_proxy);
 	return NET_NFC_OK;
 }
 
@@ -640,13 +666,34 @@ API net_nfc_error_e net_nfc_client_se_close_internal_secure_element_sync(
 	gboolean ret;
 	GError *error = NULL;
 	net_nfc_error_e result = NET_NFC_OK;
+	NetNfcGDbusSecureElement* auto_proxy;
 
-	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
+	if(se_proxy != NULL)
+	{
+		auto_proxy = se_proxy;
+	}
+	else
+	{
+		auto_proxy = net_nfc_gdbus_secure_element_proxy_new_for_bus_sync(
+				G_BUS_TYPE_SYSTEM,
+				G_DBUS_PROXY_FLAGS_NONE,
+				"org.tizen.NetNfcService",
+				"/org/tizen/NetNfcService/SecureElement",
+				NULL,
+				&error);
+		if (NULL == auto_proxy)
+		{
+			NFC_ERR("Can not create proxy : %s", error->message);
+			g_error_free(error);
+
+			return NET_NFC_UNKNOWN_ERROR;
+		}
+	}
 
 	/* allow this function even nfc is off */
 
 	ret = net_nfc_gdbus_secure_element_call_close_secure_element_sync(
-			se_proxy,
+			auto_proxy,
 			GPOINTER_TO_UINT(handle),
 			net_nfc_client_gdbus_get_privilege(),
 			&result,
@@ -660,6 +707,7 @@ API net_nfc_error_e net_nfc_client_se_close_internal_secure_element_sync(
 		result = NET_NFC_IPC_FAIL;
 	}
 
+	g_object_unref(auto_proxy);
 	return result;
 }
 
@@ -667,22 +715,53 @@ API net_nfc_error_e net_nfc_client_se_close_internal_secure_element_sync(
 API net_nfc_error_e net_nfc_client_se_get_atr(net_nfc_target_handle_s *handle,
 		net_nfc_se_get_atr_cb callback, void *user_data)
 {
+	GError *error = NULL;
 	SeFuncData *func_data;
+	NetNfcGDbusSecureElement* auto_proxy;
 
-	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
+	if(se_proxy != NULL)
+	{
+		auto_proxy = se_proxy;
+	}
+	else
+	{
+		auto_proxy = net_nfc_gdbus_secure_element_proxy_new_for_bus_sync(
+				G_BUS_TYPE_SYSTEM,
+				G_DBUS_PROXY_FLAGS_NONE,
+				"org.tizen.NetNfcService",
+				"/org/tizen/NetNfcService/SecureElement",
+				NULL,
+				&error);
+		if (NULL == auto_proxy)
+		{
+			NFC_ERR("Can not create proxy : %s", error->message);
+			g_error_free(error);
+
+			return NET_NFC_UNKNOWN_ERROR;
+		}
+	}
 
 	/* allow this function even nfc is off */
 
 	func_data = g_try_new0(SeFuncData, 1);
 	if (NULL == func_data)
+	{
+		g_object_unref(auto_proxy);
 		return NET_NFC_ALLOC_FAIL;
+	}
 
 	func_data->se_callback = (gpointer)callback;
 	func_data->se_data = user_data;
 
-	net_nfc_gdbus_secure_element_call_get_atr(se_proxy, GPOINTER_TO_UINT(handle),
-			net_nfc_client_gdbus_get_privilege(), NULL, get_atr_secure_element, func_data);
+	net_nfc_gdbus_secure_element_call_get_atr(
+			auto_proxy,
+			GPOINTER_TO_UINT(handle),
+			net_nfc_client_gdbus_get_privilege(),
+			NULL,
+			get_atr_secure_element,
+			func_data);
 
+	g_object_unref(auto_proxy);
 	return NET_NFC_OK;
 }
 
@@ -694,16 +773,38 @@ API net_nfc_error_e net_nfc_client_se_get_atr_sync(
 	GError *error = NULL;
 	GVariant *out_atr = NULL;
 	net_nfc_error_e result = NET_NFC_OK;
+	NetNfcGDbusSecureElement* auto_proxy;
 
 	RETV_IF(NULL == atr, NET_NFC_NULL_PARAMETER);
-	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
+
+	if(se_proxy != NULL)
+	{
+		auto_proxy = se_proxy;
+	}
+	else
+	{
+		auto_proxy = net_nfc_gdbus_secure_element_proxy_new_for_bus_sync(
+				G_BUS_TYPE_SYSTEM,
+				G_DBUS_PROXY_FLAGS_NONE,
+				"org.tizen.NetNfcService",
+				"/org/tizen/NetNfcService/SecureElement",
+				NULL,
+				&error);
+		if (NULL == auto_proxy)
+		{
+			NFC_DBG("Can not create proxy : %s", error->message);
+			g_error_free(error);
+
+			return NET_NFC_UNKNOWN_ERROR;
+		}
+	}
 
 	*atr = NULL;
 
 	/* allow this function even nfc is off */
 
 	ret = net_nfc_gdbus_secure_element_call_get_atr_sync(
-			se_proxy,
+			auto_proxy,
 			GPOINTER_TO_UINT(handle),
 			net_nfc_client_gdbus_get_privilege(),
 			&result,
@@ -722,6 +823,7 @@ API net_nfc_error_e net_nfc_client_se_get_atr_sync(
 		result = NET_NFC_IPC_FAIL;
 	}
 
+	g_object_unref(auto_proxy);
 	return result;
 }
 
@@ -730,21 +832,46 @@ API net_nfc_error_e net_nfc_client_se_send_apdu(net_nfc_target_handle_s *handle,
 		data_s *apdu_data, net_nfc_se_send_apdu_cb callback, void *user_data)
 {
 	GVariant *arg_data;
+	GError *error = NULL;
 	SeFuncData *func_data;
+	NetNfcGDbusSecureElement* auto_proxy;
 
-	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
+	if(se_proxy != NULL)
+	{
+		auto_proxy = se_proxy;
+	}
+	else
+	{
+		auto_proxy = net_nfc_gdbus_secure_element_proxy_new_for_bus_sync(
+				G_BUS_TYPE_SYSTEM,
+				G_DBUS_PROXY_FLAGS_NONE,
+				"org.tizen.NetNfcService",
+				"/org/tizen/NetNfcService/SecureElement",
+				NULL,
+				&error);
+		if (NULL == auto_proxy)
+		{
+			NFC_ERR("Can not create proxy : %s", error->message);
+			g_error_free(error);
+
+			return NET_NFC_UNKNOWN_ERROR;
+		}
+	}
 
 	/* allow this function even nfc is off */
 
 	arg_data = net_nfc_util_gdbus_data_to_variant(apdu_data);
 	if (arg_data == NULL)
+	{
+		g_object_unref(auto_proxy);
 		return NET_NFC_INVALID_PARAM;
+	}
 
 	func_data = g_try_new0(SeFuncData, 1);
 	if (NULL == func_data)
 	{
 		g_variant_unref(arg_data);
-
+		g_object_unref(auto_proxy);
 		return NET_NFC_ALLOC_FAIL;
 	}
 
@@ -752,7 +879,7 @@ API net_nfc_error_e net_nfc_client_se_send_apdu(net_nfc_target_handle_s *handle,
 	func_data->se_data = user_data;
 
 	net_nfc_gdbus_secure_element_call_send_apdu(
-			se_proxy,
+			auto_proxy,
 			GPOINTER_TO_UINT(handle),
 			arg_data,
 			net_nfc_client_gdbus_get_privilege(),
@@ -760,6 +887,7 @@ API net_nfc_error_e net_nfc_client_se_send_apdu(net_nfc_target_handle_s *handle,
 			send_apdu_secure_element,
 			func_data);
 
+	g_object_unref(auto_proxy);
 	return NET_NFC_OK;
 }
 
@@ -772,9 +900,33 @@ API net_nfc_error_e net_nfc_client_se_send_apdu_sync(
 	GError *error = NULL;
 	GVariant *out_data = NULL;
 	net_nfc_error_e result = NET_NFC_OK;
+	NetNfcGDbusSecureElement* auto_proxy;
 
 	RETV_IF(NULL == response, NET_NFC_NULL_PARAMETER);
-	RETV_IF(NULL == se_proxy, NET_NFC_NOT_INITIALIZED);
+
+	if(se_proxy != NULL)
+	{
+		auto_proxy = se_proxy;
+	}
+	else
+	{
+		GError *error = NULL;
+
+		auto_proxy = net_nfc_gdbus_secure_element_proxy_new_for_bus_sync(
+				G_BUS_TYPE_SYSTEM,
+				G_DBUS_PROXY_FLAGS_NONE,
+				"org.tizen.NetNfcService",
+				"/org/tizen/NetNfcService/SecureElement",
+				NULL,
+				&error);
+		if (NULL == auto_proxy)
+		{
+			NFC_ERR("Can not create proxy : %s", error->message);
+			g_error_free(error);
+
+			return NET_NFC_UNKNOWN_ERROR;
+		}
+	}
 
 	*response = NULL;
 
@@ -782,10 +934,13 @@ API net_nfc_error_e net_nfc_client_se_send_apdu_sync(
 
 	arg_data = net_nfc_util_gdbus_data_to_variant(apdu_data);
 	if (NULL == arg_data)
+	{
+		g_object_unref(auto_proxy);
 		return NET_NFC_INVALID_PARAM;
+	}
 
 	ret = net_nfc_gdbus_secure_element_call_send_apdu_sync(
-			se_proxy,
+			auto_proxy,
 			GPOINTER_TO_UINT(handle),
 			arg_data,
 			net_nfc_client_gdbus_get_privilege(),
@@ -805,6 +960,7 @@ API net_nfc_error_e net_nfc_client_se_send_apdu_sync(
 		result = NET_NFC_IPC_FAIL;
 	}
 
+	g_object_unref(auto_proxy);
 	return result;
 }
 
