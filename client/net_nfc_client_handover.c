@@ -29,28 +29,25 @@
 static NetNfcGDbusHandover *handover_proxy = NULL;
 
 static void p2p_connection_handover(GObject *source_object,
-		GAsyncResult *res,
-		gpointer user_data)
+		GAsyncResult *res, gpointer user_data)
 {
-	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
+	gboolean ret;
+	data_s arg_data;
+	GError *error = NULL;
 	GVariant *data = NULL;
 	net_nfc_error_e result;
-	net_nfc_conn_handover_carrier_type_e type =
-		NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN;
-	GError *error = NULL;
-	data_s arg_data;
+	NetNfcCallback *func_data = user_data;
+	net_nfc_p2p_connection_handover_completed_cb callback;
+	net_nfc_conn_handover_carrier_type_e type = NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN;
 
 	g_assert(user_data != NULL);
 
-	if (net_nfc_gdbus_handover_call_request_finish(handover_proxy,
-				(gint *)&result,
-				(gint *)&type,
-				&data,
-				res,
-				&error) == FALSE)
+	ret = net_nfc_gdbus_handover_call_request_finish(handover_proxy,
+			(gint *)&result, (gint *)&type, &data, res, &error);
+
+	if (FALSE == ret)
 	{
-		NFC_ERR("Can not finish"
-				" connection handover: %s", error->message);
+		NFC_ERR("Can not finish connection handover: %s", error->message);
 		g_error_free(error);
 
 		result = NET_NFC_IPC_FAIL;
@@ -58,8 +55,7 @@ static void p2p_connection_handover(GObject *source_object,
 
 	if (func_data->callback != NULL)
 	{
-		net_nfc_p2p_connection_handover_completed_cb callback =
-			(net_nfc_p2p_connection_handover_completed_cb)func_data->callback;
+		callback = (net_nfc_p2p_connection_handover_completed_cb)func_data->callback;
 
 		net_nfc_util_gdbus_variant_to_data_s(data, &arg_data);
 
@@ -75,13 +71,10 @@ static void p2p_connection_handover(GObject *source_object,
 API net_nfc_error_e net_nfc_client_handover_free_alternative_carrier_data(
 		net_nfc_connection_handover_info_s *info)
 {
-	if (info == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == info, NET_NFC_NULL_PARAMETER);
 
 	if (info->data.buffer != NULL)
-	{
 		_net_nfc_util_free_mem(info->data.buffer);
-	}
 
 	_net_nfc_util_free_mem(info);
 
@@ -93,8 +86,8 @@ API net_nfc_error_e net_nfc_client_handover_get_alternative_carrier_type(
 		net_nfc_connection_handover_info_s *info,
 		net_nfc_conn_handover_carrier_type_e *type)
 {
-	if (info == NULL || type == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == info, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == type, NET_NFC_NULL_PARAMETER);
 
 	*type = info->type;
 
@@ -104,8 +97,8 @@ API net_nfc_error_e net_nfc_client_handover_get_alternative_carrier_type(
 API net_nfc_error_e net_nfc_client_handover_get_alternative_carrier_data(
 		net_nfc_connection_handover_info_s *info, data_s **data)
 {
-	if (info == NULL || data == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == info, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == data, NET_NFC_NULL_PARAMETER);
 
 	return net_nfc_create_data(data, info->data.buffer, info->data.length);
 }
@@ -119,22 +112,13 @@ API net_nfc_error_e net_nfc_client_p2p_connection_handover(
 {
 	NetNfcCallback *funcdata;
 
-	if (handover_proxy == NULL)
-	{
-		NFC_ERR("Can not get handover Proxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETV_IF(NULL == handover_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* prevent executing daemon when nfc is off */
-	if (net_nfc_client_manager_is_activated() == false) {
-		return NET_NFC_INVALID_STATE;
-	}
+	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
 
 	funcdata = g_try_new0(NetNfcCallback, 1);
-	if (funcdata == NULL) {
-		return NET_NFC_ALLOC_FAIL;
-	}
+	RETV_IF(NULL == funcdata, NET_NFC_ALLOC_FAIL);
 
 	funcdata->callback = (gpointer)callback;
 	funcdata->user_data = cb_data;
@@ -157,41 +141,37 @@ API net_nfc_error_e net_nfc_client_p2p_connection_handover_sync(
 		net_nfc_conn_handover_carrier_type_e *out_carrier,
 		data_s **out_ac_data)
 {
+	gboolean ret;
+	GError *error = NULL;
 	GVariant *out_data = NULL;
 	net_nfc_error_e out_result = NET_NFC_OK;
-	net_nfc_conn_handover_carrier_type_e out_type =
-		NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN;
-	GError *error = NULL;
+	net_nfc_conn_handover_carrier_type_e out_type = NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN;
 
-	if (handover_proxy == NULL)
-	{
-		NFC_ERR("Can not get handover Proxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETV_IF(NULL == handover_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* prevent executing daemon when nfc is off */
-	if (net_nfc_client_manager_is_activated() == false) {
-		return NET_NFC_INVALID_STATE;
-	}
+	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
 
-	if (net_nfc_gdbus_handover_call_request_sync(handover_proxy,
-				GPOINTER_TO_UINT(handle),
-				arg_type,
-				net_nfc_client_gdbus_get_privilege(),
-				(gint32 *)&out_result,
-				(gint32 *)&out_type,
-				&out_data,
-				NULL,
-				&error) == TRUE) {
-		if (out_carrier) {
+	ret = net_nfc_gdbus_handover_call_request_sync(handover_proxy,
+			GPOINTER_TO_UINT(handle),
+			arg_type,
+			net_nfc_client_gdbus_get_privilege(),
+			(gint32 *)&out_result,
+			(gint32 *)&out_type,
+			&out_data,
+			NULL,
+			&error);
+
+	if (TRUE == ret)
+	{
+		if (out_carrier)
 			*out_carrier = out_type;
-		}
 
-		if (out_ac_data) {
+		if (out_ac_data)
 			*out_ac_data = net_nfc_util_gdbus_variant_to_data(out_data);
-		}
-	} else {
+	}
+	else
+	{
 		NFC_ERR("handover (sync call) failed: %s",error->message);
 		g_error_free(error);
 
@@ -220,7 +200,7 @@ net_nfc_error_e net_nfc_client_handover_init(void)
 			NULL,
 			&error);
 
-	if (handover_proxy == NULL)
+	if (NULL == handover_proxy)
 	{
 		NFC_ERR("Can not create proxy : %s", error->message);
 		g_error_free(error);
