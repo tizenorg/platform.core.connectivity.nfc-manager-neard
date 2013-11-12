@@ -51,9 +51,9 @@ GOptionEntry option_entries[] = {
 
 pid_t net_nfc_server_gdbus_get_pid(const char *name)
 {
+	GVariant *_ret;
 	guint pid = 0;
 	GError *error = NULL;
-	GVariant *_ret;
 
 	_ret = g_dbus_connection_call_sync(connection,
 			"org.freedesktop.DBus",
@@ -66,7 +66,9 @@ pid_t net_nfc_server_gdbus_get_pid(const char *name)
 			-1,
 			NULL,
 			&error);
-	if (_ret != NULL) {
+
+	if (_ret != NULL)
+	{
 		g_variant_get(_ret, "(u)", &pid);
 		g_variant_unref(_ret);
 	}
@@ -78,14 +80,14 @@ static void _name_owner_changed(GDBusProxy *proxy,
 		const gchar *name, const gchar *old_owner,
 		const gchar *new_owner, void *user_data)
 {
-	if (name == NULL || old_owner == NULL || new_owner == NULL) {
-		NFC_ERR("invalid parameter");
+	RET_IF(NULL == name);
+	RET_IF(NULL == old_owner);
+	RET_IF(NULL == new_owner);
 
-		return;
-	}
-
-	if (strlen(new_owner) == 0) {
-		if (net_nfc_server_gdbus_check_client_is_running(old_owner)) {
+	if (strlen(new_owner) == 0)
+	{
+		if (net_nfc_server_gdbus_check_client_is_running(old_owner))
+		{
 			/* unregister service */
 			net_nfc_server_llcp_unregister_services(old_owner);
 
@@ -96,28 +98,25 @@ static void _name_owner_changed(GDBusProxy *proxy,
 }
 
 static void _on_name_owner_changed(GDBusConnection *connection,
-		const gchar *sender_name, const gchar *object_path,
-		const gchar *interface_name, const gchar *signal_name,
-		GVariant *parameters, gpointer user_data)
+		const gchar *sender_name,
+		const gchar *object_path,
+		const gchar *interface_name,
+		const gchar *signal_name,
+		GVariant *parameters,
+		gpointer user_data)
 {
 	gchar *name;
 	gchar *old_owner;
 	gchar *new_owner;
 
-	g_variant_get(parameters,
-			"(sss)",
-			&name,
-			&old_owner,
-			&new_owner);
+	g_variant_get(parameters, "(sss)", &name, &old_owner, &new_owner);
 
-	_name_owner_changed((GDBusProxy *)connection,
-			name, old_owner, new_owner, user_data);
+	_name_owner_changed((GDBusProxy *)connection, name, old_owner, new_owner, user_data);
 }
 
 static void _subscribe_name_owner_changed_event()
 {
-	if (connection == NULL)
-		return;
+	RET_IF(NULL == connection);
 
 	/* subscribe signal */
 	subscribe_id = g_dbus_connection_signal_subscribe(connection,
@@ -133,13 +132,11 @@ static void _subscribe_name_owner_changed_event()
 
 static void _unsubscribe_name_owner_changed_event()
 {
-	if (connection == NULL)
-		return;
+	RET_IF(NULL == connection);
 
 	/* subscribe signal */
-	if (subscribe_id > 0) {
+	if (subscribe_id > 0)
 		g_dbus_connection_signal_unsubscribe(connection, subscribe_id);
-	}
 }
 
 static void net_nfc_server_gdbus_init(void)
@@ -150,7 +147,7 @@ static void net_nfc_server_gdbus_init(void)
 		g_object_unref(connection);
 
 	connection = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &error);
-	if (connection == NULL)
+	if (NULL == connection)
 	{
 		NFC_ERR("Can not get connection %s", error->message);
 		g_error_free (error);
@@ -185,7 +182,7 @@ static void net_nfc_server_gdbus_init(void)
 
 	if (net_nfc_server_p2p_init(connection) == FALSE)
 	{
-		NFC_ERR("Can not init tag");
+		NFC_ERR("Can not init p2p");
 		return;
 	}
 
@@ -197,25 +194,25 @@ static void net_nfc_server_gdbus_init(void)
 
 	if (net_nfc_server_handover_init(connection) == FALSE)
 	{
-		NFC_ERR("Can not initialize transceive");
+		NFC_ERR("Can not initialize handover");
 		return;
 	}
 
 	if (net_nfc_server_se_init(connection) == FALSE)
 	{
-		NFC_ERR("Can not init Test");
+		NFC_ERR("Can not init se");
 		return;
 	}
 
 	if (net_nfc_server_snep_init(connection) == FALSE)
 	{
-		NFC_ERR("Can not init controller thread");
+		NFC_ERR("Can not init snep");
 		return;
 	}
 
 	if (net_nfc_server_system_handler_init(connection) == FALSE)
 	{
-		NFC_ERR("Can not init controller thread");
+		NFC_ERR("Can not init system handler");
 		return;
 	}
 
@@ -307,12 +304,11 @@ static void on_name_lost(GDBusConnection *connnection, const gchar *name,
 
 int main(int argc, char *argv[])
 {
-
-	void *handle = NULL;
 	guint id = 0;
+	void *handle = NULL;
+	GError *error = NULL;
 	gboolean use_daemon = FALSE;
 	GOptionContext *option_context;
-	GError *error = NULL;
 
 	net_nfc_change_log_tag();
 
@@ -334,7 +330,7 @@ int main(int argc, char *argv[])
 	net_nfc_app_util_clean_storage(MESSAGE_STORAGE);
 
 	handle = net_nfc_controller_onload();
-	if (handle == NULL)
+	if (NULL == handle)
 	{
 		NFC_ERR("load plugin library is failed");
 

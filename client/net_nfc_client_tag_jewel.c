@@ -38,20 +38,15 @@
 API net_nfc_error_e net_nfc_client_jewel_read_id(net_nfc_target_handle_s *handle,
 		nfc_transceive_data_callback callback, void *user_data)
 {
+	data_s rawdata;
+	uint8_t send_buffer[9] = {0x00, };
 	net_nfc_target_info_s *target_info = NULL;
 
-	data_s rawdata;
-
-	uint8_t send_buffer[9] = {0x00, };
-
-	if(handle == NULL)
-		return NET_NFC_NULL_PARAMETER;
-
-	if(net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
+	RETV_IF(net_nfc_client_tag_is_connected() == FALSE, NET_NFC_OPERATION_FAIL);
 
 	target_info = net_nfc_client_tag_get_client_target_info();
-	if (target_info == NULL)
+	if (NULL == target_info)
 		return NET_NFC_NO_DATA_FOUND;
 
 	if(target_info->devType != NET_NFC_JEWEL_PICC)
@@ -75,25 +70,20 @@ API net_nfc_error_e net_nfc_client_jewel_read_id(net_nfc_target_handle_s *handle
 API net_nfc_error_e net_nfc_client_jewel_read_byte(net_nfc_target_handle_s *handle,
 		uint8_t block, uint8_t byte, nfc_transceive_data_callback callback, void *user_data)
 {
+	data_s rawdata;
+	data_s *UID = NULL;
+	uint8_t send_buffer[9] = {0x00, };
 	net_nfc_target_info_s *target_info = NULL;
 
-	data_s rawdata;
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
 
-	data_s *UID = NULL;
+	RETVM_IF(block > 0xE || byte > 0x7, NET_NFC_OUT_OF_BOUND,
+		"block value is = [0x%x], byte value is = [0x%x]", block, byte);
 
-	uint8_t send_buffer[9] = {0x00, };
-
-	if(handle == NULL)
-		return NET_NFC_NULL_PARAMETER;
-
-	if(block > 0xE || byte > 0x7 )
-		return NET_NFC_OUT_OF_BOUND;
-
-	if(net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
+	RETV_IF(net_nfc_client_tag_is_connected() == FALSE, NET_NFC_OPERATION_FAIL);
 
 	target_info = net_nfc_client_tag_get_client_target_info();
-	if (target_info == NULL)
+	if (NULL == target_info)
 		return NET_NFC_NO_DATA_FOUND;
 
 	if(target_info->devType != NET_NFC_JEWEL_PICC)
@@ -103,9 +93,7 @@ API net_nfc_error_e net_nfc_client_jewel_read_byte(net_nfc_target_handle_s *hand
 	}
 
 	if(net_nfc_get_tag_info_value(target_info, JEWEL_TAG_KEY, &UID) != NET_NFC_OK)
-	{
 		return NET_NFC_NO_DATA_FOUND;
-	}
 
 	if(UID->length != 4)
 		return NET_NFC_OUT_OF_BOUND;
@@ -135,22 +123,17 @@ API net_nfc_error_e net_nfc_client_jewel_read_byte(net_nfc_target_handle_s *hand
 API net_nfc_error_e net_nfc_client_jewel_read_all(net_nfc_target_handle_s *handle,
 		nfc_transceive_data_callback callback, void *user_data)
 {
+	data_s rawdata;
+	data_s *UID = NULL;
+	uint8_t send_buffer[9] = {0x00, };
 	net_nfc_target_info_s *target_info = NULL;
 
-	data_s rawdata;
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
 
-	data_s *UID = NULL;
-
-	uint8_t send_buffer[9] = {0x00, };
-
-	if(handle == NULL )
-		return NET_NFC_NULL_PARAMETER;
-
-	if(net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
+	RETV_IF(net_nfc_client_tag_is_connected() == FALSE, NET_NFC_OPERATION_FAIL);
 
 	target_info = net_nfc_client_tag_get_client_target_info();
-	if (target_info == NULL)
+	if (NULL == target_info)
 		return NET_NFC_NO_DATA_FOUND;
 
 	if(target_info->devType != NET_NFC_JEWEL_PICC)
@@ -160,9 +143,7 @@ API net_nfc_error_e net_nfc_client_jewel_read_all(net_nfc_target_handle_s *handl
 	}
 
 	if(net_nfc_get_tag_info_value(target_info, JEWEL_TAG_KEY, &UID) != NET_NFC_OK)
-	{
 		return NET_NFC_NO_DATA_FOUND;
-	}
 
 	if(UID->length != 4)
 		return NET_NFC_OUT_OF_BOUND;
@@ -197,29 +178,24 @@ API net_nfc_error_e net_nfc_client_jewel_write_with_erase(
 		nfc_transceive_callback callback,
 		void *user_data)
 {
-	net_nfc_target_info_s *target_info = NULL;
 	data_s rawdata;
 	data_s *UID = NULL;
 	uint8_t send_buffer[9] = {0x00, };
+	net_nfc_target_info_s *target_info = NULL;
 
-	if(handle == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
 
-	if(block > 0xE || byte > 0x7 )
-		return NET_NFC_OUT_OF_BOUND;
+	RETVM_IF(block > 0xE || byte > 0x7, NET_NFC_OUT_OF_BOUND,
+		"block value is = [0x%x], byte value is = [0x%x]", block, byte);
 
-	if(net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
-
+	RETV_IF(net_nfc_client_tag_is_connected() == FALSE, NET_NFC_OPERATION_FAIL);
 
 	target_info = net_nfc_client_tag_get_client_target_info();
-	if (target_info == NULL)
+	if (NULL == target_info)
 		return NET_NFC_NO_DATA_FOUND;
 
 	if(net_nfc_get_tag_info_value(target_info, JEWEL_TAG_KEY, &UID) != NET_NFC_OK)
-	{
 		return NET_NFC_NO_DATA_FOUND;
-	}
 
 	if(UID->length != 4)
 		return NET_NFC_OUT_OF_BOUND;
@@ -254,26 +230,22 @@ API net_nfc_error_e net_nfc_client_jewel_write_with_no_erase(
 		nfc_transceive_callback callback,
 		void *user_data)
 {
+	data_s rawdata;
+	data_s *UID = NULL;
+	uint8_t send_buffer[9] = {0x00, };
 	net_nfc_target_info_s *target_info = NULL;
 
-	data_s rawdata;
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
 
-	data_s *UID = NULL;
+	RETVM_IF(block > 0xE || byte > 0x7, NET_NFC_OUT_OF_BOUND,
+		"block value is = [0x%x], byte value is = [0x%x]", block, byte);
 
-	uint8_t send_buffer[9] = {0x00, };
-
-	if(handle == NULL)
-		return NET_NFC_NULL_PARAMETER;
-
-	if(block > 0xE || byte > 0x7 )
-		return NET_NFC_OUT_OF_BOUND;
-
-	if(net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
+	RETV_IF(net_nfc_client_tag_is_connected() == FALSE, NET_NFC_OPERATION_FAIL);
 
 	target_info = net_nfc_client_tag_get_client_target_info();
-	if (target_info == NULL)
+	if (NULL == target_info)
 		return NET_NFC_NO_DATA_FOUND;
+
 
 	if(target_info->devType != NET_NFC_JEWEL_PICC)
 	{
@@ -282,9 +254,7 @@ API net_nfc_error_e net_nfc_client_jewel_write_with_no_erase(
 	}
 
 	if(net_nfc_get_tag_info_value(target_info, JEWEL_TAG_KEY, &UID) != NET_NFC_OK)
-	{
 		return NET_NFC_NO_DATA_FOUND;
-	}
 
 	if(UID->length != 4)
 		return NET_NFC_OUT_OF_BOUND;

@@ -28,26 +28,6 @@
 
 static NetNfcGDbusTransceive *transceive_skeleton = NULL;
 
-static void transceive_thread_func(gpointer user_data);
-
-static void transceive_data_thread_func(gpointer user_data);
-
-static gboolean transceive_handle(NetNfcGDbusTransceive *transceive,
-		GDBusMethodInvocation *invocation,
-		guint handle,
-		guint dev_type,
-		GVariant *arg_data,
-		GVariant *smack_privilege,
-		gpointer user_data);
-
-static gboolean transceive_data_handle(NetNfcGDbusTransceive *transceive,
-		GDBusMethodInvocation *invocation,
-		guint handle,
-		guint dev_type,
-		GVariant *arg_data,
-		GVariant *smack_privilege,
-		gpointer user_data);
-
 
 typedef struct _TransceiveSendData TransceiveSendData;
 
@@ -61,12 +41,13 @@ struct _TransceiveSendData
 
 static void transceive_data_thread_func(gpointer user_data)
 {
+	bool ret;
+	data_s *data = NULL;
+	GVariant *resp_data = NULL;
+	net_nfc_error_e result = NET_NFC_OK;
 	TransceiveSendData *transceive_data = user_data;
 	net_nfc_target_handle_s *handle =
 		(net_nfc_target_handle_s *)transceive_data->transceive_handle;
-	net_nfc_error_e result = NET_NFC_OK;
-	data_s *data = NULL;
-	GVariant *resp_data = NULL;
 
 	/* use assert because it was checked in handle function */
 	g_assert(transceive_data != NULL);
@@ -77,10 +58,10 @@ static void transceive_data_thread_func(gpointer user_data)
 	{
 		NFC_DBG("call transceive");
 
-		if (net_nfc_controller_transceive(handle,
-					&transceive_data->transceive_info,
-					&data,
-					&result) == true)
+		ret = net_nfc_controller_transceive(handle, &transceive_data->transceive_info,
+					&data, &result);
+
+		if (true == ret)
 		{
 			if (data != NULL)
 				NFC_DBG("Transceive data received [%d]", data->length);
@@ -95,11 +76,8 @@ static void transceive_data_thread_func(gpointer user_data)
 
 	resp_data = net_nfc_util_gdbus_data_to_variant(data);
 
-	net_nfc_gdbus_transceive_complete_transceive_data(
-			transceive_data->transceive,
-			transceive_data->invocation,
-			(gint)result,
-			resp_data);
+	net_nfc_gdbus_transceive_complete_transceive_data(transceive_data->transceive,
+			transceive_data->invocation, (gint)result, resp_data);
 
 	if (data)
 	{
@@ -123,29 +101,28 @@ static gboolean transceive_data_handle(NetNfcGDbusTransceive *transceive,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
-	TransceiveSendData *data;
+	bool ret;
 	gboolean result;
+	TransceiveSendData *data;
 
-	NFC_INFO(">>> REQUEST from [%s]",
-			g_dbus_method_invocation_get_sender(invocation));
+	NFC_INFO(">>> REQUEST from [%s]", g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-				smack_privilege,
-				"nfc-manager",
-				"rw") == false) {
+	ret = net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
+				"nfc-manager", "rw");
+	if (false == ret)
+	{
 		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
 
 	data = g_new0(TransceiveSendData, 1);
-	if (data == NULL)
+	if (NULL == data)
 	{
 		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.AllocationError",
-				"Can not allocate memory");
+				"org.tizen.NetNfcService.AllocationError", "Can not allocate memory");
 
 		return FALSE;
 	}
@@ -154,12 +131,10 @@ static gboolean transceive_data_handle(NetNfcGDbusTransceive *transceive,
 	data->invocation = g_object_ref(invocation);
 	data->transceive_handle = handle;
 	data->transceive_info.dev_type = dev_type;
-	net_nfc_util_gdbus_variant_to_data_s(arg_data,
-			&data->transceive_info.trans_data);
+	net_nfc_util_gdbus_variant_to_data_s(arg_data, &data->transceive_info.trans_data);
 
-	result = net_nfc_server_controller_async_queue_push(
-			transceive_data_thread_func, data);
-	if (result == FALSE)
+	result = net_nfc_server_controller_async_queue_push(transceive_data_thread_func, data);
+	if (FALSE == result)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.Transceive.ThreadError",
@@ -178,11 +153,12 @@ static gboolean transceive_data_handle(NetNfcGDbusTransceive *transceive,
 
 static void transceive_thread_func(gpointer user_data)
 {
+	bool ret;
+	data_s *data = NULL;
+	net_nfc_error_e result = NET_NFC_OK;
 	TransceiveSendData *transceive_data = user_data;
 	net_nfc_target_handle_s *handle =
 		(net_nfc_target_handle_s *)transceive_data->transceive_handle;
-	net_nfc_error_e result = NET_NFC_OK;
-	data_s *data = NULL;
 
 	/* use assert because it was checked in handle function */
 	g_assert(transceive_data != NULL);
@@ -192,11 +168,9 @@ static void transceive_thread_func(gpointer user_data)
 	if (net_nfc_server_target_connected(handle) == true)
 	{
 		NFC_DBG("call transceive");
-
-		if (net_nfc_controller_transceive(handle,
-					&transceive_data->transceive_info,
-					&data,
-					&result) == true)
+		ret = net_nfc_controller_transceive(handle, &transceive_data->transceive_info,
+					&data, &result);
+		if (true == ret)
 		{
 			if (data != NULL)
 			{
@@ -217,10 +191,8 @@ static void transceive_thread_func(gpointer user_data)
 
 	NFC_DBG("transceive result : %d", result);
 
-	net_nfc_gdbus_transceive_complete_transceive(
-			transceive_data->transceive,
-			transceive_data->invocation,
-			(gint)result);
+	net_nfc_gdbus_transceive_complete_transceive(transceive_data->transceive,
+			transceive_data->invocation, (gint)result);
 
 	net_nfc_util_free_data(&transceive_data->transceive_info.trans_data);
 
@@ -238,29 +210,28 @@ static gboolean transceive_handle(NetNfcGDbusTransceive *transceive,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
-	TransceiveSendData *data;
+	bool ret;
 	gboolean result;
+	TransceiveSendData *data;
 
-	NFC_INFO(">>> REQUEST from [%s]",
-			g_dbus_method_invocation_get_sender(invocation));
+	NFC_INFO(">>> REQUEST from [%s]", g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-				smack_privilege,
-				"nfc-manager",
-				"rw") == false) {
+	ret = net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
+				"nfc-manager", "rw");
+	if (false == ret)
+	{
 		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
 
 	data = g_new0(TransceiveSendData, 1);
-	if (data == NULL)
+	if (NULL == data)
 	{
 		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.AllocationError",
-				"Can not allocate memory");
+				"org.tizen.NetNfcService.AllocationError", "Can not allocate memory");
 
 		return FALSE;
 	}
@@ -272,9 +243,8 @@ static gboolean transceive_handle(NetNfcGDbusTransceive *transceive,
 	net_nfc_util_gdbus_variant_to_data_s(arg_data,
 			&data->transceive_info.trans_data);
 
-	result = net_nfc_server_controller_async_queue_push(
-			transceive_thread_func, data);
-	if (result == FALSE)
+	result = net_nfc_server_controller_async_queue_push(transceive_thread_func, data);
+	if (FALSE == result)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.Transceive.ThreadError",
@@ -294,30 +264,26 @@ static gboolean transceive_handle(NetNfcGDbusTransceive *transceive,
 
 gboolean net_nfc_server_transceive_init(GDBusConnection *connection)
 {
-	GError *error = NULL;
 	gboolean result;
+	GError *error = NULL;
 
 	if (transceive_skeleton)
 		g_object_unref(transceive_skeleton);
 
 	transceive_skeleton = net_nfc_gdbus_transceive_skeleton_new();
 
-	g_signal_connect(transceive_skeleton,
-			"handle-transceive-data",
-			G_CALLBACK(transceive_data_handle),
-			NULL);
+	g_signal_connect(transceive_skeleton, "handle-transceive-data",
+			G_CALLBACK(transceive_data_handle), NULL);
 
-	g_signal_connect(transceive_skeleton,
-			"handle-transceive",
-			G_CALLBACK(transceive_handle),
-			NULL);
+	g_signal_connect(transceive_skeleton, "handle-transceive",
+			G_CALLBACK(transceive_handle), NULL);
 
 	result = g_dbus_interface_skeleton_export(
 			G_DBUS_INTERFACE_SKELETON(transceive_skeleton),
 			connection,
 			"/org/tizen/NetNfcService/Transceive",
 			&error);
-	if (result == FALSE)
+	if (FALSE == result)
 	{
 		g_error_free(error);
 		g_object_unref(transceive_skeleton);

@@ -62,23 +62,21 @@ API net_nfc_error_e net_nfc_client_mifare_authenticate_with_keyA(
 		void *callback,
 		void *user_data)
 {
-	net_nfc_target_info_s* target_info = NULL;
 	data_s rawdata;
 	data_s *UID = NULL;
-	uint8_t* send_buffer = NULL;
 	uint8_t* temp = NULL;
-	int send_buffer_length = 0;
-	uint8_t sector_to_block = 0;
 	net_nfc_error_e result;
+	int send_buffer_length = 0;
+	uint8_t* send_buffer = NULL;
+	uint8_t sector_to_block = 0;
+	net_nfc_target_info_s* target_info = NULL;
 
-	if (handle == NULL || auth_key == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == auth_key, NET_NFC_NULL_PARAMETER);
 
-	if (net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
-
-	if (auth_key->length != 6)
-		return NET_NFC_OUT_OF_BOUND;
+	RETV_IF(net_nfc_client_tag_is_connected() == FALSE, NET_NFC_OPERATION_FAIL);
+	RETVM_IF(auth_key->length != 6, NET_NFC_OUT_OF_BOUND,
+		"auth_key->length(%d) != 6", auth_key->length);
 
 	target_info = net_nfc_client_tag_get_client_target_info();
 
@@ -93,9 +91,7 @@ API net_nfc_error_e net_nfc_client_mifare_authenticate_with_keyA(
 	}
 
 	if (net_nfc_get_tag_info_value(target_info, MIFARE_TAG_KEY, &UID) != NET_NFC_OK)
-	{
 		return NET_NFC_NO_DATA_FOUND;
-	}
 
 	switch (target_info->devType)
 	{
@@ -137,9 +133,8 @@ API net_nfc_error_e net_nfc_client_mifare_authenticate_with_keyA(
 	/* cmd + addr + UID + AUTH_KEY + CRC_A */
 	send_buffer_length = 1 + 1 + UID->length + auth_key->length + 2;
 
-	_net_nfc_util_alloc_mem(send_buffer,
-			send_buffer_length * sizeof(uint8_t));
-	if (send_buffer == NULL)
+	_net_nfc_util_alloc_mem(send_buffer, send_buffer_length * sizeof(uint8_t));
+	if (NULL == send_buffer)
 	{
 		net_nfc_free_data(UID);
 		return NET_NFC_ALLOC_FAIL;
@@ -179,23 +174,22 @@ API net_nfc_error_e net_nfc_client_mifare_authenticate_with_keyB(
 		void *callback,
 		void *user_data)
 {
-	net_nfc_target_info_s *target_info = NULL;
 	data_s rawdata;
 	data_s *UID = NULL;
-	uint8_t* send_buffer = NULL;
 	uint8_t* temp = NULL;
-	int send_buffer_length = 0;
-	uint8_t sector_to_block = 0;
 	net_nfc_error_e result;
+	int send_buffer_length = 0;
+	uint8_t* send_buffer = NULL;
+	uint8_t sector_to_block = 0;
+	net_nfc_target_info_s *target_info = NULL;
 
-	if (handle == NULL || auth_key == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == auth_key, NET_NFC_NULL_PARAMETER);
 
-	if (net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
+	RETV_IF(net_nfc_client_tag_is_connected() == FALSE, NET_NFC_OPERATION_FAIL);
+	RETVM_IF(auth_key->length != 6, NET_NFC_OUT_OF_BOUND,
+		"auth_key->length(%d) != 6", auth_key->length);
 
-	if (auth_key->length != 6)
-		return NET_NFC_OUT_OF_BOUND;
 
 	target_info = net_nfc_client_tag_get_client_target_info();
 
@@ -210,9 +204,7 @@ API net_nfc_error_e net_nfc_client_mifare_authenticate_with_keyB(
 	}
 
 	if (net_nfc_get_tag_info_value(target_info, MIFARE_TAG_KEY, &UID) != NET_NFC_OK)
-	{
 		return NET_NFC_NO_DATA_FOUND;
-	}
 
 	switch (target_info->devType)
 	{
@@ -241,8 +233,7 @@ API net_nfc_error_e net_nfc_client_mifare_authenticate_with_keyB(
 			sector_to_block = sector * MIFARE_BLOCK_4 + 3;
 		else
 		{
-			sector_to_block = (31 * MIFARE_BLOCK_4 + 3)
-				+ (sector - 32)
+			sector_to_block = (31 * MIFARE_BLOCK_4 + 3) + (sector - 32)
 				* MIFARE_BLOCK_16 + 15;
 		}
 		break;
@@ -253,9 +244,8 @@ API net_nfc_error_e net_nfc_client_mifare_authenticate_with_keyB(
 	/* cmd + addr + UID + AUTH_KEY + CRC_A */
 	send_buffer_length = 1 + 1 + UID->length + auth_key->length + 2;
 
-	_net_nfc_util_alloc_mem(send_buffer, send_buffer_length
-			* sizeof(uint8_t));
-	if (send_buffer == NULL)
+	_net_nfc_util_alloc_mem(send_buffer, send_buffer_length * sizeof(uint8_t));
+	if (NULL == send_buffer)
 	{
 		net_nfc_free_data(UID);
 		return NET_NFC_ALLOC_FAIL;
@@ -290,15 +280,13 @@ API net_nfc_error_e net_nfc_client_mifare_authenticate_with_keyB(
 API net_nfc_error_e net_nfc_client_mifare_read(net_nfc_target_handle_s *handle,
 		uint8_t addr, void *callback, void *user_data)
 {
-	net_nfc_target_info_s *target_info = NULL;
 	data_s rawdata;
 	uint8_t send_buffer[4] = {0};
+	net_nfc_target_info_s *target_info = NULL;
 
-	if (handle == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
 
-	if (net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
+	RETV_IF(net_nfc_client_tag_is_connected() == FALSE, NET_NFC_OPERATION_FAIL);
 
 	target_info = net_nfc_client_tag_get_client_target_info();
 
@@ -327,10 +315,7 @@ API net_nfc_error_e net_nfc_client_mifare_read(net_nfc_target_handle_s *handle,
 	rawdata.buffer = send_buffer;
 	rawdata.length = 4;
 
-	return net_nfc_client_transceive_data(handle,
-			&rawdata,
-			callback,
-			user_data);
+	return net_nfc_client_transceive_data(handle, &rawdata, callback, user_data);
 }
 
 API net_nfc_error_e net_nfc_client_mifare_write_block(
@@ -340,22 +325,18 @@ API net_nfc_error_e net_nfc_client_mifare_write_block(
 		void *callback,
 		void *user_data)
 {
-	net_nfc_target_info_s *target_info = NULL;
 	data_s rawdata;
+	net_nfc_error_e result;
 	uint8_t* send_buffer = NULL;
 	uint32_t send_buffer_length = 0;
-	net_nfc_error_e result;
+	net_nfc_target_info_s *target_info = NULL;
 
-	if (handle == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
 
-	if (net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
-
+	RETV_IF(net_nfc_client_tag_is_connected() == FALSE, NET_NFC_OPERATION_FAIL);
 
 	target_info = net_nfc_client_tag_get_client_target_info();
-
-	if (target_info == NULL)
+	if (NULL == target_info)
 		return NET_NFC_NOT_INITIALIZED;
 
 	if (target_info->devType < NET_NFC_MIFARE_MINI_PICC ||
@@ -380,9 +361,8 @@ API net_nfc_error_e net_nfc_client_mifare_write_block(
 			/* cmd + addr + page + CRC */
 			send_buffer_length = 1 + 1 + MIFARE_PAGE_SIZE + 2;
 
-			_net_nfc_util_alloc_mem(send_buffer,
-					send_buffer_length * sizeof(uint8_t));
-			if (send_buffer == NULL)
+			_net_nfc_util_alloc_mem(send_buffer, send_buffer_length * sizeof(uint8_t));
+			if (NULL == send_buffer)
 				return NET_NFC_ALLOC_FAIL;
 
 			temp = send_buffer;
@@ -403,9 +383,8 @@ API net_nfc_error_e net_nfc_client_mifare_write_block(
 			/* cmd + addr + page + CRC */
 			send_buffer_length = 1 + 1 + data->length + 2;
 
-			_net_nfc_util_alloc_mem(send_buffer,
-					send_buffer_length * sizeof(uint8_t));
-			if (send_buffer == NULL)
+			_net_nfc_util_alloc_mem(send_buffer, send_buffer_length * sizeof(uint8_t));
+			if (NULL == send_buffer)
 				return NET_NFC_ALLOC_FAIL;
 
 			temp = send_buffer;
@@ -418,11 +397,9 @@ API net_nfc_error_e net_nfc_client_mifare_write_block(
 
 			memcpy(temp, data->buffer, data->length);
 		}
-
 	}
 	else
 	{
-
 		if (data->length > MIFARE_BLOCK_SIZE)
 		{
 			uint8_t* temp = NULL;
@@ -430,9 +407,8 @@ API net_nfc_error_e net_nfc_client_mifare_write_block(
 			/* cmd + addr + page + CRC */
 			send_buffer_length = 1 + 1 + MIFARE_BLOCK_SIZE + 2;
 
-			_net_nfc_util_alloc_mem(send_buffer,
-					send_buffer_length * sizeof(uint8_t));
-			if (send_buffer == NULL)
+			_net_nfc_util_alloc_mem(send_buffer, send_buffer_length * sizeof(uint8_t));
+			if (NULL == send_buffer)
 				return NET_NFC_ALLOC_FAIL;
 
 			temp = send_buffer;
@@ -453,7 +429,7 @@ API net_nfc_error_e net_nfc_client_mifare_write_block(
 			send_buffer_length = 1 + 1 + data->length + 2;
 
 			_net_nfc_util_alloc_mem(send_buffer, send_buffer_length * sizeof(uint8_t));
-			if (send_buffer == NULL)
+			if (NULL == send_buffer)
 				return NET_NFC_ALLOC_FAIL;
 
 			temp = send_buffer;
@@ -488,21 +464,19 @@ API net_nfc_error_e net_nfc_client_mifare_write_page(
 		void *callback,
 		void *user_data)
 {
-	net_nfc_target_info_s *target_info = NULL;
+	data_s rawdata;
+	net_nfc_error_e result;
 	uint8_t* send_buffer = NULL;
 	uint32_t send_buffer_length = 0;
-	net_nfc_error_e result;
-	data_s rawdata;
+	net_nfc_target_info_s *target_info = NULL;
 
-	if (handle == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
 
-	if (net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
+	RETV_IF(net_nfc_client_tag_is_connected() == FALSE, NET_NFC_OPERATION_FAIL);
 
 	target_info = net_nfc_client_tag_get_client_target_info();
 
-	if (target_info == NULL)
+	if (NULL == target_info)
 		return NET_NFC_NOT_INITIALIZED;
 
 	if (target_info->devType < NET_NFC_MIFARE_MINI_PICC ||
@@ -528,7 +502,7 @@ API net_nfc_error_e net_nfc_client_mifare_write_page(
 			send_buffer_length = 1 + 1 + MIFARE_PAGE_SIZE + 2;
 
 			_net_nfc_util_alloc_mem(send_buffer, send_buffer_length * sizeof(uint8_t));
-			if (send_buffer == NULL)
+			if (NULL == send_buffer)
 				return NET_NFC_ALLOC_FAIL;
 
 			temp = send_buffer;
@@ -549,7 +523,7 @@ API net_nfc_error_e net_nfc_client_mifare_write_page(
 			send_buffer_length = 1 + 1 + data->length + 2;
 
 			_net_nfc_util_alloc_mem(send_buffer, send_buffer_length * sizeof(uint8_t));
-			if (send_buffer == NULL)
+			if (NULL == send_buffer)
 				return NET_NFC_ALLOC_FAIL;
 
 			temp = send_buffer;
@@ -573,9 +547,8 @@ API net_nfc_error_e net_nfc_client_mifare_write_page(
 			/* cmd + addr + page + CRC */
 			send_buffer_length = 1 + 1 + MIFARE_PAGE_SIZE + 2;
 
-			_net_nfc_util_alloc_mem(send_buffer,
-					send_buffer_length * sizeof(uint8_t));
-			if (send_buffer == NULL)
+			_net_nfc_util_alloc_mem(send_buffer, send_buffer_length * sizeof(uint8_t));
+			if (NULL == send_buffer)
 				return NET_NFC_ALLOC_FAIL;
 
 			temp = send_buffer;
@@ -597,7 +570,7 @@ API net_nfc_error_e net_nfc_client_mifare_write_page(
 			send_buffer_length = 1 + 1 + data->length + 2;
 
 			_net_nfc_util_alloc_mem(send_buffer, send_buffer_length * sizeof(uint8_t));
-			if (send_buffer == NULL)
+			if (NULL == send_buffer)
 				return NET_NFC_ALLOC_FAIL;
 
 			temp = send_buffer;
@@ -633,18 +606,13 @@ API net_nfc_error_e net_nfc_client_mifare_increment(
 		void *callback,
 		void *user_data)
 {
+	data_s rawdata;
+	uint8_t send_buffer[8] = { 0 };
 	net_nfc_target_info_s *target_info = NULL;
 
-	data_s rawdata;
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
 
-	uint8_t send_buffer[8] = { 0 };
-
-
-	if (handle == NULL)
-		return NET_NFC_NULL_PARAMETER;
-
-	if (net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
+	RETV_IF(net_nfc_client_tag_is_connected() == FALSE, NET_NFC_OPERATION_FAIL);
 
 	target_info = net_nfc_client_tag_get_client_target_info();
 
@@ -674,8 +642,7 @@ API net_nfc_error_e net_nfc_client_mifare_increment(
 	rawdata.buffer = send_buffer;
 	rawdata.length = 8;
 
-	return net_nfc_client_transceive(handle, &rawdata, callback,
-			user_data);
+	return net_nfc_client_transceive(handle, &rawdata, callback, user_data);
 }
 
 API net_nfc_error_e net_nfc_client_mifare_decrement(
@@ -685,23 +652,18 @@ API net_nfc_error_e net_nfc_client_mifare_decrement(
 		void *callback,
 		void *user_data)
 {
+	data_s rawdata;
+	uint8_t send_buffer[8] = { 0 };
 	net_nfc_target_info_s *target_info = NULL;
 
-	data_s rawdata;
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
 
-	uint8_t send_buffer[8] = { 0 };
-
-	if (handle == NULL)
-		return NET_NFC_NULL_PARAMETER;
-
-	if (net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
+	RETV_IF(net_nfc_client_tag_is_connected() == FALSE, NET_NFC_OPERATION_FAIL);
 
 	target_info = net_nfc_client_tag_get_client_target_info();
 
 	if (target_info)
 	{
-
 		if (target_info->devType < NET_NFC_MIFARE_MINI_PICC ||
 				target_info->devType > NET_NFC_MIFARE_4K_PICC)
 		{
@@ -727,22 +689,19 @@ API net_nfc_error_e net_nfc_client_mifare_decrement(
 	rawdata.buffer = send_buffer;
 	rawdata.length = 8;
 
-	return net_nfc_client_transceive(handle, &rawdata, callback,
-			user_data);
+	return net_nfc_client_transceive(handle, &rawdata, callback, user_data);
 }
 
 API net_nfc_error_e net_nfc_client_mifare_transfer(net_nfc_target_handle_s *handle,
 		uint8_t addr, void *callback, void *user_data)
 {
-	net_nfc_target_info_s *target_info = NULL;
 	data_s rawdata;
 	uint8_t send_buffer[4] = { 0 };
+	net_nfc_target_info_s *target_info = NULL;
 
-	if (handle == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
 
-	if (net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
+	RETV_IF(net_nfc_client_tag_is_connected() == FALSE, NET_NFC_OPERATION_FAIL);
 
 	target_info = net_nfc_client_tag_get_client_target_info();
 
@@ -764,22 +723,19 @@ API net_nfc_error_e net_nfc_client_mifare_transfer(net_nfc_target_handle_s *hand
 	rawdata.buffer = send_buffer;
 	rawdata.length = 4;
 
-	return net_nfc_client_transceive(handle, &rawdata, callback,
-			user_data);
+	return net_nfc_client_transceive(handle, &rawdata, callback, user_data);
 }
 
 API net_nfc_error_e net_nfc_client_mifare_restore(net_nfc_target_handle_s *handle,
 		uint8_t addr, void *callback, void *user_data)
 {
-	net_nfc_target_info_s *target_info = NULL;
 	data_s rawdata;
 	uint8_t send_buffer[4] = { 0 };
+	net_nfc_target_info_s *target_info = NULL;
 
-	if (handle == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
 
-	if (net_nfc_client_tag_is_connected() == FALSE)
-		return NET_NFC_OPERATION_FAIL;
+	RETV_IF(net_nfc_client_tag_is_connected() == FALSE, NET_NFC_OPERATION_FAIL);
 
 	target_info = net_nfc_client_tag_get_client_target_info();
 
@@ -801,14 +757,12 @@ API net_nfc_error_e net_nfc_client_mifare_restore(net_nfc_target_handle_s *handl
 	rawdata.buffer = send_buffer;
 	rawdata.length = 4;
 
-	return net_nfc_client_transceive(handle, &rawdata, callback,
-			user_data);
+	return net_nfc_client_transceive(handle, &rawdata, callback, user_data);
 }
 
 API net_nfc_error_e net_nfc_client_mifare_create_default_key(data_s** key)
 {
-	if (key == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == key, NET_NFC_NULL_PARAMETER);
 
 	return net_nfc_create_data(key, default_key, 6);
 }
@@ -816,16 +770,15 @@ API net_nfc_error_e net_nfc_client_mifare_create_default_key(data_s** key)
 API net_nfc_error_e net_nfc_client_mifare_create_application_directory_key(
 		data_s** key)
 {
-	if (key == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == key, NET_NFC_NULL_PARAMETER);
 
 	return net_nfc_create_data(key, mad_key, 6);
 }
 
-API net_nfc_error_e net_nfc_client_mifare_create_net_nfc_forum_key(data_s** key)
+API net_nfc_error_e net_nfc_client_mifare_create_net_nfc_forum_key(
+		data_s** key)
 {
-	if (key == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == key, NET_NFC_NULL_PARAMETER);
 
 	return net_nfc_create_data(key, net_nfc_forum_key, 6);
 }

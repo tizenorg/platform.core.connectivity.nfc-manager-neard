@@ -59,24 +59,24 @@ static net_nfc_error_e _net_nfc_handover_bt_get_oob_data(
 		net_nfc_carrier_config_s *config,
 		bt_oob_data_t *oob)
 {
-	net_nfc_error_e result = NET_NFC_UNKNOWN_ERROR;
 	data_s hash = { NULL, 0 };
 	data_s randomizer = { NULL, 0 };
+	net_nfc_error_e result = NET_NFC_UNKNOWN_ERROR;
 
 	LOGD("[%s:%d] START", __func__, __LINE__);
 
-	if (config == NULL || oob == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == oob, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 
 	memset(oob, 0, sizeof(bt_oob_data_t));
 
-	if ((result = net_nfc_util_get_carrier_config_property(
-					config,
-					NET_NFC_BT_ATTRIBUTE_OOB_HASH_C,
-					(uint16_t *)&hash.length,
-					&hash.buffer)) == NET_NFC_OK)
+	result = net_nfc_util_get_carrier_config_property(
+						config,
+						NET_NFC_BT_ATTRIBUTE_OOB_HASH_C,
+						(uint16_t *)&hash.length,
+						&hash.buffer);
+
+	if (NET_NFC_OK == result)
 	{
 		if (hash.length == 16)
 		{
@@ -93,11 +93,13 @@ static net_nfc_error_e _net_nfc_handover_bt_get_oob_data(
 		}
 	}
 
-	if ((result = net_nfc_util_get_carrier_config_property(
+	result = net_nfc_util_get_carrier_config_property(
 					config,
 					NET_NFC_BT_ATTRIBUTE_OOB_HASH_R,
 					(uint16_t *)&randomizer.length,
-					&randomizer.buffer)) == NET_NFC_OK)
+					&randomizer.buffer);
+
+	if (NET_NFC_OK == result)
 	{
 		if (randomizer.length == 16)
 		{

@@ -37,7 +37,8 @@ void net_nfc_convert_byte_order(unsigned char *array, int size)
 	int i;
 	unsigned char tmp_char;
 
-	for (i=0;i<size/2;i++) {
+	for ( i = 0; i < size/2; i++)
+	{
 		tmp_char = array[i];
 		array[i] = array[size-1-i];
 		array[size-1-i] = tmp_char;
@@ -51,20 +52,15 @@ static int __property_equal_to(gconstpointer key1, gconstpointer key2)
 	const net_nfc_carrier_property_s *arg2 = key2;
 
 	if (arg1->attribute < arg2->attribute)
-	{
 		return -1;
-	}
 	else if (arg1->attribute > arg2->attribute)
-	{
 		return 1;
-	}
 	else
-	{
 		return 0;
-	}
 }
 
-static net_nfc_carrier_property_s *__find_property_by_attrubute(GList *list, uint16_t attribute)
+static net_nfc_carrier_property_s *__find_property_by_attrubute(GList *list,
+		uint16_t attribute)
 {
 	GList *found = NULL;
 	net_nfc_carrier_property_s temp;
@@ -72,28 +68,25 @@ static net_nfc_carrier_property_s *__find_property_by_attrubute(GList *list, uin
 	temp.attribute = attribute;
 	found = g_list_find_custom(list, &temp, __property_equal_to);
 
-	if (found == NULL)
-	{
+	if (NULL == found)
 		return NULL;
-	}
 
 	return (net_nfc_carrier_property_s *)found->data;
 }
 
 static void __find_nth_group(gpointer data, gpointer user_data)
 {
-	net_nfc_carrier_property_s *info = data;
 	search_index *nth = user_data;
+	net_nfc_carrier_property_s *info = data;
 
-	if (info == NULL || user_data == NULL)
-		return;
+	RET_IF(NULL == info);
+	RET_IF(NULL == user_data);
 
 	if (info->is_group)
 	{
 		if (nth->current == nth->target)
-		{
 			nth->found = data;
-		}
+
 		nth->current++;
 	}
 }
@@ -102,8 +95,7 @@ static void __free_all_data(gpointer data, gpointer user_data)
 {
 	net_nfc_carrier_property_s *info = data;
 
-	if (info == NULL)
-		return;
+	RET_IF(NULL == info);
 
 	if (info->is_group)
 	{
@@ -112,22 +104,25 @@ static void __free_all_data(gpointer data, gpointer user_data)
 	}
 	else
 	{
-		NFC_DBG("FREE: element is found ATTRIB:0x%X length:%d", info->attribute, info->length);
+		NFC_DBG("FREE: element is found ATTRIB:0x%X length:%d",
+				info->attribute, info->length);
 		_net_nfc_util_free_mem(info->data);
 		_net_nfc_util_free_mem(info);
 	}
 }
 
-static net_nfc_error_e __net_nfc_util_create_connection_handover_collsion_resolution_record(ndef_record_s **record)
+static net_nfc_error_e
+	__net_nfc_util_create_connection_handover_collsion_resolution_record(
+	ndef_record_s **record)
 {
-	uint32_t state = 0;
-	data_s typeName = { 0 };
-	data_s payload = { 0 };
-	uint8_t rand_buffer[2] = { 0, 0 };
-	uint16_t random_num;
 
-	if (record == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	uint32_t state = 0;
+	uint16_t random_num;
+	data_s payload = { 0 };
+	data_s typeName = { 0 };
+	uint8_t rand_buffer[2] = { 0, 0 };
+
+	RETV_IF(NULL == record, NET_NFC_NULL_PARAMETER);
 
 	state = (uint32_t)time(NULL);
 	random_num = (unsigned short)rand_r(&state);
@@ -141,9 +136,11 @@ static net_nfc_error_e __net_nfc_util_create_connection_handover_collsion_resolu
 	payload.buffer = rand_buffer;
 	payload.length = 2;
 
-	NFC_DBG("rand number = [0x%x] [0x%x] => [0x%x]", payload.buffer[0], payload.buffer[1], random_num);
+	NFC_DBG("rand number = [0x%x] [0x%x] => [0x%x]",
+		payload.buffer[0], payload.buffer[1], random_num);
 
-	return net_nfc_util_create_record(NET_NFC_RECORD_WELL_KNOWN_TYPE, &typeName, NULL, &payload, record);
+	return net_nfc_util_create_record(NET_NFC_RECORD_WELL_KNOWN_TYPE,
+		&typeName, NULL, &payload, record);
 }
 
 static int __net_nfc_get_size_of_attribute(int attribute)
@@ -173,23 +170,16 @@ static int __net_nfc_get_size_of_attribute(int attribute)
 	}
 }
 
-net_nfc_error_e net_nfc_util_create_carrier_config(net_nfc_carrier_config_s **config, net_nfc_conn_handover_carrier_type_e type)
+net_nfc_error_e net_nfc_util_create_carrier_config(
+	net_nfc_carrier_config_s **config, net_nfc_conn_handover_carrier_type_e type)
 {
-	if (config == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
-
-	if (type < 0 || type >= NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN)
-	{
-		return NET_NFC_OUT_OF_BOUND;
-	}
+	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
+	RETV_IF(type < 0, NET_NFC_OUT_OF_BOUND);
+	RETV_IF(type >= NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN, NET_NFC_OUT_OF_BOUND);
 
 	_net_nfc_util_alloc_mem(*config, sizeof(net_nfc_carrier_config_s));
-	if (*config == NULL)
-	{
+	if (NULL == *config)
 		return NET_NFC_ALLOC_FAIL;
-	}
 
 	(*config)->type = type;
 	(*config)->length = 0;
@@ -204,27 +194,22 @@ net_nfc_error_e net_nfc_util_add_carrier_config_property(
 
 	NFC_DBG("ADD property: [ATTRIB:0x%X, SIZE:%d]", attribute, size);
 
-	if (config == NULL || data == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == data, NET_NFC_NULL_PARAMETER);
 
 	if (__find_property_by_attrubute(config->data, attribute) != NULL)
-	{
 		return NET_NFC_ALREADY_REGISTERED;
-	}
 
 	_net_nfc_util_alloc_mem(elem, sizeof (net_nfc_carrier_property_s));
-	if (elem == NULL)
-	{
+	if (NULL == elem)
 		return NET_NFC_ALLOC_FAIL;
-	}
+
 	elem->attribute = attribute;
 	elem->length = size;
 	elem->is_group = false;
 
 	_net_nfc_util_alloc_mem(elem->data, size);
-	if (elem->data == NULL)
+	if (NULL == elem->data)
 	{
 		_net_nfc_util_free_mem(elem);
 		return NET_NFC_ALLOC_FAIL;
@@ -244,16 +229,11 @@ net_nfc_error_e net_nfc_util_remove_carrier_config_property(
 {
 	net_nfc_carrier_property_s *elem = NULL;
 
-	if (config == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 
 	elem = __find_property_by_attrubute(config->data, attribute);
-	if (elem == NULL)
-	{
+	if (NULL == elem)
 		return NET_NFC_NO_DATA_FOUND;
-	}
 
 	config->data = g_list_remove(config->data, elem);
 	config->length -= (elem->length + 2 * __net_nfc_get_size_of_attribute(attribute));
@@ -279,11 +259,12 @@ net_nfc_error_e net_nfc_util_get_carrier_config_property(
 {
 	net_nfc_carrier_property_s *elem = NULL;
 
-	if (config == NULL || size == NULL || data == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == size, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == data, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 
 	elem = __find_property_by_attrubute(config->data, attribute);
-	if (elem == NULL)
+	if (NULL == elem)
 	{
 		*size = 0;
 		*data = NULL;
@@ -302,8 +283,8 @@ net_nfc_error_e net_nfc_util_get_carrier_config_property(
 net_nfc_error_e net_nfc_util_append_carrier_config_group(
 		net_nfc_carrier_config_s *config, net_nfc_carrier_property_s *group)
 {
-	if (config == NULL || group == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == group, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 
 	if (g_list_find(config->data, group) != NULL)
 		return NET_NFC_ALREADY_REGISTERED;
@@ -317,15 +298,11 @@ net_nfc_error_e net_nfc_util_append_carrier_config_group(
 net_nfc_error_e net_nfc_util_remove_carrier_config_group(
 		net_nfc_carrier_config_s *config, net_nfc_carrier_property_s *group)
 {
-	if (config == NULL || group == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == group, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 
 	if (g_list_find(config->data, group) != NULL)
-	{
 		return NET_NFC_NO_DATA_FOUND;
-	}
 
 	config->length -= group->length;
 	config->data = g_list_remove(config->data, group);
@@ -340,15 +317,9 @@ net_nfc_error_e net_nfc_util_get_carrier_config_group(
 {
 	search_index result;
 
-	if (config == NULL || group == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
-
-	if (index < 0)
-	{
-		return NET_NFC_OUT_OF_BOUND;
-	}
+	RETV_IF(NULL == group, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
+	RETV_IF(index < 0, NET_NFC_OUT_OF_BOUND);
 
 	result.current = 0;
 	result.target = index;
@@ -356,10 +327,9 @@ net_nfc_error_e net_nfc_util_get_carrier_config_group(
 
 	g_list_foreach(config->data, __find_nth_group, &result);
 
-	if (result.found == NULL)
-	{
+	if (NULL == result.found)
 		return NET_NFC_NO_DATA_FOUND;
-	}
+
 	*group = (net_nfc_carrier_property_s *)result.found;
 
 	return NET_NFC_OK;
@@ -367,10 +337,7 @@ net_nfc_error_e net_nfc_util_get_carrier_config_group(
 
 net_nfc_error_e net_nfc_util_free_carrier_config(net_nfc_carrier_config_s *config)
 {
-	if (config == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 
 	g_list_foreach(config->data, __free_all_data, NULL);
 	g_list_free(config->data);
@@ -383,16 +350,11 @@ net_nfc_error_e net_nfc_util_free_carrier_config(net_nfc_carrier_config_s *confi
 net_nfc_error_e net_nfc_util_create_carrier_config_group(
 		net_nfc_carrier_property_s **group, uint16_t attribute)
 {
-	if (group == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == group, NET_NFC_NULL_PARAMETER);
 
 	_net_nfc_util_alloc_mem(*group, sizeof(net_nfc_carrier_property_s));
-	if (*group == NULL)
-	{
+	if (NULL == *group)
 		return NET_NFC_ALLOC_FAIL;
-	}
 
 	(*group)->attribute = attribute;
 	(*group)->is_group = true;
@@ -407,27 +369,22 @@ net_nfc_error_e net_nfc_util_add_carrier_config_group_property(
 
 	NFC_DBG("ADD group property: [ATTRIB:0x%X, SIZE:%d]", attribute, size);
 
-	if (group == NULL || data == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == group, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == data, NET_NFC_NULL_PARAMETER);
 
 	if (__find_property_by_attrubute((GList *)group->data, attribute) != NULL)
-	{
 		return NET_NFC_ALREADY_REGISTERED;
-	}
 
 	_net_nfc_util_alloc_mem(elem, sizeof (net_nfc_carrier_property_s));
-	if (elem == NULL)
-	{
+	if (NULL == elem)
 		return NET_NFC_ALLOC_FAIL;
-	}
+
 	elem->attribute = attribute;
 	elem->length = size;
 	elem->is_group = false;
 
 	_net_nfc_util_alloc_mem(elem->data, size);
-	if (elem->data == NULL)
+	if (NULL == elem->data)
 	{
 		_net_nfc_util_free_mem(elem);
 		return NET_NFC_ALLOC_FAIL;
@@ -449,13 +406,12 @@ net_nfc_error_e net_nfc_util_get_carrier_config_group_property(
 {
 	net_nfc_carrier_property_s *elem = NULL;
 
-	if (group == NULL || size == NULL || data == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == size, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == data, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == group, NET_NFC_NULL_PARAMETER);
 
 	elem = __find_property_by_attrubute((GList*)(group->data), attribute);
-	if (elem == NULL)
+	if (NULL == elem)
 	{
 		*size = 0;
 		*data = NULL;
@@ -473,16 +429,12 @@ net_nfc_error_e net_nfc_util_remove_carrier_config_group_property(
 {
 	net_nfc_carrier_property_s *elem = NULL;
 
-	if (group == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == group, NET_NFC_NULL_PARAMETER);
 
 	elem = __find_property_by_attrubute((GList*)(group->data), attribute);
-	if (elem == NULL)
-	{
+	if (NULL == elem)
 		return NET_NFC_NO_DATA_FOUND;
-	}
+
 	group->length -= elem->length;
 	group->data = g_list_remove((GList*)(group->data), elem);
 
@@ -495,10 +447,8 @@ net_nfc_error_e net_nfc_util_remove_carrier_config_group_property(
 
 net_nfc_error_e net_nfc_util_free_carrier_group(net_nfc_carrier_property_s *group)
 {
-	if (group == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == group, NET_NFC_NULL_PARAMETER);
+
 	g_list_foreach((GList*)(group->data), __free_all_data, NULL);
 	g_list_free((GList*)(group->data));
 
@@ -509,13 +459,13 @@ net_nfc_error_e net_nfc_util_free_carrier_group(net_nfc_carrier_property_s *grou
 
 static void __make_serial_wifi(gpointer data, gpointer user_data)
 {
-	net_nfc_carrier_property_s *info = data;
-	data_s *payload = user_data;
-	uint8_t *current;
 	int inc = 0;
+	uint8_t *current;
+	data_s *payload = user_data;
+	net_nfc_carrier_property_s *info = data;
 
-	if (info == NULL || user_data == NULL)
-		return;
+	RET_IF(NULL == info);
+	RET_IF(NULL == user_data);
 
 	current = payload->buffer + payload->length;
 	inc = __net_nfc_get_size_of_attribute(info->attribute);
@@ -532,7 +482,8 @@ static void __make_serial_wifi(gpointer data, gpointer user_data)
 	}
 	else
 	{
-		NFC_DBG("[WIFI]Element is found attrib:0x%X length:%d current:%d", info->attribute, info->length, payload->length);
+		NFC_DBG("[WIFI]Element is found attrib:0x%X length:%d current:%d",
+				info->attribute, info->length, payload->length);
 		*(uint16_t *)current = info->attribute;
 		net_nfc_convert_byte_order(current,2);
 		*(uint16_t *)(current + inc) = info->length;
@@ -544,13 +495,13 @@ static void __make_serial_wifi(gpointer data, gpointer user_data)
 
 static void __make_serial_bt(gpointer data, gpointer user_data)
 {
-	net_nfc_carrier_property_s *info = data;
-	data_s *payload = user_data;
-	uint8_t *current;
 	int inc = 0;
+	uint8_t *current;
+	data_s *payload = user_data;
+	net_nfc_carrier_property_s *info = data;
 
-	if (info == NULL || user_data == NULL)
-		return;
+	RET_IF(NULL == info);
+	RET_IF(NULL == user_data);
 
 	current = payload->buffer + payload->length; /* payload->length is zero */
 
@@ -563,7 +514,8 @@ static void __make_serial_bt(gpointer data, gpointer user_data)
 	{
 		if (info->attribute != NET_NFC_BT_ATTRIBUTE_ADDRESS)
 		{
-			NFC_DBG("[BT]Element is found attrib:0x%X length:%d current:%d", info->attribute, info->length, payload->length);
+			NFC_DBG("[BT]Element is found attrib:0x%X length:%d current:%d",
+					info->attribute, info->length, payload->length);
 			inc = __net_nfc_get_size_of_attribute(info->attribute);
 			*current = info->length + 1;
 			*(current + inc) = info->attribute;
@@ -585,31 +537,28 @@ net_nfc_error_e net_nfc_util_create_ndef_record_with_carrier_config(
 	data_s payload = { NULL, 0 };
 	data_s record_type = { NULL, 0 };
 
-	if (record == NULL || config == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == record, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
 
 	_net_nfc_util_alloc_mem(payload.buffer, config->length);
-	if (payload.buffer == NULL)
-	{
+	if (NULL == payload.buffer)
 		return NET_NFC_ALLOC_FAIL;
-	}
+
 	payload.length = 0; /* this should be zero because this will be used as current position of data written */
 
-	if (config->type == NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS)
+	if (NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS == config->type)
 	{
 		record_type.buffer = (uint8_t *)CONN_HANDOVER_WIFI_BSS_CARRIER_MIME_NAME;
 		record_type.length = strlen(CONN_HANDOVER_WIFI_BSS_CARRIER_MIME_NAME);
 		g_list_foreach(config->data, __make_serial_wifi, &payload);
 	}
-	else if (config->type == NET_NFC_CONN_HANDOVER_CARRIER_WIFI_IBSS)
+	else if (NET_NFC_CONN_HANDOVER_CARRIER_WIFI_IBSS == config->type)
 	{
 		record_type.buffer = (uint8_t *)CONN_HANDOVER_WIFI_IBSS_CARRIER_MIME_NAME;
 		record_type.length = strlen(CONN_HANDOVER_WIFI_IBSS_CARRIER_MIME_NAME);
 		g_list_foreach(config->data, __make_serial_wifi, &payload);
 	}
-	else if (config->type == NET_NFC_CONN_HANDOVER_CARRIER_BT)
+	else if (NET_NFC_CONN_HANDOVER_CARRIER_BT == config->type)
 	{
 		record_type.buffer = (uint8_t *)CONN_HANDOVER_BT_CARRIER_MIME_NAME;
 		record_type.length = strlen(CONN_HANDOVER_BT_CARRIER_MIME_NAME);
@@ -627,10 +576,12 @@ net_nfc_error_e net_nfc_util_create_ndef_record_with_carrier_config(
 
 	NFC_DBG("payload length = %d", payload.length);
 
-	return net_nfc_util_create_record(NET_NFC_RECORD_MIME_TYPE, &record_type, NULL, &payload, record);
+	return net_nfc_util_create_record(NET_NFC_RECORD_MIME_TYPE, &record_type, NULL,
+			&payload, record);
 }
 
-static net_nfc_error_e __net_nfc_get_list_from_serial_for_wifi(GList **list, uint8_t *data, uint32_t length)
+static net_nfc_error_e __net_nfc_get_list_from_serial_for_wifi(
+		GList **list, uint8_t *data, uint32_t length)
 {
 	uint8_t *current = data;
 	uint8_t *last = current + length;
@@ -639,10 +590,9 @@ static net_nfc_error_e __net_nfc_get_list_from_serial_for_wifi(GList **list, uin
 	{
 		net_nfc_carrier_property_s *elem = NULL;
 		_net_nfc_util_alloc_mem(elem, sizeof(net_nfc_carrier_property_s));
-		if (elem == NULL)
-		{
+		if (NULL == elem)
 			return NET_NFC_ALLOC_FAIL;
-		}
+
 		elem->attribute = current[0]<<8|current[1];
 		elem->length = current[2]<<8|current[3];
 
@@ -654,7 +604,7 @@ static net_nfc_error_e __net_nfc_get_list_from_serial_for_wifi(GList **list, uin
 		else
 		{
 			_net_nfc_util_alloc_mem(elem->data, elem->length);
-			if (elem->data == NULL)
+			if (NULL == elem->data)
 			{
 				_net_nfc_util_free_mem(elem);
 				return NET_NFC_ALLOC_FAIL;
@@ -671,23 +621,22 @@ static net_nfc_error_e __net_nfc_get_list_from_serial_for_wifi(GList **list, uin
 
 net_nfc_error_e __net_nfc_get_list_from_serial_for_bt(GList **list, uint8_t *data, uint32_t length)
 {
-	net_nfc_carrier_property_s *elem = NULL;
-	uint8_t *current = data;
 	uint8_t *last = NULL;
+	uint8_t *current = data;
+	net_nfc_carrier_property_s *elem = NULL;
 
 	current += 2; /* remove oob data length  two bytes length*/
 	length -= 2;
 
 	_net_nfc_util_alloc_mem(elem, sizeof(net_nfc_carrier_property_s));
-	if (elem == NULL)
-	{
+	if (NULL == elem)
 		return NET_NFC_ALLOC_FAIL;
-	}
+
 	elem->attribute = (uint16_t)NET_NFC_BT_ATTRIBUTE_ADDRESS;
 	elem->length = 6; /* BT address length is always 6 */
 
 	_net_nfc_util_alloc_mem(elem->data, elem->length);
-	if (elem->data == NULL)
+	if (NULL == elem->data)
 	{
 		_net_nfc_util_free_mem(elem);
 		return NET_NFC_ALLOC_FAIL;
@@ -704,15 +653,14 @@ net_nfc_error_e __net_nfc_get_list_from_serial_for_bt(GList **list, uint8_t *dat
 	while (current < last)
 	{
 		_net_nfc_util_alloc_mem(elem, sizeof(net_nfc_carrier_property_s));
-		if (elem == NULL)
-		{
+		if (NULL == elem)
 			return NET_NFC_ALLOC_FAIL;
-		}
+
 		elem->length = *((uint8_t *)current) - 1;
 		elem->attribute = *((uint8_t *)(++current));
 
 		_net_nfc_util_alloc_mem(elem->data, elem->length);
-		if (elem->data == NULL)
+		if (NULL == elem->data)
 		{
 			_net_nfc_util_free_mem(elem);
 			return NET_NFC_ALLOC_FAIL;

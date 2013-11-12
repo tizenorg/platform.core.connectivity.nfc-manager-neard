@@ -22,8 +22,7 @@
 
 net_nfc_error_e net_nfc_util_free_record(ndef_record_s *record)
 {
-	if (record == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == record, NET_NFC_NULL_PARAMETER);
 
 	if (record->type_s.buffer != NULL)
 		_net_nfc_util_free_mem(record->type_s.buffer);
@@ -43,14 +42,15 @@ net_nfc_error_e net_nfc_util_create_record(net_nfc_record_tnf_e recordType,
 {
 	ndef_record_s *record_temp = NULL;
 
-	if (typeName == NULL || payload == NULL || record == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == typeName, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == payload, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == record, NET_NFC_NULL_PARAMETER);
 
-	if (recordType < NET_NFC_RECORD_EMPTY || recordType > NET_NFC_RECORD_UNCHAGNED)
-		return NET_NFC_OUT_OF_BOUND;
+	RETV_IF(recordType < NET_NFC_RECORD_EMPTY, NET_NFC_OUT_OF_BOUND);
+	RETV_IF(recordType > NET_NFC_RECORD_UNCHAGNED, NET_NFC_OUT_OF_BOUND);
 
 	/* empty_tag */
-	if (recordType == NET_NFC_RECORD_EMPTY)
+	if (NET_NFC_RECORD_EMPTY == recordType)
 	{
 		if ((typeName->buffer != NULL) || (payload->buffer != NULL)
 				|| (id->buffer != NULL) || (typeName->length != 0) || (payload->length != 0)
@@ -61,7 +61,7 @@ net_nfc_error_e net_nfc_util_create_record(net_nfc_record_tnf_e recordType,
 	}
 
 	_net_nfc_util_alloc_mem(record_temp, sizeof(ndef_record_s));
-	if (record_temp == NULL)
+	if (NULL == record_temp)
 		return NET_NFC_ALLOC_FAIL;
 
 	// set type name and length and  TNF field
@@ -71,7 +71,7 @@ net_nfc_error_e net_nfc_util_create_record(net_nfc_record_tnf_e recordType,
 	if(record_temp->type_s.length > 0)
 	{
 		_net_nfc_util_alloc_mem(record_temp->type_s.buffer, record_temp->type_s.length);
-		if (record_temp->type_s.buffer == NULL)
+		if (NULL == record_temp->type_s.buffer)
 		{
 			_net_nfc_util_free_mem(record_temp);
 
@@ -90,8 +90,10 @@ net_nfc_error_e net_nfc_util_create_record(net_nfc_record_tnf_e recordType,
 	record_temp->payload_s.length = payload->length;
 	if(payload->length >0)
 	{
-		_net_nfc_util_alloc_mem(record_temp->payload_s.buffer, record_temp->payload_s.length);
-		if (record_temp->payload_s.buffer == NULL)
+		_net_nfc_util_alloc_mem(record_temp->payload_s.buffer,
+			record_temp->payload_s.length);
+
+		if (NULL == record_temp->payload_s.buffer)
 		{
 			_net_nfc_util_free_mem(record_temp->type_s.buffer);
 			_net_nfc_util_free_mem(record_temp);
@@ -99,7 +101,8 @@ net_nfc_error_e net_nfc_util_create_record(net_nfc_record_tnf_e recordType,
 			return NET_NFC_ALLOC_FAIL;
 		}
 
-		memcpy(record_temp->payload_s.buffer, payload->buffer, record_temp->payload_s.length);
+		memcpy(record_temp->payload_s.buffer, payload->buffer,
+			record_temp->payload_s.length);
 	}
 	else
 	{
@@ -108,20 +111,16 @@ net_nfc_error_e net_nfc_util_create_record(net_nfc_record_tnf_e recordType,
 	}
 
 	if (payload->length < 256)
-	{
 		record_temp->SR = 1;
-	}
 	else
-	{
 		record_temp->SR = 0;
-	}
 
 	// set id and id length and IL field
 	if (id != NULL && id->buffer != NULL && id->length > 0)
 	{
 		record_temp->id_s.length = id->length;
 		_net_nfc_util_alloc_mem(record_temp->id_s.buffer, record_temp->id_s.length);
-		if (record_temp->id_s.buffer == NULL)
+		if (NULL == record_temp->id_s.buffer)
 		{
 			_net_nfc_util_free_mem(record_temp->payload_s.buffer);
 			_net_nfc_util_free_mem(record_temp->type_s.buffer);
@@ -151,28 +150,22 @@ net_nfc_error_e net_nfc_util_create_record(net_nfc_record_tnf_e recordType,
 	return NET_NFC_OK;
 }
 
-net_nfc_error_e net_nfc_util_create_uri_type_record(const char *uri, net_nfc_schema_type_e protocol_schema, ndef_record_s **record)
+net_nfc_error_e net_nfc_util_create_uri_type_record(const char *uri,
+		net_nfc_schema_type_e protocol_schema, ndef_record_s **record)
 {
-	net_nfc_error_e error;
 	data_s type_data;
+	net_nfc_error_e error;
 	data_s payload_data = { NULL, 0 };
 
-	if (uri == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == uri, NET_NFC_NULL_PARAMETER);
 
 	payload_data.length = strlen((char *)uri) + 1;
-	if (payload_data.length == 1)
-	{
-		return NET_NFC_INVALID_PARAM;
-	}
+
+	RETV_IF(1 == payload_data.length, NET_NFC_INVALID_PARAM);
 
 	_net_nfc_util_alloc_mem(payload_data.buffer, payload_data.length);
-	if (payload_data.buffer == NULL)
-	{
+	if (NULL == payload_data.buffer)
 		return NET_NFC_ALLOC_FAIL;
-	}
 
 	payload_data.buffer[0] = protocol_schema;	/* first byte of payload is protocol scheme */
 	memcpy(payload_data.buffer + 1, uri, payload_data.length - 1);
@@ -180,40 +173,38 @@ net_nfc_error_e net_nfc_util_create_uri_type_record(const char *uri, net_nfc_sch
 	type_data.length = 1;
 	type_data.buffer = (uint8_t *)URI_RECORD_TYPE;
 
-	error = net_nfc_util_create_record(NET_NFC_RECORD_WELL_KNOWN_TYPE, &type_data, NULL, &payload_data, record);
+	error = net_nfc_util_create_record(NET_NFC_RECORD_WELL_KNOWN_TYPE,
+			&type_data, NULL, &payload_data, record);
 
 	_net_nfc_util_free_mem(payload_data.buffer);
 
 	return error;
 }
 
-net_nfc_error_e net_nfc_util_create_text_type_record(const char *text, const char *lang_code_str, net_nfc_encode_type_e encode, ndef_record_s **record)
+net_nfc_error_e net_nfc_util_create_text_type_record(const char *text,
+	const char *lang_code_str, net_nfc_encode_type_e encode, ndef_record_s **record)
 {
-	data_s type_data;
-	data_s payload_data;
-	int controll_byte;
 	int offset = 0;
+	data_s type_data;
+	int controll_byte;
+	data_s payload_data;
 
-	if (text == NULL || lang_code_str == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == text, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == lang_code_str, NET_NFC_NULL_PARAMETER);
 
-	if ((encode < NET_NFC_ENCODE_UTF_8 || encode > NET_NFC_ENCODE_UTF_16))
-	{
-		return NET_NFC_OUT_OF_BOUND;
-	}
+	RETVM_IF(encode < NET_NFC_ENCODE_UTF_8 || NET_NFC_ENCODE_UTF_16 < encode ,
+		NET_NFC_OUT_OF_BOUND, "encode(%d) is invalid", encode);
 
 	payload_data.length = strlen((char *)text) + strlen(lang_code_str) + 1;
 
 	_net_nfc_util_alloc_mem(payload_data.buffer, payload_data.length);
-	if (payload_data.buffer == NULL)
+	if (NULL == payload_data.buffer)
 	{
 		return NET_NFC_ALLOC_FAIL;
 	}
 
 	controll_byte = strlen(lang_code_str) & 0x3F;
-	if (encode == NET_NFC_ENCODE_UTF_16)
+	if (NET_NFC_ENCODE_UTF_16 == encode)
 	{
 		controll_byte = controll_byte | 0x80;
 	}
@@ -229,35 +220,29 @@ net_nfc_error_e net_nfc_util_create_text_type_record(const char *text, const cha
 	type_data.length = 1;
 	type_data.buffer = (uint8_t *)TEXT_RECORD_TYPE;
 
-	net_nfc_util_create_record(NET_NFC_RECORD_WELL_KNOWN_TYPE, &type_data, NULL, &payload_data, record);
+	net_nfc_util_create_record(NET_NFC_RECORD_WELL_KNOWN_TYPE, &type_data, NULL,
+		&payload_data, record);
 
 	_net_nfc_util_free_mem(payload_data.buffer);
 
 	return NET_NFC_OK;
 }
 
-net_nfc_error_e net_nfc_util_set_record_id(ndef_record_s *record, uint8_t *data, int length)
+net_nfc_error_e net_nfc_util_set_record_id(ndef_record_s *record,
+	uint8_t *data, int length)
 {
-	if (record == NULL || data == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
-
-	if (length < 1)
-	{
-		return NET_NFC_OUT_OF_BOUND;
-	}
+	RETV_IF(NULL == data, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == record, NET_NFC_NULL_PARAMETER);
+	RETV_IF(length < 1, NET_NFC_OUT_OF_BOUND);
 
 	if (record->id_s.buffer != NULL && record->id_s.length > 0)
-	{
 		_net_nfc_util_free_mem(record->id_s.buffer);
-	}
 
 	_net_nfc_util_alloc_mem(record->id_s.buffer, length);
+
 	if (record->id_s.buffer == NULL)
-	{
 		return NET_NFC_ALLOC_FAIL;
-	}
+
 	memcpy(record->id_s.buffer, data, length);
 	record->id_s.length = length;
 	record->IL = 1;
@@ -269,8 +254,7 @@ uint32_t net_nfc_util_get_record_length(ndef_record_s *Record)
 {
 	uint32_t RecordLength = 1;
 
-	if (Record == NULL)
-		return 0;
+	RETV_IF(NULL == Record, 0);
 
 	/* Type length is present only for following TNF
 	   NET_NFC_TNF_NFCWELLKNOWN
@@ -302,9 +286,7 @@ uint32_t net_nfc_util_get_record_length(ndef_record_s *Record)
 
 	/* for non empty record */
 	if (Record->TNF != NET_NFC_NDEF_TNF_EMPTY)
-	{
 		RecordLength += Record->payload_s.length;
-	}
 
 	/* ID and IDlength are present only if IL flag is set*/
 	if (Record->IL != 0)
@@ -317,18 +299,17 @@ uint32_t net_nfc_util_get_record_length(ndef_record_s *Record)
 	return RecordLength;
 }
 
-net_nfc_error_e net_nfc_util_create_uri_string_from_uri_record(ndef_record_s *record, char **uri)
+net_nfc_error_e net_nfc_util_create_uri_string_from_uri_record(
+	ndef_record_s *record, char **uri)
 {
 	net_nfc_error_e result = NET_NFC_OK;
 
-	if (record == NULL || uri == NULL)
-	{
-		return NET_NFC_INVALID_PARAM;
-	}
+	RETV_IF(NULL == uri, NET_NFC_INVALID_PARAM);
+	RETV_IF(NULL == record, NET_NFC_INVALID_PARAM);
 
 	*uri = NULL;
 
-	if (record->TNF == NET_NFC_RECORD_WELL_KNOWN_TYPE &&
+	if (NET_NFC_RECORD_WELL_KNOWN_TYPE == record->TNF &&
 			(record->type_s.length == 1 && record->type_s.buffer[0] == 'U'))
 	{
 		data_s *payload = &record->payload_s;
@@ -341,9 +322,7 @@ net_nfc_error_e net_nfc_util_create_uri_string_from_uri_record(ndef_record_s *re
 			/* buffer length include a schema byte.
 			 * so it does not need to allocate one more byte for string. */
 			if ((scheme = net_nfc_util_get_schema_string(payload->buffer[0])) != NULL)
-			{
 				length = strlen(scheme);
-			}
 
 			*uri = (char *)calloc(1, length + payload->length);
 			if (*uri != NULL)
@@ -362,7 +341,7 @@ net_nfc_error_e net_nfc_util_create_uri_string_from_uri_record(ndef_record_s *re
 			NFC_ERR("invalid payload in record");
 		}
 	}
-	else if (record->TNF == NET_NFC_RECORD_URI)
+	else if (NET_NFC_RECORD_URI == record->TNF)
 	{
 		data_s *type = &record->type_s;
 
@@ -371,13 +350,9 @@ net_nfc_error_e net_nfc_util_create_uri_string_from_uri_record(ndef_record_s *re
 			*uri = (char *)calloc(1, type->length + 1);
 
 			if (*uri != NULL)
-			{
 				memcpy(*uri, type->buffer, type->length);
-			}
 			else
-			{
 				result = NET_NFC_ALLOC_FAIL;
-			}
 		}
 	}
 	else

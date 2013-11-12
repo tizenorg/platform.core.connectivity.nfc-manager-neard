@@ -19,7 +19,8 @@
 API net_nfc_error_e net_nfc_sign_records(ndef_message_s *msg, int begin_index,
 		int end_index, char *cert_file, char *password)
 {
-	return net_nfc_util_sign_records((ndef_message_s *)msg, begin_index, end_index, cert_file, password);
+	return net_nfc_util_sign_records((ndef_message_s *)msg,
+			begin_index, end_index, cert_file, password);
 }
 
 API net_nfc_error_e net_nfc_sign_ndef_message(ndef_message_s *msg,

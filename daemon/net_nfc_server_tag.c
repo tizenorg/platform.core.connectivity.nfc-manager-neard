@@ -43,36 +43,6 @@ struct _WatchDogData
 	net_nfc_target_handle_s *handle;
 };
 
-
-static gboolean tag_is_isp_dep_ndef_formatable(net_nfc_target_handle_s *handle,
-		int dev_type);
-
-static gboolean tag_read_ndef_message(net_nfc_target_handle_s *handle,
-		int dev_type,data_s **read_ndef);
-
-static void tag_watchdog_thread_func(gpointer user_data);
-
-static void tag_get_current_tag_info_thread_func(gpointer user_data);
-
-static void tag_slave_target_detected_thread_func(gpointer user_data);
-
-
-/* methods */
-static gboolean tag_handle_is_tag_connected(NetNfcGDbusTag *tag,
-		GDBusMethodInvocation *invocation,
-		GVariant *smack_privilege,
-		gpointer user_data);
-
-static gboolean tag_handle_get_current_tag_info(NetNfcGDbusTag *tag,
-		GDBusMethodInvocation *invocation,
-		GVariant *smack_privilege,
-		gpointer user_data);
-
-static gboolean tag_handle_get_current_target_handle(NetNfcGDbusTag *tag,
-		GDBusMethodInvocation *invocation,
-		GVariant *smack_privilege,
-		gpointer user_data);
-
 static NetNfcGDbusTag *tag_skeleton = NULL;
 
 static net_nfc_current_target_info_s *current_target_info = NULL;
@@ -80,21 +50,18 @@ static net_nfc_current_target_info_s *current_target_info = NULL;
 static gboolean tag_is_isp_dep_ndef_formatable(net_nfc_target_handle_s *handle,
 		int dev_type)
 {
-	uint8_t cmd[] = { 0x90, 0x60, 0x00, 0x00, 0x00 };
 
-	net_nfc_transceive_info_s info;
-	data_s *response = NULL;
-	net_nfc_error_e error = NET_NFC_OK;
 	gboolean result = false;
+	data_s *response = NULL;
+	net_nfc_transceive_info_s info;
+	net_nfc_error_e error = NET_NFC_OK;
+	uint8_t cmd[] = { 0x90, 0x60, 0x00, 0x00, 0x00 };
 
 	info.dev_type = dev_type;
 	info.trans_data.buffer = cmd;
 	info.trans_data.length = sizeof(cmd);
 
-	if (net_nfc_controller_transceive(handle,
-				&info,
-				&response,
-				&error) == false)
+	if (net_nfc_controller_transceive(handle, &info, &response, &error) == false)
 	{
 		NFC_ERR("net_nfc_controller_transceive is failed");
 
@@ -103,8 +70,7 @@ static gboolean tag_is_isp_dep_ndef_formatable(net_nfc_target_handle_s *handle,
 
 	if (response != NULL)
 	{
-		if (response->length == 9 &&
-				response->buffer[7] == (uint8_t)0x91 &&
+		if (response->length == 9 && response->buffer[7] == (uint8_t)0x91 &&
 				response->buffer[8] == (uint8_t)0xAF)
 		{
 			result =  TRUE;
@@ -124,23 +90,19 @@ static gboolean tag_is_isp_dep_ndef_formatable(net_nfc_target_handle_s *handle,
 static gboolean tag_read_ndef_message(net_nfc_target_handle_s *handle,
 		int dev_type, data_s **read_ndef)
 {
-	net_nfc_error_e result = NET_NFC_OK;
 	data_s *temp = NULL;
+	net_nfc_error_e result = NET_NFC_OK;
 
-	if (handle == NULL)
-		return FALSE;
-
-	if (read_ndef == NULL)
-		return FALSE;
+	RETV_IF(NULL == handle, FALSE);
+	RETV_IF(NULL == read_ndef, FALSE);
 
 	*read_ndef = NULL;
 
-	if (dev_type == NET_NFC_MIFARE_DESFIRE_PICC)
+	if (NET_NFC_MIFARE_DESFIRE_PICC == dev_type)
 	{
 		if (tag_is_isp_dep_ndef_formatable(handle, dev_type) == FALSE)
 		{
-			NFC_ERR(
-					"DESFIRE : ISO-DEP ndef not formatable");
+			NFC_ERR("DESFIRE : ISO-DEP ndef not formatable");
 			return FALSE;
 		}
 
@@ -148,13 +110,10 @@ static gboolean tag_read_ndef_message(net_nfc_target_handle_s *handle,
 
 		if (net_nfc_controller_connect(handle, &result) == false)
 		{
-			NFC_ERR("%s failed, & retry polling!!",
-					"net_nfc_controller_connect");
+			NFC_ERR("net_nfc_controller_connect failed & retry polling!!");
 
-			if (net_nfc_controller_configure_discovery(
-						NET_NFC_DISCOVERY_MODE_RESUME,
-						NET_NFC_ALL_ENABLE,
-						&result) == false)
+			if (net_nfc_controller_configure_discovery(NET_NFC_DISCOVERY_MODE_RESUME,
+						NET_NFC_ALL_ENABLE, &result) == false)
 			{
 				net_nfc_controller_exception_handler();
 			}
@@ -170,17 +129,14 @@ static gboolean tag_read_ndef_message(net_nfc_target_handle_s *handle,
 
 	NFC_DBG("net_nfc_controller_read_ndef success");
 
-	if (dev_type == NET_NFC_MIFARE_DESFIRE_PICC)
+	if (NET_NFC_MIFARE_DESFIRE_PICC == dev_type)
 	{
 		if (net_nfc_controller_connect(handle, &result) == false)
 		{
-			NFC_ERR("%s failed, & retry polling!!",
-					"net_nfc_controller_connect");
+			NFC_ERR("net_nfc_controller_connect failed, & retry polling!!");
 
-			if (net_nfc_controller_configure_discovery(
-						NET_NFC_DISCOVERY_MODE_RESUME,
-						NET_NFC_ALL_ENABLE,
-						&result) == false)
+			if (net_nfc_controller_configure_discovery(NET_NFC_DISCOVERY_MODE_RESUME,
+						NET_NFC_ALL_ENABLE, &result) == false)
 			{
 				net_nfc_controller_exception_handler();
 			}
@@ -202,23 +158,14 @@ static gboolean tag_read_ndef_message(net_nfc_target_handle_s *handle,
 
 static void tag_watchdog_thread_func(gpointer user_data)
 {
-	WatchDogData *watch_dog = (WatchDogData *)user_data;
+	gboolean ret;
 	net_nfc_target_handle_s *handle;
-	net_nfc_error_e result = NET_NFC_OK;
 	bool is_present_target = false;
+	net_nfc_error_e result = NET_NFC_OK;
+	WatchDogData *watch_dog = user_data;
 
-	if (watch_dog == NULL)
-	{
-		NFC_ERR("can not get WatchDogData");
-		return;
-	}
-
-	if (watch_dog->handle == NULL)
-	{
-		NFC_ERR("can not get WatchDogData->handle");
-		return;
-	}
-
+	RET_IF(NULL == watch_dog);
+	RET_IF(NULL == watch_dog->handle);
 
 	/* IMPORTANT, TEMPORARY : switching context to another thread
 	   for give CPU time */
@@ -228,15 +175,14 @@ static void tag_watchdog_thread_func(gpointer user_data)
 	if (handle->connection_type == NET_NFC_P2P_CONNECTION_TARGET ||
 			handle->connection_type == NET_NFC_TAG_CONNECTION)
 	{
-		is_present_target = net_nfc_controller_check_target_presence(
-				handle, &result);
+		is_present_target = net_nfc_controller_check_target_presence(handle, &result);
 	}
 
-	if (is_present_target == true)
+	if (true == is_present_target)
 	{
-		if(net_nfc_server_controller_async_queue_push(
-					tag_watchdog_thread_func,
-					watch_dog) == FALSE)
+		ret = net_nfc_server_controller_async_queue_push(tag_watchdog_thread_func,
+					watch_dog);
+		if(FALSE == ret)
 		{
 			NFC_ERR("can not create watch dog");
 			g_free(watch_dog);
@@ -244,8 +190,7 @@ static void tag_watchdog_thread_func(gpointer user_data)
 		return;
 	}
 
-	if (result != NET_NFC_NOT_INITIALIZED &&
-			result != NET_NFC_INVALID_HANDLE)
+	if (result != NET_NFC_NOT_INITIALIZED && result != NET_NFC_INVALID_HANDLE)
 	{
 		if(net_nfc_controller_disconnect(handle, &result) == false)
 		{
@@ -256,8 +201,7 @@ static void tag_watchdog_thread_func(gpointer user_data)
 
 	net_nfc_server_set_state(NET_NFC_SERVER_IDLE);
 
-	net_nfc_gdbus_tag_emit_tag_detached(tag_skeleton,
-			GPOINTER_TO_UINT(handle),
+	net_nfc_gdbus_tag_emit_tag_detached(tag_skeleton, GPOINTER_TO_UINT(handle),
 			watch_dog->dev_type);
 
 	g_free(watch_dog);
@@ -265,29 +209,28 @@ static void tag_watchdog_thread_func(gpointer user_data)
 
 static void tag_get_current_tag_info_thread_func(gpointer user_data)
 {
-	CurrentTagInfoData *info_data =
-		(CurrentTagInfoData *)user_data;
 
 	/* FIXME : net_nfc_current_target_info_s should be removed */
+	bool ret;
+	data_s *raw_data = NULL;
+	gint number_of_keys = 0;
+	guint32 max_data_size = 0;
+	guint8 ndef_card_state = 0;
+	guint32 actual_data_size = 0;
+	gboolean is_ndef_supported = FALSE;
+	net_nfc_target_handle_s *handle = NULL;
+	data_s target_info_values = { NULL, 0 };
+	CurrentTagInfoData *info_data = user_data;
 	net_nfc_current_target_info_s *target_info;
 	net_nfc_error_e result = NET_NFC_OPERATION_FAIL;
-	net_nfc_target_handle_s *handle = NULL;
 	net_nfc_target_type_e dev_type = NET_NFC_UNKNOWN_TARGET;
-	gboolean is_ndef_supported = FALSE;
-	guint8 ndef_card_state = 0;
-	guint32 max_data_size = 0;
-	guint32 actual_data_size = 0;
-	gint number_of_keys = 0;
-	data_s target_info_values = { NULL, 0 };
-	data_s *raw_data = NULL;
 
 	g_assert(info_data != NULL);
 	g_assert(info_data->tag != NULL);
 	g_assert(info_data->invocation != NULL);
 
 	target_info = net_nfc_server_get_target_info();
-	if (target_info != NULL &&
-			target_info->devType != NET_NFC_NFCIP1_TARGET &&
+	if (target_info != NULL && target_info->devType != NET_NFC_NFCIP1_TARGET &&
 			target_info->devType != NET_NFC_NFCIP1_INITIATOR)
 	{
 		handle = target_info->handle;
@@ -298,22 +241,16 @@ static void tag_get_current_tag_info_thread_func(gpointer user_data)
 
 		dev_type = target_info->devType ;
 
-		if (net_nfc_controller_check_ndef(target_info->handle,
-					&ndef_card_state,
-					(int *)&max_data_size,
-					(int *)&actual_data_size,
-					&result) == true)
-		{
+		ret = net_nfc_controller_check_ndef(target_info->handle, &ndef_card_state,
+					(int *)&max_data_size, (int *)&actual_data_size, &result);
+		if (true == ret)
 			is_ndef_supported = TRUE;
-		}
 
 		if (is_ndef_supported)
 		{
-			if (net_nfc_controller_read_ndef(target_info->handle,
-						&raw_data, &result) == true)
-			{
+			ret = net_nfc_controller_read_ndef(target_info->handle, &raw_data, &result);
+			if (true == ret)
 				NFC_DBG("net_nfc_controller_read_ndef is success");
-			}
 		}
 	}
 
@@ -331,7 +268,8 @@ static void tag_get_current_tag_info_thread_func(gpointer user_data)
 			net_nfc_util_gdbus_data_to_variant(&target_info_values),
 			net_nfc_util_gdbus_data_to_variant(raw_data));
 
-	if (raw_data != NULL) {
+	if (raw_data != NULL)
+	{
 		net_nfc_util_free_data(raw_data);
 		g_free(raw_data);
 	}
@@ -344,42 +282,32 @@ static void tag_get_current_tag_info_thread_func(gpointer user_data)
 
 static void tag_slave_target_detected_thread_func(gpointer user_data)
 {
-	net_nfc_current_target_info_s *target;
-	net_nfc_error_e result = NET_NFC_OK;
-
-	guint32 max_data_size = 0;
-	guint32 actual_data_size = 0;
-	guint8 ndef_card_state = 0;
-	gboolean is_ndef_supported = FALSE;
-
-	GVariant *target_info_values = NULL;
+	bool ret;
 	GVariant *raw_data = NULL;
-
+	guint32 max_data_size = 0;
+	guint8 ndef_card_state = 0;
+	guint32 actual_data_size = 0;
 	WatchDogData *watch_dog = NULL;
 	bool isHandoverMessage = false;
+	net_nfc_error_e result = NET_NFC_OK;
+	gboolean is_ndef_supported = FALSE;
+	net_nfc_current_target_info_s *target;
+	GVariant *target_info_values = NULL;
 
 	target = net_nfc_server_get_target_info();
 
 	g_assert(target != NULL); /* raise exception!!! what;s wrong?? */
 
-	if (tag_skeleton == NULL)
-	{
-		NFC_ERR("tag skeleton is not initialized");
-
-		return;
-	}
+	RET_IF(NULL == tag_skeleton);
 
 	if (net_nfc_controller_connect(target->handle, &result) == false)
 	{
 		NFC_ERR("connect failed & Retry Polling!!");
 
-		if (net_nfc_controller_configure_discovery(
-					NET_NFC_DISCOVERY_MODE_RESUME,
-					NET_NFC_ALL_ENABLE,
-					&result) == false)
-		{
+		ret = net_nfc_controller_configure_discovery(NET_NFC_DISCOVERY_MODE_RESUME,
+					NET_NFC_ALL_ENABLE, &result);
+		if (false == ret)
 			net_nfc_controller_exception_handler();
-		}
 
 		return;
 	}
@@ -389,17 +317,12 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 	NFC_DBG("tag is connected");
 
 	target_info_values = net_nfc_util_gdbus_buffer_to_variant(
-			target->target_info_values.buffer,
-			target->target_info_values.length);
+			target->target_info_values.buffer, target->target_info_values.length);
 
-	if (net_nfc_controller_check_ndef(target->handle,
-				&ndef_card_state,
-				(int *)&max_data_size,
-				(int *)&actual_data_size,
-				&result) == true)
-	{
+	ret = net_nfc_controller_check_ndef(target->handle, &ndef_card_state,
+				(int *)&max_data_size, (int *)&actual_data_size, &result);
+	if (true == ret)
 		is_ndef_supported = TRUE;
-	}
 
 	if (is_ndef_supported)
 	{
@@ -407,38 +330,31 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 
 		NFC_DBG("support NDEF");
 
-		if (tag_read_ndef_message(target->handle,
-					target->devType,
-					&recv_data) == TRUE)
+		if (tag_read_ndef_message(target->handle, target->devType, &recv_data) == TRUE)
 		{
-			ndef_message_s *selector;
 			ndef_record_s *record;
+			ndef_message_s *selector;
 			ndef_record_s *recordasperpriority;
-			result = net_nfc_server_handover_create_selector_from_rawdata(
-					&selector,
+
+			result = net_nfc_server_handover_create_selector_from_rawdata(&selector,
 					recv_data);
 
-			if (result == NET_NFC_OK)
+			if (NET_NFC_OK == result)
 			{
-				result =
-					net_nfc_server_handover_get_carrier_record_by_priority_order(
-							selector,
-							&record);
+				result = net_nfc_server_handover_get_carrier_record_by_priority_order(
+							selector, &record);
 				isHandoverMessage = true;
-				if (result == NET_NFC_OK)
+				if (NET_NFC_OK == result)
 				{
-					net_nfc_util_create_record(
-							record->TNF,
-							&record->type_s, &record->id_s,
-							&record->payload_s,
-							&recordasperpriority);
+					net_nfc_util_create_record(record->TNF, &record->type_s, &record->id_s,
+							&record->payload_s, &recordasperpriority);
 
-					net_nfc_server_handover_process_carrier_record(recordasperpriority, NULL, NULL);
+					net_nfc_server_handover_process_carrier_record(recordasperpriority,
+							NULL, NULL);
 				}
 				else
 				{
-					NFC_ERR("_get_carrier_record_by_priority_order"
-							" failed, [%d]",result);
+					NFC_ERR("_get_carrier_record_by_priority_order failed, [%d]",result);
 				}
 			}
 			else
@@ -484,7 +400,7 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 	NFC_DBG("turn on watch dog");
 
 	watch_dog = g_new0(WatchDogData, 1);
-	if(watch_dog == NULL)
+	if(NULL == watch_dog)
 	{
 		NFC_ERR("Memory allocation failed");
 		return;
@@ -494,8 +410,7 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 	watch_dog->handle = target->handle;
 
 	if (net_nfc_server_controller_async_queue_push(
-				tag_watchdog_thread_func,
-				watch_dog) == FALSE)
+				tag_watchdog_thread_func, watch_dog) == FALSE)
 	{
 		NFC_ERR("can not create watch dog");
 		g_free(watch_dog);
@@ -505,24 +420,23 @@ static void tag_slave_target_detected_thread_func(gpointer user_data)
 
 
 static gboolean tag_handle_is_tag_connected(NetNfcGDbusTag *tag,
-		GDBusMethodInvocation *invocation,
-		GVariant *smack_privilege,
-		gpointer user_data)
+		GDBusMethodInvocation *invocation, GVariant *smack_privilege, gpointer user_data)
 {
 	/* FIXME : net_nfc_current_target_info_s should be removed */
+	bool ret;
+	gint result;
+	gboolean is_connected = FALSE;
 	net_nfc_current_target_info_s *target_info;
 	net_nfc_target_type_e dev_type = NET_NFC_UNKNOWN_TARGET;
-	gboolean is_connected = FALSE;
-	gint result;
 
-	NFC_INFO(">>> REQUEST from [%s]",
-			g_dbus_method_invocation_get_sender(invocation));
+	NFC_INFO(">>> REQUEST from [%s]", g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-				smack_privilege,
-				"nfc-manager::tag",
-				"r") == false) {
+	ret = net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
+				"nfc-manager::tag", "r");
+
+	if (false == ret)
+	{
 		NFC_ERR("permission denied, and finished request");
 		result = NET_NFC_SECURITY_FAIL;
 
@@ -539,43 +453,37 @@ static gboolean tag_handle_is_tag_connected(NetNfcGDbusTag *tag,
 	result = NET_NFC_OK;
 
 END :
-	net_nfc_gdbus_tag_complete_is_tag_connected(tag,
-			invocation,
-			result,
-			is_connected,
+	net_nfc_gdbus_tag_complete_is_tag_connected(tag, invocation, result, is_connected,
 			(gint32)dev_type);
 
 	return TRUE;
 }
 
 static gboolean tag_handle_get_current_tag_info(NetNfcGDbusTag *tag,
-		GDBusMethodInvocation *invocation,
-		GVariant *smack_privilege,
-		gpointer user_data)
+		GDBusMethodInvocation *invocation, GVariant *smack_privilege, gpointer user_data)
 {
-	CurrentTagInfoData *info_data;
+	bool ret;
 	gboolean result;
+	CurrentTagInfoData *info_data;
 
-	NFC_INFO(">>> REQUEST from [%s]",
-			g_dbus_method_invocation_get_sender(invocation));
+	NFC_INFO(">>> REQUEST from [%s]", g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-				smack_privilege,
-				"nfc-manager::tag",
-				"r") == false) {
+	ret = net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
+				"nfc-manager::tag", "r");
+	if (false == ret)
+	{
 		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
 
 	info_data = g_new0(CurrentTagInfoData, 1);
-	if (info_data == NULL)
+	if (NULL == info_data)
 	{
 		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.AllocationError",
-				"Can not allocate memory");
+				"org.tizen.NetNfcService.AllocationError", "Can not allocate memory");
 
 		return FALSE;
 	}
@@ -584,9 +492,8 @@ static gboolean tag_handle_get_current_tag_info(NetNfcGDbusTag *tag,
 	info_data->invocation = g_object_ref(invocation);
 
 	result = net_nfc_server_controller_async_queue_push(
-			tag_get_current_tag_info_thread_func,
-			info_data);
-	if (result == FALSE)
+			tag_get_current_tag_info_thread_func, info_data);
+	if (FALSE == result)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.ThreadError",
@@ -602,24 +509,22 @@ static gboolean tag_handle_get_current_tag_info(NetNfcGDbusTag *tag,
 }
 
 static gboolean tag_handle_get_current_target_handle(NetNfcGDbusTag *tag,
-		GDBusMethodInvocation *invocation,
-		GVariant *smack_privilege,
-		gpointer user_data)
+		GDBusMethodInvocation *invocation, GVariant *smack_privilege, gpointer user_data)
 {
 	/* FIXME : net_nfc_current_target_info_s should be removed */
-	net_nfc_current_target_info_s *target_info;
+	gint result;
+	gboolean ret;
 	net_nfc_target_handle_s *handle = NULL;
 	uint32_t devType = NET_NFC_UNKNOWN_TARGET;
-	gint result;
+	net_nfc_current_target_info_s *target_info;
 
-	NFC_INFO(">>> REQUEST from [%s]",
-			g_dbus_method_invocation_get_sender(invocation));
+	NFC_INFO(">>> REQUEST from [%s]", g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-				smack_privilege,
-				"nfc-manager::p2p",
-				"r") == false) {
+	ret = net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
+				"nfc-manager::p2p", "r");
+	if (false == ret)
+	{
 		NFC_ERR("permission denied, and finished request");
 		result = NET_NFC_SECURITY_FAIL;
 
@@ -636,12 +541,8 @@ static gboolean tag_handle_get_current_target_handle(NetNfcGDbusTag *tag,
 	result = NET_NFC_OK;
 
 END :
-	net_nfc_gdbus_tag_complete_get_current_target_handle(tag,
-			invocation,
-			result,
-			(handle != NULL),
-			GPOINTER_TO_UINT(handle),
-			devType);
+	net_nfc_gdbus_tag_complete_get_current_target_handle(tag, invocation, result,
+			(handle != NULL), GPOINTER_TO_UINT(handle), devType);
 
 	return TRUE;
 }
@@ -649,35 +550,26 @@ END :
 
 gboolean net_nfc_server_tag_init(GDBusConnection *connection)
 {
-	GError *error = NULL;
 	gboolean result;
+	GError *error = NULL;
 
 	if (tag_skeleton)
 		net_nfc_server_tag_deinit();
 
 	tag_skeleton = net_nfc_gdbus_tag_skeleton_new();
 
-	g_signal_connect(tag_skeleton,
-			"handle-is-tag-connected",
-			G_CALLBACK(tag_handle_is_tag_connected),
-			NULL);
+	g_signal_connect(tag_skeleton, "handle-is-tag-connected",
+			G_CALLBACK(tag_handle_is_tag_connected), NULL);
 
-	g_signal_connect(tag_skeleton,
-			"handle-get-current-tag-info",
-			G_CALLBACK(tag_handle_get_current_tag_info),
-			NULL);
+	g_signal_connect(tag_skeleton, "handle-get-current-tag-info",
+			G_CALLBACK(tag_handle_get_current_tag_info), NULL);
 
-	g_signal_connect(tag_skeleton,
-			"handle-get-current-target-handle",
-			G_CALLBACK(tag_handle_get_current_target_handle),
-			NULL);
+	g_signal_connect(tag_skeleton, "handle-get-current-target-handle",
+			G_CALLBACK(tag_handle_get_current_target_handle), NULL);
 
-	result = g_dbus_interface_skeleton_export(
-			G_DBUS_INTERFACE_SKELETON(tag_skeleton),
-			connection,
-			"/org/tizen/NetNfcService/Tag",
-			&error);
-	if (result == FALSE)
+	result = g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(tag_skeleton),
+			connection, "/org/tizen/NetNfcService/Tag", &error);
+	if (FALSE == result)
 	{
 		NFC_ERR("can not skeleton_export %s", error->message);
 
@@ -707,8 +599,7 @@ void net_nfc_server_set_target_info(void *info)
 
 	target = (net_nfc_request_target_detected_t *)info;
 
-	current_target_info = g_malloc0(
-			sizeof(net_nfc_current_target_info_s) +
+	current_target_info = g_malloc0(sizeof(net_nfc_current_target_info_s) +
 			target->target_info_values.length);
 
 	current_target_info->handle = target->handle;
@@ -734,7 +625,7 @@ net_nfc_current_target_info_s *net_nfc_server_get_target_info(void)
 
 gboolean net_nfc_server_target_connected(net_nfc_target_handle_s *handle)
 {
-	if (current_target_info == NULL)
+	if (NULL == current_target_info)
 		return FALSE;
 
 	if (current_target_info->handle != handle)
@@ -751,10 +642,11 @@ void net_nfc_server_free_target_info(void)
 
 void net_nfc_server_tag_target_detected(void *info)
 {
-	if (net_nfc_server_controller_async_queue_push(
-				tag_slave_target_detected_thread_func,
-				NULL) == FALSE)
-	{
+	gboolean ret;
+
+	ret = net_nfc_server_controller_async_queue_push(
+				tag_slave_target_detected_thread_func, NULL);
+
+	if (FALSE == ret)
 		NFC_ERR("can not push to controller thread");
-	}
 }

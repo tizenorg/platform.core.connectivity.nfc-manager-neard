@@ -67,50 +67,14 @@ struct _FormatData
 
 static NetNfcGDbusNdef *ndef_skeleton = NULL;
 
-static void ndef_read_thread_func(gpointer user_data);
-
-static void ndef_write_thread_func(gpointer user_data);
-
-static void ndef_make_read_only_thread_func(gpointer user_data);
-
-static void ndef_format_thread_func(gpointer user_data);
-
-/* methods */
-static gboolean ndef_handle_read(NetNfcGDbusNdef *ndef,
-		GDBusMethodInvocation *invocation,
-		guint32 arg_handle,
-		GVariant *smack_privilege,
-		gpointer user_data);
-
-static gboolean ndef_handle_write(NetNfcGDbusNdef *ndef,
-		GDBusMethodInvocation *invocation,
-		guint32 arg_handle,
-		GVariant *arg_data,
-		GVariant *smack_privilege,
-		gpointer user_data);
-
-static gboolean ndef_handle_make_read_only(NetNfcGDbusNdef *ndef,
-		GDBusMethodInvocation *invocation,
-		guint32 arg_handle,
-		GVariant *smack_privilege,
-		gpointer user_data);
-
-static gboolean ndef_handle_format(NetNfcGDbusNdef *ndef,
-		GDBusMethodInvocation *invocation,
-		guint32 arg_handle,
-		GVariant *arg_key,
-		GVariant *smack_privilege,
-		gpointer user_data);
-
 
 static void ndef_read_thread_func(gpointer user_data)
 {
-	ReadData *data = user_data;
-
-	net_nfc_target_handle_s *handle;
 	net_nfc_error_e result;
-	data_s *read_data = NULL;
 	GVariant *data_variant;
+	data_s *read_data = NULL;
+	ReadData *data = user_data;
+	net_nfc_target_handle_s *handle;
 
 	g_assert(data != NULL);
 	g_assert(data->ndef != NULL);
@@ -118,20 +82,18 @@ static void ndef_read_thread_func(gpointer user_data)
 
 	handle = GUINT_TO_POINTER(data->handle);
 
-	if (net_nfc_server_target_connected(handle) == true) {
+	if (net_nfc_server_target_connected(handle) == true)
 		net_nfc_controller_read_ndef(handle, &read_data, &result);
-	} else {
+	else
 		result = NET_NFC_TARGET_IS_MOVED_AWAY;
-	}
 
 	data_variant = net_nfc_util_gdbus_data_to_variant(read_data);
 
-	net_nfc_gdbus_ndef_complete_read(data->ndef,
-			data->invocation,
-			(gint)result,
+	net_nfc_gdbus_ndef_complete_read(data->ndef, data->invocation, (gint)result,
 			data_variant);
 
-	if (read_data) {
+	if (read_data)
+	{
 		net_nfc_util_free_data(read_data);
 		g_free(read_data);
 	}
@@ -144,10 +106,9 @@ static void ndef_read_thread_func(gpointer user_data)
 
 static void ndef_write_thread_func(gpointer user_data)
 {
-	WriteData *data = user_data;
-
-	net_nfc_target_handle_s *handle;
 	net_nfc_error_e result;
+	WriteData *data = user_data;
+	net_nfc_target_handle_s *handle;
 
 	g_assert(data != NULL);
 	g_assert(data->ndef != NULL);
@@ -155,15 +116,12 @@ static void ndef_write_thread_func(gpointer user_data)
 
 	handle = GUINT_TO_POINTER(data->handle);
 
-	if (net_nfc_server_target_connected(handle) == true) {
+	if (net_nfc_server_target_connected(handle) == true)
 		net_nfc_controller_write_ndef(handle, &data->data, &result);
-	} else {
+	else
 		result = NET_NFC_TARGET_IS_MOVED_AWAY;
-	}
 
-	net_nfc_gdbus_ndef_complete_write(data->ndef,
-			data->invocation,
-			(gint)result);
+	net_nfc_gdbus_ndef_complete_write(data->ndef, data->invocation, (gint)result);
 
 	net_nfc_util_free_data(&data->data);
 
@@ -175,10 +133,9 @@ static void ndef_write_thread_func(gpointer user_data)
 
 static void ndef_make_read_only_thread_func(gpointer user_data)
 {
-	MakeReadOnlyData *data = user_data;
-
-	net_nfc_target_handle_s *handle;
 	net_nfc_error_e result;
+	net_nfc_target_handle_s *handle;
+	MakeReadOnlyData *data = user_data;
 
 	g_assert(data != NULL);
 	g_assert(data->ndef != NULL);
@@ -186,15 +143,12 @@ static void ndef_make_read_only_thread_func(gpointer user_data)
 
 	handle = GUINT_TO_POINTER(data->handle);
 
-	if (net_nfc_server_target_connected(handle) == true) {
+	if (net_nfc_server_target_connected(handle) == true)
 		net_nfc_controller_make_read_only_ndef(handle, &result);
-	} else {
+	else
 		result = NET_NFC_TARGET_IS_MOVED_AWAY;
-	}
 
-	net_nfc_gdbus_ndef_complete_make_read_only(data->ndef,
-			data->invocation,
-			(gint)result);
+	net_nfc_gdbus_ndef_complete_make_read_only(data->ndef, data->invocation, (gint)result);
 
 	g_object_unref(data->invocation);
 	g_object_unref(data->ndef);
@@ -204,10 +158,9 @@ static void ndef_make_read_only_thread_func(gpointer user_data)
 
 static void ndef_format_thread_func(gpointer user_data)
 {
-	FormatData *data = user_data;
-
-	net_nfc_target_handle_s *handle;
 	net_nfc_error_e result;
+	FormatData *data = user_data;
+	net_nfc_target_handle_s *handle;
 
 	g_assert(data != NULL);
 	g_assert(data->ndef != NULL);
@@ -215,15 +168,12 @@ static void ndef_format_thread_func(gpointer user_data)
 
 	handle = GUINT_TO_POINTER(data->handle);
 
-	if (net_nfc_server_target_connected(handle) == true) {
+	if (net_nfc_server_target_connected(handle) == true)
 		net_nfc_controller_format_ndef(handle, &data->key, &result);
-	} else {
+	else
 		result = NET_NFC_TARGET_IS_MOVED_AWAY;
-	}
 
-	net_nfc_gdbus_ndef_complete_format(data->ndef,
-			data->invocation,
-			(gint)result);
+	net_nfc_gdbus_ndef_complete_format(data->ndef, data->invocation, (gint)result);
 
 	net_nfc_util_free_data(&data->key);
 
@@ -239,29 +189,28 @@ static gboolean ndef_handle_read(NetNfcGDbusNdef *ndef,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
+	bool ret;
 	ReadData *data;
 	gboolean result;
 
-	NFC_INFO(">>> REQUEST from [%s]",
-			g_dbus_method_invocation_get_sender(invocation));
+	NFC_INFO(">>> REQUEST from [%s]", g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-				smack_privilege,
-				"nfc-manager::tag",
-				"r") == false) {
+	ret = net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
+				"nfc-manager::tag", "r");
+	if (false == ret)
+	{
 		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
 
 	data = g_new0(ReadData, 1);
-	if (data == NULL)
+	if (NULL == data)
 	{
 		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.AllocationError",
-				"Can not allocate memory");
+				"org.tizen.NetNfcService.AllocationError", "Can not allocate memory");
 
 		return FALSE;
 	}
@@ -270,10 +219,8 @@ static gboolean ndef_handle_read(NetNfcGDbusNdef *ndef,
 	data->invocation = g_object_ref(invocation);
 	data->handle = arg_handle;
 
-	result = net_nfc_server_controller_async_queue_push(
-			ndef_read_thread_func,
-			data);
-	if (result == FALSE)
+	result = net_nfc_server_controller_async_queue_push(ndef_read_thread_func, data);
+	if (FALSE == result)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.Ndef.ThreadError",
@@ -295,29 +242,29 @@ static gboolean ndef_handle_write(NetNfcGDbusNdef *ndef,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
+	bool ret;
 	WriteData *data;
 	gboolean result;
 
-	NFC_INFO(">>> REQUEST from [%s]",
-			g_dbus_method_invocation_get_sender(invocation));
+	NFC_INFO(">>> REQUEST from [%s]", g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-				smack_privilege,
-				"nfc-manager::tag",
-				"w") == false) {
+	ret = net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
+			"nfc-manager::tag", "w");
+
+	if (false == ret)
+	{
 		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
 
 	data = g_new0(WriteData, 1);
-	if (data == NULL)
+	if (NULL == data)
 	{
 		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.AllocationError",
-				"Can not allocate memory");
+				"org.tizen.NetNfcService.AllocationError", "Can not allocate memory");
 
 		return FALSE;
 	}
@@ -328,10 +275,8 @@ static gboolean ndef_handle_write(NetNfcGDbusNdef *ndef,
 
 	net_nfc_util_gdbus_variant_to_data_s(arg_data, &data->data);
 
-	result = net_nfc_server_controller_async_queue_push(
-			ndef_write_thread_func,
-			data);
-	if (result == FALSE)
+	result = net_nfc_server_controller_async_queue_push(ndef_write_thread_func, data);
+	if (FALSE == result)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.Ndef.ThreadError",
@@ -354,29 +299,28 @@ static gboolean ndef_handle_make_read_only(NetNfcGDbusNdef *ndef,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
-	MakeReadOnlyData *data;
+	bool ret;
 	gboolean result;
+	MakeReadOnlyData *data;
 
-	NFC_INFO(">>> REQUEST from [%s]",
-			g_dbus_method_invocation_get_sender(invocation));
+	NFC_INFO(">>> REQUEST from [%s]", g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-				smack_privilege,
-				"nfc-manager::tag",
-				"w") == false) {
+	ret = net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
+				"nfc-manager::tag", "w");
+	if (false == ret)
+	{
 		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
 
 	data = g_new0(MakeReadOnlyData, 1);
-	if (data == NULL)
+	if (NULL == data)
 	{
 		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.AllocationError",
-				"Can not allocate memory");
+				"org.tizen.NetNfcService.AllocationError", "Can not allocate memory");
 
 		return FALSE;
 	}
@@ -385,10 +329,9 @@ static gboolean ndef_handle_make_read_only(NetNfcGDbusNdef *ndef,
 	data->invocation = g_object_ref(invocation);
 	data->handle = arg_handle;
 
-	result = net_nfc_server_controller_async_queue_push(
-			ndef_make_read_only_thread_func,
+	result = net_nfc_server_controller_async_queue_push(ndef_make_read_only_thread_func,
 			data);
-	if (result == FALSE)
+	if (FALSE == result)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.Ndef.ThreadError",
@@ -410,29 +353,28 @@ static gboolean ndef_handle_format(NetNfcGDbusNdef *ndef,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
-	FormatData *data;
+	bool ret;
 	gboolean result;
+	FormatData *data;
 
-	NFC_INFO(">>> REQUEST from [%s]",
-			g_dbus_method_invocation_get_sender(invocation));
+	NFC_INFO(">>> REQUEST from [%s]", g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-				smack_privilege,
-				"nfc-manager::tag",
-				"w") == false) {
+	ret = net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
+				"nfc-manager::tag", "w");
+	if (false == ret)
+	{
 		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
 
 	data = g_new0(FormatData, 1);
-	if (data == NULL)
+	if (NULL == data)
 	{
 		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.AllocationError",
-				"Can not allocate memory");
+				"org.tizen.NetNfcService.AllocationError", "Can not allocate memory");
 
 		return FALSE;
 	}
@@ -442,10 +384,8 @@ static gboolean ndef_handle_format(NetNfcGDbusNdef *ndef,
 	data->handle = arg_handle;
 	net_nfc_util_gdbus_variant_to_data_s(arg_key, &data->key);
 
-	result = net_nfc_server_controller_async_queue_push(
-			ndef_format_thread_func,
-			data);
-	if (result == FALSE)
+	result = net_nfc_server_controller_async_queue_push(ndef_format_thread_func, data);
+	if (FALSE == result)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.Ndef.ThreadError",
@@ -472,32 +412,19 @@ gboolean net_nfc_server_ndef_init(GDBusConnection *connection)
 
 	ndef_skeleton = net_nfc_gdbus_ndef_skeleton_new();
 
-	g_signal_connect(ndef_skeleton,
-			"handle-read",
-			G_CALLBACK(ndef_handle_read),
-			NULL);
+	g_signal_connect(ndef_skeleton, "handle-read", G_CALLBACK(ndef_handle_read), NULL);
 
-	g_signal_connect(ndef_skeleton,
-			"handle-write",
-			G_CALLBACK(ndef_handle_write),
-			NULL);
+	g_signal_connect(ndef_skeleton, "handle-write", G_CALLBACK(ndef_handle_write), NULL);
 
-	g_signal_connect(ndef_skeleton,
-			"handle-make-read-only",
-			G_CALLBACK(ndef_handle_make_read_only),
-			NULL);
+	g_signal_connect(ndef_skeleton, "handle-make-read-only",
+			G_CALLBACK(ndef_handle_make_read_only), NULL);
 
-	g_signal_connect(ndef_skeleton,
-			"handle-format",
-			G_CALLBACK(ndef_handle_format),
-			NULL);
+	g_signal_connect(ndef_skeleton, "handle-format",
+			G_CALLBACK(ndef_handle_format), NULL);
 
-	result = g_dbus_interface_skeleton_export(
-			G_DBUS_INTERFACE_SKELETON(ndef_skeleton),
-			connection,
-			"/org/tizen/NetNfcService/Ndef",
-			&error);
-	if (result == FALSE)
+	result = g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(ndef_skeleton),
+			connection, "/org/tizen/NetNfcService/Ndef", &error);
+	if (FALSE == result)
 	{
 		g_error_free(error);
 

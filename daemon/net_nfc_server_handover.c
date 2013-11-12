@@ -23,27 +23,17 @@
 
 static NetNfcGDbusHandover *handover_skeleton = NULL;
 
-static void handover_request_thread_func(gpointer user_data);
-
-static gboolean handover_handle_request(NetNfcGDbusHandover *hdover,
-		GDBusMethodInvocation *invocation,
-		guint32 arg_handle,
-		gint32 arg_type,
-		GVariant *smack_privilege,
-		gpointer user_data);
-
 static void handover_request_thread_func(gpointer user_data)
 {
-	HandoverRequestData *handover_data = (HandoverRequestData *)user_data;
 	net_nfc_error_e result;
+	HandoverRequestData *handover_data = user_data;
 
 	g_assert(handover_data != NULL);
 	g_assert(handover_data->handoverobj != NULL);
 	g_assert(handover_data->invocation != NULL);
 
 	result = net_nfc_server_handover_default_client_start(
-			GUINT_TO_POINTER(handover_data->handle),
-			(void *)handover_data);
+			GUINT_TO_POINTER(handover_data->handle), (void *)handover_data);
 	if (result != NET_NFC_OK)
 	{
 		net_nfc_gdbus_handover_complete_request(
@@ -67,24 +57,23 @@ static gboolean handover_handle_request(NetNfcGDbusHandover *hdover,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
-	HandoverRequestData *data;
 	gboolean result;
+	HandoverRequestData *data;
 
 	NFC_INFO(">>> REQUEST from [%s]",
 			g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-				smack_privilege,
-				"nfc-manager::p2p",
-				"rw") == false) {
+	if (net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
+				"nfc-manager::p2p", "rw") == false)
+	{
 		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
 
 	data = g_try_new0(HandoverRequestData,1);
-	if(data == NULL)
+	if(NULL == data)
 	{
 		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
@@ -100,7 +89,7 @@ static gboolean handover_handle_request(NetNfcGDbusHandover *hdover,
 
 	result = net_nfc_server_controller_async_queue_push(
 			handover_request_thread_func, data);
-	if (result == FALSE)
+	if (FALSE == result)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.Handover.ThreadError",
@@ -117,6 +106,7 @@ static gboolean handover_handle_request(NetNfcGDbusHandover *hdover,
 
 gboolean net_nfc_server_handover_init(GDBusConnection *connection)
 {
+	gboolean ret;
 	GError *error = NULL;
 
 	if (handover_skeleton)
@@ -124,16 +114,13 @@ gboolean net_nfc_server_handover_init(GDBusConnection *connection)
 
 	handover_skeleton = net_nfc_gdbus_handover_skeleton_new();
 
-	g_signal_connect(handover_skeleton,
-			"handle-request",
-			G_CALLBACK(handover_handle_request),
-			NULL);
+	g_signal_connect(handover_skeleton, "handle-request",
+			G_CALLBACK(handover_handle_request), NULL);
 
-	if (g_dbus_interface_skeleton_export(
-				G_DBUS_INTERFACE_SKELETON(handover_skeleton),
-				connection,
-				"/org/tizen/NetNfcService/Handover",
-				&error) == FALSE)
+	ret = g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(handover_skeleton),
+				connection, "/org/tizen/NetNfcService/Handover", &error);
+
+	if (FALSE == ret)
 	{
 		g_error_free(error);
 

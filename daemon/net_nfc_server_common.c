@@ -35,29 +35,6 @@ struct _ControllerFuncData
 	gpointer data;
 };
 
-static gpointer controller_thread_func(gpointer user_data);
-
-static void controller_async_queue_free_func(gpointer user_data);
-
-static void controller_thread_deinit_thread_func(gpointer user_data);
-
-static void controller_target_detected_cb(void *info,
-		void *user_context);
-
-static void controller_se_transaction_cb(void *info,
-		void *user_context);
-
-static void controller_llcp_event_cb(void *info,
-		void *user_context);
-
-static void controller_init_thread_func(gpointer user_data);
-
-#ifndef ESE_ALWAYS_ON
-static void controller_deinit_thread_func(gpointer user_data);
-#endif
-
-static void restart_polling_loop_thread_func(gpointer user_data);
-
 static GAsyncQueue *controller_async_queue = NULL;
 
 static GThread *controller_thread = NULL;
@@ -69,7 +46,7 @@ static guint32 server_state = NET_NFC_SERVER_IDLE;
 
 static gpointer controller_thread_func(gpointer user_data)
 {
-	if (controller_async_queue == NULL)
+	if (NULL == controller_async_queue)
 	{
 		g_thread_exit(NULL);
 		return NULL;
@@ -105,8 +82,7 @@ static void controller_thread_deinit_thread_func(gpointer user_data)
 static void controller_target_detected_cb(void *info,
 		void *user_context)
 {
-	net_nfc_request_target_detected_t *req =
-		(net_nfc_request_target_detected_t *)info;
+	net_nfc_request_target_detected_t *req = (net_nfc_request_target_detected_t *)info;
 
 	g_assert(info != NULL);
 
@@ -118,12 +94,16 @@ static void controller_target_detected_cb(void *info,
 	{
 		net_nfc_server_set_target_info(info);
 
-		if (req->devType != NET_NFC_UNKNOWN_TARGET) {
+		if (req->devType != NET_NFC_UNKNOWN_TARGET)
+		{
 			if (req->devType == NET_NFC_NFCIP1_TARGET ||
-					req->devType == NET_NFC_NFCIP1_INITIATOR) {
+					req->devType == NET_NFC_NFCIP1_INITIATOR)
+			{
 				/* llcp target detected */
 				net_nfc_server_llcp_target_detected(info);
-			} else {
+			}
+			else
+			{
 				/* tag target detected */
 				net_nfc_server_tag_target_detected(info);
 			}
@@ -163,15 +143,9 @@ static void controller_se_transaction_cb(void *info,
 
 static void _controller_llcp_event_cb(gpointer user_data)
 {
-	net_nfc_request_llcp_msg_t *req_msg =
-		(net_nfc_request_llcp_msg_t *)user_data;
+	net_nfc_request_llcp_msg_t *req_msg = (net_nfc_request_llcp_msg_t *)user_data;
 
-	if (req_msg == NULL)
-	{
-		NFC_ERR("can not get llcp_event info");
-
-		return;
-	}
+	RET_IF(NULL == req_msg);
 
 	switch (req_msg->request_type)
 	{
@@ -191,20 +165,14 @@ static void _controller_llcp_event_cb(gpointer user_data)
 
 	case NET_NFC_MESSAGE_SERVICE_LLCP_SOCKET_ERROR:
 	case NET_NFC_MESSAGE_SERVICE_LLCP_SOCKET_ACCEPTED_ERROR:
-		net_nfc_controller_llcp_socket_error_cb(
-				req_msg->llcp_socket,
-				req_msg->result,
-				NULL,
-				(void *)req_msg->user_param);
+		net_nfc_controller_llcp_socket_error_cb(req_msg->llcp_socket,
+			req_msg->result, NULL, (void *)req_msg->user_param);
 		break;
 
 	case NET_NFC_MESSAGE_SERVICE_LLCP_SEND:
 	case NET_NFC_MESSAGE_SERVICE_LLCP_SEND_TO:
-		net_nfc_controller_llcp_sent_cb(
-				req_msg->llcp_socket,
-				req_msg->result,
-				NULL,
-				(void *)req_msg->user_param);
+		net_nfc_controller_llcp_sent_cb(req_msg->llcp_socket,
+				req_msg->result, NULL, (void *)req_msg->user_param);
 		break;
 
 	case NET_NFC_MESSAGE_SERVICE_LLCP_RECEIVE:
@@ -214,9 +182,7 @@ static void _controller_llcp_event_cb(gpointer user_data)
 			data_s data = { msg->data.buffer, msg->data.length };
 
 			net_nfc_controller_llcp_received_cb(msg->client_socket,
-					msg->result,
-					&data,
-					(void *)req_msg->user_param);
+					msg->result, &data, (void *)req_msg->user_param);
 		}
 		break;
 
@@ -228,27 +194,19 @@ static void _controller_llcp_event_cb(gpointer user_data)
 
 			/* FIXME : pass sap */
 			net_nfc_controller_llcp_received_cb(msg->client_socket,
-					msg->result,
-					&data,
-					(void *)req_msg->user_param);
+					msg->result, &data, (void *)req_msg->user_param);
 		}
 		break;
 
 	case NET_NFC_MESSAGE_SERVICE_LLCP_CONNECT:
 	case NET_NFC_MESSAGE_SERVICE_LLCP_CONNECT_SAP:
-		net_nfc_controller_llcp_connected_cb(
-				req_msg->llcp_socket,
-				req_msg->result,
-				NULL,
-				(void *)req_msg->user_param);
+		net_nfc_controller_llcp_connected_cb(req_msg->llcp_socket,
+				req_msg->result, NULL, (void *)req_msg->user_param);
 		break;
 
 	case NET_NFC_MESSAGE_SERVICE_LLCP_DISCONNECT:
-		net_nfc_controller_llcp_disconnected_cb(
-				req_msg->llcp_socket,
-				req_msg->result,
-				NULL,
-				(void *)req_msg->user_param);
+		net_nfc_controller_llcp_disconnected_cb(req_msg->llcp_socket,
+				req_msg->result, NULL, (void *)req_msg->user_param);
 		break;
 
 	default:
@@ -295,11 +253,9 @@ static void controller_init_thread_func(gpointer user_data)
 	NFC_INFO("net_nfc_contorller_register_listener success");
 
 	result = net_nfc_server_llcp_set_config(NULL);
+
 	if (result != NET_NFC_OK)
-	{
-		NFC_ERR("net_nfc_server_llcp_set config failed, [%d]",
-				result);
-	}
+		NFC_ERR("net_nfc_server_llcp_set config failed, [%d]", result);
 
 	NFC_INFO("net_nfc_server_llcp_set_config success");
 }
@@ -310,9 +266,8 @@ static void controller_deinit_thread_func(gpointer user_data)
 	net_nfc_error_e result;
 
 	if (net_nfc_controller_configure_discovery(NET_NFC_DISCOVERY_MODE_CONFIG,
-				NET_NFC_ALL_DISABLE,
-				&result) == false) {
-
+				NET_NFC_ALL_DISABLE, &result) == false)
+	{
 		NFC_ERR("net_nfc_controller_configure_discovery failed, [%d]", result);
 	}
 
@@ -332,10 +287,8 @@ static void controller_deinit_thread_func(gpointer user_data)
 
 static void restart_polling_loop_thread_func(gpointer user_data)
 {
-
 	gint state = 0;
 	gint pm_state = 0;
-
 	net_nfc_error_e result;
 
 	if (vconf_get_bool(VCONFKEY_NFC_STATE, &state) != 0)
@@ -351,10 +304,8 @@ static void restart_polling_loop_thread_func(gpointer user_data)
 
 	if (pm_state == VCONFKEY_PM_STATE_NORMAL)
 	{
-		if (net_nfc_controller_configure_discovery(
-					NET_NFC_DISCOVERY_MODE_CONFIG,
-					NET_NFC_ALL_ENABLE,
-					&result) == true)
+		if (net_nfc_controller_configure_discovery(NET_NFC_DISCOVERY_MODE_CONFIG,
+					NET_NFC_ALL_ENABLE, &result) == true)
 		{
 			NFC_DBG("polling enable");
 		}
@@ -364,10 +315,8 @@ static void restart_polling_loop_thread_func(gpointer user_data)
 
 	if (pm_state == VCONFKEY_PM_STATE_LCDOFF)
 	{
-		if (net_nfc_controller_configure_discovery(
-					NET_NFC_DISCOVERY_MODE_CONFIG,
-					NET_NFC_ALL_DISABLE,
-					&result) == true)
+		if (net_nfc_controller_configure_discovery(NET_NFC_DISCOVERY_MODE_CONFIG,
+					NET_NFC_ALL_DISABLE, &result) == true)
 		{
 			NFC_DBG("polling disabled");
 		}
@@ -380,18 +329,14 @@ gboolean net_nfc_server_controller_thread_init(void)
 {
 	GError *error = NULL;
 
-	controller_async_queue = g_async_queue_new_full(
-			controller_async_queue_free_func);
+	controller_async_queue = g_async_queue_new_full(controller_async_queue_free_func);
 
-	controller_thread = g_thread_try_new("controller_thread",
-			controller_thread_func,
-			NULL,
-			&error);
+	controller_thread = g_thread_try_new("controller_thread", controller_thread_func,
+			NULL, &error);
 
-	if (controller_thread == NULL)
+	if (NULL == controller_thread)
 	{
-		NFC_ERR("can not create controller thread: %s",
-				error->message);
+		NFC_ERR("can not create controller thread: %s", error->message);
 		g_error_free(error);
 		return FALSE;
 	}
@@ -401,8 +346,7 @@ gboolean net_nfc_server_controller_thread_init(void)
 
 void net_nfc_server_controller_thread_deinit(void)
 {
-	if(net_nfc_server_controller_async_queue_push(
-				controller_thread_deinit_thread_func,
+	if(net_nfc_server_controller_async_queue_push(controller_thread_deinit_thread_func,
 				NULL)==FALSE)
 	{
 		NFC_ERR("Failed to push onto the queue");
@@ -417,8 +361,7 @@ void net_nfc_server_controller_thread_deinit(void)
 
 void net_nfc_server_controller_init(void)
 {
-	if(net_nfc_server_controller_async_queue_push(
-				controller_init_thread_func,
+	if(net_nfc_server_controller_async_queue_push(controller_init_thread_func,
 				NULL)==FALSE)
 	{
 		NFC_ERR("Failed to push onto the queue");
@@ -439,12 +382,11 @@ void net_nfc_server_controller_deinit(void)
 #endif
 
 gboolean net_nfc_server_controller_async_queue_push(
-		net_nfc_server_controller_func func,
-		gpointer user_data)
+		net_nfc_server_controller_func func, gpointer user_data)
 {
 	ControllerFuncData *func_data;
 
-	if(controller_async_queue == NULL)
+	if(NULL == controller_async_queue)
 	{
 		NFC_ERR("controller_async_queue is not initialized");
 
@@ -462,8 +404,7 @@ gboolean net_nfc_server_controller_async_queue_push(
 
 void net_nfc_server_restart_polling_loop(void)
 {
-	if(net_nfc_server_controller_async_queue_push(
-				restart_polling_loop_thread_func,
+	if(net_nfc_server_controller_async_queue_push(restart_polling_loop_thread_func,
 				NULL) == FALSE)
 	{
 		NFC_ERR("Failed to push onto the queue");

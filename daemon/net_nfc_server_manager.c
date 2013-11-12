@@ -43,33 +43,13 @@ struct _ManagerActivationData
 
 static NetNfcGDbusManager *manager_skeleton = NULL;
 
-static net_nfc_error_e manager_active(void);
-
-static net_nfc_error_e manager_deactive(void);
-
-static void manager_handle_active_thread_func(gpointer user_data);
-
-static gboolean manager_handle_set_active(NetNfcGDbusManager *manager,
-		GDBusMethodInvocation *invocation,
-		gboolean arg_is_active,
-		GVariant *smack_privilege,
-		gpointer user_data);
-
-static gboolean manager_handle_get_server_state(NetNfcGDbusManager *manager,
-		GDBusMethodInvocation *invocation,
-		GVariant *smack_privilege,
-		gpointer user_data);
-
-
-static void manager_active_thread_func(gpointer user_data);
-
 
 /* reimplementation of net_nfc_service_init()*/
 static net_nfc_error_e manager_active(void)
 {
-	net_nfc_error_e result;
 	int ret;
 	int se_type;
+	net_nfc_error_e result;
 
 	if (net_nfc_controller_is_ready(&result) == false)
 	{
@@ -80,9 +60,9 @@ static net_nfc_error_e manager_active(void)
 
 	/* keep_SE_select_value */
 	ret = vconf_get_int(VCONFKEY_NFC_SE_TYPE, &se_type);
-	if (ret == 0)
+	if (0 == ret)
 	{
-		NFC_DBG("manager_active  se_type [%d]",se_type);
+		NFC_DBG("manager_active se_type [%d]",se_type);
 		result = net_nfc_server_se_change_se(se_type);
 	}
 
@@ -95,10 +75,8 @@ static net_nfc_error_e manager_active(void)
 	/* register default handover server */
 	net_nfc_server_handover_default_server_register();
 
-	if (net_nfc_controller_configure_discovery(
-				NET_NFC_DISCOVERY_MODE_START,
-				NET_NFC_ALL_ENABLE,
-				&result) == TRUE)
+	if (net_nfc_controller_configure_discovery(NET_NFC_DISCOVERY_MODE_START,
+				NET_NFC_ALL_ENABLE, &result) == TRUE)
 	{
 		/* vconf on */
 		if (vconf_set_bool(VCONFKEY_NFC_STATE, TRUE) != 0)
@@ -119,6 +97,7 @@ static net_nfc_error_e manager_active(void)
 /* reimplementation of net_nfc_service_deinit()*/
 static net_nfc_error_e manager_deactive(void)
 {
+	bool ret;
 	net_nfc_error_e result;
 
 	if (net_nfc_controller_is_ready(&result) == false)
@@ -134,10 +113,10 @@ static net_nfc_error_e manager_deactive(void)
 	/* keep_SE_select_value do not need to update vconf and gdbus_se_setting */
 	result = net_nfc_server_se_disable_card_emulation();
 
-	if (net_nfc_controller_configure_discovery(
-				NET_NFC_DISCOVERY_MODE_STOP,
-				NET_NFC_ALL_DISABLE,
-				&result) == TRUE)
+	ret = net_nfc_controller_configure_discovery(NET_NFC_DISCOVERY_MODE_STOP,
+				NET_NFC_ALL_DISABLE, &result);
+
+	if (TRUE == ret)
 	{
 		/* vconf off */
 		if (vconf_set_bool(VCONFKEY_NFC_STATE, FALSE) != 0)
@@ -157,8 +136,8 @@ static net_nfc_error_e manager_deactive(void)
 
 static void manager_handle_active_thread_func(gpointer user_data)
 {
-	ManagerActivationData *data = (ManagerActivationData *)user_data;
 	net_nfc_error_e result;
+	ManagerActivationData *data = user_data;
 
 	g_assert(data != NULL);
 	g_assert(data->manager != NULL);
@@ -169,17 +148,16 @@ static void manager_handle_active_thread_func(gpointer user_data)
 	else
 		result = manager_deactive();
 
-	net_nfc_gdbus_manager_complete_set_active(data->manager,
-			data->invocation,
-			result);
+	net_nfc_gdbus_manager_complete_set_active(data->manager, data->invocation, result);
 
-	if (result == NET_NFC_OK) {
-		NFC_INFO("nfc %s", data->is_active ?
-				"activated" : "deactivated");
+	if (NET_NFC_OK == result)
+	{
+		NFC_INFO("nfc %s", data->is_active ? "activated" : "deactivated");
 
-		net_nfc_gdbus_manager_emit_activated(data->manager,
-				data->is_active);
-	} else {
+		net_nfc_gdbus_manager_emit_activated(data->manager, data->is_active);
+	}
+	else
+	{
 		NFC_ERR("activation change failed, [%d]", result);
 	}
 
@@ -189,11 +167,8 @@ static void manager_handle_active_thread_func(gpointer user_data)
 	g_free(data);
 
 	/* shutdown process if it doesn't need */
-	if (data->is_active == false &&
-			net_nfc_server_gdbus_is_server_busy() == false) {
-
+	if (data->is_active == false && net_nfc_server_gdbus_is_server_busy() == false)
 		net_nfc_server_controller_deinit();
-	}
 }
 
 
@@ -203,17 +178,17 @@ static gboolean manager_handle_set_active(NetNfcGDbusManager *manager,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
-	ManagerActivationData *data;
+	bool ret;
 	gboolean result;
+	ManagerActivationData *data;
 
-	NFC_INFO(">>> REQUEST from [%s]",
-			g_dbus_method_invocation_get_sender(invocation));
+	NFC_INFO(">>> REQUEST from [%s]", g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-				smack_privilege,
-				"nfc-manager::admin",
-				"rw") == false) {
+	ret = net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
+					"nfc-manager::admin", "rw");
+	if (false == ret)
+	{
 		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
@@ -222,12 +197,11 @@ static gboolean manager_handle_set_active(NetNfcGDbusManager *manager,
 	NFC_DBG("is_active %d", arg_is_active);
 
 	data = g_try_new0(ManagerActivationData, 1);
-	if (data == NULL)
+	if (NULL == data)
 	{
 		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.AllocationError",
-				"Can not allocate memory");
+				"org.tizen.NetNfcService.AllocationError", "Can not allocate memory");
 		return FALSE;
 	}
 
@@ -237,7 +211,7 @@ static gboolean manager_handle_set_active(NetNfcGDbusManager *manager,
 
 	result = net_nfc_server_controller_async_queue_push(
 			manager_handle_active_thread_func, data);
-	if (result == FALSE)
+	if (FALSE == result)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.ThreadError",
@@ -253,20 +227,18 @@ static gboolean manager_handle_set_active(NetNfcGDbusManager *manager,
 }
 
 static gboolean manager_handle_get_server_state(NetNfcGDbusManager *manager,
-		GDBusMethodInvocation *invocation,
-		GVariant *smack_privilege,
-		gpointer user_data)
+		GDBusMethodInvocation *invocation, GVariant *smack_privilege, gpointer user_data)
 {
+	bool ret;
 	guint32 state;
 
-	NFC_INFO(">>> REQUEST from [%s]",
-			g_dbus_method_invocation_get_sender(invocation));
+	NFC_INFO(">>> REQUEST from [%s]", g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-				smack_privilege,
-				"nfc-manager::admin",
-				"r") == false) {
+	ret = net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
+				"nfc-manager::admin", "r");
+	if (false == ret)
+	{
 		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
@@ -274,19 +246,17 @@ static gboolean manager_handle_get_server_state(NetNfcGDbusManager *manager,
 
 	state = net_nfc_server_get_state();
 
-	net_nfc_gdbus_manager_complete_get_server_state(manager,
-			invocation,
-			NET_NFC_OK,
+	net_nfc_gdbus_manager_complete_get_server_state(manager, invocation, NET_NFC_OK,
 			state);
+
 	return TRUE;
 }
 
 /* server side */
 static void manager_active_thread_func(gpointer user_data)
 {
-	ManagerActivationData *data =
-		(ManagerActivationData *)user_data;
 	net_nfc_error_e ret;
+	ManagerActivationData *data = user_data;
 
 	g_assert(data != NULL);
 
@@ -294,10 +264,10 @@ static void manager_active_thread_func(gpointer user_data)
 		ret = manager_active();
 	else
 		ret = manager_deactive();
-	if (ret == NET_NFC_OK)
+
+	if (NET_NFC_OK == ret)
 	{
-		NFC_INFO("nfc %s",
-				data->is_active ? "activated" : "deactivated");
+		NFC_INFO("nfc %s", data->is_active ? "activated" : "deactivated");
 
 		net_nfc_gdbus_manager_emit_activated(data->manager, data->is_active);
 	}
@@ -311,6 +281,7 @@ static void manager_active_thread_func(gpointer user_data)
 
 gboolean net_nfc_server_manager_init(GDBusConnection *connection)
 {
+	gboolean ret;
 	GError *error = NULL;
 
 	if (manager_skeleton)
@@ -318,21 +289,19 @@ gboolean net_nfc_server_manager_init(GDBusConnection *connection)
 
 	manager_skeleton = net_nfc_gdbus_manager_skeleton_new();
 
-	g_signal_connect(manager_skeleton,
-			"handle-set-active",
-			G_CALLBACK(manager_handle_set_active),
-			NULL);
+	g_signal_connect(manager_skeleton, "handle-set-active",
+			G_CALLBACK(manager_handle_set_active), NULL);
 
-	g_signal_connect(manager_skeleton,
-			"handle-get-server-state",
-			G_CALLBACK(manager_handle_get_server_state),
-			NULL);
+	g_signal_connect(manager_skeleton, "handle-get-server-state",
+			G_CALLBACK(manager_handle_get_server_state), NULL);
 
-	if (g_dbus_interface_skeleton_export(
+	ret = g_dbus_interface_skeleton_export(
 				G_DBUS_INTERFACE_SKELETON(manager_skeleton),
 				connection,
 				"/org/tizen/NetNfcService/Manager",
-				&error) == FALSE)
+				&error);
+
+	if (FALSE == ret)
 	{
 		NFC_ERR("Can not skeleton_export %s", error->message);
 
@@ -357,9 +326,10 @@ void net_nfc_server_manager_deinit(void)
 
 void net_nfc_server_manager_set_active(gboolean is_active)
 {
+	bool ret;
 	ManagerActivationData *data;
 
-	if (manager_skeleton == NULL)
+	if (NULL == manager_skeleton)
 	{
 		NFC_ERR("net_nfc_server_manager is not initialized");
 
@@ -369,7 +339,7 @@ void net_nfc_server_manager_set_active(gboolean is_active)
 	NFC_DBG("is_active %d", is_active);
 
 	data = g_try_new0(ManagerActivationData, 1);
-	if (data == NULL)
+	if (NULL == data)
 	{
 		NFC_ERR("Memory allocation failed");
 
@@ -379,9 +349,8 @@ void net_nfc_server_manager_set_active(gboolean is_active)
 	data->manager = g_object_ref(manager_skeleton);
 	data->is_active = is_active;
 
-	if (net_nfc_server_controller_async_queue_push(
-				manager_active_thread_func,
-				data) == FALSE)
+	ret = net_nfc_server_controller_async_queue_push(manager_active_thread_func, data);
+	if (FALSE == ret)
 	{
 		NFC_ERR("can not push to controller thread");
 
