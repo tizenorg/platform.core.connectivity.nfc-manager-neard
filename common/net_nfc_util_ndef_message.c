@@ -26,21 +26,19 @@ static net_nfc_error_e __net_nfc_repair_record_flags(ndef_message_s *ndef_messag
 net_nfc_error_e net_nfc_util_convert_rawdata_to_ndef_message(
 		data_s *rawdata, ndef_message_s *ndef)
 {
+	uint8_t *last = NULL;
+	uint8_t *current = NULL;
+	uint8_t ndef_header = 0;
 	ndef_record_s *newRec = NULL;
 	ndef_record_s *prevRec = NULL;
-	uint8_t *current = NULL;
-	uint8_t *last = NULL;
-	uint8_t ndef_header = 0;
 	net_nfc_error_e	result = NET_NFC_OK;
 
-	if (rawdata == NULL || ndef == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == ndef, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == rawdata, NET_NFC_NULL_PARAMETER);
+	RETV_IF(rawdata->length < 3, NET_NFC_INVALID_FORMAT);
 
 	current = rawdata->buffer;
 	last = current + rawdata->length;
-
-	if(rawdata->length < 3)
-		return NET_NFC_INVALID_FORMAT;
 
 	for(ndef->recordCount = 0; current < last; ndef->recordCount++)
 	{
@@ -58,7 +56,7 @@ net_nfc_error_e net_nfc_util_convert_rawdata_to_ndef_message(
 		}
 
 		_net_nfc_util_alloc_mem(newRec, sizeof(ndef_record_s));
-		if (newRec == NULL)
+		if (NULL == newRec)
 		{
 			result = NET_NFC_ALLOC_FAIL;
 			goto error;
@@ -66,25 +64,19 @@ net_nfc_error_e net_nfc_util_convert_rawdata_to_ndef_message(
 
 		/* ndef header set */
 		if (ndef_header & NET_NFC_NDEF_RECORD_MASK_MB)
-		{
 			newRec->MB = 1;
-		}
+
 		if (ndef_header & NET_NFC_NDEF_RECORD_MASK_ME)
-		{
 			newRec->ME = 1;
-		}
+
 		if (ndef_header & NET_NFC_NDEF_RECORD_MASK_CF)
-		{
 			newRec->CF = 1;
-		}
+
 		if (ndef_header & NET_NFC_NDEF_RECORD_MASK_SR)
-		{
 			newRec->SR = 1;
-		}
+
 		if (ndef_header & NET_NFC_NDEF_RECORD_MASK_IL)
-		{
 			newRec->IL = 1;
-		}
 
 		newRec->TNF = ndef_header & NET_NFC_NDEF_RECORD_MASK_TNF;
 
@@ -112,21 +104,17 @@ net_nfc_error_e net_nfc_util_convert_rawdata_to_ndef_message(
 
 		/* ID length check */
 		if(ndef_header & NET_NFC_NDEF_RECORD_MASK_IL)
-		{
 			newRec->id_s.length = *current++;
-		}
 		else
-		{
 			newRec->id_s.length = 0;
-		}
 
 		/* to do : chunked record */
-
 
 		/* empty record check */
 		if((ndef_header & NET_NFC_NDEF_RECORD_MASK_TNF) == NET_NFC_NDEF_TNF_EMPTY)
 		{
-			if(newRec->type_s.length != 0 || newRec->id_s.length != 0 || newRec->payload_s.length != 0)
+			if(newRec->type_s.length != 0 || newRec->id_s.length != 0
+				|| newRec->payload_s.length != 0)
 			{
 				result = NET_NFC_INVALID_FORMAT;
 				goto error;
@@ -146,7 +134,7 @@ net_nfc_error_e net_nfc_util_convert_rawdata_to_ndef_message(
 		if(newRec->type_s.length > 0)
 		{
 			_net_nfc_util_alloc_mem(newRec->type_s.buffer, newRec->type_s.length);
-			if (newRec->type_s.buffer == NULL)
+			if (NULL == newRec->type_s.buffer)
 			{
 				result = NET_NFC_ALLOC_FAIL;
 				goto error;
@@ -164,7 +152,7 @@ net_nfc_error_e net_nfc_util_convert_rawdata_to_ndef_message(
 		if(newRec->id_s.length > 0)
 		{
 			_net_nfc_util_alloc_mem(newRec->id_s.buffer, newRec->id_s.length);
-			if (newRec->id_s.buffer == NULL)
+			if (NULL == newRec->id_s.buffer)
 			{
 				result = NET_NFC_ALLOC_FAIL;
 				goto error;

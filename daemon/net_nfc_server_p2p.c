@@ -37,23 +37,13 @@ struct _P2pSendData
 	data_s data;
 };
 
-static void p2p_send_data_thread_func(gpointer user_data);
-
-static gboolean p2p_handle_send(NetNfcGDbusP2p *p2p,
-		GDBusMethodInvocation *invocation,
-		gint32 arg_type,
-		GVariant *arg_data,
-		guint32 handle,
-		GVariant *smack_privilege,
-		gpointer user_data);
-
 static NetNfcGDbusP2p *p2p_skeleton = NULL;
 
 static void p2p_send_data_thread_func(gpointer user_data)
 {
-	P2pSendData *p2p_data = (P2pSendData *)user_data;
 	net_nfc_error_e result;
 	net_nfc_target_handle_s *handle;
+	P2pSendData *p2p_data = user_data;
 
 	g_assert(p2p_data != NULL);
 	g_assert(p2p_data->p2p != NULL);
@@ -65,9 +55,7 @@ static void p2p_send_data_thread_func(gpointer user_data)
 			&p2p_data->data, -1, p2p_data);
 	if (result != NET_NFC_OK)
 	{
-		net_nfc_gdbus_p2p_complete_send(p2p_data->p2p,
-				p2p_data->invocation,
-				(gint)result);
+		net_nfc_gdbus_p2p_complete_send(p2p_data->p2p, p2p_data->invocation, (gint)result);
 
 		net_nfc_util_free_data(&p2p_data->data);
 
@@ -86,29 +74,28 @@ static gboolean p2p_handle_send(NetNfcGDbusP2p *p2p,
 		GVariant *smack_privilege,
 		gpointer user_data)
 {
+	bool ret;
 	gboolean result;
 	P2pSendData *data;
 
-	NFC_INFO(">>> REQUEST from [%s]",
-			g_dbus_method_invocation_get_sender(invocation));
+	NFC_INFO(">>> REQUEST from [%s]", g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-				smack_privilege,
-				"nfc-manager::p2p",
-				"w") == false) {
+	ret = net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
+				"nfc-manager::p2p", "w");
+	if (false == ret)
+	{
 		NFC_ERR("permission denied, and finished request");
 
 		return FALSE;
 	}
 
 	data = g_new0(P2pSendData, 1);
-	if(data == NULL)
+	if(NULL == data)
 	{
 		NFC_ERR("Memory allocation failed");
 		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.AllocationError",
-				"Can not allocate memory");
+				"org.tizen.NetNfcService.AllocationError", "Can not allocate memory");
 
 		return FALSE;
 	}
@@ -119,9 +106,9 @@ static gboolean p2p_handle_send(NetNfcGDbusP2p *p2p,
 	data->p2p_handle = handle;
 	net_nfc_util_gdbus_variant_to_data_s(arg_data, &data->data);
 
-	result = net_nfc_server_controller_async_queue_push(
-			p2p_send_data_thread_func, data);
-	if (result == FALSE)
+	result = net_nfc_server_controller_async_queue_push(p2p_send_data_thread_func, data);
+
+	if (FALSE == result)
 	{
 		g_dbus_method_invocation_return_dbus_error(invocation,
 				"org.tizen.NetNfcService.P2p.ThreadError",
@@ -149,17 +136,11 @@ gboolean net_nfc_server_p2p_init(GDBusConnection *connection)
 
 	p2p_skeleton = net_nfc_gdbus_p2p_skeleton_new();
 
-	g_signal_connect(p2p_skeleton,
-			"handle-send",
-			G_CALLBACK(p2p_handle_send),
-			NULL);
+	g_signal_connect(p2p_skeleton, "handle-send", G_CALLBACK(p2p_handle_send), NULL);
 
-	result = g_dbus_interface_skeleton_export(
-			G_DBUS_INTERFACE_SKELETON(p2p_skeleton),
-			connection,
-			"/org/tizen/NetNfcService/P2p",
-			&error);
-	if (result == FALSE)
+	result = g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(p2p_skeleton),
+			connection, "/org/tizen/NetNfcService/P2p", &error);
+	if (FALSE == result)
 	{
 		g_error_free(error);
 
@@ -186,31 +167,28 @@ void net_nfc_server_p2p_detached(void)
 	net_nfc_server_free_target_info();
 
 	if (p2p_skeleton != NULL)
-	{
 		net_nfc_gdbus_p2p_emit_detached(p2p_skeleton);
-	}
 }
 
 void net_nfc_server_p2p_discovered(net_nfc_target_handle_s *handle)
 {
 	NFC_INFO("====== p2p target discovered ======");
 
-	if (p2p_skeleton == NULL)
+	if (NULL == p2p_skeleton)
 	{
 		NFC_ERR("p2p_skeleton is not initialized");
 
 		return;
 	}
 
-	net_nfc_gdbus_p2p_emit_discovered(p2p_skeleton,
-			GPOINTER_TO_UINT(handle));
+	net_nfc_gdbus_p2p_emit_discovered(p2p_skeleton, GPOINTER_TO_UINT(handle));
 }
 
 void net_nfc_server_p2p_received(data_s *user_data)
 {
 	GVariant *arg_data;
 
-	if (p2p_skeleton == NULL)
+	if (NULL == p2p_skeleton)
 	{
 		NFC_ERR("p2p_skeleton is not initialized");
 
@@ -222,18 +200,15 @@ void net_nfc_server_p2p_received(data_s *user_data)
 	net_nfc_gdbus_p2p_emit_received(p2p_skeleton, arg_data);
 }
 
-void net_nfc_server_p2p_data_sent(net_nfc_error_e result,
-		gpointer user_data)
+void net_nfc_server_p2p_data_sent(net_nfc_error_e result, gpointer user_data)
 {
-	P2pSendData *data = (P2pSendData *)user_data;
+	P2pSendData *data = user_data;
 
 	g_assert(data != NULL);
 	g_assert(data->p2p != NULL);
 	g_assert(data->invocation != NULL);
 
-	net_nfc_gdbus_p2p_complete_send(data->p2p,
-			data->invocation,
-			(gint)result);
+	net_nfc_gdbus_p2p_complete_send(data->p2p, data->invocation, (gint)result);
 
 	net_nfc_util_free_data(&data->data);
 

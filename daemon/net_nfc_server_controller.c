@@ -36,32 +36,33 @@
 
 static net_nfc_oem_interface_s g_interface;
 
-static void *net_nfc_controller_load_file(const char *dir_path,
-		const char *filename)
+static void *net_nfc_controller_load_file(const char *dir_path, const char *filename)
 {
-	void *handle = NULL;
-	char path[PATH_MAX] = { '\0' };
 	struct stat st;
-
+	void *handle = NULL;
 	net_nfc_error_e result;
+	char path[PATH_MAX] = { '\0' };
 
 	bool (*onload)(net_nfc_oem_interface_s *interfaces);
 
 	snprintf(path, PATH_MAX, "%s/%s", dir_path, filename);
 	NFC_DBG("path : %s", path);
 
-	if (stat(path, &st) == -1) {
+	if (stat(path, &st) == -1)
+	{
 		NFC_ERR("stat failed : file not found");
 		goto ERROR;
 	}
 
-	if (S_ISREG(st.st_mode) == 0) {
+	if (S_ISREG(st.st_mode) == 0)
+	{
 		NFC_ERR("S_ISREG(st.st_mode) == 0");
 		goto ERROR;
 	}
 
 	handle = dlopen(path, RTLD_LAZY);
-	if (handle == NULL) {
+	if (NULL == handle)
+	{
 		char buffer[1024];
 		NFC_ERR("dlopen failed, [%d] : %s",
 				errno, strerror_r(errno, buffer, sizeof(buffer)));
@@ -69,7 +70,8 @@ static void *net_nfc_controller_load_file(const char *dir_path,
 	}
 
 	onload = dlsym(handle, "onload");
-	if (onload == NULL) {
+	if (NULL == onload)
+	{
 		char buffer[1024];
 		NFC_ERR("dlsym failed, [%d] : %s",
 				errno, strerror_r(errno, buffer, sizeof(buffer)));
@@ -77,23 +79,23 @@ static void *net_nfc_controller_load_file(const char *dir_path,
 	}
 
 	memset(&g_interface, 0, sizeof(g_interface));
-	if (onload(&g_interface) == false) {
+	if (onload(&g_interface) == false)
+	{
 		NFC_ERR("onload failed");
 		goto ERROR;
 	}
 
-	if (net_nfc_controller_support_nfc(&result) == false) {
-		NFC_ERR("net_nfc_controller_support_nfc failed, [%d]",
-				result);
+	if (net_nfc_controller_support_nfc(&result) == false)
+	{
+		NFC_ERR("net_nfc_controller_support_nfc failed, [%d]", result);
 		goto ERROR;
 	}
 
 	return handle;
 
 ERROR :
-	if (handle != NULL) {
+	if (handle != NULL)
 		dlclose(handle);
-	}
 
 	return NULL;
 }
@@ -106,7 +108,7 @@ void *net_nfc_controller_onload()
 	void *handle = NULL;
 
 	dirp = opendir(NFC_MANAGER_MODULEDIR);
-	if (dirp == NULL)
+	if (NULL == dirp)
 	{
 		NFC_ERR("Can not open directory %s", NFC_MANAGER_MODULEDIR);
 		return NULL;
@@ -114,11 +116,8 @@ void *net_nfc_controller_onload()
 
 	while ((dir = readdir(dirp)))
 	{
-		if ((strcmp(dir->d_name, ".") == 0) ||
-				(strcmp(dir->d_name, "..") == 0))
-		{
+		if ((strcmp(dir->d_name, ".") == 0) || (strcmp(dir->d_name, "..") == 0))
 			continue;
-		}
 
 		/* check ".so" suffix */
 		if (strcmp(dir->d_name + (strlen(dir->d_name) - strlen(".so")), ".so") != 0)
@@ -140,8 +139,7 @@ void *net_nfc_controller_onload()
 	closedir(dirp);
 
 	/* load default plugin */
-	handle = net_nfc_controller_load_file(NFC_MANAGER_MODULEDIR,
-			NET_NFC_DEFAULT_PLUGIN);
+	handle = net_nfc_controller_load_file(NFC_MANAGER_MODULEDIR, NET_NFC_DEFAULT_PLUGIN);
 
 	if (handle)
 	{
@@ -648,16 +646,15 @@ static gint _compare_socket_info(gconstpointer a, gconstpointer b)
 
 static socket_info_t* _get_socket_info(net_nfc_llcp_socket_t socket)
 {
-	socket_info_t *result;
 	GSList *item;
+	socket_info_t *result;
 
 	item = g_slist_find_custom(llcp_sockets, GUINT_TO_POINTER(socket),
 			_compare_socket_info);
-	if (item != NULL) {
+	if (item != NULL)
 		result = (socket_info_t *)item->data;
-	} else {
+	else
 		result = NULL;
-	}
 
 	return result;
 }
@@ -667,7 +664,8 @@ static socket_info_t* _add_socket_info(net_nfc_llcp_socket_t socket)
 	socket_info_t *result;
 
 	_net_nfc_util_alloc_mem(result, sizeof(socket_info_t));
-	if (result != NULL) {
+	if (result != NULL)
+	{
 		result->socket = socket;
 
 		llcp_sockets = g_slist_append(llcp_sockets, result);
@@ -682,7 +680,8 @@ static void _remove_socket_info(net_nfc_llcp_socket_t socket)
 
 	item = g_slist_find_custom(llcp_sockets, GUINT_TO_POINTER(socket),
 			_compare_socket_info);
-	if (item != NULL) {
+	if (item != NULL)
+	{
 		llcp_sockets = g_slist_remove_link(llcp_sockets, item);
 		free(item->data);
 	}
@@ -694,10 +693,10 @@ void net_nfc_controller_llcp_socket_error_cb(net_nfc_llcp_socket_t socket,
 	socket_info_t *info;
 
 	info = _get_socket_info(socket);
-	if (info != NULL) {
-		if (info->err_cb != NULL) {
+	if (info != NULL)
+	{
+		if (info->err_cb != NULL)
 			info->err_cb(socket, result, NULL, NULL, info->err_param);
-		}
 
 		_remove_socket_info(socket);
 	}
@@ -717,18 +716,22 @@ bool net_nfc_controller_llcp_create_socket(net_nfc_llcp_socket_t *socket,
 		socket_info_t *info;
 
 		info = _add_socket_info(-1);
-		if (info == NULL) {
+		if (NULL == info)
+		{
 			NFC_ERR("_net_nfc_util_alloc_mem failed");
 			*result = NET_NFC_ALLOC_FAIL;
 			return false;
 		}
 
 		ret = g_interface.create_llcp_socket(socket, socketType, miu, rw, result, NULL);
-		if (ret == true) {
+		if (true == ret)
+		{
 			info->socket = *socket;
 			info->err_cb = cb;
 			info->err_param = user_param;
-		} else {
+		}
+		else
+		{
 			_remove_socket_info(-1);
 		}
 
@@ -763,12 +766,15 @@ void net_nfc_controller_llcp_incoming_cb(net_nfc_llcp_socket_t socket,
 	socket_info_t *info = (socket_info_t *)user_param;
 
 	info = _get_socket_info(info->socket);
-	if (info != NULL) {
-		if (_add_socket_info(socket) != NULL) {
-			if (info->work_cb != NULL) {
+	if (info != NULL)
+	{
+		if (_add_socket_info(socket) != NULL)
+		{
+			if (info->work_cb != NULL)
 				info->work_cb(socket, result, NULL, NULL, info->work_param);
-			}
-		} else {
+		}
+		else
+		{
 			NFC_ERR("_net_nfc_util_alloc_mem failed");
 		}
 	}
@@ -786,7 +792,8 @@ bool net_nfc_controller_llcp_listen(net_nfc_target_handle_s* handle,
 		socket_info_t *info;
 
 		info = _get_socket_info(socket);
-		if (info == NULL) {
+		if (NULL == info)
+		{
 			NFC_ERR("_get_socket_info failed");
 			*result = NET_NFC_INVALID_HANDLE;
 			return false;
@@ -814,7 +821,8 @@ bool net_nfc_controller_llcp_accept(net_nfc_llcp_socket_t socket,
 		socket_info_t *info;
 
 		info = _get_socket_info(socket);
-		if (info == NULL) {
+		if (NULL == info)
+		{
 			NFC_ERR("_get_socket_info failed");
 			*result = NET_NFC_INVALID_HANDLE;
 			return false;
@@ -841,9 +849,8 @@ bool net_nfc_controller_llcp_reject(net_nfc_target_handle_s *handle,
 		bool ret;
 
 		ret = g_interface.reject_llcp(handle, socket, result);
-		if (ret == true) {
+		if (true == ret)
 			_remove_socket_info(socket);
-		}
 
 		return ret;
 	}
@@ -860,12 +867,10 @@ void net_nfc_controller_llcp_connected_cb(net_nfc_llcp_socket_t socket,
 {
 	net_nfc_llcp_param_t *param = (net_nfc_llcp_param_t *)user_param;
 
-	if (param == NULL)
-		return;
+	RET_IF(NULL == param);
 
-	if (param->cb != NULL) {
+	if (param->cb != NULL)
 		param->cb(param->socket, result, NULL, NULL, param->user_param);
-	}
 
 	_net_nfc_util_free_mem(param);
 }
@@ -888,7 +893,8 @@ bool net_nfc_controller_llcp_connect_by_url(net_nfc_target_handle_s *handle,
 		net_nfc_llcp_param_t *param = NULL;
 
 		_net_nfc_util_alloc_mem(param, sizeof(*param));
-		if (param == NULL) {
+		if (NULL == param)
+		{
 			NFC_ERR("_net_nfc_util_alloc_mem failed");
 			*result = NET_NFC_ALLOC_FAIL;
 			return false;
@@ -952,12 +958,10 @@ void net_nfc_controller_llcp_disconnected_cb(net_nfc_llcp_socket_t socket,
 {
 	net_nfc_llcp_param_t *param = (net_nfc_llcp_param_t *)user_param;
 
-	if (param == NULL)
-		return;
+	RET_IF(NULL == param);
 
-	if (param->cb != NULL) {
+	if (param->cb != NULL)
 		param->cb(param->socket, result, NULL, NULL, param->user_param);
-	}
 
 	_net_nfc_util_free_mem(param);
 }
@@ -979,7 +983,8 @@ bool net_nfc_controller_llcp_disconnect(net_nfc_target_handle_s *handle,
 		net_nfc_llcp_param_t *param = NULL;
 
 		_net_nfc_util_alloc_mem(param, sizeof(net_nfc_llcp_param_t));
-		if (param == NULL) {
+		if (NULL == param)
+		{
 			NFC_ERR("_net_nfc_util_alloc_mem failed");
 			*result = NET_NFC_ALLOC_FAIL;
 			return false;
@@ -1019,16 +1024,14 @@ void net_nfc_controller_llcp_received_cb(net_nfc_llcp_socket_t socket,
 {
 	net_nfc_llcp_param_t *param = (net_nfc_llcp_param_t *)user_param;
 
-	if (param == NULL)
-		return;
+	RET_IF(NULL == param);
 
-	if (param->cb != NULL) {
+	if (param->cb != NULL)
 		param->cb(param->socket, result, &param->data, data, param->user_param);
-	}
 
-	if (param->data.buffer != NULL) {
+	if (param->data.buffer != NULL)
 		_net_nfc_util_free_mem(param->data.buffer);
-	}
+
 	_net_nfc_util_free_mem(param);
 }
 
@@ -1044,7 +1047,8 @@ bool net_nfc_controller_llcp_recv(net_nfc_target_handle_s *handle,
 		net_nfc_llcp_param_t *param = NULL;
 
 		_net_nfc_util_alloc_mem(param, sizeof(*param));
-		if (param == NULL) {
+		if (NULL == param)
+		{
 			NFC_ERR("_net_nfc_util_alloc_mem failed");
 			*result = NET_NFC_ALLOC_FAIL;
 			return false;
@@ -1052,9 +1056,11 @@ bool net_nfc_controller_llcp_recv(net_nfc_target_handle_s *handle,
 
 		param->socket = socket;
 		param->cb = cb;
-		if (max_len > 0) {
+		if (max_len > 0)
+		{
 			_net_nfc_util_alloc_mem(param->data.buffer, max_len);
-			if (param->data.buffer == NULL) {
+			if (param->data.buffer == NULL)
+			{
 				NFC_ERR("_net_nfc_util_alloc_mem failed");
 				_net_nfc_util_free_mem(param);
 				*result = NET_NFC_ALLOC_FAIL;
@@ -1079,12 +1085,10 @@ void net_nfc_controller_llcp_sent_cb(net_nfc_llcp_socket_t socket,
 {
 	net_nfc_llcp_param_t *param = (net_nfc_llcp_param_t *)user_param;
 
-	if (param == NULL)
-		return;
+	RET_IF(NULL == param);
 
-	if (param->cb != NULL) {
+	if (param->cb != NULL)
 		param->cb(param->socket, result, NULL, NULL, param->user_param);
-	}
 
 	_net_nfc_util_free_mem(param);
 }
@@ -1101,7 +1105,8 @@ bool net_nfc_controller_llcp_send(net_nfc_target_handle_s *handle,
 		net_nfc_llcp_param_t *param = NULL;
 
 		_net_nfc_util_alloc_mem(param, sizeof(*param));
-		if (param == NULL) {
+		if (NULL == param)
+		{
 			NFC_ERR("_net_nfc_util_alloc_mem failed");
 			*result = NET_NFC_ALLOC_FAIL;
 			return false;
@@ -1132,7 +1137,8 @@ bool net_nfc_controller_llcp_recv_from(net_nfc_target_handle_s *handle,
 		net_nfc_llcp_param_t *param = NULL;
 
 		_net_nfc_util_alloc_mem(param, sizeof(*param));
-		if (param == NULL) {
+		if (NULL == param)
+		{
 			NFC_ERR("_net_nfc_util_alloc_mem failed");
 			*result = NET_NFC_ALLOC_FAIL;
 			return false;
@@ -1140,9 +1146,11 @@ bool net_nfc_controller_llcp_recv_from(net_nfc_target_handle_s *handle,
 
 		param->socket = socket;
 		param->cb = cb;
-		if (max_len > 0) {
+		if (max_len > 0)
+		{
 			_net_nfc_util_alloc_mem(param->data.buffer, max_len);
-			if (param->data.buffer == NULL) {
+			if (NULL == param->data.buffer)
+			{
 				NFC_ERR("_net_nfc_util_alloc_mem failed");
 				_net_nfc_util_free_mem(param);
 				*result = NET_NFC_ALLOC_FAIL;
@@ -1174,7 +1182,8 @@ bool net_nfc_controller_llcp_send_to(net_nfc_target_handle_s *handle,
 		net_nfc_llcp_param_t *param = NULL;
 
 		_net_nfc_util_alloc_mem(param, sizeof(*param));
-		if (param == NULL) {
+		if (NULL == param)
+		{
 			NFC_ERR("_net_nfc_util_alloc_mem failed");
 			*result = NET_NFC_ALLOC_FAIL;
 			return false;

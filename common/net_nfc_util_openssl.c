@@ -44,7 +44,8 @@
 //	return x509;
 //}
 
-static X509 *_load_certificate_from_mem(int format, uint8_t *buffer, uint32_t length, char *password)
+static X509 *_load_certificate_from_mem(int format, uint8_t *buffer,
+	uint32_t length, char *password)
 {
 	X509 *x509 = NULL;
 	BIO *mem = NULL;
@@ -138,13 +139,9 @@ net_nfc_openssl_verify_context_s *net_nfc_util_openssl_init_verify_certificate(v
 	{
 		result->store = X509_STORE_new();
 		if (result->store != NULL)
-		{
 			OpenSSL_add_all_algorithms();
-		}
 		else
-		{
 			NFC_ERR("X509_STORE_new failed");
-		}
 	}
 	else
 	{
@@ -154,7 +151,8 @@ net_nfc_openssl_verify_context_s *net_nfc_util_openssl_init_verify_certificate(v
 	return result;
 }
 
-void net_nfc_util_openssl_release_verify_certificate(net_nfc_openssl_verify_context_s *context)
+void net_nfc_util_openssl_release_verify_certificate(
+	net_nfc_openssl_verify_context_s *context)
 {
 	if (context != NULL)
 	{
@@ -168,7 +166,8 @@ void net_nfc_util_openssl_release_verify_certificate(net_nfc_openssl_verify_cont
 	}
 }
 
-bool net_nfc_util_openssl_add_certificate_of_signer(net_nfc_openssl_verify_context_s *context, uint8_t *buffer, uint32_t length)
+bool net_nfc_util_openssl_add_certificate_of_signer(
+	net_nfc_openssl_verify_context_s *context, uint8_t *buffer, uint32_t length)
 {
 	bool result = false;
 
@@ -185,24 +184,24 @@ bool net_nfc_util_openssl_add_certificate_of_signer(net_nfc_openssl_verify_conte
 	return result;
 }
 
-bool net_nfc_util_openssl_add_certificate_of_ca(net_nfc_openssl_verify_context_s *context, uint8_t *buffer, uint32_t length)
+bool net_nfc_util_openssl_add_certificate_of_ca(
+	net_nfc_openssl_verify_context_s *context, uint8_t *buffer, uint32_t length)
 {
-	bool result = false;
 	X509 *x509 = NULL;
+	bool result = false;
 
 	x509 = _load_certificate_from_mem(1, buffer, length, NULL);
 	if (x509 != NULL)
 	{
 		if (X509_STORE_add_cert(context->store, x509))
-		{
 			result = true;
-		}
 	}
 
 	return result;
 }
 
-int net_nfc_util_openssl_verify_certificate(net_nfc_openssl_verify_context_s *context)
+int net_nfc_util_openssl_verify_certificate(
+	net_nfc_openssl_verify_context_s *context)
 {
 	int result = 0;
 	X509_STORE_CTX *store_ctx = NULL;
@@ -212,13 +211,9 @@ int net_nfc_util_openssl_verify_certificate(net_nfc_openssl_verify_context_s *co
 	{
 		X509_STORE_set_flags(context->store, 0);
 		if (X509_STORE_CTX_init(store_ctx, context->store, context->signer_cert, 0) == true)
-		{
 			result = X509_verify_cert(store_ctx);
-		}
 		else
-		{
 			NFC_ERR("X509_STORE_CTX_init failed");
-		}
 
 		X509_STORE_CTX_free(store_ctx);
 	}
@@ -255,13 +250,9 @@ static int _load_pkcs12(BIO *in, const char *password, EVP_PKEY **pkey, X509 **c
 	if ((p12 = d2i_PKCS12_bio(in, NULL)) != NULL)
 	{
 		if (PKCS12_verify_mac(p12, password, strlen(password)) == true)
-		{
 			ret = PKCS12_parse(p12, password, pkey, cert, ca);
-		}
 		else
-		{
 			NFC_ERR("Mac verify error (wrong password?) in PKCS12 file");
-		}
 
 		PKCS12_free(p12);
 	}
@@ -278,21 +269,19 @@ EVP_PKEY *_load_key(const char *file, int format, const char *pass, ENGINE *e)
 	BIO *key = NULL;
 	EVP_PKEY *pkey = NULL;
 
-	if (file == NULL)
+	if (NULL == file)
 	{
 		NFC_ERR("no keyfile specified\n");
 		return pkey;
 	}
 
-	if (format == OPENSSL_FORMAT_ENGINE)
+	if (OPENSSL_FORMAT_ENGINE == format)
 	{
 		if (e != NULL)
 		{
 			pkey = ENGINE_load_private_key(e, file, NULL/*ui_method*/, (void *)pass);
 			if (!pkey)
-			{
 				NFC_ERR("cannot load key from engine");
-			}
 		}
 		else
 		{
@@ -312,14 +301,13 @@ EVP_PKEY *_load_key(const char *file, int format, const char *pass, ENGINE *e)
 					break;
 
 				case OPENSSL_FORMAT_PEM :
-					pkey = PEM_read_bio_PrivateKey(key, NULL, (pem_password_cb *)_password_callback, (void *)pass);
+					pkey = PEM_read_bio_PrivateKey(key, NULL,
+						(pem_password_cb *)_password_callback, (void *)pass);
 					break;
 
 				case OPENSSL_FORMAT_PKCS12 :
 					if (_load_pkcs12(key, pass, &pkey, NULL, NULL) == false)
-					{
 						NFC_ERR("_load_pkcs12 failed");
-					}
 					break;
 
 				case OPENSSL_FORMAT_MSBLOB :
@@ -327,7 +315,8 @@ EVP_PKEY *_load_key(const char *file, int format, const char *pass, ENGINE *e)
 					break;
 
 				case OPENSSL_FORMAT_PVK :
-					pkey = b2i_PVK_bio(key, (pem_password_cb *)_password_callback, (void *)pass);
+					pkey = b2i_PVK_bio(key, (pem_password_cb *)_password_callback,
+						(void *)pass);
 					break;
 
 				default :
@@ -351,27 +340,24 @@ EVP_PKEY *_load_key(const char *file, int format, const char *pass, ENGINE *e)
 	return pkey;
 }
 
-EVP_PKEY *_load_pubkey(const char *file, int format, const char *pass, ENGINE *e, const char *key_descrip)
+EVP_PKEY *_load_pubkey(const char *file, int format,
+	const char *pass, ENGINE *e, const char *key_descrip)
 {
 	BIO *key = NULL;
 	EVP_PKEY *pkey = NULL;
 
-	if (file == NULL)
+	if (NULL == file)
 	{
 		NFC_ERR("no keyfile specified");
 		return pkey;
 	}
 
-	if (format == OPENSSL_FORMAT_ENGINE)
+	if (OPENSSL_FORMAT_ENGINE == format)
 	{
 		if (e != NULL)
-		{
 			pkey = ENGINE_load_public_key(e, file, NULL/*ui_method*/, (void *)pass);
-		}
 		else
-		{
 			NFC_ERR("no engine specified");
-		}
 	}
 	else
 	{
@@ -404,7 +390,8 @@ EVP_PKEY *_load_pubkey(const char *file, int format, const char *pass, ENGINE *e
 				case OPENSSL_FORMAT_PEMRSA :
 					{
 						RSA *rsa;
-						rsa = PEM_read_bio_RSAPublicKey(key, NULL, (pem_password_cb *)_password_callback, (void *)pass);
+						rsa = PEM_read_bio_RSAPublicKey(key, NULL,
+							(pem_password_cb *)_password_callback, (void *)pass);
 						if (rsa)
 						{
 							pkey = EVP_PKEY_new();
@@ -418,7 +405,8 @@ EVP_PKEY *_load_pubkey(const char *file, int format, const char *pass, ENGINE *e
 					break;
 
 				case OPENSSL_FORMAT_PEM :
-					pkey = PEM_read_bio_PUBKEY(key, NULL, (pem_password_cb *)_password_callback, (void *)pass);
+					pkey = PEM_read_bio_PUBKEY(key, NULL,
+						(pem_password_cb *)_password_callback, (void *)pass);
 					break;
 
 				case OPENSSL_FORMAT_MSBLOB :
@@ -446,12 +434,13 @@ EVP_PKEY *_load_pubkey(const char *file, int format, const char *pass, ENGINE *e
 	return pkey;
 }
 
-int net_nfc_util_openssl_sign_buffer(uint32_t type, uint8_t *buffer, uint32_t length, char *key_file, char *password, uint8_t *sign, uint32_t *sign_len)
+int net_nfc_util_openssl_sign_buffer(uint32_t type, uint8_t *buffer,
+	uint32_t length, char *key_file, char *password, uint8_t *sign, uint32_t *sign_len)
 {
+	EVP_PKEY *pkey;
+	ENGINE *engine;
 	int result = 0;
 	const EVP_MD *md = NULL;
-	ENGINE *engine;
-	EVP_PKEY *pkey;
 
 	OpenSSL_add_all_algorithms();
 
@@ -507,12 +496,13 @@ int net_nfc_util_openssl_sign_buffer(uint32_t type, uint8_t *buffer, uint32_t le
 	return result;
 }
 
-int net_nfc_util_openssl_verify_signature(uint32_t type, uint8_t *buffer, uint32_t length, uint8_t *cert, uint32_t cert_len, uint8_t *sign, uint32_t sign_len)
+int net_nfc_util_openssl_verify_signature(uint32_t type, uint8_t *buffer,
+	uint32_t length, uint8_t *cert, uint32_t cert_len, uint8_t *sign, uint32_t sign_len)
 {
-	int result = 0;
-	const EVP_MD *md = NULL;
-	ENGINE *engine;
 	EVP_PKEY *pkey;
+	int result = 0;
+	ENGINE *engine;
+	const EVP_MD *md = NULL;
 
 	OpenSSL_add_all_algorithms();
 
@@ -650,7 +640,8 @@ int net_nfc_util_get_cert_list_from_file(char *file_name, char *password, uint8_
 #endif
 
 /* TODO : DER?? PEM?? */
-int net_nfc_util_get_cert_list_from_file(char *file_name, char *password, uint8_t **buffer, uint32_t *length, uint32_t *cert_count)
+int net_nfc_util_get_cert_list_from_file(char *file_name, char *password,
+	uint8_t **buffer, uint32_t *length, uint32_t *cert_count)
 {
 	int result = 0;
 	BIO *bio = NULL;
@@ -666,13 +657,13 @@ int net_nfc_util_get_cert_list_from_file(char *file_name, char *password, uint8_
 
 			if (_load_pkcs12(bio, password, &pkey, &x509, &ca) != 0)
 			{
-				X509 *temp_x509;
 				int i;
+				int32_t ret = 0;
+				X509 *temp_x509;
+				uint32_t count = 0;
+				uint32_t offset = 0;
 				uint32_t temp_len = 0;
 				uint8_t *temp_buf = NULL;
-				uint32_t offset = 0;
-				uint32_t count = 0;
-				int32_t ret = 0;
 
 				if ((ret = i2d_X509(x509, NULL)) > 0)
 				{
@@ -742,21 +733,20 @@ int net_nfc_util_get_cert_list_from_file(char *file_name, char *password, uint8_
 	return result;
 }
 
-bool net_nfc_util_openssl_encode_base64(const uint8_t *buffer, const uint32_t buf_len, char *result, uint32_t max_len, bool new_line_char)
+bool net_nfc_util_openssl_encode_base64(const uint8_t *buffer,
+	const uint32_t buf_len, char *result, uint32_t max_len, bool new_line_char)
 {
-	bool ret = false;
 	BUF_MEM *bptr;
 	BIO *b64, *bmem;
+	bool ret = false;
 
-	if (buffer == NULL || buf_len == 0)
-	{
-		return ret;
-	}
+	RETV_IF(0 == buf_len, ret);
+	RETV_IF(NULL == buffer, ret);
 
 	b64 = BIO_new(BIO_f_base64());
 	bmem = BIO_new(BIO_s_mem());
 
-	if (new_line_char == false)
+	if (false == new_line_char)
 		BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
 
 	b64 = BIO_push(b64, bmem);
@@ -781,16 +771,15 @@ bool net_nfc_util_openssl_encode_base64(const uint8_t *buffer, const uint32_t bu
 	return ret;
 }
 
-bool net_nfc_util_openssl_decode_base64(const char *buffer, uint8_t *result, uint32_t *out_len, bool new_line_char)
+bool net_nfc_util_openssl_decode_base64(const char *buffer, uint8_t *result,
+	uint32_t *out_len, bool new_line_char)
 {
+	char *temp;
 	bool ret = false;
 	unsigned int length = 0;
-	char *temp;
 
-	if (buffer == NULL || (length = strlen(buffer)) == 0)
-	{
-		return ret;
-	}
+	RETV_IF(NULL == buffer, ret);
+	RETV_IF((length = strlen(buffer)) == 0, ret);
 
 	_net_nfc_util_alloc_mem(temp, length);
 	if (temp != NULL)
@@ -799,7 +788,7 @@ bool net_nfc_util_openssl_decode_base64(const char *buffer, uint8_t *result, uin
 
 		b64 = BIO_new(BIO_f_base64());
 		bmem = BIO_new_mem_buf((void *)buffer, length);
-		if (new_line_char == false)
+		if (false == new_line_char)
 			BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
 		bmem = BIO_push(b64, bmem);
 
@@ -828,16 +817,16 @@ bool net_nfc_util_openssl_decode_base64(const char *buffer, uint8_t *result, uin
 	return ret;
 }
 
-bool net_nfc_util_openssl_digest(const char *algorithm, const uint8_t *buffer, const uint32_t buf_len, uint8_t *result, uint32_t *out_len)
+bool net_nfc_util_openssl_digest(const char *algorithm, const uint8_t *buffer,
+	const uint32_t buf_len, uint8_t *result, uint32_t *out_len)
 {
 	const EVP_MD *md;
-	unsigned char *temp;
 	bool ret = false;
+	unsigned char *temp;
 
-	if (algorithm == NULL || buffer == NULL || buf_len == 0)
-	{
-		return ret;
-	}
+	RETV_IF(0 == buf_len, ret);
+	RETV_IF(buffer == NULL, ret);
+	RETV_IF(algorithm == NULL, ret);
 
 	OpenSSL_add_all_digests();
 
@@ -853,9 +842,8 @@ bool net_nfc_util_openssl_digest(const char *algorithm, const uint8_t *buffer, c
 
 			EVP_DigestInit(&mdCtx, md);
 			if (EVP_DigestUpdate(&mdCtx, buffer, buf_len) != 0)
-			{
 				NFC_ERR("EVP_DigestUpdate failed");
-			}
+
 			EVP_DigestFinal(&mdCtx, temp, &resultLen);
 
 			if (*out_len >= resultLen)

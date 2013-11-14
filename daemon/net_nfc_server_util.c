@@ -48,9 +48,14 @@
 #include "net_nfc_server_se.h"
 #include "net_nfc_server_util.h"
 
-#define NET_NFC_MANAGER_SOUND_PATH_TASK_START	"/usr/share/nfc-manager-daemon/sounds/Operation_sdk.wav"
-#define NET_NFC_MANAGER_SOUND_PATH_TASK_END	"/usr/share/nfc-manager-daemon/sounds/Operation_sdk.wav"
-#define NET_NFC_MANAGER_SOUND_PATH_TASK_ERROR	"/usr/share/nfc-manager-daemon/sounds/Operation_sdk.wav"
+#define NET_NFC_MANAGER_SOUND_PATH_TASK_START \
+		"/usr/share/nfc-manager-daemon/sounds/Operation_sdk.wav"
+
+#define NET_NFC_MANAGER_SOUND_PATH_TASK_END \
+		"/usr/share/nfc-manager-daemon/sounds/Operation_sdk.wav"
+
+#define NET_NFC_MANAGER_SOUND_PATH_TASK_ERROR \
+		"/usr/share/nfc-manager-daemon/sounds/Operation_sdk.wav"
 
 #define OSP_K_COND		"__OSP_COND_NAME__"
 #define OSP_K_COND_TYPE		"nfc"
@@ -117,13 +122,12 @@ static bool _net_nfc_app_util_change_file_owner_permission(FILE *file)
 {
 	char *buffer = NULL;
 	size_t buffer_len = 0;
-	struct passwd pwd = { 0, };
-	struct passwd *pw_inhouse = NULL;
 	struct group grp = { 0, };
+	struct passwd pwd = { 0, };
 	struct group *gr_inhouse = NULL;
+	struct passwd *pw_inhouse = NULL;
 
-	if (file == NULL)
-		return false;
+	RETV_IF(NULL == file, false);
 
 	/* change permission */
 	fchmod(fileno(file), 0777);
@@ -132,12 +136,10 @@ static bool _net_nfc_app_util_change_file_owner_permission(FILE *file)
 	/* get passwd id */
 	buffer_len = sysconf(_SC_GETPW_R_SIZE_MAX);
 	if (buffer_len == -1)
-	{
 		buffer_len = 16384;
-	}
 
 	_net_nfc_util_alloc_mem(buffer, buffer_len);
-	if (buffer == NULL)
+	if (NULL == buffer)
 		return false;
 
 	getpwnam_r("inhouse", &pwd, buffer, buffer_len, &pw_inhouse);
@@ -146,12 +148,10 @@ static bool _net_nfc_app_util_change_file_owner_permission(FILE *file)
 	/* get group id */
 	buffer_len = sysconf(_SC_GETGR_R_SIZE_MAX);
 	if (buffer_len == -1)
-	{
 		buffer_len = 16384;
-	}
 
 	_net_nfc_util_alloc_mem(buffer, buffer_len);
-	if (buffer == NULL)
+	if (NULL == buffer)
 		return false;
 
 	getgrnam_r("inhouse", &grp, buffer, buffer_len, &gr_inhouse);
@@ -160,9 +160,7 @@ static bool _net_nfc_app_util_change_file_owner_permission(FILE *file)
 	if ((pw_inhouse != NULL) && (gr_inhouse != NULL))
 	{
 		if (fchown(fileno(file), pw_inhouse->pw_uid, gr_inhouse->gr_gid) < 0)
-		{
 			NFC_ERR("failed to change owner");
-		}
 	}
 
 	return true;
@@ -171,14 +169,11 @@ static bool _net_nfc_app_util_change_file_owner_permission(FILE *file)
 static net_nfc_error_e net_nfc_app_util_store_ndef_message(data_s *data)
 {
 	int ret;
-	net_nfc_error_e result = NET_NFC_UNKNOWN_ERROR;
-	char file_name[1024] = { 0, };
 	FILE *fp = NULL;
+	char file_name[1024] = { 0, };
+	net_nfc_error_e result = NET_NFC_UNKNOWN_ERROR;
 
-	if (data == NULL)
-	{
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == data, NET_NFC_NULL_PARAMETER);
 
 	/* check and make directory */
 	snprintf(file_name, sizeof(file_name), "%s/%s", NET_NFC_MANAGER_DATA_PATH,
@@ -225,15 +220,15 @@ static net_nfc_error_e net_nfc_app_util_store_ndef_message(data_s *data)
 	return result;
 }
 
-static bool _net_nfc_app_util_get_operation_from_record(ndef_record_s *record, char *operation, size_t length)
+static bool _net_nfc_app_util_get_operation_from_record(
+		ndef_record_s *record, char *operation, size_t length)
 {
 	bool result = false;
 	char *op_text = NULL;
 
-	if (record == NULL || operation == NULL || length == 0)
-	{
-		return result;
-	}
+	RETV_IF(NULL == record, result);
+	RETV_IF(NULL == operation, result);
+	RETV_IF(0 == length, result);
 
 	switch (record->TNF)
 	{
@@ -288,14 +283,14 @@ static void _to_lower(int type, char *str)
 	_to_lower_utf_8(str);
 }
 
-static bool _net_nfc_app_util_get_mime_from_record(ndef_record_s *record, char *mime, size_t length)
+static bool _net_nfc_app_util_get_mime_from_record(
+		ndef_record_s *record, char *mime, size_t length)
 {
 	bool result = false;
 
-	if (record == NULL || mime == NULL || length == 0)
-	{
-		return result;
-	}
+	RETV_IF(NULL == record, result);
+	RETV_IF(NULL == mime, result);
+	RETV_IF(0 == length, result);
 
 	switch (record->TNF)
 	{
@@ -327,9 +322,9 @@ static bool _net_nfc_app_util_get_mime_from_record(ndef_record_s *record, char *
 
 	case NET_NFC_RECORD_MIME_TYPE :
 		{
+			int len = 0;
 			char *token = NULL;
 			char *buffer = NULL;
-			int len = 0;
 
 			if (record->type_s.buffer == NULL || record->type_s.length == 0)
 			{
@@ -339,7 +334,7 @@ static bool _net_nfc_app_util_get_mime_from_record(ndef_record_s *record, char *
 
 			/* get mime type */
 			_net_nfc_util_alloc_mem(buffer, record->type_s.length + 1);
-			if (buffer == NULL)
+			if (NULL == buffer)
 			{
 				NFC_ERR("_net_nfc_manager_util_alloc_mem return NULL");
 				break;
@@ -348,13 +343,9 @@ static bool _net_nfc_app_util_get_mime_from_record(ndef_record_s *record, char *
 
 			token = strchr(buffer, ';');
 			if (token != NULL)
-			{
 				len = MIN(token - buffer, length - 1);
-			}
 			else
-			{
 				len = MIN(strlen(buffer), length - 1);
-			}
 
 			strncpy(mime, buffer, len);
 			mime[len] = '\0';
@@ -387,10 +378,9 @@ static bool _net_nfc_app_util_get_uri_from_record(ndef_record_s *record, char *d
 {
 	bool result = false;
 
-	if (record == NULL || data == NULL || length == 0)
-	{
-		return result;
-	}
+	RETV_IF(NULL == record, result);
+	RETV_IF(NULL == data, result);
+	RETV_IF(0 == length, result);
 
 	switch (record->TNF)
 	{
@@ -467,10 +457,9 @@ static bool _net_nfc_app_util_get_data_from_record(ndef_record_s *record, char *
 {
 	bool result = false;
 
-	if (record == NULL || data == NULL || length == 0)
-	{
-		return result;
-	}
+	RETV_IF(NULL == record, result);
+	RETV_IF(NULL == data, result);
+	RETV_IF(0 == length, result);
 
 	switch (record->TNF)
 	{
@@ -516,21 +505,19 @@ static bool _net_nfc_app_util_get_data_from_record(ndef_record_s *record, char *
 
 net_nfc_error_e net_nfc_app_util_process_ndef(data_s *data)
 {
-	net_nfc_error_e result = NET_NFC_UNKNOWN_ERROR;
-	ndef_message_s *msg = NULL;
-	char operation[2048] = { 0, };
+	int ret = 0;
 	char mime[2048] = { 0, };
 	char text[2048] = { 0, };
+	ndef_message_s *msg = NULL;
+	char operation[2048] = { 0, };
+	net_nfc_error_e result = NET_NFC_UNKNOWN_ERROR;
 #ifdef USE_FULL_URI
 	char uri[2048] = { 0, };
 #endif
-	int ret = 0;
 
-	if (data == NULL || data->buffer == NULL || data->length == 0)
-	{
-		NFC_ERR("net_nfc_app_util_process_ndef NET_NFC_NULL_PARAMETER");
-		return NET_NFC_NULL_PARAMETER;
-	}
+	RETV_IF(NULL == data, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == data->buffer, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == data->length, NET_NFC_NULL_PARAMETER);
 
 	/* create file */
 	if ((result = net_nfc_app_util_store_ndef_message(data)) != NET_NFC_OK)
@@ -560,7 +547,8 @@ net_nfc_error_e net_nfc_app_util_process_ndef(data_s *data)
 		goto ERROR;
 	}
 
-	if (_net_nfc_app_util_get_operation_from_record(msg->records, operation, sizeof(operation)) == FALSE)
+	if (_net_nfc_app_util_get_operation_from_record(msg->records, operation,
+				sizeof(operation)) == FALSE)
 	{
 		NFC_ERR("_net_nfc_app_util_get_operation_from_record failed [%d]", result);
 		result = NET_NFC_UNKNOWN_ERROR;
@@ -613,31 +601,21 @@ static bool net_nfc_app_util_is_dir(const char* path_name)
 	struct stat statbuf = { 0 };
 
 	if (stat(path_name, &statbuf) == -1)
-	{
 		return false;
-	}
 
 	if (S_ISDIR(statbuf.st_mode) != 0)
-	{
 		return true;
-	}
 	else
-	{
 		return false;
-	}
 }
 
 void net_nfc_app_util_clean_storage(char* src_path)
 {
-	struct dirent* ent = NULL;
 	DIR* dir = NULL;
-
 	char path[1024] = { 0 };
+	struct dirent* ent = NULL;
 
-	if ((dir = opendir(src_path)) == NULL)
-	{
-		return;
-	}
+	RET_IF((dir = opendir(src_path)) == NULL);
 
 	while ((ent = readdir(dir)) != NULL)
 	{
@@ -700,7 +678,7 @@ int net_nfc_app_util_appsvc_launch(const char *operation, const char *uri, const
 	bundle *bd = NULL;
 
 	bd = bundle_create();
-	if (bd == NULL)
+	if (NULL == bd)
 		return result;
 
 	if (operation != NULL && strlen(operation) > 0)
@@ -741,8 +719,10 @@ void _binary_to_string(uint8_t *buffer, uint32_t len, char *out_buf, uint32_t ma
 {
 	int current = 0;
 
-	if (buffer == NULL || len == 0 || out_buf == NULL || max_len == 0)
-		return;
+	RET_IF(0 == len);
+	RET_IF(0 == max_len);
+	RET_IF(NULL == buffer);
+	RET_IF(NULL == out_buf);
 
 	while (len > 0 && current < max_len)
 	{
@@ -753,12 +733,13 @@ void _binary_to_string(uint8_t *buffer, uint32_t len, char *out_buf, uint32_t ma
 
 void _string_to_binary(const char *input, uint8_t *output, uint32_t *length)
 {
-	int current = 0;
 	int temp;
+	int current = 0;
 
-	if (input == NULL || *length == 0 || output == NULL)
-		return;
-
+	RET_IF(NULL == input);
+	RET_IF(NULL == length);
+	RET_IF(0 == *length);
+	RET_IF(NULL == output);
 	NFC_DBG("_string_to_binary ");
 
 	/* strlen("nfc://secure/aid/") = 17 */
@@ -773,13 +754,9 @@ void _string_to_binary(const char *input, uint8_t *output, uint32_t *length)
 			temp -= 7;
 
 		if(current % 2)
-		{
 			output[current / 2] += temp;
-		}
 		else
-		{
 			output[current / 2] = temp << 4;
-		}
 
 		current++;
 	}
@@ -787,8 +764,12 @@ void _string_to_binary(const char *input, uint8_t *output, uint32_t *length)
 	*length = current / 2;
 }
 
-int net_nfc_app_util_launch_se_transaction_app(net_nfc_secure_element_type_e se_type,
-		uint8_t *aid, uint32_t aid_len, uint8_t *param, uint32_t param_len)
+int net_nfc_app_util_launch_se_transaction_app(
+		net_nfc_secure_element_type_e se_type,
+		uint8_t *aid,
+		uint32_t aid_len,
+		uint8_t *param,
+		uint32_t param_len)
 {
 	bundle *bd = NULL;
 
@@ -844,8 +825,10 @@ int net_nfc_app_util_encode_base64(uint8_t *buffer, uint32_t buf_len, char *resu
 	BUF_MEM *bptr;
 	BIO *b64, *bmem;
 
-	if (buffer == NULL || buf_len == 0 || result == NULL || max_result == 0)
-		return ret;
+	RETV_IF(NULL == buffer, ret);
+	RETV_IF(0 == buf_len, ret);
+	RETV_IF(NULL == result, ret);
+	RETV_IF(0 == max_result, ret);
 
 	/* base 64 */
 	b64 = BIO_new(BIO_f_base64());
@@ -872,8 +855,11 @@ int net_nfc_app_util_decode_base64(const char *buffer, uint32_t buf_len, uint8_t
 	int ret = -1;
 	char *temp = NULL;
 
-	if (buffer == NULL || buf_len == 0 || result == NULL || res_len == NULL || *res_len == 0)
-		return ret;
+	RETV_IF(NULL == buffer, ret);
+	RETV_IF(0 == buf_len, ret);
+	RETV_IF(NULL == result, ret);
+	RETV_IF(NULL == res_len, ret);
+	RETV_IF(0 == *res_len, ret);
 
 	_net_nfc_util_alloc_mem(temp, buf_len);
 	if (temp != NULL)
@@ -909,8 +895,8 @@ int net_nfc_app_util_decode_base64(const char *buffer, uint32_t buf_len, uint8_t
 
 pid_t net_nfc_app_util_get_focus_app_pid()
 {
-	Ecore_X_Window focus;
 	pid_t pid;
+	Ecore_X_Window focus;
 
 	ecore_x_init(":0");
 
@@ -923,15 +909,15 @@ pid_t net_nfc_app_util_get_focus_app_pid()
 
 bool net_nfc_app_util_check_launch_state()
 {
+	bool result = false;
 	pid_t focus_app_pid;
 	net_nfc_launch_popup_state_e popup_state;
-	bool result = false;
 
 	focus_app_pid = net_nfc_app_util_get_focus_app_pid();
 
 	popup_state = net_nfc_server_gdbus_get_client_popup_state(focus_app_pid);
 
-	if(popup_state == NET_NFC_NO_LAUNCH_APP_SELECT)
+	if(NET_NFC_NO_LAUNCH_APP_SELECT == popup_state)
 		result = true;
 
 	return result;
@@ -942,9 +928,7 @@ static void _play_sound_callback(int id, void *data)
 	NFC_DBG("_play_sound_callback");
 
 	if (WAV_PLAYER_ERROR_NONE != wav_player_stop(id))
-	{
 		NFC_ERR("wav_player_stop failed");
-	}
 }
 
 void net_nfc_manager_util_play_sound(net_nfc_sound_type_e sound_type)
@@ -979,9 +963,7 @@ void net_nfc_manager_util_play_sound(net_nfc_sound_type_e sound_type)
 		if (SVI_SUCCESS == svi_init(&svi_handle))
 		{
 			if (SVI_SUCCESS == svi_play_vib(svi_handle, SVI_VIB_TOUCH_SIP))
-			{
 				NFC_DBG("svi_play_vib success");
-			}
 
 			svi_fini(svi_handle);
 		}
@@ -1008,7 +990,9 @@ void net_nfc_manager_util_play_sound(net_nfc_sound_type_e sound_type)
 
 		if (sound_path != NULL)
 		{
-			if (WAV_PLAYER_ERROR_NONE == wav_player_start(sound_path, SOUND_TYPE_MEDIA, _play_sound_callback, NULL, NULL))
+			if (WAV_PLAYER_ERROR_NONE ==
+				wav_player_start(sound_path, SOUND_TYPE_MEDIA, _play_sound_callback,
+					NULL, NULL))
 			{
 				NFC_DBG("wav_player_start success");
 			}

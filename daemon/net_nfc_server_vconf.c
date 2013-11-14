@@ -43,25 +43,21 @@ static void vconf_set_flight_mode(int boolval)
 	/* set predefined item */
 	result = vconf_set_bool(VCONFKEY_NFC_PREDEFINED_ITEM_STATE, boolval);
 	if (result != 0)
-	{
-		NFC_ERR("can not set to %d: %s",
-				boolval,
-				"VCONKEY_NFC_PREDEFINED_ITEM_STATE");
-	}
+		NFC_ERR("can not set to %d: %s", boolval, "VCONKEY_NFC_PREDEFINED_ITEM_STATE");
 }
 
 static void net_nfc_server_vconf_pm_state_changed(keynode_t *key,
 		void *user_data)
 {
+	gint result;
 	gint state = 0;
 	gint pm_state = 0;
-	gint result;
 
 	result = vconf_get_bool(VCONFKEY_NFC_STATE, &state);
 	if (result != 0)
 		NFC_ERR("can not get %s", "VCONFKEY_NFC_STATE");
 
-	if (state == false)
+	if (false == state)
 	{
 		NFC_DBG("NFC off");
 		return;
@@ -73,36 +69,27 @@ static void net_nfc_server_vconf_pm_state_changed(keynode_t *key,
 
 	NFC_DBG("pm_state : %d", pm_state);
 
-	if (pm_state == VCONFKEY_PM_STATE_NORMAL ||
-			pm_state == VCONFKEY_PM_STATE_LCDOFF)
-	{
+	if (VCONFKEY_PM_STATE_NORMAL == pm_state || VCONFKEY_PM_STATE_LCDOFF == pm_state)
 		net_nfc_server_restart_polling_loop();
-	}
 }
 
 static void net_nfc_server_vconf_flight_mode_changed(keynode_t *key,
 		void *user_data)
 {
-	gint flight_mode = 0;
-	gint nfc_state = 0;
-
 	gint result = 0;
+	gint nfc_state = 0;
+	gint flight_mode = 0;
+
 
 	result = vconf_get_bool(VCONFKEY_TELEPHONY_FLIGHT_MODE, &flight_mode);
 	if (result != 0)
-	{
-		NFC_ERR("Can not get %s",
-				"VCONFKEY_TELEPHONY_FLIGHT_MODE");
-	}
+		NFC_ERR("Can not get VCONFKEY_TELEPHONY_FLIGHT_MODE");
 
 	NFC_DBG("flight mode %d", flight_mode);
 
 	result = vconf_get_bool(VCONFKEY_NFC_STATE, &nfc_state);
 	if (result != 0)
-	{
-		NFC_ERR("Can not get %s",
-				"VCONFKEY_NET_STATE");
-	}
+		NFC_ERR("Can not get VCONFKEY_NET_STATE");
 
 	NFC_DBG("nfc_state %d", nfc_state);
 	NFC_DBG("powerd_off_by_flightmode %d", powered_off_by_flightmode);
@@ -110,7 +97,7 @@ static void net_nfc_server_vconf_flight_mode_changed(keynode_t *key,
 	if (flight_mode) /* turn on flight mode */
 	{
 		/* nfc is already disabled ignore it */
-		if (nfc_state == VCONFKEY_NFC_STATE_OFF)
+		if (VCONFKEY_NFC_STATE_OFF == nfc_state)
 			return;
 
 		NFC_INFO("Turning NFC off");
@@ -123,10 +110,10 @@ static void net_nfc_server_vconf_flight_mode_changed(keynode_t *key,
 	else /* turn off flight mode */
 	{
 		/* nfc is already enabled, ignre it */
-		if (nfc_state == VCONFKEY_NFC_STATE_ON)
+		if (VCONFKEY_NFC_STATE_ON == nfc_state)
 			return;
 
-		if (powered_off_by_flightmode == FALSE)
+		if (FALSE == powered_off_by_flightmode)
 			return;
 
 		NFC_INFO("Turning NFC on");
@@ -141,18 +128,15 @@ static void net_nfc_server_vconf_flight_mode_changed(keynode_t *key,
 void net_nfc_server_vconf_init(void)
 {
 	vconf_notify_key_changed(VCONFKEY_PM_STATE,
-			net_nfc_server_vconf_pm_state_changed,
-			NULL);
+			net_nfc_server_vconf_pm_state_changed, NULL);
 
 	vconf_notify_key_changed(VCONFKEY_TELEPHONY_FLIGHT_MODE,
-			net_nfc_server_vconf_flight_mode_changed,
-			NULL);
+			net_nfc_server_vconf_flight_mode_changed, NULL);
 }
 
 void net_nfc_server_vconf_deinit(void)
 {
-	vconf_ignore_key_changed(VCONFKEY_PM_STATE,
-			net_nfc_server_vconf_pm_state_changed);
+	vconf_ignore_key_changed(VCONFKEY_PM_STATE, net_nfc_server_vconf_pm_state_changed);
 
 	vconf_ignore_key_changed(VCONFKEY_TELEPHONY_FLIGHT_MODE,
 			net_nfc_server_vconf_flight_mode_changed);

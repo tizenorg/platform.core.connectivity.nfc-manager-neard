@@ -29,29 +29,12 @@
 static NetNfcGDbusTransceive *transceive_proxy = NULL;
 
 static GVariant *transceive_data_to_transceive_variant(
-		net_nfc_target_type_e dev_type,
-		data_s *data);
-
-static void transceive_call(GObject *source_object,
-		GAsyncResult *res,
-		gpointer user_data);
-
-static void transceive_data_call(GObject *source_object,
-		GAsyncResult *res,
-		gpointer user_data);
-
-static GVariant *transceive_data_to_transceive_variant(
-		net_nfc_target_type_e devType,
-		data_s *data)
+		net_nfc_target_type_e devType, data_s *data)
 {
-	data_s transceive_info = { NULL, };
 	GVariant *variant;
+	data_s transceive_info = { NULL, };
 
-	if (data == NULL)
-	{
-		NFC_ERR("data is empty");
-		return NULL;
-	}
+	RETV_IF(NULL == data, NULL);
 
 	switch (devType)
 	{
@@ -59,16 +42,11 @@ static GVariant *transceive_data_to_transceive_variant(
 	case NET_NFC_MIFARE_1K_PICC :
 	case NET_NFC_MIFARE_4K_PICC :
 	case NET_NFC_MIFARE_ULTRA_PICC :
-		if (net_nfc_util_alloc_data(&transceive_info,
-					data->length + 2) == true)
+		if (net_nfc_util_alloc_data(&transceive_info, data->length + 2) == true)
 		{
-			memcpy(transceive_info.buffer,
-					data->buffer,
-					data->length);
+			memcpy(transceive_info.buffer, data->buffer, data->length);
 
-			net_nfc_util_compute_CRC(CRC_A,
-					transceive_info.buffer,
-					transceive_info.length);
+			net_nfc_util_compute_CRC(CRC_A, transceive_info.buffer, transceive_info.length);
 		}
 		break;
 
@@ -81,24 +59,16 @@ static GVariant *transceive_data_to_transceive_variant(
 
 		if (net_nfc_util_alloc_data(&transceive_info, 9) == true)
 		{
-			memcpy(transceive_info.buffer,
-					data->buffer,
-					data->length);
+			memcpy(transceive_info.buffer, data->buffer, data->length);
 
-			net_nfc_util_compute_CRC(CRC_B,
-					transceive_info.buffer,
-					transceive_info.length);
+			net_nfc_util_compute_CRC(CRC_B, transceive_info.buffer, transceive_info.length);
 		}
 		break;
 
 	default :
-		if(net_nfc_util_alloc_data(&transceive_info,
-					data->length) == true)
-		{
-			memcpy(transceive_info.buffer,
-					data->buffer,
-					data->length);
-		}
+		if(net_nfc_util_alloc_data(&transceive_info, data->length) == true)
+			memcpy(transceive_info.buffer, data->buffer, data->length);
+
 		break;
 	}
 
@@ -112,19 +82,24 @@ static GVariant *transceive_data_to_transceive_variant(
 static void transceive_data_call(GObject *source_object,
 		GAsyncResult *res, gpointer user_data)
 {
-	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
-	net_nfc_error_e out_result;
-	GVariant *out_data = NULL;
+	gboolean ret;
 	GError *error = NULL;
+	data_s resp = { NULL, };
+	GVariant *out_data = NULL;
+	net_nfc_error_e out_result;
+	nfc_transceive_data_callback callback;
+	NetNfcCallback *func_data = user_data;
 
 	g_assert(user_data != NULL);
 
-	if (net_nfc_gdbus_transceive_call_transceive_data_finish(
+	ret = net_nfc_gdbus_transceive_call_transceive_data_finish(
 				NET_NFC_GDBUS_TRANSCEIVE(source_object),
 				(gint *)&out_result,
 				&out_data,
 				res,
-				&error) == FALSE)
+				&error);
+
+	if (FALSE == ret)
 	{
 		NFC_ERR("Can not finish transceive: %s", error->message);
 		g_error_free(error);
@@ -152,17 +127,21 @@ static void transceive_data_call(GObject *source_object,
 static void transceive_call(GObject *source_object,
 		GAsyncResult *res, gpointer user_data)
 {
-	NetNfcCallback *func_data = (NetNfcCallback *)user_data;
-	net_nfc_error_e out_result;
+	gboolean ret;
 	GError *error = NULL;
+	net_nfc_error_e out_result;
+	nfc_transceive_callback callback;
+	NetNfcCallback *func_data = user_data;
 
 	g_assert(user_data != NULL);
 
-	if (net_nfc_gdbus_transceive_call_transceive_finish(
+	ret = net_nfc_gdbus_transceive_call_transceive_finish(
 				NET_NFC_GDBUS_TRANSCEIVE(source_object),
 				(gint *)&out_result,
 				res,
-				&error) == FALSE)
+				&error);
+
+	if (FALSE == ret)
 	{
 		NFC_ERR("Can not finish transceive: %s", error->message);
 		g_error_free(error);
@@ -170,11 +149,10 @@ static void transceive_call(GObject *source_object,
 		out_result = NET_NFC_IPC_FAIL;
 	}
 
-	if (func_data->callback != NULL)
+	if (func_data->callback)
 	{
-		((nfc_transceive_callback)func_data->callback)(
-			out_result,
-			func_data->user_data);
+		callback = (nfc_transceive_callback)func_data->callback;
+		callback(out_result, func_data->user_data);
 	}
 
 	g_free(func_data);
@@ -183,40 +161,46 @@ static void transceive_call(GObject *source_object,
 API net_nfc_error_e net_nfc_client_transceive(net_nfc_target_handle_s *handle,
 		data_s *rawdata, nfc_transceive_callback callback, void *user_data)
 {
-	net_nfc_target_info_s *target_info;
-	NetNfcCallback *funcdata;
 	GVariant *arg_data;
+	NetNfcCallback *funcdata;
+	net_nfc_target_info_s *target_info;
 
-	if (transceive_proxy == NULL)
+	if (NULL == transceive_proxy)
 	{
 		NFC_ERR("Can not get TransceiveProxy");
 
 		return NET_NFC_NOT_INITIALIZED;
 	}
 
-
-	if (handle == NULL || rawdata == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == rawdata, NET_NFC_NULL_PARAMETER);
 
 	/* prevent executing daemon when nfc is off */
-	if (net_nfc_client_manager_is_activated() == false) {
-		return NET_NFC_INVALID_STATE;
-	}
+	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
 
 	target_info = net_nfc_client_tag_get_client_target_info();
-	if (target_info == NULL || target_info->handle == NULL)
+
+	if (NULL == target_info)
+	{
+		NFC_ERR("target_info is NULL");
 		return NET_NFC_NOT_CONNECTED;
+	}
+
+	if (NULL == target_info->handle)
+	{
+		NFC_ERR("target_info->handle is NULL");
+		return NET_NFC_NOT_CONNECTED;
+	}
 
 	NFC_DBG("send request :: transceive = [%p]", handle);
 
-	arg_data = transceive_data_to_transceive_variant(target_info->devType,
-			rawdata);
-	if (arg_data == NULL) {
+	arg_data = transceive_data_to_transceive_variant(target_info->devType, rawdata);
+	if (NULL == arg_data)
 		return NET_NFC_INVALID_PARAM;
-	}
 
 	funcdata = g_try_new0(NetNfcCallback, 1);
-	if (funcdata == NULL) {
+	if (NULL == funcdata)
+	{
 		g_variant_unref(arg_data);
 
 		return NET_NFC_ALLOC_FAIL;
@@ -240,39 +224,41 @@ API net_nfc_error_e net_nfc_client_transceive(net_nfc_target_handle_s *handle,
 API net_nfc_error_e net_nfc_client_transceive_data(net_nfc_target_handle_s *handle,
 		data_s *rawdata, nfc_transceive_data_callback callback, void *user_data)
 {
-	net_nfc_target_info_s *target_info;
-	NetNfcCallback *funcdata;
 	GVariant *arg_data;
+	NetNfcCallback *funcdata;
+	net_nfc_target_info_s *target_info;
 
-	if (transceive_proxy == NULL)
-	{
-		NFC_ERR("Can not get TransceiveProxy");
+	RETV_IF(NULL == transceive_proxy, NET_NFC_NOT_INITIALIZED);
 
-		return NET_NFC_NOT_INITIALIZED;
-	}
-
-	if (handle == NULL || rawdata == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == rawdata, NET_NFC_NULL_PARAMETER);
 
 	/* prevent executing daemon when nfc is off */
-	if (net_nfc_client_manager_is_activated() == false) {
-		return NET_NFC_INVALID_STATE;
-	}
+	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
 
 	target_info = net_nfc_client_tag_get_client_target_info();
-	if (target_info == NULL || target_info->handle == NULL)
+
+	if (NULL == target_info)
+	{
+		NFC_ERR("target_info is NULL");
 		return NET_NFC_NOT_CONNECTED;
+	}
+
+	if (NULL == target_info->handle)
+	{
+		NFC_ERR("target_info->handle is NULL");
+		return NET_NFC_NOT_CONNECTED;
+	}
 
 	NFC_DBG("send request :: transceive = [%p]", handle);
 
-	arg_data = transceive_data_to_transceive_variant(target_info->devType,
-			rawdata);
-	if (arg_data == NULL) {
+	arg_data = transceive_data_to_transceive_variant(target_info->devType, rawdata);
+	if (NULL == arg_data)
 		return NET_NFC_INVALID_PARAM;
-	}
 
 	funcdata = g_try_new0(NetNfcCallback, 1);
-	if (funcdata == NULL) {
+	if (NULL == funcdata)
+	{
 		g_variant_unref(arg_data);
 
 		return NET_NFC_ALLOC_FAIL;
@@ -296,48 +282,52 @@ API net_nfc_error_e net_nfc_client_transceive_data(net_nfc_target_handle_s *hand
 API net_nfc_error_e net_nfc_client_transceive_sync(net_nfc_target_handle_s *handle,
 		data_s *rawdata)
 {
+	gboolean ret;
+	GVariant *arg_data;
+	GError *error = NULL;
 	net_nfc_target_info_s *target_info;
 	net_nfc_error_e out_result = NET_NFC_OK;
-	GError *error = NULL;
-	GVariant *arg_data;
 
-	if (handle == NULL || rawdata == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == transceive_proxy, NET_NFC_NOT_INITIALIZED);
 
-	if (transceive_proxy == NULL)
-	{
-		NFC_ERR("Can not get TransceiveProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == rawdata, NET_NFC_NULL_PARAMETER);
 
 	/* prevent executing daemon when nfc is off */
-	if (net_nfc_client_manager_is_activated() == false) {
-		return NET_NFC_INVALID_STATE;
-	}
+	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
 
 	target_info = net_nfc_client_tag_get_client_target_info();
-	if (target_info == NULL || target_info->handle == NULL)
+
+	if (NULL == target_info)
+	{
+		NFC_ERR("target_info is NULL");
 		return NET_NFC_NOT_CONNECTED;
+	}
+
+	if (NULL == target_info->handle)
+	{
+		NFC_ERR("target_info->handle is NULL");
+		return NET_NFC_NOT_CONNECTED;
+	}
 
 	NFC_DBG("send request :: transceive = [%p]", handle);
 
-	arg_data = transceive_data_to_transceive_variant(target_info->devType,
-			rawdata);
-	if (arg_data == NULL)
+	arg_data = transceive_data_to_transceive_variant(target_info->devType, rawdata);
+	if (NULL == arg_data)
 		return NET_NFC_ALLOC_FAIL;
 
-	if (net_nfc_gdbus_transceive_call_transceive_sync(transceive_proxy,
+	ret = net_nfc_gdbus_transceive_call_transceive_sync(transceive_proxy,
 				GPOINTER_TO_UINT(handle),
 				target_info->devType,
 				arg_data,
 				net_nfc_client_gdbus_get_privilege(),
 				(gint *)&out_result,
 				NULL,
-				&error) == FALSE)
+				&error);
+
+	if (FALSE == ret)
 	{
-		NFC_ERR("Transceive (sync call) failed: %s",
-				error->message);
+		NFC_ERR("Transceive (sync call) failed: %s", error->message);
 		g_error_free(error);
 
 		out_result = NET_NFC_IPC_FAIL;
@@ -349,39 +339,41 @@ API net_nfc_error_e net_nfc_client_transceive_sync(net_nfc_target_handle_s *hand
 API net_nfc_error_e net_nfc_client_transceive_data_sync(
 		net_nfc_target_handle_s *handle, data_s *rawdata, data_s **response)
 {
+	gboolean ret;
+	GVariant *arg_data;
+	GError *error = NULL;
+	GVariant *out_data = NULL;
 	net_nfc_target_info_s *target_info;
 	net_nfc_error_e out_result = NET_NFC_OK;
-	GVariant *out_data = NULL;
-	GError *error = NULL;
-	GVariant *arg_data;
 
-	if (handle == NULL || rawdata == NULL)
-		return NET_NFC_NULL_PARAMETER;
+	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
+	RETV_IF(NULL == rawdata, NET_NFC_NULL_PARAMETER);
 
-	if (transceive_proxy == NULL)
-	{
-		NFC_ERR("Can not get TransceiveProxy");
-
-		return NET_NFC_NOT_INITIALIZED;
-	}
+	RETV_IF(NULL == transceive_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* prevent executing daemon when nfc is off */
-	if (net_nfc_client_manager_is_activated() == false) {
-		return NET_NFC_INVALID_STATE;
-	}
+	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
 
 	target_info = net_nfc_client_tag_get_client_target_info();
-	if (target_info == NULL || target_info->handle == NULL)
+	if (NULL == target_info)
+	{
+		NFC_ERR("target_info is NULL");
 		return NET_NFC_NOT_CONNECTED;
+	}
+
+	if (NULL == target_info->handle)
+	{
+		NFC_ERR("target_info->handle is NULL");
+		return NET_NFC_NOT_CONNECTED;
+	}
 
 	NFC_DBG("send request :: transceive = [%p]", handle);
 
-	arg_data = transceive_data_to_transceive_variant(target_info->devType,
-			rawdata);
-	if (arg_data == NULL)
+	arg_data = transceive_data_to_transceive_variant(target_info->devType, rawdata);
+	if (NULL == arg_data)
 		return NET_NFC_ALLOC_FAIL;
 
-	if (net_nfc_gdbus_transceive_call_transceive_data_sync(
+	ret = net_nfc_gdbus_transceive_call_transceive_data_sync(
 				transceive_proxy,
 				GPOINTER_TO_UINT(handle),
 				target_info->devType,
@@ -390,19 +382,18 @@ API net_nfc_error_e net_nfc_client_transceive_data_sync(
 				(gint *)&out_result,
 				&out_data,
 				NULL,
-				&error) == FALSE)
+				&error);
+
+	if (FALSE == ret)
 	{
-		NFC_ERR("Transceive (sync call) failed: %s",
-				error->message);
+		NFC_ERR("Transceive (sync call) failed: %s", error->message);
 		g_error_free(error);
 
 		out_result = NET_NFC_IPC_FAIL;
 	}
 
 	if (response && out_data != NULL)
-	{
 		*response = net_nfc_util_gdbus_variant_to_data(out_data);
-	}
 
 	return out_result;
 }
@@ -425,7 +416,7 @@ net_nfc_error_e net_nfc_client_transceive_init(void)
 			"/org/tizen/NetNfcService/Transceive",
 			NULL,
 			&error);
-	if (transceive_proxy == NULL)
+	if (NULL == transceive_proxy)
 	{
 		NFC_ERR("Can not create proxy : %s", error->message);
 		g_error_free(error);
