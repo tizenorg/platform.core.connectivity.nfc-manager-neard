@@ -302,6 +302,7 @@ typedef enum
 
 } net_nfc_event_filter_e;
 
+#define NET_NFC_APPLICATION_RECORD "tizen.org:app"
 /*
  **************************************
  LLCP defines
