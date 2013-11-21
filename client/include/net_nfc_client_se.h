@@ -86,6 +86,9 @@ net_nfc_error_e net_nfc_client_se_open_internal_secure_element(
 		net_nfc_se_open_se_cb callback,
 		void *user_data);
 
+net_nfc_error_e net_nfc_get_card_emulation_mode(
+		net_nfc_se_type_e *type);
+
 net_nfc_error_e net_nfc_client_se_open_internal_secure_element_sync(
 		net_nfc_se_type_e se_type, net_nfc_target_handle_s **handle);
 
@@ -119,7 +122,7 @@ void net_nfc_client_se_set_transaction_event_cb(
 		net_nfc_client_se_transaction_event callback,
 		void *user_data);
 
-void net_nfc_client_se_unset_transaction_event_cb(void);
+void net_nfc_client_se_unset_transaction_event_cb(net_nfc_se_type_e type);
 
 void net_nfc_client_se_set_event_cb(net_nfc_client_se_event callback,
 		void *user_data);

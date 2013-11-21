@@ -276,6 +276,6 @@ void net_nfc_test_se_set_transaction_event_cb(gpointer data, gpointer user_data)
 void net_nfc_test_se_unset_transaction_event_cb(gpointer data,
 		gpointer user_data)
 {
-	net_nfc_client_se_unset_transaction_event_cb();
+	net_nfc_client_se_unset_transaction_event_cb(NET_NFC_SE_TYPE_UICC);
 	g_print("Transaction unset callback successfully\n");
 }
