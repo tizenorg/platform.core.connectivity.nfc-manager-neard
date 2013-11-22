@@ -28,7 +28,7 @@ extern "C" {
 #include "net_nfc_ndef_record.h"
 #include "net_nfc_sign_record.h"
 #include "net_nfc_ndef_message_handover.h"
-
+#include "net_nfc_client_phdc.h"
 #include "net_nfc_client_context.h"
 #include "net_nfc_client_manager.h"
 #include "net_nfc_client_system_handler.h"

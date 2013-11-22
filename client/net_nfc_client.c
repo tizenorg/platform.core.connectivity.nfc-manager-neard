@@ -31,6 +31,7 @@
 #include "net_nfc_client_llcp.h"
 #include "net_nfc_client_snep.h"
 #include "net_nfc_client_p2p.h"
+#include "net_nfc_client_phdc.h"
 #include "net_nfc_client_system_handler.h"
 #include "net_nfc_client_handover.h"
 
@@ -97,6 +98,8 @@ void net_nfc_client_gdbus_init(void)
 		return;
 	if(net_nfc_client_handover_init() != NET_NFC_OK)
 		return;
+	if(net_nfc_client_phdc_init() != NET_NFC_OK)
+		return;
 }
 
 void net_nfc_client_gdbus_deinit(void)
@@ -110,6 +113,7 @@ void net_nfc_client_gdbus_deinit(void)
 	net_nfc_client_transceive_deinit();
 	net_nfc_client_ndef_deinit();
 	net_nfc_client_tag_deinit();
+	net_nfc_client_phdc_deinit();
 	net_nfc_client_manager_deinit();
 #ifdef SECURITY_SERVER
 	_deinit_smack();

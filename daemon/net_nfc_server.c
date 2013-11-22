@@ -22,6 +22,7 @@
 #include "net_nfc_gdbus.h"
 #include "net_nfc_server.h"
 #include "net_nfc_server_common.h"
+#include "net_nfc_server_phdc.h"
 #include "net_nfc_server_vconf.h"
 #include "net_nfc_server_manager.h"
 #include "net_nfc_server_util.h"
@@ -216,6 +217,12 @@ static void net_nfc_server_gdbus_init(void)
 		return;
 	}
 
+	if (net_nfc_server_phdc_init(connection) == FALSE)
+	{
+		NFC_ERR("Can not init phdc");
+		return;
+	}
+
 	if (net_nfc_server_controller_thread_init() == FALSE)
 	{
 		NFC_ERR("Can not init controller thread");
@@ -238,7 +245,7 @@ static void net_nfc_server_gdbus_deinit(void)
 	net_nfc_server_se_deinit();
 	net_nfc_server_snep_deinit();
 	net_nfc_server_system_handler_deinit();
-
+	net_nfc_server_phdc_deinit();
 	net_nfc_server_gdbus_deinit_client_context();
 
 	net_nfc_server_controller_thread_deinit();

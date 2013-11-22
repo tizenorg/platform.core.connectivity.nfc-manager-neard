@@ -390,9 +390,17 @@ typedef enum
 	NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN,
 } net_nfc_conn_handover_carrier_type_e;
 
+typedef enum
+{
+	NET_NFC_PHDC_UNKNOWN = 0x00,
+	NET_NFC_PHDC_MANAGER ,
+	NET_NFC_PHDC_AGENT,
+} net_nfc_phdc_role_e;
+
+
 /**
   This structure is just data, to express bytes array
-  */
+ */
 typedef struct
 {
 	uint8_t *buffer;
@@ -481,6 +489,9 @@ typedef uint8_t sap_t;
 typedef uint32_t net_nfc_llcp_socket_t;
 
 typedef void *net_nfc_snep_handle_h;
+
+typedef void *net_nfc_phdc_handle_h;
+
 
 // LLCP Callback
 typedef void (*net_nfc_llcp_socket_cb)(net_nfc_llcp_message_e message,
