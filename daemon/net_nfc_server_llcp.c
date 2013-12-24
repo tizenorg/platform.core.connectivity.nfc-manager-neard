@@ -1467,7 +1467,7 @@ static gboolean llcp_handle_receive_from(NetNfcGDbusLlcp *llcp,
 
 	NFC_INFO(">>> REQUEST from [%s]", g_dbus_method_invocation_get_sender(invocation));
 
-	ret == net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
+	ret = net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
 				"nfc-manager::p2p", "w");
 
 	/* check privilege and update client context */
@@ -1523,7 +1523,7 @@ static gboolean llcp_handle_close(NetNfcGDbusLlcp *llcp,
 
 	NFC_INFO(">>> REQUEST from [%s]", g_dbus_method_invocation_get_sender(invocation));
 
-	ret == net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
+	ret = net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
 				"nfc-manager::p2p", "w");
 	/* check privilege and update client context */
 	if (false == ret)
@@ -1578,7 +1578,7 @@ static gboolean llcp_handle_disconnect(NetNfcGDbusLlcp *llcp,
 
 	NFC_INFO(">>> REQUEST from [%s]", g_dbus_method_invocation_get_sender(invocation));
 
-	ret == net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
+	ret = net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
 				"nfc-manager::p2p", "w");
 	/* check privilege and update client context */
 	if (false == ret)
