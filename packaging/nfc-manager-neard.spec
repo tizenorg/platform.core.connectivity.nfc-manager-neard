@@ -7,7 +7,6 @@ License:    Flora Software License
 URL:        https://review.tizen.org/git/platform/core/connectivity/nfc-manager-neard.git
 Source0:    %{name}-%{version}.tar.gz
 Source1:    nfc-manager.service
-Requires:   sys-assert
 Requires:   neard
 Requires:   neardal
 BuildRequires: pkgconfig(aul)
