@@ -17,10 +17,14 @@
 #define __NET_NFC_SERVER_UTIL_H__
 
 #include <aul.h>
+
+/* For multi-user support */
+#include <tzplatform_config.h>
+
 #include "net_nfc_typedef_internal.h"
 
 #ifndef MESSAGE_STORAGE
-#define MESSAGE_STORAGE "/opt/share/service/nfc-manager"
+#define MESSAGE_STORAGE tzplatform_mkpath(TZ_SYS_SHARE, "service/nfc-manager")
 #endif
 
 typedef enum

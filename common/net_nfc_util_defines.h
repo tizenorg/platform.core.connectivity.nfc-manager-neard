@@ -24,6 +24,6 @@
 #define CONN_HANDOVER_WIFI_IBSS_CARRIER_MIME_NAME "application/vnd.wfa.wsc;mode=ibss"
 
 #define BLUETOOTH_ADDRESS_LENGTH 6
-#define HIDDEN_BT_ADDR_FILE "/opt/etc/.bd_addr"
+#define HIDDEN_BT_ADDR_FILE tzplatform_mkpath(TZ_SYS_ETC, ".bd_addr")
 
 #endif //__NET_NFC_UTIL_DEFINES_H__

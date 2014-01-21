@@ -1,37 +1,38 @@
 Name:       nfc-manager
 Summary:    NFC framework manager
-Version: 	0.1.6
+Version:    0.1.6
 Release:    0
 Group:      Network & Connectivity/NFC
 License:    Flora
 Source0:    %{name}-%{version}.tar.gz
 Source1:    %{name}.service
-Source1001: 	%{name}.manifest
-BuildRequires: cmake
-BuildRequires: pkgconfig(aul)
-BuildRequires: pkgconfig(glib-2.0)
-BuildRequires: pkgconfig(gobject-2.0)
-BuildRequires: pkgconfig(security-server)
-BuildRequires: pkgconfig(vconf)
-BuildRequires: pkgconfig(dlog)
-BuildRequires: pkgconfig(tapi)
-BuildRequires: pkgconfig(bluetooth-api)
-BuildRequires: pkgconfig(capi-network-wifi)
-BuildRequires: pkgconfig(mm-sound)
-BuildRequires: pkgconfig(appsvc)
-BuildRequires: pkgconfig(svi)
-BuildRequires: pkgconfig(capi-media-wav-player)
-BuildRequires: pkgconfig(libssl)
-BuildRequires: pkgconfig(libcurl)
-BuildRequires: pkgconfig(pkgmgr)
-BuildRequires: pkgconfig(pkgmgr-info)
-BuildRequires: pkgconfig(ecore-x)
-BuildRequires: pkgconfig(pmapi)
-BuildRequires: python
-BuildRequires: python-xml
-BuildRequires: gettext-tools
+Source1001: %{name}.manifest
+BuildRequires:  cmake
+BuildRequires:  pkgconfig(aul)
+BuildRequires:  pkgconfig(glib-2.0)
+BuildRequires:  pkgconfig(gobject-2.0)
+BuildRequires:  pkgconfig(security-server)
+BuildRequires:  pkgconfig(vconf)
+BuildRequires:  pkgconfig(dlog)
+BuildRequires:  pkgconfig(tapi)
+BuildRequires:  pkgconfig(bluetooth-api)
+BuildRequires:  pkgconfig(capi-network-wifi)
+BuildRequires:  pkgconfig(mm-sound)
+BuildRequires:  pkgconfig(appsvc)
+BuildRequires:  pkgconfig(svi)
+BuildRequires:  pkgconfig(capi-media-wav-player)
+BuildRequires:  pkgconfig(libssl)
+BuildRequires:  pkgconfig(libcurl)
+BuildRequires:  pkgconfig(pkgmgr)
+BuildRequires:  pkgconfig(pkgmgr-info)
+BuildRequires:  pkgconfig(ecore-x)
+BuildRequires:  pkgconfig(pmapi)
+BuildRequires:  pkgconfig(libtzplatform-config)
+BuildRequires:  python
+BuildRequires:  python-xml
+BuildRequires:  gettext-tools
 %ifarch %arm
-BuildRequires: pkgconfig(wifi-direct)
+BuildRequires:  pkgconfig(wifi-direct)
 %global ARM_DEF "-DARM_TARGET=Y"
 %endif
 
@@ -97,8 +98,6 @@ MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 %install
 %make_install
 
-mkdir -p %{buildroot}/opt/usr/share/nfc_debug
-
 mkdir -p %{buildroot}%{_libdir}/systemd/system/multi-user.target.wants
 cp -af %{SOURCE1} %{buildroot}%{_libdir}/systemd/system/
 ln -s ../%{name}.service %{buildroot}%{_libdir}/systemd/system/multi-user.target.wants/%{name}.service
@@ -114,11 +113,12 @@ fi
 
 %post -n nfc-client-lib
 /sbin/ldconfig
-vconftool set -t bool db/nfc/feature 0 -u 5000 -f
-vconftool set -t bool db/nfc/predefined_item_state 0 -u 5000 -f
-vconftool set -t string db/nfc/predefined_item "None" -u 5000 -f
-vconftool set -t bool db/nfc/enable 0 -u 5000 -f
-vconftool set -t int db/nfc/se_type 0 -u 5000 -f
+USER_GROUP_ID=$(getent group %{TZ_SYS_USER_GROUP} | cut -d: -f3)
+vconftool set -t bool db/nfc/feature 0 -g $USER_GROUP_ID -f
+vconftool set -t bool db/nfc/predefined_item_state 0 -g $USER_GROUP_ID -f
+vconftool set -t string db/nfc/predefined_item "None" -g $USER_GROUP_ID -f
+vconftool set -t bool db/nfc/enable 0 -g $USER_GROUP_ID -f
+vconftool set -t int db/nfc/se_type 0 -g $USER_GROUP_ID -f
 
 %postun
 /sbin/ldconfig
@@ -141,7 +141,6 @@ systemctl daemon-reload
 %{_datadir}/dbus-1/system-services/org.tizen.NetNfcService.service
 %{_datadir}/packages/%{name}.xml
 %{_datadir}/nfc-manager-daemon/sounds/*
-%attr(0775,-,5000) %dir /opt/usr/share/nfc_debug
 %license LICENSE.Flora
 
 

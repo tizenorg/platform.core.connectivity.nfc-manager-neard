@@ -8,7 +8,7 @@ SET(NFC_CLIENT "nfc")
 
 AUX_SOURCE_DIRECTORY(${CMAKE_CURRENT_SOURCE_DIR} CLIENT_SRCS)
 
-pkg_check_modules(client_pkgs REQUIRED security-server dlog ecore-x vconf)
+pkg_check_modules(client_pkgs REQUIRED security-server dlog ecore-x vconf libtzplatform-config)
 
 FOREACH(flag ${client_pkgs_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")

@@ -20,9 +20,12 @@
 #include <libgen.h>
 #include <netinet/in.h>
 
+/* For multi-user support */
+#include <tzplatform_config.h>
+
 #include "net_nfc_typedef_internal.h"
 
-#define NET_NFC_MANAGER_DATA_PATH		"/opt/data/nfc-manager-daemon"
+#define NET_NFC_MANAGER_DATA_PATH			tzplatform_mkpath(TZ_SYS_DATA, "nfc-manager-daemon")
 #define NET_NFC_MANAGER_DATA_PATH_MESSAGE	"message"
 #define NET_NFC_MANAGER_NDEF_FILE_NAME		"ndef-message.txt"
 
