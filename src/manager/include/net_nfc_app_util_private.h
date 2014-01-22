@@ -22,8 +22,11 @@
 #include "net_nfc_typedef_private.h"
 #include <aul.h>
 
+/* For multi-user support */
+#include <tzplatform_config.h>
+
 #ifndef MESSAGE_STORAGE
-#define MESSAGE_STORAGE "/opt/share/service/nfc-manager"
+#define MESSAGE_STORAGE tzplatform_mkpath(TZ_SYS_SHARE, "service/nfc-manager")
 #endif
 
 net_nfc_error_e net_nfc_app_util_store_ndef_message(data_s *data);

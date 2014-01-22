@@ -14,6 +14,9 @@
   * limitations under the License.
   */
 
+/* For multi-user support */
+#include <tzplatform_config.h>
+
 #include "net_nfc_debug_private.h"
 #include "net_nfc_util_private.h"
 #include "net_nfc_util_ndef_message.h"
@@ -23,7 +26,7 @@
 
 
 #ifndef NET_NFC_MANAGER_DATA_PATH
-#define NET_NFC_MANAGER_DATA_PATH				"/home/app/data/nfc-manager-daemon"
+#define NET_NFC_MANAGER_DATA_PATH				tzplatform_mkpath(TZ_USER_HOME, "data/nfc-manager-daemon")
 #endif
 
 #ifndef NET_NFC_MANAGER_DATA_PATH_MESSAGE

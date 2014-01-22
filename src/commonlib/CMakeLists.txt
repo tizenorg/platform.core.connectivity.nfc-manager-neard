@@ -14,7 +14,7 @@ IF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 ENDIF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 
 INCLUDE(FindPkgConfig)
-pkg_check_modules(commonlib_pkges REQUIRED glib-2.0 dlog bluetooth-api libssl)
+pkg_check_modules(commonlib_pkges REQUIRED glib-2.0 dlog bluetooth-api libssl capi-appfw-app-manager libtzplatform-config)
 
 FOREACH(flag ${commonlib_pkges_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
