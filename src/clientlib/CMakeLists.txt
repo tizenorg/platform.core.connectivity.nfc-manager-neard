@@ -18,7 +18,7 @@ IF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 ENDIF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 
 INCLUDE(FindPkgConfig)
-pkg_check_modules(clientlib_pkges REQUIRED security-server dbus-glib-1 dlog ecore vconf neardal appsvc svi capi-media-wav-player)
+pkg_check_modules(clientlib_pkges REQUIRED security-server dbus-glib-1 dlog ecore vconf neardal appsvc svi capi-media-wav-player libtzplatform-config)
 
 FOREACH(flag ${clientlib_pkges_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")

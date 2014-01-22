@@ -23,6 +23,9 @@
 #include <sys/time.h>
 #include <libgen.h>
 
+/* For multi-user support */
+#include <tzplatform_config.h>
+
 // below define should define before dlog.h
 #define LOG_SERVER_TAG "NET_NFC_MANAGER"
 #define LOG_CLIENT_TAG "NET_NFC_CLIENT"
@@ -40,7 +43,7 @@
 
 /* nfc_log_to_file */
 extern FILE *nfc_log_file;
-#define NFC_DLOG_FILE "/opt/etc/nfc_debug/nfc_mgr_dlog.txt"
+#define NFC_DLOG_FILE tzplatform_mkpath(TZ_SYS_ETC, "nfc_debug/nfc_mgr_dlog.txt")
 
 /* tag */
 const char *net_nfc_get_log_tag();

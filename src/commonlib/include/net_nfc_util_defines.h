@@ -14,6 +14,9 @@
   * limitations under the License.
   */
 
+/* For multi-user support */
+#include <tzplatform_config.h>
+
 #ifndef __NET_NFC_UTIL_DEFINES__
 #define __NET_NFC_UTIL_DEFINES__
 
@@ -28,7 +31,7 @@
 #define CONN_HANDOVER_WIFI_IBSS_CARRIER_MIME_NAME "application/vnd.wfa.wsc;mode=ibss"
 
 #define BLUETOOTH_ADDRESS_LENGTH 6
-#define HIDDEN_BT_ADDR_FILE "/opt/etc/.bd_addr"
+#define HIDDEN_BT_ADDR_FILE tzplatform_mkpath(TZ_SYS_ETC, ".bd_addr")
 
 /* define vconf key */
 #define NET_NFC_DISABLE_LAUNCH_POPUP_KEY "memory/private/nfc-manager/popup_disabled"//"memory/nfc/popup_disabled"
