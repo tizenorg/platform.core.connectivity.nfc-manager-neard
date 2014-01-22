@@ -2,8 +2,8 @@ Name:       nfc-manager-neard
 Summary:    NFC framework manager
 Version:    0.0.45
 Release:    0
-Group:      Connectivity/NFC
-License:    Flora Software License
+Group:      Network & Connectivity/NFC
+License:    Flora
 URL:        https://review.tizen.org/git/platform/core/connectivity/nfc-manager-neard.git
 Source0:    %{name}-%{version}.tar.gz
 Source1:    nfc-manager.service
@@ -33,6 +33,7 @@ BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(ecore-x)
 BuildRequires: pkgconfig(capi-appfw-app-manager)
 BuildRequires: pkgconfig(neardal)
+BuildRequires: pkgconfig(libtzplatform-config)
 BuildRequires: cmake
 BuildRequires: gettext-tools
 Requires(post):   /sbin/ldconfig
@@ -53,7 +54,6 @@ Summary:    Download agent
 Group:      Development/Building
 Requires:   %{name} = %{version}-%{release}
 
-
 %description devel
 NFC library Manager (devel)
 
@@ -61,7 +61,6 @@ NFC library Manager (devel)
 %package -n nfc-common-lib-neard
 Summary:    NFC common library
 Requires:   %{name} = %{version}-%{release}
-
 
 %description -n nfc-common-lib-neard
 NFC Common library.
@@ -71,7 +70,6 @@ NFC Common library.
 Summary:    NFC common library (devel)
 Group:      Development/Building
 Requires:   %{name} = %{version}-%{release}
-
 
 %description -n nfc-common-lib-neard-devel
 NFC common library (devel)
@@ -101,19 +99,20 @@ ln -s ../nfc-manager.service %{buildroot}/usr/lib/systemd/system/multi-user.targ
 
 %post
 /sbin/ldconfig
-vconftool set -t bool db/nfc/feature 1 -u 5000 -f
-vconftool set -t bool db/nfc/enable 0 -u 5000 -f
-vconftool set -t bool db/nfc/sbeam 0 -u 5000 -f
-vconftool set -t int db/nfc/se_type 0 -u 5000 -f
-vconftool set -t bool db/nfc/predefined_item_state 0 -u 5000 -f
-vconftool set -t string db/nfc/predefined_item "None" -u 5000 -f
+GID=$(getent group %{TZ_SYS_USER_GROUP} | cut -d: -f3)
+vconftool set -t bool db/nfc/feature 1 -g $GID -f
+vconftool set -t bool db/nfc/enable 0 -g $GID -f
+vconftool set -t bool db/nfc/sbeam 0 -g $GID -f
+vconftool set -t int db/nfc/se_type 0 -g $GID -f
+vconftool set -t bool db/nfc/predefined_item_state 0 -g $GID -f
+vconftool set -t string db/nfc/predefined_item "None" -g $GID -f
 
 ln -s /etc/init.d/libnfc-manager-0 /etc/rc.d/rc3.d/S81libnfc-manager-0 -f
 ln -s /etc/init.d/libnfc-manager-0 /etc/rc.d/rc5.d/S81libnfc-manager-0 -f
 
-mkdir -p /opt/etc/nfc_debug
-chown :5000 /opt/etc/nfc_debug
-chmod 775 /opt/etc/nfc_debug
+mkdir -p %{TZ_SYS_ETC}/nfc_debug
+chown :$GID %{TZ_SYS_ETC}/nfc_debug
+chmod 775 %{TZ_SYS_ETC}/nfc_debug
 
 systemctl daemon-reload
 if [ $1 == 1 ]; then

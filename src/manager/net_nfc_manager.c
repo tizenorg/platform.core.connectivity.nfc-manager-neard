@@ -22,6 +22,9 @@
 #include <dbus/dbus-glib-bindings.h>
 #include <sys/utsname.h>
 
+/* For multi-user support */
+#include <tzplatform_config.h>
+
 #include "heynoti.h"
 #include "vconf.h"
 

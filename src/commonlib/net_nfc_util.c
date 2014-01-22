@@ -25,6 +25,9 @@
 #include <vconf.h>
 #include <app_manager.h>
 
+// multi-user header */
+#include <tzplatform_config.h>
+
 // nfc-manager header
 #include "net_nfc_util_private.h"
 #include "net_nfc_debug_private.h"

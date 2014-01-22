@@ -18,6 +18,9 @@
 #include <malloc.h>
 #include <netinet/in.h>
 
+/* For multi-user support */
+#include <tzplatform_config.h>
+
 #include "net_nfc_controller_private.h"
 #include "net_nfc_util_private.h"
 #include "net_nfc_typedef.h"

@@ -30,6 +30,9 @@
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
 
+/* For multi-user support */
+#include <tzplatform_config.h>
+
 #include "appsvc.h"
 #include "aul.h"
 #include "vconf.h"

@@ -40,7 +40,7 @@
 
 /* nfc_log_to_file */
 extern FILE *nfc_log_file;
-#define NFC_DLOG_FILE "/opt/etc/nfc_debug/nfc_mgr_dlog.txt"
+#define NFC_DLOG_FILE tzplatform_mkpath(TZ_SYS_ETC, "nfc_debug/nfc_mgr_dlog.txt")
 
 /* tag */
 const char *net_nfc_get_log_tag();
