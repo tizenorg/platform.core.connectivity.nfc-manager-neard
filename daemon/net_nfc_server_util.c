@@ -245,8 +245,17 @@ static bool _net_nfc_app_util_get_operation_from_record(
 		break;
 
 	case NET_NFC_RECORD_EXTERNAL_RTD : /* external type */
+	if(strncmp((char*)record->type_s.buffer, NET_NFC_APPLICATION_RECORD,
+			record->type_s.length)==0)
+	{
+		//use APPSVC_OPERATION_VIEW in case of Selective App launch
+		op_text = APPSVC_OPERATION_VIEW;
+	}
+	else
+	{
 		op_text = "http://tizen.org/appcontrol/operation/nfc/external";
-		break;
+	}
+	break;
 
 	case NET_NFC_RECORD_EMPTY : /* empty_tag */
 		op_text = "http://tizen.org/appcontrol/operation/nfc/empty";
@@ -489,7 +498,28 @@ static bool _net_nfc_app_util_get_data_from_record(ndef_record_s *record, char *
 
 	case NET_NFC_RECORD_MIME_TYPE :
 	case NET_NFC_RECORD_URI : /* Absolute URI */
+		break;
 	case NET_NFC_RECORD_EXTERNAL_RTD : /* external type */
+		{
+			NFC_DBG("NDEF Message with  external type");
+			if(strncmp((char*)record->type_s.buffer, NET_NFC_APPLICATION_RECORD,
+			record->type_s.length)==0)
+			{
+				uint8_t *buffer_temp = record->payload_s.buffer;
+				uint32_t buffer_length = record->payload_s.length;
+				if(buffer_length > length)
+				{
+					result= false;
+				}
+				else
+				{
+					//Copy application id into data
+					memcpy(data,buffer_temp,MIN(buffer_length,length));
+					result = true;
+				}
+			}
+		}
+		break;
 	case NET_NFC_RECORD_EMPTY : /* empy msg. discard it */
 		result = true;
 		break;
@@ -596,6 +626,7 @@ ERROR :
 	return result;
 }
 
+
 static bool net_nfc_app_util_is_dir(const char* path_name)
 {
 	struct stat statbuf = { 0 };
@@ -676,7 +707,7 @@ int net_nfc_app_util_appsvc_launch(const char *operation, const char *uri, const
 	int result = -1;
 
 	bundle *bd = NULL;
-
+	bool specific_app_launch = false;
 	bd = bundle_create();
 	if (NULL == bd)
 		return result;
@@ -685,6 +716,12 @@ int net_nfc_app_util_appsvc_launch(const char *operation, const char *uri, const
 	{
 		NFC_DBG("operation : %s", operation);
 		appsvc_set_operation(bd, operation);
+		if(strncmp(operation, APPSVC_OPERATION_VIEW,strlen(APPSVC_OPERATION_VIEW))==0)
+		{
+			appsvc_set_appid(bd, data);
+			specific_app_launch = true;
+			goto LAUNCH;
+		}
 	}
 
 	if (uri != NULL && strlen(uri) > 0)
@@ -708,7 +745,14 @@ int net_nfc_app_util_appsvc_launch(const char *operation, const char *uri, const
 	bundle_add(bd, OSP_K_COND, OSP_K_COND_TYPE);
 	bundle_add(bd, OSP_K_LAUNCH_TYPE, osp_launch_type_condition);
 
+LAUNCH:
 	result = appsvc_run_service(bd, 0, NULL, NULL);
+
+	/*if the app could not be found*/
+	if(specific_app_launch && result == APPSVC_RET_ENOMATCH)
+	{
+		/*TODO: tizen store launch*/
+	}
 
 	bundle_free(bd);
 
