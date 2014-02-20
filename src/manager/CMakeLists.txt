@@ -13,8 +13,38 @@ IF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 	SET(CMAKE_BUILD_TYPE "Release")
 ENDIF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 
+IF(X11_SUPPORT)
+       SET(WIN_PKG "ecore-x")
+ENDIF(X11_SUPPORT)
+IF(WAYLAND_SUPPORT)
+       SET(WIN_PKG "${WIN_PKG} ecore-wayland")
+ENDIF(WAYLAND_SUPPORT)
+
 INCLUDE(FindPkgConfig)
-pkg_check_modules(manager_pkges REQUIRED aul glib-2.0 gobject-2.0 security-server dbus-glib-1 vconf dlog tapi appsvc libcurl bluetooth-api heynoti smartcard-service smartcard-service-common libssl pmapi svi capi-media-wav-player pkgmgr pkgmgr-info ecore-x neardal libtzplatform-config)
+pkg_check_modules(manager_pkges REQUIRED aul 
+                                         glib-2.0
+                                         gobject-2.0
+                                         security-server
+                                         dbus-glib-1
+                                         vconf
+                                         dlog
+                                         tapi
+                                         appsvc
+                                         libcurl
+                                         bluetooth-api
+                                         heynoti
+                                         smartcard-service
+                                         smartcard-service-common
+                                         libssl
+                                         pmapi
+                                         svi
+                                         capi-media-wav-player
+                                         pkgmgr
+                                         pkgmgr-info
+                                         ${WIN_PKG}
+                                         neardal
+                                         libtzplatform-config)
+
 
 FOREACH(flag ${manager_pkges_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")

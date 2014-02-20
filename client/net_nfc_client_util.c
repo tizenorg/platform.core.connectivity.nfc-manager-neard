@@ -35,7 +35,13 @@
 #include <wav_player.h>
 #include <appsvc.h>
 #include <aul.h>
+#ifdef USE_X11
 #include <Ecore_X.h>
+#endif
+#ifdef USE_WAYLAND
+#include <Ecore.h>
+#include <Ecore_Wayland.h>
+#endif
 
 #include "net_nfc_typedef.h"
 #include "net_nfc_typedef_internal.h"
@@ -938,6 +944,7 @@ int net_nfc_app_util_decode_base64(const char *buffer, uint32_t buf_len, uint8_t
 
 pid_t net_nfc_app_util_get_focus_app_pid()
 {
+#ifdef USE_X11
 	pid_t pid;
 	Ecore_X_Window focus;
 
@@ -946,7 +953,9 @@ pid_t net_nfc_app_util_get_focus_app_pid()
 	focus = ecore_x_window_focus_get();
 	if (ecore_x_netwm_pid_get(focus, &pid))
 		return pid;
-
+#endif
+#ifdef USE_WAYLAND // TO DO WAYLAND
+#endif
 	return -1;
 }
 

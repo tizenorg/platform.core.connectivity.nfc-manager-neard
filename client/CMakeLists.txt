@@ -8,8 +8,14 @@ SET(NFC_CLIENT "nfc")
 
 AUX_SOURCE_DIRECTORY(${CMAKE_CURRENT_SOURCE_DIR} CLIENT_SRCS)
 
-pkg_check_modules(client_pkgs REQUIRED security-server dlog ecore-x vconf libtzplatform-config neardal
-			libssl ecore-x appsvc svi capi-media-wav-player)
+IF(X11_SUPPORT)
+       SET(WIN_PKG "ecore-x")
+ENDIF(X11_SUPPORT)
+IF(WAYLAND_SUPPORT)
+       SET(WIN_PKG "${WIN_PKG} ecore-wayland")
+ENDIF(WAYLAND_SUPPORT)
+
+pkg_check_modules(client_pkgs REQUIRED security-server dlog vconf libtzplatform-config neardal libssl appsvc svi capi-media-wav-player ${WIN_PKG})
 
 FOREACH(flag ${client_pkgs_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")

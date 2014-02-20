@@ -29,11 +29,17 @@
 #include <openssl/evp.h>
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
+#ifdef USE_X11
+#include <Ecore_X.h>
+#endif
+#ifdef USE_WAYLAND
+#include <Ecore.h>
+#include <Ecore_Wayland.h>
+#endif
 
 #include "appsvc.h"
 #include "aul.h"
 #include "vconf.h"
-#include "Ecore_X.h"
 
 #include "net_nfc_typedef.h"
 #include "net_nfc_typedef_private.h"
@@ -911,6 +917,7 @@ int net_nfc_app_util_decode_base64(const char *buffer, uint32_t buf_len, uint8_t
 
 static pid_t _net_nfc_app_util_get_focus_app_pid()
 {
+#ifdef USE_X11
 	Ecore_X_Window focus;
 	pid_t pid;
 
@@ -919,6 +926,9 @@ static pid_t _net_nfc_app_util_get_focus_app_pid()
 	focus = ecore_x_window_focus_get();
 	if (ecore_x_netwm_pid_get(focus, &pid))
 		return pid;
+#endif
+#ifdef USE_WAYLAND // TO DO WAYLAND
+#endif
 
 	return -1;
 }
