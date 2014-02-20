@@ -14,7 +14,11 @@ IF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 ENDIF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 
 INCLUDE(FindPkgConfig)
+IF(X11_SUPPORT)
 pkg_check_modules(manager_pkges REQUIRED aul glib-2.0 gobject-2.0 security-server dbus-glib-1 vconf dlog tapi appsvc libcurl bluetooth-api heynoti smartcard-service smartcard-service-common libssl pmapi svi capi-media-wav-player pkgmgr pkgmgr-info ecore-x neardal libtzplatform-config)
+ELSEIF(WAYLAND_SUPPORT)
+pkg_check_modules(manager_pkges REQUIRED aul glib-2.0 gobject-2.0 security-server dbus-glib-1 vconf dlog tapi appsvc libcurl bluetooth-api heynoti smartcard-service smartcard-service-common libssl pmapi svi capi-media-wav-player pkgmgr pkgmgr-info ecore-wayland neardal libtzplatform-config)
+ENDIF(X11_SUPPORT)
 
 FOREACH(flag ${manager_pkges_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
