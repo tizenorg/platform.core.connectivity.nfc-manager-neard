@@ -19,6 +19,8 @@
 #include <string.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 // platform header
 #include <bluetooth-api.h>

@@ -1,3 +1,6 @@
+%bcond_with wayland
+%bcond_with x
+
 Name:       nfc-manager-neard
 Summary:    NFC framework manager
 Version:    0.0.45
@@ -30,10 +33,15 @@ BuildRequires: pkgconfig(libssl)
 BuildRequires: pkgconfig(pmapi)
 BuildRequires: pkgconfig(pkgmgr)
 BuildRequires: pkgconfig(pkgmgr-info)
-BuildRequires: pkgconfig(ecore-x)
 BuildRequires: pkgconfig(capi-appfw-app-manager)
 BuildRequires: pkgconfig(neardal)
 BuildRequires: pkgconfig(libtzplatform-config)
+%if %{with x}
+BuildRequires: pkgconfig(ecore-x)
+%endif
+%if %{with wayland}
+BuildRequires:  pkgconfig(ecore-wayland)
+%endif
 BuildRequires: cmake
 BuildRequires: gettext-tools
 Requires(post):   /sbin/ldconfig
@@ -82,7 +90,18 @@ NFC common library (devel)
 export LDFLAGS+="-Wl,--rpath=%{_libdir} -Wl,--as-needed"
 mkdir cmake_tmp
 cd cmake_tmp
-LDFLAGS="$LDFLAGS" %cmake ..
+LDFLAGS="$LDFLAGS"
+%cmake .. \
+%if %{with wayland}
+        -DWAYLAND_SUPPORT=On \
+%else
+        -DWAYLAND_SUPPORT=Off \
+%endif
+%if %{with x}
+        -DX11_SUPPORT=On
+%else
+        -DX11_SUPPORT=Off
+%endif
 
 make
 
@@ -150,7 +169,7 @@ systemctl daemon-reload
 %{_prefix}/bin/nfc-manager-daemon
 %{_prefix}/bin/ndef-tool
 %{_datadir}/dbus-1/services/org.tizen.nfc_service.service
-/usr/share/license/nfc-manager
+%{_datarootdir}/license/nfc-manager
 /usr/lib/systemd/system/nfc-manager.service
 /usr/lib/systemd/system/multi-user.target.wants/nfc-manager.service
 
@@ -168,8 +187,8 @@ systemctl daemon-reload
 %defattr(-,root,root,-)
 %{_libdir}/libnfc-common-lib.so.1
 %{_libdir}/libnfc-common-lib.so.1.0.0
-/usr/share/license/nfc-common-lib
-/usr/share/nfc-manager-daemon/sounds/*
+%{_datarootdir}/license/nfc-common-lib
+%{_datarootdir}/nfc-manager-daemon/sounds/*
 
 
 %files -n nfc-common-lib-neard-devel
