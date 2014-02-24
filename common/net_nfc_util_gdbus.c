@@ -146,7 +146,7 @@ GVariant *net_nfc_util_gdbus_buffer_to_variant(const uint8_t *buffer,
 
 	g_variant_builder_init(&builder, G_VARIANT_TYPE("a(y)"));
 
-	if (NULL == buffer || length <= 0)
+	if (buffer && length > 0)
 	{
 		int i;
 
