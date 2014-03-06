@@ -10,11 +10,11 @@ IF(ARM_TARGET)
 	pkg_check_modules(daemon_pkgs REQUIRED aul glib-2.0 gio-unix-2.0 security-server
 		vconf dlog tapi appsvc libcurl bluetooth-api libssl svi capi-media-wav-player
 		pkgmgr pkgmgr-info capi-network-wifi ecore-x pmapi wifi-direct
-		libtzplatform-config)
+		libtzplatform-config neardal)
 ELSE(ARM_TARGET)
 	pkg_check_modules(daemon_pkgs REQUIRED aul glib-2.0 gio-unix-2.0 security-server
 		vconf dlog tapi appsvc libcurl bluetooth-api libssl svi capi-media-wav-player
-		pkgmgr pkgmgr-info capi-network-wifi ecore-x pmapi libtzplatform-config)
+		pkgmgr pkgmgr-info capi-network-wifi ecore-x pmapi libtzplatform-config neardal)
 ENDIF(ARM_TARGET)
 
 FOREACH(flag ${daemon_pkgs_CFLAGS})

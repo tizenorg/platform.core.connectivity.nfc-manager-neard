@@ -28,6 +28,7 @@ BuildRequires:  pkgconfig(pkgmgr-info)
 BuildRequires:  pkgconfig(ecore-x)
 BuildRequires:  pkgconfig(pmapi)
 BuildRequires:  pkgconfig(libtzplatform-config)
+BuildRequires:  pkgconfig(neardal)
 BuildRequires:  python
 BuildRequires:  python-xml
 BuildRequires:  gettext-tools

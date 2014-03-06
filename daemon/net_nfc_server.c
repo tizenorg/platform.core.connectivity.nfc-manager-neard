@@ -38,6 +38,8 @@
 #include "net_nfc_server_system_handler.h"
 #include "net_nfc_server_context.h"
 
+#include "neardal.h"
+
 static gboolean use_daemon = FALSE;
 static GMainLoop *loop = NULL;
 
@@ -308,11 +310,29 @@ static void on_name_lost(GDBusConnection *connnection, const gchar *name,
 	net_nfc_manager_quit();
 }
 
+static bool net_nfc_neard_nfc_support(void)
+{
+	char **adapters = NULL;
+	int len;
+	errorCode_t err;
+
+	NFC_INFO("checking nfc support");
+	err = neardal_get_adapters(&adapters, &len);
+	if (err != NEARDAL_SUCCESS)
+		return false;
+
+	if (!(len > 0 && adapters != NULL))
+		return false;
+
+	neardal_free_array(&adapters);
+	adapters = NULL;
+	neardal_destroy();
+
+	return true;
+}
 
 int main(int argc, char *argv[])
 {
-	guint id = 0;
-	void *handle = NULL;
 	GError *error = NULL;
 	gboolean use_daemon = FALSE;
 	GOptionContext *option_context;
@@ -336,10 +356,9 @@ int main(int argc, char *argv[])
 
 	net_nfc_app_util_clean_storage(MESSAGE_STORAGE);
 
-	handle = net_nfc_controller_onload();
-	if (NULL == handle)
+	if (net_nfc_neard_nfc_support() == false)
 	{
-		NFC_ERR("load plugin library is failed");
+		NFC_ERR("failed to detect NFC devices");
 
 		if (vconf_set_bool(VCONFKEY_NFC_FEATURE, VCONFKEY_NFC_FEATURE_OFF) != 0)
 			NFC_ERR("VCONFKEY_NFC_FEATURE set to %d failed", VCONFKEY_NFC_FEATURE_OFF);
@@ -353,27 +372,13 @@ int main(int argc, char *argv[])
 	if (vconf_set_bool(VCONFKEY_NFC_FEATURE, VCONFKEY_NFC_FEATURE_ON) != 0)
 		NFC_ERR("VCONFKEY_NFC_FEATURE set to %d failed", VCONFKEY_NFC_FEATURE_ON);
 
-	id = g_bus_own_name(G_BUS_TYPE_SYSTEM,
-			"org.tizen.NetNfcService",
-			G_BUS_NAME_OWNER_FLAGS_NONE,
-			on_bus_acquired,
-			on_name_acquired,
-			on_name_lost,
-			NULL,
-			NULL);
+	net_nfc_server_vconf_init();
 
 	loop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(loop);
 
 EXIT :
 	net_nfc_server_vconf_deinit();
-	net_nfc_server_controller_deinit();
-	net_nfc_server_gdbus_deinit();
-
-	if (id)
-		g_bus_unown_name(id);
-
-	net_nfc_controller_unload(handle);
 
 	g_option_context_free(option_context);
 
