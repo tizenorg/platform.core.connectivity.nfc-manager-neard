@@ -18,15 +18,12 @@
 #include "net_nfc_debug_internal.h"
 #include "net_nfc_typedef.h"
 #include "net_nfc_client.h"
+#include "net_nfc_neard.h"
 
 
 API net_nfc_error_e net_nfc_client_initialize()
 {
-	net_nfc_error_e result = NET_NFC_OK;
-
-	net_nfc_client_gdbus_init();
-
-	return result;
+	return net_nfc_neard_initialize();
 }
 
 
@@ -34,7 +31,7 @@ API net_nfc_error_e net_nfc_client_deinitialize()
 {
 	net_nfc_error_e result = NET_NFC_OK;
 
-	net_nfc_client_gdbus_deinit();
+	net_nfc_neard_deinitialize();
 
 	return result;
 }

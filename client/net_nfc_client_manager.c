@@ -20,6 +20,7 @@
 #include "net_nfc_client.h"
 #include "net_nfc_client_context.h"
 #include "net_nfc_client_manager.h"
+#include "net_nfc_neard.h"
 
 #define DEACTIVATE_DELAY	500 /* ms */
 
@@ -185,34 +186,7 @@ API void net_nfc_client_manager_unset_activated(void)
 API net_nfc_error_e net_nfc_client_manager_set_active(int state,
 		net_nfc_client_manager_set_active_completed callback, void *user_data)
 {
-	gboolean active = FALSE;
-	ManagerFuncData *func_data;
-
-	RETV_IF(NULL == manager_proxy, NET_NFC_NOT_INITIALIZED);
-
-	/* allow this function even nfc is off */
-	RETV_IF(TRUE == activation_is_running, NET_NFC_BUSY);
-
-	activation_is_running = TRUE;
-
-	func_data = g_try_new0(ManagerFuncData, 1);
-	if (func_data == NULL)
-		return NET_NFC_ALLOC_FAIL;
-
-	func_data->callback = (gpointer)callback;
-	func_data->user_data = user_data;
-
-	if (state == true)
-		active = TRUE;
-
-	net_nfc_gdbus_manager_call_set_active(manager_proxy,
-			active,
-			net_nfc_client_gdbus_get_privilege(),
-			NULL,
-			manager_call_set_active_callback,
-			func_data);
-
-	return NET_NFC_OK;
+	return net_nfc_neard_set_active(state, callback, user_data);
 }
 
 API net_nfc_error_e net_nfc_client_manager_set_active_sync(int state)
