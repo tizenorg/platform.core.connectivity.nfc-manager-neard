@@ -182,7 +182,13 @@ API net_nfc_error_e net_nfc_client_sys_handler_set_launch_popup_state(
 {
 	popup_state = enable;
 
-	return net_nfc_client_sys_handler_set_state_sync(enable);
+	/*
+	 * In previous version we have vconf key to manintain the popup state
+	 * now it is deprecated, new implement is not finished, just skip it now
+	 * previous operation vconf_set_bool(NET_NFC_DISABLE_LAUNCH_POPUP_KEY, enable)
+	 */
+
+	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_sys_handler_set_launch_popup_state_force(
@@ -190,45 +196,23 @@ API net_nfc_error_e net_nfc_client_sys_handler_set_launch_popup_state_force(
 {
 	popup_state = enable;
 
-	return net_nfc_client_sys_handler_set_state_force_sync(enable);
+	return NET_NFC_OK;
 }
 
 API net_nfc_error_e net_nfc_client_sys_handler_get_launch_popup_state(
 		int *state)
 {
-	gboolean ret;
-	GError *error = NULL;
-	net_nfc_error_e result = NET_NFC_OK;
-	gint out_state = NET_NFC_LAUNCH_APP_SELECT;
-
 	RETV_IF(NULL == state, NET_NFC_NULL_PARAMETER);
-	RETV_IF(NULL == popup_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* prevent executing daemon when nfc is off */
 	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
 
-	*state = NET_NFC_LAUNCH_APP_SELECT;
-
-	ret = net_nfc_gdbus_popup_call_get_sync(popup_proxy,
-				net_nfc_client_gdbus_get_privilege(),
-				&result,
-				&out_state,
-				NULL,
-				&error);
-
-	if (TRUE == ret)
-	{
-		*state = out_state;
-	}
+	if (popup_state == true)
+		*state = NET_NFC_LAUNCH_APP_SELECT;
 	else
-	{
-		NFC_ERR("net_nfc_gdbus_popup_call_get_sync failed: %s", error->message);
-		g_error_free(error);
+		*state = NET_NFC_NO_LAUNCH_APP_SELECT;
 
-		result = NET_NFC_IPC_FAIL;
-	}
-
-	return result;
+	return NET_NFC_OK;
 }
 
 net_nfc_error_e net_nfc_client_sys_handler_init(void)
