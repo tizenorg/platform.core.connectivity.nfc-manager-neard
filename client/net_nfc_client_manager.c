@@ -173,14 +173,12 @@ API void net_nfc_client_manager_set_activated(
 {
 	RET_IF(NULL == callback);
 
-	activated_func_data.callback = callback;
-	activated_func_data.user_data = user_data;
+	net_nfc_neard_set_activated(callback, user_data);
 }
 
 API void net_nfc_client_manager_unset_activated(void)
 {
-	activated_func_data.callback = NULL;
-	activated_func_data.user_data = NULL;
+	net_nfc_neard_unset_activated();
 }
 
 API net_nfc_error_e net_nfc_client_manager_set_active(int state,

@@ -7,6 +7,9 @@
 net_nfc_error_e net_nfc_neard_set_active(int state,
 		net_nfc_client_manager_set_active_completed callback,
 		void *user_data);
+void net_nfc_neard_set_activated(net_nfc_client_manager_activated callback,
+		void *user_data);
+void net_nfc_neard_unset_activated(void);
 net_nfc_error_e net_nfc_neard_initialize(void);
 void net_nfc_neard_deinitialize(void);
 

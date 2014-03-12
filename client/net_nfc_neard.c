@@ -14,6 +14,10 @@ typedef struct _net_nfc_client_cb
 {
 	net_nfc_client_manager_set_active_completed active_cb;
 	void *active_ud;
+
+	/* callback for power status changed */
+	net_nfc_client_manager_activated activated_cb;
+	void *activated_ud;
 } net_nfc_client_cb;
 
 static net_nfc_client_cb client_cb;
@@ -102,6 +106,9 @@ static void _adapter_property_changed_cb(char *name, char *property,
 			nfc_adapter_powered = false;
 		else
 			nfc_adapter_powered = true;
+
+		if (client_cb.activated_cb != NULL)
+			client_cb.activated_cb(nfc_adapter_powered, client_cb.activated_ud);
 	}
 }
 
@@ -171,6 +178,19 @@ net_nfc_error_e net_nfc_neard_set_active(int state,
 		return NET_NFC_OPERATION_FAIL;
 
 	return NET_NFC_OK;
+}
+
+void net_nfc_neard_set_activated(net_nfc_client_manager_activated callback,
+		void *user_data)
+{
+	client_cb.activated_cb = callback;
+	client_cb.activated_ud = user_data;
+}
+
+void net_nfc_neard_unset_activated(void)
+{
+	client_cb.activated_cb = NULL;
+	client_cb.activated_ud = NULL;
 }
 
 net_nfc_error_e net_nfc_neard_cb_init(void)
