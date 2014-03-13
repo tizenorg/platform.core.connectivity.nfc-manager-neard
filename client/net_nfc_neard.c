@@ -18,6 +18,11 @@ typedef struct _net_nfc_client_cb
 	/* callback for power status changed */
 	net_nfc_client_manager_activated activated_cb;
 	void *activated_ud;
+
+	net_nfc_client_tag_tag_discovered tag_discovered_cb;
+	void *tag_discovered_ud;
+	net_nfc_client_tag_tag_detached tag_detached_cb;
+	void *tag_detached_ud;
 } net_nfc_client_cb;
 
 static net_nfc_client_cb client_cb;
@@ -153,6 +158,47 @@ exit:
 	}
 }
 
+static void _tag_found_cb(const char *tagName, void *user_data)
+{
+	NFC_DBG("NFC tag found");
+
+	if (neardal_get_tag_properties(tagName, &tag) != NEARDAL_SUCCESS)
+		return;
+	if (tag == NULL && tag->records == NULL)
+		return;
+
+	if (client_cb.tag_discovered_cb != NULL)
+		client_cb.tag_discovered_cb(NULL, client_cb.tag_discovered_ud);
+}
+
+static void _tag_lost_cb(const char *tagName, void *user_data)
+{
+	NFC_DBG("NFC tag lost");
+
+	if (tag != NULL) {
+		neardal_free_tag(tag);
+		tag = NULL;
+	}
+
+	if (nfc_adapter_polling == true)
+		return;
+
+	if (neardal_start_poll_loop(nfc_adapter_path, NEARD_ADP_MODE_DUAL)
+							== NEARDAL_SUCCESS)
+		nfc_adapter_polling = true;
+
+	if (client_cb.tag_detached_cb != NULL)
+		client_cb.tag_detached_cb(client_cb.tag_detached_ud);
+}
+
+bool net_nfc_neard_is_tag_connected(void)
+{
+	if (tag == NULL)
+		return false;
+
+	return true;
+}
+
 net_nfc_error_e net_nfc_neard_set_active(int state,
 		net_nfc_client_manager_set_active_completed callback,
 		void *user_data)
@@ -180,6 +226,32 @@ net_nfc_error_e net_nfc_neard_set_active(int state,
 	return NET_NFC_OK;
 }
 
+void net_nfc_neard_set_tag_discovered(
+		net_nfc_client_tag_tag_discovered callback, void *user_data)
+{
+	client_cb.tag_discovered_cb = callback;
+	client_cb.tag_discovered_ud = user_data;
+}
+
+void net_nfc_neard_unset_tag_discovered(void)
+{
+	client_cb.tag_discovered_cb = NULL;
+	client_cb.tag_discovered_ud = NULL;
+}
+
+void net_nfc_neard_set_tag_detached(
+		net_nfc_client_tag_tag_detached callback, void *user_data)
+{
+	client_cb.tag_detached_cb = callback;
+	client_cb.tag_detached_ud = user_data;
+}
+
+void net_nfc_neard_unset_tag_detached(void)
+{
+	client_cb.tag_detached_cb = NULL;
+	client_cb.tag_detached_ud = NULL;
+}
+
 void net_nfc_neard_set_activated(net_nfc_client_manager_activated callback,
 		void *user_data)
 {
@@ -202,7 +274,11 @@ net_nfc_error_e net_nfc_neard_cb_init(void)
 		neardal_set_cb_adapter_property_changed(
 			_adapter_property_changed_cb, NULL) != NEARDAL_SUCCESS ||
 		neardal_set_cb_power_completed(_power_completed_cb, NULL)
-							!= NEARDAL_SUCCESS) {
+							!= NEARDAL_SUCCESS ||
+		neardal_set_cb_tag_found(
+			_tag_found_cb, NULL) != NEARDAL_SUCCESS ||
+		neardal_set_cb_tag_lost(
+			_tag_lost_cb, NULL) != NEARDAL_SUCCESS) {
 
 		NFC_DBG("failed to register the callback");
 

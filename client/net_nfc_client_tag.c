@@ -23,6 +23,7 @@
 #include "net_nfc_client_manager.h"
 #include "net_nfc_client_tag.h"
 #include "net_nfc_client_tag_internal.h"
+#include "net_nfc_neard.h"
 
 
 static NetNfcGDbusTag *tag_proxy = NULL;
@@ -398,10 +399,7 @@ static void tag_tag_detached(NetNfcGDbusTag *object, guint arg_handle,
 /* internal function */
 gboolean net_nfc_client_tag_is_connected(void)
 {
-	RETV_IF(NULL == client_target_info, FALSE);
-	RETV_IF(NULL == client_target_info->handle, FALSE);
-
-	return TRUE;
+	return net_nfc_neard_is_tag_connected();
 }
 
 net_nfc_target_info_s *net_nfc_client_tag_get_client_target_info(void)
@@ -712,14 +710,12 @@ API void net_nfc_client_tag_set_tag_discovered(
 {
 	RET_IF(NULL == callback);
 
-	tag_discovered_func_data.callback = (gpointer)callback;
-	tag_discovered_func_data.user_data = user_data;
+	net_nfc_neard_set_tag_discovered(callback, user_data);
 }
 
 API void net_nfc_client_tag_unset_tag_discovered(void)
 {
-	tag_discovered_func_data.callback = NULL;
-	tag_discovered_func_data.user_data = NULL;
+	net_nfc_neard_unset_tag_discovered();
 }
 
 API void net_nfc_client_tag_set_tag_detached(
@@ -727,14 +723,12 @@ API void net_nfc_client_tag_set_tag_detached(
 {
 	RET_IF(NULL == callback);
 
-	tag_detached_func_data.callback = (gpointer)callback;
-	tag_detached_func_data.user_data = user_data;
+	net_nfc_neard_set_tag_detached(callback, user_data);
 }
 
 API void net_nfc_client_tag_unset_tag_detached(void)
 {
-	tag_detached_func_data.callback = NULL;
-	tag_detached_func_data.user_data = NULL;
+	net_nfc_neard_unset_tag_detached();
 }
 
 API void net_nfc_client_tag_set_filter(net_nfc_event_filter_e filter)
