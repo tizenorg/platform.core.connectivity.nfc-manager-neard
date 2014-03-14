@@ -7,8 +7,16 @@
 #include "net_nfc.h"
 #include "net_nfc_typedef.h"
 #include "net_nfc_debug_internal.h"
+#include "net_nfc_util_internal.h"
+#include "net_nfc_util_ndef_message.h"
 
 #include "neardal.h"
+
+/* TODO get real data */
+#define NET_NFC_JEWEL_PICC_MAX_SIZE		116
+#define NET_NFC_MIFARE_ULTRA_PICC_MAX_SIZE	48
+#define NET_NFC_FELICA_PICC_MAX_SIZE		256
+#define NET_NFC_MIFARE_DESFIRE_PICC_MAX_SIZE	2048
 
 typedef struct _net_nfc_client_cb
 {
@@ -23,6 +31,11 @@ typedef struct _net_nfc_client_cb
 	void *tag_discovered_ud;
 	net_nfc_client_tag_tag_detached tag_detached_cb;
 	void *tag_detached_ud;
+
+	net_nfc_client_ndef_read_completed ndef_read_cb;
+	void *ndef_read_ud;
+	net_nfc_client_ndef_write_completed ndef_write_cb;
+	void *ndef_write_ud;
 } net_nfc_client_cb;
 
 static net_nfc_client_cb client_cb;
@@ -33,6 +46,9 @@ static bool nfc_adapter_polling;
 static char *nfc_adapter_mode;
 static neardal_tag *tag;
 static neardal_dev *dev;
+static data_s *rawNDEF;
+static net_nfc_target_info_s *target_info;
+static net_nfc_target_handle_s *target_handle;
 
 static net_nfc_error_e _convert_error_code(errorCode_t error_code)
 {
@@ -64,6 +80,93 @@ static net_nfc_error_e _convert_error_code(errorCode_t error_code)
 	default:
 		return NET_NFC_UNKNOWN_ERROR;
 	}
+}
+
+static int _convert_target_type(const char *type)
+{
+	int t_type;
+
+	/* TODO tag sub types */
+
+	if (type == NULL)
+		return NET_NFC_UNKNOWN_TARGET;
+
+	if (!g_strcmp0(type, "Type 1"))
+		t_type = NET_NFC_JEWEL_PICC;
+	else if (!g_strcmp0(type, "Type 2"))
+		t_type = NET_NFC_MIFARE_ULTRA_PICC;
+	/*
+		NET_NFC_MIFARE_MINI_PICC
+		NET_NFC_MIFARE_1K_PICC
+		NET_NFC_MIFARE_4K_PICC
+		NET_NFC_MIFARE_ULTRA_PICC
+	*/
+	else if (!g_strcmp0(type, "Type 3"))
+		t_type = NET_NFC_FELICA_PICC;
+	else if (!g_strcmp0(type, "Type 4"))
+		t_type = NET_NFC_MIFARE_DESFIRE_PICC;
+	else if (!g_strcmp0(type, "Target"))
+		t_type = NET_NFC_NFCIP1_TARGET;
+	else if (!g_strcmp0(type, "Initiator"))
+		t_type = NET_NFC_NFCIP1_INITIATOR;
+	else
+		t_type = NET_NFC_UNKNOWN_TARGET;
+
+	return t_type;
+}
+
+static uint32_t _get_tag_id(const char *name)
+{
+	uint32_t id;
+	char **s;
+
+	s = g_strsplit(name, "tag", 2);
+	id = atoi(s[1]);
+	g_strfreev(s);
+
+	return id;
+}
+
+static bool _check_ndef(uint8_t *ndef_card_state,
+					int *max_data_size,
+					int *real_data_size)
+{
+	if (ndef_card_state == NULL ||
+		max_data_size == NULL || real_data_size == NULL) {
+
+		return false;
+	}
+
+	if (tag == NULL || rawNDEF == NULL)
+		return false;
+
+	if (tag->readOnly)
+		*ndef_card_state = NET_NFC_NDEF_CARD_READ_ONLY;
+	else
+		*ndef_card_state = NET_NFC_NDEF_CARD_READ_WRITE;
+
+	/* TODO get real data */
+	switch (_convert_target_type(tag->type)) {
+	case NET_NFC_JEWEL_PICC:
+		*max_data_size = NET_NFC_JEWEL_PICC_MAX_SIZE;
+		break;
+
+	case NET_NFC_MIFARE_ULTRA_PICC:
+		*max_data_size = NET_NFC_MIFARE_ULTRA_PICC_MAX_SIZE;
+		break;
+
+	case NET_NFC_FELICA_PICC:
+		*max_data_size = NET_NFC_FELICA_PICC_MAX_SIZE;
+		break;
+
+	case NET_NFC_MIFARE_DESFIRE_PICC:
+		*max_data_size = NET_NFC_MIFARE_DESFIRE_PICC_MAX_SIZE;
+		break;
+	}
+
+	*real_data_size = rawNDEF->length;
+
+	return true;
 }
 
 static void _adapter_added_cb(const char *name, void *user_data)
@@ -160,15 +263,18 @@ exit:
 
 static void _tag_found_cb(const char *tagName, void *user_data)
 {
-	NFC_DBG("NFC tag found");
+	NFC_DBG("NFC tag found tagName: %s", tagName);
 
 	if (neardal_get_tag_properties(tagName, &tag) != NEARDAL_SUCCESS)
 		return;
-	if (tag == NULL && tag->records == NULL)
+	if (tag == NULL || tag->records == NULL)
 		return;
 
-	if (client_cb.tag_discovered_cb != NULL)
-		client_cb.tag_discovered_cb(NULL, client_cb.tag_discovered_ud);
+	if (neardal_tag_get_rawNDEF(tag->name)
+				!= NEARDAL_SUCCESS) {
+		NFC_DBG("Failed to get rawNDEF");
+		return;
+	}
 }
 
 static void _tag_lost_cb(const char *tagName, void *user_data)
@@ -180,6 +286,21 @@ static void _tag_lost_cb(const char *tagName, void *user_data)
 		tag = NULL;
 	}
 
+	if (rawNDEF != NULL) {
+		net_nfc_util_free_data(rawNDEF);
+		rawNDEF = NULL;
+	}
+
+	if (target_handle != NULL) {
+		g_free(target_handle);
+		target_handle = NULL;
+	}
+
+	if (target_info != NULL) {
+		g_free(target_info);
+		target_info = NULL;
+	}
+
 	if (nfc_adapter_polling == true)
 		return;
 
@@ -189,6 +310,188 @@ static void _tag_lost_cb(const char *tagName, void *user_data)
 
 	if (client_cb.tag_detached_cb != NULL)
 		client_cb.tag_detached_cb(client_cb.tag_detached_ud);
+}
+
+static void _create_target_info(data_s *data)
+{
+	uint8_t ndefCardstate;
+	int actualDataSize, maxDataSize;
+	bool ndef_support;
+
+	if (target_info == NULL)
+		target_info = g_try_malloc0(sizeof(net_nfc_target_info_s));
+
+	if (target_info == NULL) {
+		NFC_DBG("target_info mem alloc is failed");
+		return;
+	}
+	if (target_handle == NULL)
+		target_handle = g_try_malloc0(sizeof(net_nfc_target_handle_s));
+
+	if (target_handle == NULL) {
+		NFC_DBG("handle mem alloc is failed");
+		return;
+	}
+
+	target_handle->connection_id = _get_tag_id(tag->name);
+	target_handle->connection_type = NET_NFC_TAG_CONNECTION;
+	target_handle->target_type = _convert_target_type(tag->type);
+
+	ndef_support =  _check_ndef(&ndefCardstate, &maxDataSize,
+						&actualDataSize);
+
+	if (ndef_support == false) {
+		ndefCardstate = 0;
+		maxDataSize   = -1;
+		actualDataSize  = -1;
+	}
+
+	target_info->ndefCardState = ndefCardstate;
+	target_info->actualDataSize = actualDataSize;
+	target_info->maxDataSize = maxDataSize;
+	target_info->devType = _convert_target_type(tag->type);
+	target_info->handle = target_handle;
+	target_info->is_ndef_supported = ndef_support;
+	target_info->number_of_keys = 0;
+	target_info->tag_info_list = NULL;
+	target_info->raw_data = *data;
+}
+
+static void _read_completed_cb(GVariant *ret, void *user_data)
+{
+	gconstpointer value;
+	gsize length;
+	ndef_message_s *ndef = NULL;
+	net_nfc_error_e result = NET_NFC_TAG_READ_FAILED;
+
+	NFC_DBG("read completed cb adapter path %s", nfc_adapter_path);
+
+	if (ret == NULL)
+		goto exit;
+
+	value = g_variant_get_data(ret);
+	length = g_variant_get_size(ret);
+
+	if (length < 0)
+		goto exit;
+
+	if (rawNDEF != NULL) {
+		net_nfc_util_free_data(rawNDEF);
+		rawNDEF = NULL;
+	}
+
+	rawNDEF = g_try_malloc0(sizeof(data_s));
+	if (rawNDEF == NULL)
+		goto exit;
+
+	rawNDEF->length = (int)length;
+	rawNDEF->buffer = g_try_malloc0(rawNDEF->length);
+	if (rawNDEF->buffer == NULL) {
+		g_free(rawNDEF);
+		goto exit;
+	}
+
+	memcpy(rawNDEF->buffer, value, rawNDEF->length);
+
+	_create_target_info(rawNDEF);
+
+	if (net_nfc_util_create_ndef_message(&ndef) != NET_NFC_OK) {
+		NFC_DBG("ndef memory alloc fail..");
+		goto exit;
+	}
+	result = net_nfc_util_convert_rawdata_to_ndef_message(
+						rawNDEF, ndef);
+exit:
+	if (client_cb.tag_discovered_cb != NULL)
+		client_cb.tag_discovered_cb(target_info, client_cb.tag_discovered_ud);
+
+	if (client_cb.ndef_read_cb != NULL) {
+		client_cb.ndef_read_cb(result, ndef, client_cb.ndef_read_ud);
+
+		net_nfc_util_free_ndef_message(ndef);
+		client_cb.ndef_read_cb = NULL;
+		client_cb.ndef_read_ud = NULL;
+	}
+}
+
+static void _write_completed_cb(errorCode_t error_code, void *user_data)
+{
+	net_nfc_error_e result;
+
+	NFC_DBG("write completed cb adapter path %s", nfc_adapter_path);
+
+	result = _convert_error_code(error_code);
+
+	if (client_cb.ndef_write_cb != NULL) {
+		client_cb.ndef_write_cb(result, client_cb.ndef_write_ud);
+
+		client_cb.ndef_write_cb = NULL;
+		client_cb.ndef_write_ud = NULL;
+	}
+}
+
+net_nfc_error_e net_nfc_neard_read_tag(net_nfc_target_handle_s *handle,
+		net_nfc_client_ndef_read_completed callback, void *user_data)
+{
+	if (handle != target_handle || rawNDEF == NULL)
+		return NET_NFC_TARGET_IS_MOVED_AWAY;
+
+	if (tag == NULL && tag->records == NULL)
+		return NET_NFC_TARGET_IS_MOVED_AWAY;
+
+	if (neardal_tag_get_rawNDEF(tag->name)
+				!= NEARDAL_SUCCESS) {
+		NFC_DBG("Failed to get rawNDEF");
+		return NET_NFC_TAG_READ_FAILED;
+	}
+
+	client_cb.ndef_read_cb = callback;
+	client_cb.ndef_read_ud = user_data;
+
+	return NET_NFC_OK;
+}
+
+net_nfc_error_e net_nfc_neard_write_ndef(net_nfc_target_handle_s *handle,
+					data_s *data,
+					net_nfc_client_ndef_write_completed callback,
+					void *user_data)
+{
+	neardal_record *record;
+
+	NFC_DBG("write ndef message");
+	if (target_handle == NULL || handle != target_handle)
+		return NET_NFC_TARGET_IS_MOVED_AWAY;
+
+	if ((data->buffer == NULL && data->length != 0) ||
+		(data->buffer != NULL && data->length == 0))
+		return NET_NFC_NULL_PARAMETER;
+
+	record = g_try_malloc0(sizeof(neardal_record));
+	if (record == NULL)
+		return NET_NFC_ALLOC_FAIL;
+
+	record->name = g_strdup(tag->records[0]);
+	record->type = g_strdup("Raw");
+	record->rawNDEF = g_try_malloc0(data->length);
+	if (record->rawNDEF == NULL) {
+		neardal_free_record(record);
+		return NET_NFC_ALLOC_FAIL;
+	}
+
+	client_cb.ndef_write_cb = callback;
+	client_cb.ndef_write_ud = user_data;
+
+	memcpy(record->rawNDEF, data->buffer, data->length);
+	record->rawNDEFSize = data->length;
+
+	if (neardal_tag_write(record) != NEARDAL_SUCCESS) {
+		neardal_free_record(record);
+		return NET_NFC_TAG_WRITE_FAILED;
+	}
+
+	neardal_free_record(record);
+
+	return NET_NFC_OK;
 }
 
 bool net_nfc_neard_is_tag_connected(void)
@@ -278,7 +581,11 @@ net_nfc_error_e net_nfc_neard_cb_init(void)
 		neardal_set_cb_tag_found(
 			_tag_found_cb, NULL) != NEARDAL_SUCCESS ||
 		neardal_set_cb_tag_lost(
-			_tag_lost_cb, NULL) != NEARDAL_SUCCESS) {
+			_tag_lost_cb, NULL) != NEARDAL_SUCCESS ||
+		neardal_set_cb_read_completed(_read_completed_cb, NULL)
+							!= NEARDAL_SUCCESS ||
+		neardal_set_cb_write_completed(_write_completed_cb, NULL)
+							!= NEARDAL_SUCCESS) {
 
 		NFC_DBG("failed to register the callback");
 
@@ -365,5 +672,20 @@ void net_nfc_neard_deinitialize(void)
 	if (dev != NULL) {
 		neardal_free_device(dev);
 		dev = NULL;
+	}
+
+	if (rawNDEF != NULL) {
+		net_nfc_util_free_data(rawNDEF);
+		rawNDEF = NULL;
+	}
+
+	if (target_handle != NULL) {
+		g_free(target_handle);
+		target_handle = NULL;
+	}
+
+	if (target_info != NULL) {
+		g_free(target_info);
+		target_info = NULL;
 	}
 }

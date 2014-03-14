@@ -26,6 +26,7 @@
 #include "net_nfc_client_manager.h"
 #include "net_nfc_client_ndef.h"
 #include "net_nfc_client_tag_internal.h"
+#include "net_nfc_neard.h"
 
 static NetNfcGDbusNdef *ndef_proxy = NULL;
 
@@ -195,10 +196,7 @@ static void ndef_call_format(GObject *source_object,
 API net_nfc_error_e net_nfc_client_ndef_read(net_nfc_target_handle_s *handle,
 		net_nfc_client_ndef_read_completed callback, void *user_data)
 {
-	NetNfcCallback *func_data;
-
 	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
-	RETV_IF(NULL == ndef_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* prevent executing daemon when nfc is off */
 	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
@@ -206,17 +204,7 @@ API net_nfc_error_e net_nfc_client_ndef_read(net_nfc_target_handle_s *handle,
 
 	NFC_DBG("send request :: read ndef = [%p]", handle);
 
-	func_data = g_try_new0(NetNfcCallback, 1);
-	if (NULL == func_data)
-		return NET_NFC_ALLOC_FAIL;
-
-	func_data->callback = (gpointer)callback;
-	func_data->user_data = user_data;
-
-	net_nfc_gdbus_ndef_call_read(ndef_proxy, GPOINTER_TO_UINT(handle),
-			net_nfc_client_gdbus_get_privilege(), NULL, ndef_call_read, func_data);
-
-	return NET_NFC_OK;
+	return net_nfc_neard_read_tag(handle, callback, user_data);
 }
 
 API net_nfc_error_e net_nfc_client_ndef_read_sync(net_nfc_target_handle_s *handle,
@@ -263,36 +251,43 @@ API net_nfc_error_e net_nfc_client_ndef_write(net_nfc_target_handle_s *handle,
 		net_nfc_client_ndef_write_completed callback,
 		void *user_data)
 {
-	GVariant *arg_data;
-	NetNfcCallback *func_data;
+	size_t length;
+	net_nfc_error_e ret;
+	data_s data = {NULL, 0};
 
 	RETV_IF(NULL == handle, NET_NFC_NULL_PARAMETER);
 	RETV_IF(NULL == message, NET_NFC_NULL_PARAMETER);
-
-	RETV_IF(NULL == ndef_proxy, NET_NFC_NOT_INITIALIZED);
 
 	/* prevent executing daemon when nfc is off */
 	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
 	RETV_IF(net_nfc_client_tag_is_connected() == FALSE, NET_NFC_NOT_CONNECTED);
 
-	func_data = g_try_new0(NetNfcCallback, 1);
-	if (NULL == func_data)
-		return NET_NFC_ALLOC_FAIL;
+	length = net_nfc_util_get_ndef_message_length((ndef_message_s *)message);
+	if (length > 0) {
+		if (net_nfc_util_alloc_data(&data, length) == true) {
+			ret = net_nfc_util_convert_ndef_message_to_rawdata((ndef_message_s *)message,
+						&data);
+			if (NET_NFC_OK != ret) {
+				NFC_ERR("can not convert ndef_message to rawdata");
 
-	func_data->callback = (gpointer)callback;
-	func_data->user_data = user_data;
+				net_nfc_util_free_data(&data);
+			}
+		} else {
+			NFC_ERR("net_nfc_util_alloc_data failed");
 
-	arg_data = net_nfc_util_gdbus_ndef_message_to_variant(message);
+			return NET_NFC_ALLOC_FAIL;
+		}
+	} else {
+		NFC_ERR("message length is 0");
 
-	net_nfc_gdbus_ndef_call_write(ndef_proxy,
-			GPOINTER_TO_UINT(handle),
-			arg_data,
-			net_nfc_client_gdbus_get_privilege(),
-			NULL,
-			ndef_call_write,
-			func_data);
+		return NET_NFC_INVALID_PARAM;
+	}
 
-	return NET_NFC_OK;
+	ret = net_nfc_neard_write_ndef(handle, &data, callback, user_data);
+
+	net_nfc_util_free_data(&data);
+
+	return ret;
 }
 
 API net_nfc_error_e net_nfc_client_ndef_write_sync(net_nfc_target_handle_s *handle,
