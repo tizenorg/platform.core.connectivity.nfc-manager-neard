@@ -27,7 +27,7 @@
 
 
 static NetNfcGDbusPopup *popup_proxy = NULL;
-static int popup_state = 0;
+static int popup_state = 1;
 
 static void popup_set_active_callback(GObject *source_object, GAsyncResult *res,
 		gpointer user_data)

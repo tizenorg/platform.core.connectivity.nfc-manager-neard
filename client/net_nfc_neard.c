@@ -9,6 +9,7 @@
 #include "net_nfc_debug_internal.h"
 #include "net_nfc_util_internal.h"
 #include "net_nfc_util_ndef_message.h"
+#include "net_nfc_client_util.h"
 
 #include "neardal.h"
 
@@ -270,6 +271,7 @@ static void _tag_found_cb(const char *tagName, void *user_data)
 	if (tag == NULL || tag->records == NULL)
 		return;
 
+	net_nfc_manager_util_play_sound(NET_NFC_TASK_START);
 	if (neardal_tag_get_rawNDEF(tag->name)
 				!= NEARDAL_SUCCESS) {
 		NFC_DBG("Failed to get rawNDEF");
@@ -393,6 +395,7 @@ static void _read_completed_cb(GVariant *ret, void *user_data)
 
 	memcpy(rawNDEF->buffer, value, rawNDEF->length);
 
+	net_nfc_app_util_process_ndef(rawNDEF);
 	_create_target_info(rawNDEF);
 
 	if (net_nfc_util_create_ndef_message(&ndef) != NET_NFC_OK) {
