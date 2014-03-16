@@ -27,6 +27,9 @@ void net_nfc_neard_unset_p2p_discovered(void);
 void net_nfc_neard_set_p2p_detached(
 		net_nfc_client_p2p_device_detached callback, void *user_data);
 void net_nfc_neard_unset_p2p_detached(void);
+void net_nfc_neard_set_p2p_data_received(
+		net_nfc_client_p2p_data_received callback, void *user_data);
+void net_nfc_neard_unset_p2p_data_received(void);
 void net_nfc_neard_set_tag_discovered(
 		net_nfc_client_tag_tag_discovered callback, void *user_data);
 void net_nfc_neard_unset_tag_discovered(void);

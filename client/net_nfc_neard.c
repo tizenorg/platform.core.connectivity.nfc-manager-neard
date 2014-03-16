@@ -44,6 +44,8 @@ typedef struct _net_nfc_client_cb
 	void *p2p_detached_ud;
 	net_nfc_client_p2p_send_completed p2p_send_completed_cb;
 	void *p2p_send_completed_ud;
+	net_nfc_client_p2p_data_received p2p_data_received_cb;
+	void *p2p_data_received_ud;
 } net_nfc_client_cb;
 
 static net_nfc_client_cb client_cb;
@@ -510,6 +512,49 @@ exit:
 		client_cb.p2p_detached_cb(client_cb.p2p_detached_ud);
 }
 
+static void _p2p_received_cb(GVariant *ret, void *user_data)
+{
+	gconstpointer value;
+	gsize length;
+	ndef_message_s *ndef = NULL;
+
+	NFC_DBG("p2p received cb adapter path %s", nfc_adapter_path);
+	if (nfc_adapter_path == NULL)
+		return;
+
+	if (ret == NULL)
+		return;
+
+	value = g_variant_get_data(ret);
+	length = g_variant_get_size(ret);
+
+	if (length < 0)
+		return;
+
+	if (rawNDEF != NULL) {
+		net_nfc_util_free_data(rawNDEF);
+		rawNDEF = NULL;
+	}
+
+	rawNDEF = g_try_malloc0(sizeof(data_s));
+	if (rawNDEF == NULL)
+		return;
+
+	rawNDEF->length = (int)length;
+	rawNDEF->buffer = g_try_malloc0(rawNDEF->length);
+	if (rawNDEF->buffer == NULL) {
+		g_free(rawNDEF);
+		return;
+	}
+
+	memcpy(rawNDEF->buffer, value, rawNDEF->length);
+
+	net_nfc_app_util_process_ndef(rawNDEF);
+
+	if (client_cb.p2p_data_received_cb != NULL)
+		client_cb.p2p_data_received_cb(rawNDEF, client_cb.p2p_data_received_ud);
+}
+
 static void _p2p_send_completed_cb(errorCode_t error_code, void *user_data)
 {
 	net_nfc_error_e result;
@@ -721,6 +766,19 @@ void net_nfc_neard_unset_p2p_detached(void)
 	client_cb.p2p_detached_ud = NULL;
 }
 
+void net_nfc_neard_set_p2p_data_received(
+		net_nfc_client_p2p_data_received callback, void *user_data)
+{
+	client_cb.p2p_data_received_cb = callback;
+	client_cb.p2p_data_received_ud = user_data;
+}
+
+void net_nfc_neard_unset_p2p_data_received(void)
+{
+	client_cb.p2p_data_received_cb = NULL;
+	client_cb.p2p_data_received_ud = NULL;
+}
+
 void net_nfc_neard_set_tag_discovered(
 		net_nfc_client_tag_tag_discovered callback, void *user_data)
 {
@@ -783,6 +841,8 @@ net_nfc_error_e net_nfc_neard_cb_init(void)
 		neardal_set_cb_dev_lost(_device_lost_cb, NULL)
 							!= NEARDAL_SUCCESS ||
 		neardal_set_cb_push_completed(_p2p_send_completed_cb, NULL)
+							!= NEARDAL_SUCCESS ||
+		neardal_set_cb_p2p_received(_p2p_received_cb, NULL)
 							!= NEARDAL_SUCCESS) {
 
 		NFC_DBG("failed to register the callback");

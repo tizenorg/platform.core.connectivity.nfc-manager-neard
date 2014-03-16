@@ -194,8 +194,7 @@ API void net_nfc_client_p2p_set_data_received(
 {
 	RET_IF(NULL == callback);
 
-	p2p_signal_handler.p2p_data_received_cb = callback;
-	p2p_signal_handler.p2p_data_received_data = user_data;
+	net_nfc_neard_set_p2p_data_received(callback, user_data);
 }
 
 
@@ -213,8 +212,7 @@ API void net_nfc_client_p2p_unset_device_detached(void)
 
 API void net_nfc_client_p2p_unset_data_received(void)
 {
-	p2p_signal_handler.p2p_data_received_cb = NULL;
-	p2p_signal_handler.p2p_data_received_data = NULL;
+	net_nfc_neard_unset_p2p_data_received();
 }
 
 net_nfc_error_e net_nfc_client_p2p_init(void)
