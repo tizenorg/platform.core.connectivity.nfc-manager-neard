@@ -404,6 +404,7 @@ gboolean net_nfc_client_tag_is_connected(void)
 
 net_nfc_target_info_s *net_nfc_client_tag_get_client_target_info(void)
 {
+	net_nfc_neard_get_current_tag_info(&client_target_info);
 	return client_target_info;
 }
 
@@ -526,90 +527,10 @@ API net_nfc_error_e net_nfc_client_tag_get_current_tag_info(
 API net_nfc_error_e net_nfc_client_tag_get_current_tag_info_sync(
 		net_nfc_target_info_s **info)
 {
-	gboolean ret;
-	GError *error = NULL;
-	guint out_handle = 0;
-	guint out_max_data_size = 0;
-	guint out_number_of_keys = 0;
-	GVariant *out_raw_data = NULL;
-	guchar out_ndef_card_state = 0;
-	guint out_actual_data_size = 0;
-	gboolean out_is_connected = FALSE;
-	net_nfc_error_e result = NET_NFC_OK;
-	gboolean out_is_ndef_supported = FALSE;
-	GVariant *out_target_info_values = NULL;
-	net_nfc_target_type_e out_dev_type = NET_NFC_UNKNOWN_TARGET;
-
-	RETV_IF(NULL == tag_proxy, NET_NFC_NOT_INITIALIZED);
-
 	/* prevent executing daemon when nfc is off */
 	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
 
-	if (net_nfc_client_tag_get_client_target_info() == NULL)
-	{
-		ret = net_nfc_gdbus_tag_call_get_current_tag_info_sync(tag_proxy,
-				net_nfc_client_gdbus_get_privilege(),
-				&result,
-				&out_is_connected,
-				&out_handle,
-				(gint *)&out_dev_type,
-				&out_is_ndef_supported,
-				&out_ndef_card_state,
-				&out_max_data_size,
-				&out_actual_data_size,
-				&out_number_of_keys,
-				&out_target_info_values,
-				&out_raw_data,
-				NULL,
-				&error);
-
-		/* try to request target information from server */
-		if (FALSE == ret)
-		{
-			NFC_ERR("Can not get current_tag_info result: %s", error->message);
-			g_error_free(error);
-
-			return NET_NFC_IPC_FAIL;
-		}
-
-		if (TRUE == out_is_connected)
-		{
-			if (tag_check_filter(out_dev_type) == TRUE)
-			{
-				tag_get_target_info(out_handle,
-						out_dev_type,
-						out_is_ndef_supported,
-						out_ndef_card_state,
-						out_max_data_size,
-						out_actual_data_size,
-						out_number_of_keys,
-						out_target_info_values,
-						out_raw_data,
-						&client_target_info);
-
-				result = NET_NFC_OK;
-			}
-			else
-			{
-				NFC_INFO("The detected target is filtered out");
-
-				result = NET_NFC_NOT_CONNECTED;
-			}
-		}
-		else
-		{
-			result = NET_NFC_NOT_CONNECTED;
-		}
-	}
-	else
-	{
-		result = NET_NFC_OK;
-	}
-
-	if (result == NET_NFC_OK && info != NULL)
-		*info = client_target_info;
-
-	return result;
+	return net_nfc_neard_get_current_tag_info(info);
 }
 
 #if 0
@@ -643,66 +564,10 @@ API net_nfc_error_e net_nfc_client_tag_get_current_target_handle(
 API net_nfc_error_e net_nfc_client_tag_get_current_target_handle_sync(
 		net_nfc_target_handle_s **handle)
 {
-	gboolean ret;
-	GError *error = NULL;
-	guint out_handle = 0;
-	net_nfc_error_e result;
-	net_nfc_target_info_s *info;
-	gboolean out_is_connected = FALSE;
-	net_nfc_target_type_e out_dev_type = NET_NFC_UNKNOWN_TARGET;
-
-	RETV_IF(NULL == tag_proxy, NET_NFC_NOT_INITIALIZED);
-
 	/* prevent executing daemon when nfc is off */
 	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
 
-	info = net_nfc_client_tag_get_client_target_info();
-	if (NULL == info)
-	{
-		ret = net_nfc_gdbus_tag_call_get_current_target_handle_sync(
-				tag_proxy,
-				net_nfc_client_gdbus_get_privilege(),
-				&result,
-				&out_is_connected,
-				&out_handle,
-				(gint *)&out_dev_type,
-				NULL,
-				&error);
-
-		if (FALSE == ret)
-		{
-			NFC_ERR("Can not get current_target_handle result: %s", error->message);
-			g_error_free(error);
-
-			return result;
-		}
-
-		if (TRUE == out_is_connected)
-		{
-			if (handle)
-				*handle = GUINT_TO_POINTER(out_handle);
-
-			result = NET_NFC_OK;
-		}
-		else
-		{
-			result = NET_NFC_NOT_CONNECTED;
-		}
-	}
-	else if (NET_NFC_NFCIP1_INITIATOR == info->devType ||
-			NET_NFC_NFCIP1_TARGET == info->devType)
-	{
-		if (handle)
-			*handle = info->handle;
-
-		result = NET_NFC_OK;
-	}
-	else
-	{
-		result = NET_NFC_NOT_CONNECTED;
-	}
-
-	return result;
+	return net_nfc_neard_get_current_target_handle(handle);
 }
 
 API void net_nfc_client_tag_set_tag_discovered(

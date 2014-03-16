@@ -430,6 +430,37 @@ static void _write_completed_cb(errorCode_t error_code, void *user_data)
 	}
 }
 
+net_nfc_error_e net_nfc_neard_get_current_tag_info(net_nfc_target_info_s **info)
+{
+
+	if (target_info == NULL)
+		return NET_NFC_NOT_CONNECTED;
+	else
+		*info = target_info;
+
+	return NET_NFC_OK;
+}
+
+net_nfc_error_e net_nfc_neard_get_current_target_handle(
+			net_nfc_target_handle_s **handle)
+{
+	net_nfc_error_e result = NET_NFC_OK;
+
+	if (target_handle == NULL || target_info == NULL) {
+		result = NET_NFC_NOT_CONNECTED;
+	} else if (NET_NFC_NFCIP1_INITIATOR == target_info->devType ||
+			NET_NFC_NFCIP1_TARGET == target_info->devType) {
+		if (handle)
+			*handle = target_info->handle;
+
+		result = NET_NFC_OK;
+	} else {
+		result = NET_NFC_NOT_CONNECTED;
+	}
+
+	return result;
+}
+
 net_nfc_error_e net_nfc_neard_read_tag(net_nfc_target_handle_s *handle,
 		net_nfc_client_ndef_read_completed callback, void *user_data)
 {

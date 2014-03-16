@@ -4,6 +4,9 @@
 #include "net_nfc.h"
 #include "net_nfc_typedef.h"
 
+net_nfc_error_e net_nfc_neard_get_current_tag_info(net_nfc_target_info_s **info);
+net_nfc_error_e net_nfc_neard_get_current_target_handle(
+			net_nfc_target_handle_s **handle);
 net_nfc_error_e net_nfc_neard_read_tag(net_nfc_target_handle_s *handle,
 		net_nfc_client_ndef_read_completed callback, void *user_data);
 net_nfc_error_e net_nfc_neard_write_ndef(net_nfc_target_handle_s *handle,
