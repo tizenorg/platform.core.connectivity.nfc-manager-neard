@@ -23,6 +23,7 @@
 #include "net_nfc_client.h"
 #include "net_nfc_client_manager.h"
 #include "net_nfc_client_p2p.h"
+#include "net_nfc_neard.h"
 
 
 typedef struct _P2p_SignalHandler P2pSignalHandler;
@@ -198,8 +199,7 @@ API void net_nfc_client_p2p_set_device_discovered(
 {
 	RET_IF(NULL == callback);
 
-	p2p_signal_handler.p2p_device_discovered_cb = callback;
-	p2p_signal_handler.p2p_device_discovered_data = user_data;
+	net_nfc_neard_set_p2p_discovered(callback, user_data);
 }
 
 
@@ -208,8 +208,7 @@ API void net_nfc_client_p2p_set_device_detached(
 {
 	RET_IF(NULL == callback);
 
-	p2p_signal_handler.p2p_device_detached_cb = callback;
-	p2p_signal_handler.p2p_device_detached_data = user_data;
+	net_nfc_neard_set_p2p_detached(callback, user_data);
 }
 
 
@@ -225,15 +224,13 @@ API void net_nfc_client_p2p_set_data_received(
 
 API void net_nfc_client_p2p_unset_device_discovered(void)
 {
-	p2p_signal_handler.p2p_device_discovered_cb = NULL;
-	p2p_signal_handler.p2p_device_discovered_data = NULL;
+	net_nfc_neard_unset_p2p_discovered();
 }
 
 
 API void net_nfc_client_p2p_unset_device_detached(void)
 {
-	p2p_signal_handler.p2p_device_detached_cb = NULL;
-	p2p_signal_handler.p2p_device_detached_data = NULL;
+	net_nfc_neard_unset_p2p_detached();
 }
 
 

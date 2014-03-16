@@ -19,6 +19,12 @@ net_nfc_error_e net_nfc_neard_set_active(int state,
 void net_nfc_neard_set_activated(net_nfc_client_manager_activated callback,
 		void *user_data);
 void net_nfc_neard_unset_activated(void);
+void net_nfc_neard_set_p2p_discovered(
+		net_nfc_client_p2p_device_discovered callback, void *user_data);
+void net_nfc_neard_unset_p2p_discovered(void);
+void net_nfc_neard_set_p2p_detached(
+		net_nfc_client_p2p_device_detached callback, void *user_data);
+void net_nfc_neard_unset_p2p_detached(void);
 void net_nfc_neard_set_tag_discovered(
 		net_nfc_client_tag_tag_discovered callback, void *user_data);
 void net_nfc_neard_unset_tag_discovered(void);
