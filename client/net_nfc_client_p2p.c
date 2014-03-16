@@ -127,33 +127,10 @@ static void p2p_call_send(GObject *source_object, GAsyncResult *res,
 API net_nfc_error_e net_nfc_client_p2p_send(net_nfc_target_handle_s *handle,
 		data_s *data, net_nfc_client_p2p_send_completed callback, void *user_data)
 {
-	GVariant *arg_data;
-	NetNfcCallback *func_data;
-
-	RETV_IF(NULL == p2p_proxy, NET_NFC_NOT_INITIALIZED);
-
 	/* prevent executing daemon when nfc is off */
 	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
 
-	func_data = g_try_new0(NetNfcCallback, 1);
-	if (NULL == func_data)
-		return NET_NFC_ALLOC_FAIL;
-
-	func_data->callback = (gpointer)callback;
-	func_data->user_data = user_data;
-
-	arg_data = net_nfc_util_gdbus_data_to_variant(data);
-
-	net_nfc_gdbus_p2p_call_send(p2p_proxy,
-			0 /* FIXME */,
-			arg_data,
-			GPOINTER_TO_UINT(handle),
-			net_nfc_client_gdbus_get_privilege(),
-			NULL,
-			p2p_call_send,
-			func_data);
-
-	return NET_NFC_OK;
+	return net_nfc_neard_send_p2p(handle, data, callback, user_data);
 }
 
 

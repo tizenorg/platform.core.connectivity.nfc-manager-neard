@@ -4,6 +4,8 @@
 #include "net_nfc.h"
 #include "net_nfc_typedef.h"
 
+net_nfc_error_e net_nfc_neard_send_p2p(net_nfc_target_handle_s *handle, data_s *data,
+			net_nfc_client_p2p_send_completed callback, void *user_data);
 net_nfc_error_e net_nfc_neard_get_current_tag_info(net_nfc_target_info_s **info);
 net_nfc_error_e net_nfc_neard_get_current_target_handle(
 			net_nfc_target_handle_s **handle);

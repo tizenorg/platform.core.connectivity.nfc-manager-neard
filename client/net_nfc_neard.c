@@ -42,6 +42,8 @@ typedef struct _net_nfc_client_cb
 	void *p2p_discovered_ud;
 	net_nfc_client_p2p_device_detached p2p_detached_cb;
 	void *p2p_detached_ud;
+	net_nfc_client_p2p_send_completed p2p_send_completed_cb;
+	void *p2p_send_completed_ud;
 } net_nfc_client_cb;
 
 static net_nfc_client_cb client_cb;
@@ -508,6 +510,61 @@ exit:
 		client_cb.p2p_detached_cb(client_cb.p2p_detached_ud);
 }
 
+static void _p2p_send_completed_cb(errorCode_t error_code, void *user_data)
+{
+	net_nfc_error_e result;
+
+	NFC_DBG("p2p send completed cb error code %d", error_code);
+
+	result = _convert_error_code(error_code);
+
+	if (client_cb.p2p_send_completed_cb != NULL)
+		client_cb.p2p_send_completed_cb(result,
+				client_cb.p2p_send_completed_ud);
+}
+
+net_nfc_error_e net_nfc_neard_send_p2p(net_nfc_target_handle_s *handle, data_s *data,
+			net_nfc_client_p2p_send_completed callback, void *user_data)
+{
+	neardal_record *record;
+
+	NFC_DBG("neard send p2p");
+
+	if (target_handle == NULL || handle != target_handle)
+		return NET_NFC_TARGET_IS_MOVED_AWAY;
+
+	if ((data->buffer == NULL && data->length != 0) ||
+		(data->buffer != NULL && data->length == 0))
+		return NET_NFC_NULL_PARAMETER;
+
+	record = g_try_malloc0(sizeof(neardal_record));
+	if (record == NULL)
+		return NET_NFC_ALLOC_FAIL;
+
+	record->name = g_strdup(dev->name);
+	record->type = g_strdup("Raw");
+	record->rawNDEF = g_try_malloc0(data->length);
+	if (record->rawNDEF == NULL) {
+		neardal_free_record(record);
+		return NET_NFC_ALLOC_FAIL;
+	}
+
+	memcpy(record->rawNDEF, data->buffer, data->length);
+	record->rawNDEFSize = data->length;
+
+	if (neardal_dev_push(record) != NEARDAL_SUCCESS) {
+		neardal_free_record(record);
+		return NET_NFC_TAG_WRITE_FAILED;
+	}
+
+	neardal_free_record(record);
+
+	NFC_DBG("neard send p2p successfully");
+	client_cb.p2p_send_completed_cb = callback;
+	client_cb.p2p_send_completed_ud = user_data;
+	return NET_NFC_OK;
+}
+
 net_nfc_error_e net_nfc_neard_get_current_tag_info(net_nfc_target_info_s **info)
 {
 
@@ -724,6 +781,8 @@ net_nfc_error_e net_nfc_neard_cb_init(void)
 		neardal_set_cb_dev_found(_device_found_cb, NULL)
 							!= NEARDAL_SUCCESS ||
 		neardal_set_cb_dev_lost(_device_lost_cb, NULL)
+							!= NEARDAL_SUCCESS ||
+		neardal_set_cb_push_completed(_p2p_send_completed_cb, NULL)
 							!= NEARDAL_SUCCESS) {
 
 		NFC_DBG("failed to register the callback");
