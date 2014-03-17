@@ -1,0 +1,7 @@
+Code-Review+2: Ryan Ware <ware@linux.intel.com>
+Verified+1: Ryan Ware <ware@linux.intel.com>
+Submitted-by: Ryan Ware <ware@linux.intel.com>
+Submitted-at: Mon, 08 Jul 2013 10:08:24 -0700
+Reviewed-on: https://review.tizen.org/gerrit/4399
+Project: platform/core/connectivity/nfc-manager-neard
+Branch: refs/heads/tizen
