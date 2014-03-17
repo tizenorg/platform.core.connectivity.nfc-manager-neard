@@ -46,6 +46,8 @@ typedef struct _net_nfc_client_cb
 	void *p2p_send_completed_ud;
 	net_nfc_client_p2p_data_received p2p_data_received_cb;
 	void *p2p_data_received_ud;
+	net_nfc_p2p_connection_handover_completed_cb p2p_handover_cb;
+	void *p2p_handover_ud;
 } net_nfc_client_cb;
 
 static net_nfc_client_cb client_cb;
@@ -59,6 +61,7 @@ static neardal_dev *dev;
 static data_s *rawNDEF;
 static net_nfc_target_info_s *target_info;
 static net_nfc_target_handle_s *target_handle;
+static net_nfc_connection_handover_info_s *handover_info;
 
 static net_nfc_error_e _convert_error_code(errorCode_t error_code)
 {
@@ -123,6 +126,18 @@ static int _convert_target_type(const char *type)
 		t_type = NET_NFC_UNKNOWN_TARGET;
 
 	return t_type;
+}
+
+static const char *carrier2string(net_nfc_conn_handover_carrier_type_e type)
+{
+	switch (type) {
+	case NET_NFC_CONN_HANDOVER_CARRIER_BT:
+		return "bluetooth";
+	case NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS:
+		return "wifi";
+	}
+
+	return NULL;
 }
 
 static uint32_t _get_tag_id(const char *name)
@@ -555,6 +570,59 @@ static void _p2p_received_cb(GVariant *ret, void *user_data)
 		client_cb.p2p_data_received_cb(rawNDEF, client_cb.p2p_data_received_ud);
 }
 
+net_nfc_error_e net_nfc_neard_p2p_connection_handover(
+		net_nfc_target_handle_s *handle,
+		net_nfc_conn_handover_carrier_type_e arg_type,
+		net_nfc_p2p_connection_handover_completed_cb callback,
+		void *cb_data)
+{
+	neardal_record *record;
+	const char *carrier;
+
+	NFC_DBG("neard send p2p handover");
+
+	if (target_handle == NULL || handle != target_handle)
+		return NET_NFC_TARGET_IS_MOVED_AWAY;
+
+	carrier = carrier2string(arg_type);
+
+	if (carrier == NULL)
+		return NET_NFC_NOT_SUPPORTED;
+
+	record = g_try_malloc0(sizeof(neardal_record));
+	if (record == NULL)
+		return NET_NFC_ALLOC_FAIL;
+
+	record->name = g_strdup(dev->name);
+	record->type = g_strdup("Handover");
+	record->carrier = g_strdup(carrier);
+
+	if (neardal_dev_push(record) != NEARDAL_SUCCESS) {
+		neardal_free_record(record);
+		return NET_NFC_P2P_SEND_FAIL;
+	}
+
+	if (handover_info == NULL)
+		handover_info = g_try_malloc0(
+			sizeof(net_nfc_connection_handover_info_s));
+
+	if (handover_info == NULL) {
+		NFC_DBG("handover_info mem alloc is failed");
+		return NET_NFC_ALLOC_FAIL;
+	}
+
+	handover_info->type = arg_type;
+	handover_info->data.buffer = NULL;
+	handover_info->data.length = 0;
+
+	neardal_free_record(record);
+
+	client_cb.p2p_handover_cb = callback;
+	client_cb.p2p_handover_ud = cb_data;
+
+	return NET_NFC_OK;
+}
+
 static void _p2p_send_completed_cb(errorCode_t error_code, void *user_data)
 {
 	net_nfc_error_e result;
@@ -566,6 +634,20 @@ static void _p2p_send_completed_cb(errorCode_t error_code, void *user_data)
 	if (client_cb.p2p_send_completed_cb != NULL)
 		client_cb.p2p_send_completed_cb(result,
 				client_cb.p2p_send_completed_ud);
+
+	if (client_cb.p2p_handover_cb != NULL) {
+		if (handover_info != NULL) {
+			client_cb.p2p_handover_cb(result, handover_info->type,
+					&(handover_info->data),
+					client_cb.p2p_handover_ud);
+
+			g_free(handover_info);
+			handover_info = NULL;
+		}
+
+		client_cb.p2p_handover_cb = NULL;
+		client_cb.p2p_handover_ud = NULL;
+	}
 }
 
 net_nfc_error_e net_nfc_neard_send_p2p(net_nfc_target_handle_s *handle, data_s *data,
@@ -945,5 +1027,10 @@ void net_nfc_neard_deinitialize(void)
 	if (target_info != NULL) {
 		g_free(target_info);
 		target_info = NULL;
+	}
+
+	if (handover_info != NULL) {
+		g_free(handover_info);
+		handover_info = NULL;
 	}
 }

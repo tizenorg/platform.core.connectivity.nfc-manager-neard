@@ -24,6 +24,7 @@
 #include "net_nfc_client.h"
 #include "net_nfc_client_manager.h"
 #include "net_nfc_client_handover.h"
+#include "net_nfc_neard.h"
 
 
 static NetNfcGDbusHandover *handover_proxy = NULL;
@@ -110,28 +111,10 @@ API net_nfc_error_e net_nfc_client_p2p_connection_handover(
 		net_nfc_p2p_connection_handover_completed_cb callback,
 		void *cb_data)
 {
-	NetNfcCallback *funcdata;
-
-	RETV_IF(NULL == handover_proxy, NET_NFC_NOT_INITIALIZED);
-
 	/* prevent executing daemon when nfc is off */
 	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
 
-	funcdata = g_try_new0(NetNfcCallback, 1);
-	RETV_IF(NULL == funcdata, NET_NFC_ALLOC_FAIL);
-
-	funcdata->callback = (gpointer)callback;
-	funcdata->user_data = cb_data;
-
-	net_nfc_gdbus_handover_call_request(handover_proxy,
-			GPOINTER_TO_UINT(handle),
-			arg_type,
-			net_nfc_client_gdbus_get_privilege(),
-			NULL,
-			p2p_connection_handover,
-			funcdata);
-
-	return NET_NFC_OK;
+	return net_nfc_neard_p2p_connection_handover(handle, arg_type, callback, cb_data);
 }
 
 
