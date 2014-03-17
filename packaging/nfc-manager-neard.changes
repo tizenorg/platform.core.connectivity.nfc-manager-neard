@@ -1,0 +1,23 @@
+* Mon Mar 17 2014 Arron Wang <arron.wang@intel.com>
+- Rename package name with neard postfix
+- Add P2P handover support
+- Add P2P data receive callback
+- Add P2P send support
+- Add P2P detection callback
+- Enable auto app handler
+- Export target info and target handle
+- Add tag read/write feature
+- Add tag discovered/detached callback
+- Add nfc power status changed callback support
+- Add neard active/deactive operation
+- Fix the compatiable issue with upper CAPI
+- Check NFC feature support through neard
+
+* Fri Jun 28 2013 Patrick McCarty <patrick.mccarty@linux.intel.com> 500ab47
+- packaging: remove explicit requires on sys-assert
+
+* Fri Jun 28 2013 Alexandru Cornea <alexandru.cornea@intel.com> 011dde4
+- resetting manifest requested domain to floor
+
+* Tue May 28 2013 Baptiste DURAND <baptiste.durand@eurogiciel.fr> accepted/tizen/20130520.101035@bc7a137
+- Fix compatibility for x64 arch

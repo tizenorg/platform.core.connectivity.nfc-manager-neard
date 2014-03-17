@@ -1,8 +1,0 @@
-* Fri Jun 28 2013 Patrick McCarty <patrick.mccarty@linux.intel.com> 500ab47
-- packaging: remove explicit requires on sys-assert
-
-* Fri Jun 28 2013 Alexandru Cornea <alexandru.cornea@intel.com> 011dde4
-- resetting manifest requested domain to floor
-
-* Tue May 28 2013 Baptiste DURAND <baptiste.durand@eurogiciel.fr> accepted/tizen/20130520.101035@bc7a137
-- Fix compatibility for x64 arch

@@ -1,4 +1,4 @@
-Name:       nfc-manager
+Name:       nfc-manager-neard
 Summary:    NFC framework manager
 Version:    0.1.6
 Release:    0
@@ -7,6 +7,8 @@ License:    Flora
 Source0:    %{name}-%{version}.tar.gz
 Source1:    %{name}.service
 Source1001: %{name}.manifest
+Requires:   neard
+Requires:   neardal
 BuildRequires:  cmake
 BuildRequires:  pkgconfig(aul)
 BuildRequires:  pkgconfig(glib-2.0)
@@ -40,7 +42,7 @@ BuildRequires:  pkgconfig(wifi-direct)
 Requires(post):   /sbin/ldconfig
 Requires(post):   /usr/bin/vconftool
 Requires(postun): /sbin/ldconfig
-Requires:         nfc-client-lib = %{version}
+Requires:         nfc-client-lib-neard = %{version}
 
 
 %description
@@ -52,31 +54,31 @@ Tizen NFC framework manager.
 cp %{SOURCE1001} .
 
 
-%package -n nfc-common-devel
+%package -n nfc-common-neard-devel
 Summary:    NFC common library (devel)
 Group:      Network & Connectivity/Development
 
 
-%description -n nfc-common-devel
+%description -n nfc-common-neard-devel
 NFC manager common header for internal development.
 
 
-%package -n nfc-client-lib
+%package -n nfc-client-lib-neard
 Summary:    NFC client library
 Group:      Network & Connectivity/NFC
 
 
-%description -n nfc-client-lib
+%description -n nfc-client-lib-neard
 NFC manager Client library for NFC client applications.
 
 
-%package -n nfc-client-lib-devel
+%package -n nfc-client-lib-neard-devel
 Summary:    NFC client library (devel)
 Group:      Network & Connectivity/Development
 Requires:   nfc-client-lib = %{version}
 
 
-%description -n nfc-client-lib-devel
+%description -n nfc-client-lib-neard-devel
 NFC manager Client library for developing NFC client applications.
 
 
@@ -112,7 +114,7 @@ if [ $1 == 1 ]; then
 fi
 
 
-%post -n nfc-client-lib
+%post -n nfc-client-lib-neard
 /sbin/ldconfig
 USER_GROUP_ID=$(getent group %{TZ_SYS_USER_GROUP} | cut -d: -f3)
 vconftool set -t bool db/nfc/feature 0 -g $USER_GROUP_ID -f
@@ -129,7 +131,7 @@ fi
 systemctl daemon-reload
 
 
-%postun -n nfc-client-lib -p /sbin/ldconfig
+%postun -n nfc-client-lib-neard -p /sbin/ldconfig
 
 
 %files
@@ -140,26 +142,26 @@ systemctl daemon-reload
 %{_libdir}/systemd/system/%{name}.service
 %{_libdir}/systemd/system/multi-user.target.wants/%{name}.service
 %{_datadir}/dbus-1/system-services/org.tizen.NetNfcService.service
-%{_datadir}/packages/%{name}.xml
+%{_datadir}/packages/nfc-manager.xml
 %{_datadir}/nfc-manager-daemon/sounds/*
 %license LICENSE.Flora
 
 
-%files -n nfc-client-lib
+%files -n nfc-client-lib-neard
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libnfc.so.*
 %license LICENSE.Flora
 
 
-%files -n nfc-client-lib-devel
+%files -n nfc-client-lib-neard-devel
 %defattr(-,root,root,-)
 %{_libdir}/libnfc.so
 %{_libdir}/pkgconfig/nfc.pc
 %{_includedir}/nfc/*.h
 
 
-%files -n nfc-common-devel
+%files -n nfc-common-neard-devel
 %defattr(-,root,root,-)
 %{_libdir}/pkgconfig/nfc-common.pc
 %{_includedir}/nfc-common/*.h
