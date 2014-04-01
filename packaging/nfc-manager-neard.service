@@ -1,7 +1,5 @@
 [Unit]
 Description=NFC manager
-After=system-server.service
-Requires=system-server.service
 
 [Service]
 Type=simple
