@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
-#include "Ecore_X.h"
+#ifdef USE_X11
+#include <Ecore_X.h>
+#endif
+#ifdef USE_WAYLAND
+#include <Ecore.h>
+#include <Ecore_Wayland.h>
+#endif
 
 #include "net_nfc_typedef_internal.h"
 #include "net_nfc_debug_internal.h"
