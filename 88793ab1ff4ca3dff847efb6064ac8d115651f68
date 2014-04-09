@@ -1,0 +1,11 @@
+Code-Review+2: Arron Wang <arron.wang@intel.com>
+Code-Review+1: Jean-Benoit MARTIN <jean-benoit.martin@open.eurogiciel.org>
+Verified+1: Jean-Benoit MARTIN <jean-benoit.martin@open.eurogiciel.org>
+Code-Review+1: Stéphane Desneux (sdesneux) <stephane.desneux@open.eurogiciel.org>
+Verified+1: Stéphane Desneux (sdesneux) <stephane.desneux@open.eurogiciel.org>
+Verified+1: Kévin THIERRY <kevin.thierry@open.eurogiciel.org>
+Submitted-by: Arron Wang <arron.wang@intel.com>
+Submitted-at: Tue, 08 Apr 2014 20:33:34 -0700
+Reviewed-on: https://review.tizen.org/gerrit/16680
+Project: platform/core/connectivity/nfc-manager-neard
+Branch: refs/heads/tizen
