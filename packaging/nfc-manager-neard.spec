@@ -83,7 +83,7 @@ NFC manager Client library for NFC client applications.
 %package -n nfc-client-lib-neard-devel
 Summary:    NFC client library (devel)
 Group:      Network & Connectivity/Development
-Requires:   nfc-client-lib = %{version}
+Requires:   nfc-client-lib-neard = %{version}
 
 
 %description -n nfc-client-lib-neard-devel
