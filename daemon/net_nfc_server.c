@@ -313,6 +313,7 @@ static void on_name_lost(GDBusConnection *connnection, const gchar *name,
 static bool net_nfc_neard_nfc_support(void)
 {
 	char **adapters = NULL;
+	neardal_adapter *neard_adapter = NULL;
 	int len;
 	errorCode_t err;
 
@@ -324,8 +325,22 @@ static bool net_nfc_neard_nfc_support(void)
 	if (!(len > 0 && adapters != NULL))
 		return false;
 
-	neardal_free_array(&adapters);
+	err = neardal_get_adapter_properties(adapters[0], &neard_adapter);
+	if (err == NEARDAL_SUCCESS && neard_adapter != NULL) {
+		if (vconf_set_bool(VCONFKEY_NFC_STATE,
+				neard_adapter->powered) != 0)
+			NFC_ERR("VCONFKEY_NFC_STATE set to %d failed",
+						neard_adapter->powered);
+	}
+
+	if (adapters)
+		neardal_free_array(&adapters);
+
+	if (neard_adapter)
+		neardal_free_adapter(neard_adapter);
+
 	adapters = NULL;
+	neard_adapter = NULL;
 	neardal_destroy();
 
 	return true;
@@ -362,9 +377,6 @@ int main(int argc, char *argv[])
 
 		if (vconf_set_bool(VCONFKEY_NFC_FEATURE, VCONFKEY_NFC_FEATURE_OFF) != 0)
 			NFC_ERR("VCONFKEY_NFC_FEATURE set to %d failed", VCONFKEY_NFC_FEATURE_OFF);
-
-		if (vconf_set_bool(VCONFKEY_NFC_STATE, 0) != 0)
-			NFC_ERR("VCONFKEY_NFC_STATE set to %d failed", 0);
 
 		goto EXIT;
 	}
