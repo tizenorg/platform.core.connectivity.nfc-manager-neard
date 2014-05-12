@@ -62,6 +62,7 @@ static data_s *rawNDEF;
 static net_nfc_target_info_s *target_info;
 static net_nfc_target_handle_s *target_handle;
 static net_nfc_connection_handover_info_s *handover_info;
+static bool read_flag;
 
 static net_nfc_error_e _convert_error_code(errorCode_t error_code)
 {
@@ -313,6 +314,8 @@ static void _tag_found_cb(const char *tagName, void *user_data)
 		NFC_DBG("Failed to get rawNDEF");
 		return;
 	}
+
+	read_flag = true;
 }
 
 static void _tag_lost_cb(const char *tagName, void *user_data)
@@ -441,8 +444,12 @@ static void _read_completed_cb(GVariant *ret, void *user_data)
 	result = net_nfc_util_convert_rawdata_to_ndef_message(
 						rawNDEF, ndef);
 exit:
-	if (client_cb.tag_discovered_cb != NULL)
-		client_cb.tag_discovered_cb(target_info, client_cb.tag_discovered_ud);
+	if (client_cb.tag_discovered_cb != NULL && read_flag == true) {
+		client_cb.tag_discovered_cb(target_info,
+					client_cb.tag_discovered_ud);
+		read_flag = false;
+		return;
+	}
 
 	if (client_cb.ndef_read_cb != NULL) {
 		client_cb.ndef_read_cb(result, ndef, client_cb.ndef_read_ud);
