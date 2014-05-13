@@ -275,8 +275,6 @@ static void _power_completed_cb(errorCode_t error_code, void *user_data)
 
 	NFC_DBG("power completed %d", neard_adapter->powered);
 	powered = (neard_adapter->powered) ? true : false;
-	if (vconf_set_bool(VCONFKEY_NFC_STATE, powered) != 0)
-		NFC_DBG("vconf_set_bool failed ");
 
 	if (powered == true) {
 		if (nfc_adapter_polling == false) {

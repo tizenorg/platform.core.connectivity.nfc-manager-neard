@@ -310,6 +310,23 @@ static void on_name_lost(GDBusConnection *connnection, const gchar *name,
 	net_nfc_manager_quit();
 }
 
+static void _adapter_property_changed_cb(char *name, char *property,
+					void *value, void *user_data)
+{
+	bool powered;
+
+	if (!g_strcmp0(property, "Powered")) {
+		if ((int *) value == 0)
+			powered = false;
+		else
+			powered = true;
+
+		NFC_DBG("power changed %d", powered);
+		if (vconf_set_bool(VCONFKEY_NFC_STATE, powered) != 0)
+			NFC_DBG("vconf_set_bool failed ");
+	}
+}
+
 static bool net_nfc_neard_nfc_support(void)
 {
 	char **adapters = NULL;
@@ -331,6 +348,10 @@ static bool net_nfc_neard_nfc_support(void)
 				neard_adapter->powered) != 0)
 			NFC_ERR("VCONFKEY_NFC_STATE set to %d failed",
 						neard_adapter->powered);
+
+		if (neardal_set_cb_adapter_property_changed(
+			_adapter_property_changed_cb, NULL) != NEARDAL_SUCCESS)
+			NFC_ERR("Failed to register property changed cb");
 	}
 
 	if (adapters)
@@ -341,7 +362,6 @@ static bool net_nfc_neard_nfc_support(void)
 
 	adapters = NULL;
 	neard_adapter = NULL;
-	neardal_destroy();
 
 	return true;
 }
