@@ -303,7 +303,7 @@ static void _tag_found_cb(const char *tagName, void *user_data)
 
 	if (neardal_get_tag_properties(tagName, &tag) != NEARDAL_SUCCESS)
 		return;
-	if (tag == NULL || tag->records == NULL)
+	if (tag == NULL)
 		return;
 
 	net_nfc_manager_util_play_sound(NET_NFC_TASK_START);
@@ -425,7 +425,7 @@ static void _read_completed_cb(GVariant *ret, void *user_data)
 
 	rawNDEF->length = (int)length;
 	rawNDEF->buffer = g_try_malloc0(rawNDEF->length);
-	if (rawNDEF->buffer == NULL) {
+	if (rawNDEF->length > 0 && rawNDEF->buffer == NULL) {
 		g_free(rawNDEF);
 		goto exit;
 	}
@@ -768,7 +768,10 @@ net_nfc_error_e net_nfc_neard_write_ndef(net_nfc_target_handle_s *handle,
 	if (record == NULL)
 		return NET_NFC_ALLOC_FAIL;
 
-	record->name = g_strdup(tag->records[0]);
+	if (tag->records != NULL)
+		record->name = g_strdup(tag->records[0]);
+	else
+		record->name = g_strdup(tag->name);
 	record->type = g_strdup("Raw");
 	record->rawNDEF = g_try_malloc0(data->length);
 	if (record->rawNDEF == NULL) {

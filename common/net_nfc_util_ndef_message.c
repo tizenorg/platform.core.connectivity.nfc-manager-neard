@@ -35,7 +35,7 @@ net_nfc_error_e net_nfc_util_convert_rawdata_to_ndef_message(
 
 	RETV_IF(NULL == ndef, NET_NFC_NULL_PARAMETER);
 	RETV_IF(NULL == rawdata, NET_NFC_NULL_PARAMETER);
-	RETV_IF(rawdata->length < 3, NET_NFC_INVALID_FORMAT);
+	RETV_IF(rawdata->length < 0, NET_NFC_INVALID_FORMAT);
 
 	current = rawdata->buffer;
 	last = current + rawdata->length;
@@ -200,7 +200,7 @@ net_nfc_error_e net_nfc_util_convert_rawdata_to_ndef_message(
 
 	ndef->recordCount++;
 
-	if((current != last) || ((ndef_header & NET_NFC_NDEF_RECORD_MASK_ME) == 0))
+	if((current != last) || (((ndef_header & NET_NFC_NDEF_RECORD_MASK_ME) == 0) && (rawdata->length != 0)))
 	{
 		result = NET_NFC_INVALID_FORMAT;
 		goto error;

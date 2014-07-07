@@ -91,7 +91,7 @@ API net_nfc_error_e net_nfc_get_ndef_message_byte_length(
 	RETV_IF(NULL == length, NET_NFC_NULL_PARAMETER);
 
 	*length = net_nfc_util_get_ndef_message_length(ndef_message);
-	if (*length > 0)
+	if (*length >= 0)
 		result = NET_NFC_OK;
 	else
 		result = NET_NFC_INVALID_PARAM;
