@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#define _GNU_SOURCE 
 #include <unistd.h>
 #include <glib.h>
 
