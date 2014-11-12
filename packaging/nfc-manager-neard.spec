@@ -119,9 +119,10 @@ MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 %install
 %make_install
 
-mkdir -p %{buildroot}%{_libdir}/systemd/system/multi-user.target.wants
-cp -af %{SOURCE1} %{buildroot}%{_libdir}/systemd/system/
-ln -s ../%{name}.service %{buildroot}%{_libdir}/systemd/system/multi-user.target.wants/%{name}.service
+install -d %{buildroot}%{_unitdir}
+install -d %{buildroot}%{_unitdir}/multi-user.target.wants/
+install -m 644 %{S:1} %{buildroot}%{_unitdir}/%{name}.service
+ln -s ../%{name}.service %{buildroot}%{_unitdir}/multi-user.target.wants/%{name}.service
 
 %post
 /sbin/ldconfig
@@ -157,8 +158,8 @@ systemctl daemon-reload
 %defattr(-,root,root,-)
 %{_bindir}/nfc-manager-daemon
 #%%{_bindir}/ndef-tool
-%{_libdir}/systemd/system/%{name}.service
-%{_libdir}/systemd/system/multi-user.target.wants/%{name}.service
+%{_unitdir}/%{name}.service
+%{_unitdir}/multi-user.target.wants/%{name}.service
 %{_datadir}/dbus-1/system-services/org.tizen.NetNfcService.service
 %{_datadir}/packages/nfc-manager.xml
 %{_datadir}/nfc-manager-daemon/sounds/*
