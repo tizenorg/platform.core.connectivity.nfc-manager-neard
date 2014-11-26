@@ -519,69 +519,6 @@ static void llcp_call_disconnect(GObject *source_object, 	GAsyncResult *res,
 	g_free(func_data);
 }
 
-
-/* Public APIs */
-API net_nfc_error_e net_nfc_client_llcp_config(net_nfc_llcp_config_info_s *config,
-		net_nfc_client_llcp_config_completed callback, void *user_data)
-{
-	GVariant *var;
-	LlcpFuncData *func_data;
-
-	RETV_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED);
-	RETV_IF(NULL == config, NET_NFC_NULL_PARAMETER);
-
-	/* prevent executing daemon when nfc is off */
-	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
-
-	func_data = g_new0(LlcpFuncData, 1);
-	if (func_data == NULL)
-	{
-		NFC_ERR("g_new0 failed");
-		return NET_NFC_ALLOC_FAIL;
-	}
-
-	func_data->callback = (gpointer)callback;
-	func_data->user_data = user_data;
-
-	memcpy(&llcp_config, config, sizeof(net_nfc_llcp_config_info_s));
-
-	var = g_variant_new("(qqyy)", config->miu, config->wks, config->lto, config->option);
-
-	net_nfc_gdbus_llcp_call_config(llcp_proxy, var, net_nfc_client_gdbus_get_privilege(),
-			NULL, llcp_call_config, func_data);
-
-	return NET_NFC_OK;
-}
-
-API net_nfc_error_e net_nfc_client_llcp_config_sync(
-		net_nfc_llcp_config_info_s *config)
-{
-	gboolean ret;
-	GVariant *var = NULL;
-	GError *error = NULL;
-	net_nfc_error_e result;
-
-	RETV_IF(NULL == llcp_proxy, NET_NFC_NOT_INITIALIZED);
-
-	/* prevent executing daemon when nfc is off */
-	RETV_IF(net_nfc_client_manager_is_activated() == false, NET_NFC_INVALID_STATE);
-
-	memcpy(&llcp_config, config, sizeof(net_nfc_llcp_config_info_s));
-
-	var = g_variant_new("(qqyy)", config->miu, config->wks, config->lto, config->option);
-
-	ret = net_nfc_gdbus_llcp_call_config_sync(llcp_proxy, var,
-			net_nfc_client_gdbus_get_privilege(), &result, NULL, &error);
-	if (FALSE == ret)
-	{
-		NFC_ERR("can not config: %s", error->message);
-		g_error_free(error);
-		result = NET_NFC_IPC_FAIL;
-	}
-
-	return result;
-}
-
 API net_nfc_error_e net_nfc_client_llcp_get_config(
 		net_nfc_llcp_config_info_s **config)
 {

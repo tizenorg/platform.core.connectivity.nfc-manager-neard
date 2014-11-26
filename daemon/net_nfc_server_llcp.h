@@ -88,9 +88,6 @@ void net_nfc_server_llcp_deinit(void);
 /* server side */
 void net_nfc_server_llcp_deactivated(gpointer user_data);
 
-net_nfc_error_e net_nfc_server_llcp_set_config(
-		net_nfc_llcp_config_info_s *config);
-
 guint16 net_nfc_server_llcp_get_miu(void);
 
 guint16 net_nfc_server_llcp_get_wks(void);

@@ -586,20 +586,6 @@ bool net_nfc_controller_is_ready(net_nfc_error_e *result)
 	}
 }
 
-bool net_nfc_controller_llcp_config(net_nfc_llcp_config_info_s *config,
-		net_nfc_error_e *result)
-{
-	if (g_interface.config_llcp != NULL)
-	{
-		return g_interface.config_llcp(config, result);
-	}
-	else
-	{
-		NFC_ERR("interface is null");
-		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
-		return false;
-	}
-}
 bool net_nfc_controller_llcp_check_llcp(net_nfc_target_handle_s *handle,
 		net_nfc_error_e *result)
 {

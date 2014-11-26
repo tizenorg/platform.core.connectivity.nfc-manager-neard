@@ -251,13 +251,6 @@ static void controller_init_thread_func(gpointer user_data)
 	}
 
 	NFC_INFO("net_nfc_contorller_register_listener success");
-
-	result = net_nfc_server_llcp_set_config(NULL);
-
-	if (result != NET_NFC_OK)
-		NFC_ERR("net_nfc_server_llcp_set config failed, [%d]", result);
-
-	NFC_INFO("net_nfc_server_llcp_set_config success");
 }
 
 #ifndef ESE_ALWAYS_ON

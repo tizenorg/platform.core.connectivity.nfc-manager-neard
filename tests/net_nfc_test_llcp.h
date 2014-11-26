@@ -20,8 +20,6 @@
 #include <glib.h>
 
 
-void net_nfc_test_llcp_default_config(gpointer data, gpointer user_data);
-void net_nfc_test_llcp_default_config_sync(gpointer data, gpointer user_data);
 void net_nfc_test_llcp_get_local_config(gpointer data, gpointer user_data);
 void net_nfc_test_llcp_custom_config(gpointer data, gpointer user_data);
 void net_nfc_test_llcp_custom_config_sync(gpointer data, gpointer user_data);

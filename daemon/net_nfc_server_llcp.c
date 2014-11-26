@@ -405,32 +405,6 @@ static void llcp_disconnect_cb(net_nfc_llcp_socket_t socket,
 	g_free(llcp_data);
 }
 
-
-static void llcp_handle_config_thread_func(gpointer user_data)
-{
-	net_nfc_error_e result;
-	LlcpConfigData *data = user_data;
-	net_nfc_llcp_config_info_s config;
-
-	g_assert(data != NULL);
-	g_assert(data->llcp != NULL);
-	g_assert(data->invocation != NULL);
-
-	config.miu = data->miu;
-	config.wks = data->wks;
-	config.lto = data->lto;
-	config.option = data->option;
-
-	result = net_nfc_server_llcp_set_config(&config);
-
-	net_nfc_gdbus_llcp_complete_config(data->llcp, data->invocation, result);
-
-	g_object_unref(data->invocation);
-	g_object_unref(data->llcp);
-
-	g_free(data);
-}
-
 static void llcp_handle_listen_thread_func(gpointer user_data)
 {
 	bool ret;
@@ -909,62 +883,6 @@ static void llcp_handle_disconnect_thread_func(gpointer user_data)
 
 		g_free(data);
 	}
-}
-
-
-static gboolean llcp_handle_config(NetNfcGDbusLlcp *llcp,
-		GDBusMethodInvocation *invocation,
-		GVariant *arg_config,
-		GVariant *smack_privilege,
-		gpointer user_data)
-{
-	bool ret;
-	gboolean result;
-	LlcpConfigData *data;
-
-	NFC_INFO(">>> REQUEST from [%s]", g_dbus_method_invocation_get_sender(invocation));
-
-	/* check privilege and update client context */
-	ret = net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
-			"nfc-manager::p2p", "w");
-	if (false == ret)
-	{
-		NFC_ERR("permission denied, and finished request");
-
-		return FALSE;
-	}
-
-	data = g_try_new0(LlcpConfigData, 1);
-	if (NULL == data)
-	{
-		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.AllocationError",
-				"Can not allocate memory");
-
-		return FALSE;
-	}
-
-	data->llcp = g_object_ref(llcp);
-	data->invocation = g_object_ref(invocation);
-
-	g_variant_get(arg_config, "(qqyy)", &data->miu, &data->wks, &data->lto, &data->option);
-
-	result = net_nfc_server_controller_async_queue_push(
-			llcp_handle_config_thread_func, data);
-
-	if (FALSE == result)
-	{
-		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.Llcp.ThreadError",
-				"can not push to controller thread");
-
-		g_object_unref(data->invocation);
-		g_object_unref(data->llcp);
-
-		g_free(data);
-	}
-
-	return result;
 }
 
 static gboolean llcp_handle_listen(NetNfcGDbusLlcp *llcp,
@@ -1744,9 +1662,6 @@ gboolean net_nfc_server_llcp_init(GDBusConnection *connection)
 
 	llcp_skeleton = net_nfc_gdbus_llcp_skeleton_new();
 
-	g_signal_connect(llcp_skeleton, "handle-config",
-			G_CALLBACK(llcp_handle_config), NULL);
-
 	g_signal_connect(llcp_skeleton, "handle-listen",
 			G_CALLBACK(llcp_handle_listen), NULL);
 
@@ -1797,23 +1712,6 @@ void net_nfc_server_llcp_deinit(void)
 		g_object_unref(llcp_skeleton);
 		llcp_skeleton = NULL;
 	}
-}
-
-net_nfc_error_e net_nfc_server_llcp_set_config(
-		net_nfc_llcp_config_info_s *config)
-{
-	net_nfc_error_e result;
-
-	if (NULL == config)
-	{
-		net_nfc_controller_llcp_config(&llcp_config, &result);
-		return result;
-	}
-
-	net_nfc_controller_llcp_config(config, &result);
-	memcpy(&llcp_config, config, sizeof(llcp_config));
-
-	return result;
 }
 
 guint16 net_nfc_server_llcp_get_miu(void)

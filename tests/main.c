@@ -436,22 +436,6 @@ static TestData test_data[] = {
 
 	{
 		"llcp",
-		"SetDefaultConfig",
-		net_nfc_test_llcp_default_config,
-		net_nfc_test_llcp_default_config_sync,
-		"Set the Default Config Options"
-	},
-
-	{
-		"llcp",
-		"SetCustomConfig",
-		net_nfc_test_llcp_custom_config,
-		net_nfc_test_llcp_custom_config_sync,
-		"Set the Customised Config Options"
-	},
-
-	{
-		"llcp",
 		"GetConfigWKS",
 		net_nfc_test_llcp_get_config_wks,
 		NULL,
