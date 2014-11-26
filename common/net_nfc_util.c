@@ -21,8 +21,8 @@
 #include <fcntl.h>
 
 // platform header
-#include <bluetooth-api.h>
 #include <vconf.h>
+#include <bluetooth.h>
 
 // nfc-manager header
 #include "net_nfc_util_internal.h"
@@ -179,24 +179,24 @@ net_nfc_conn_handover_carrier_state_e net_nfc_util_get_cps(
 		net_nfc_conn_handover_carrier_type_e carrier_type)
 {
 	net_nfc_conn_handover_carrier_state_e cps = NET_NFC_CONN_HANDOVER_CARRIER_INACTIVATE;
+	bt_adapter_state_e state = BT_ADAPTER_DISABLED;
 
 	if (NET_NFC_CONN_HANDOVER_CARRIER_BT== carrier_type)
 	{
-		int ret = bluetooth_check_adapter();
+		bt_adapter_get_state(&state);
 
-		switch (ret)
+		switch (state)
 		{
-		case BLUETOOTH_ADAPTER_ENABLED :
+		case BT_ADAPTER_ENABLED :
 			cps = NET_NFC_CONN_HANDOVER_CARRIER_ACTIVATE;
 			break;
-
-		case BLUETOOTH_ADAPTER_CHANGING_ENABLE :
+		/*
+		case BT_ADAPTER_CHANGING_ENABLE :
 			cps = NET_NFC_CONN_HANDOVER_CARRIER_ACTIVATING;
 			break;
-
-		case BLUETOOTH_ADAPTER_DISABLED :
-		case BLUETOOTH_ADAPTER_CHANGING_DISABLE :
-		case BLUETOOTH_ERROR_NO_RESOURCES :
+		*/
+		case BT_ADAPTER_DISABLED :
+		//case BT_ADAPTER_CHANGING_DISABLE :
 		default :
 			cps = NET_NFC_CONN_HANDOVER_CARRIER_INACTIVATE;
 			break;
@@ -272,13 +272,11 @@ uint8_t *net_nfc_util_get_local_bt_address()
 		}
 		else
 		{
-			bluetooth_device_address_t local_address;
+			char *local_address = NULL;
 
-			memset(&local_address, 0x00, sizeof(bluetooth_device_address_t));
+			bt_adapter_get_address(&local_address);
 
-			bluetooth_get_local_address(&local_address);
-
-			memcpy(bt_addr, &local_address.addr, BLUETOOTH_ADDRESS_LENGTH);
+			memcpy(bt_addr, local_address, BLUETOOTH_ADDRESS_LENGTH);
 		}
 	}
 
@@ -287,7 +285,7 @@ uint8_t *net_nfc_util_get_local_bt_address()
 
 void net_nfc_util_enable_bluetooth(void)
 {
-	bluetooth_enable_adapter();
+	bt_adapter_enable();
 }
 
 bool net_nfc_util_strip_string(char *buffer, int buffer_length)

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "bluetooth-api.h"
 #include "net_nfc_server_handover.h"
 #include "net_nfc_debug_internal.h"
 #include "net_nfc_util_internal.h"
@@ -27,7 +26,7 @@
 #include "net_nfc_server_process_snep.h"
 #include "net_nfc_util_gdbus_internal.h"
 #include "net_nfc_server_handover_bss.h"
-#include "net_nfc_server_handover_bt.h"
+//#include "net_nfc_server_handover_bt.h"
 
 typedef void (*_net_nfc_server_handover_create_carrier_msg_cb)(
 		net_nfc_error_e result,
@@ -606,12 +605,13 @@ static int _net_nfc_server_handover_iterate_create_carrier_configs(
 
 	switch (context->current_type)
 	{
+/*
 	case NET_NFC_CONN_HANDOVER_CARRIER_BT :
 		NFC_DBG("[NET_NFC_CONN_HANDOVER_CARRIER_BT]");
 		net_nfc_server_handover_bt_get_carrier_record(
 				_net_nfc_server_handover_bt_get_carrier_record_cb, context);
 		break;
-
+*/
 	case NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS :
 		NFC_DBG("[NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS]");
 
@@ -753,11 +753,13 @@ net_nfc_error_e net_nfc_server_handover_process_carrier_record(
 		/* process carrier record */
 		switch (type)
 		{
+		/*
 		case NET_NFC_CONN_HANDOVER_CARRIER_BT :
 			NFC_DBG("[NET_NFC_CONN_HANDOVER_CARRIER_BT]");
 			net_nfc_server_handover_bt_process_carrier_record(carrier,
 					_net_nfc_server_handover_bt_process_carrier_record_cb, context);
 			break;
+		*/
 
 		case NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS :
 			NFC_DBG("[NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS]");
@@ -1598,8 +1600,10 @@ static void _net_nfc_server_handover_client_process(
 		/* start post process */
 		if (NET_NFC_CONN_HANDOVER_CARRIER_BT == context->type)
 		{
+			/*
 			net_nfc_server_handover_bt_post_process(&context->data,
 					_net_nfc_server_handover_client_post_process_cb, context);
+			*/
 		}
 		else
 		{

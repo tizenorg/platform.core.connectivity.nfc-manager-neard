@@ -12,8 +12,8 @@ EXEC_PROGRAM(${GDBUS_CODEGEN} ARGS
 
 AUX_SOURCE_DIRECTORY(${CMAKE_CURRENT_SOURCE_DIR} COMMON_SRCS)
 
-pkg_check_modules(common_pkgs REQUIRED glib-2.0 gio-2.0 gio-unix-2.0 dlog bluetooth-api
-	libssl libtzplatform-config)
+pkg_check_modules(common_pkgs REQUIRED glib-2.0 gio-2.0 gio-unix-2.0 dlog vconf
+	libssl libtzplatform-config capi-network-bluetooth)
 
 FOREACH(flag ${common_pkgs_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
