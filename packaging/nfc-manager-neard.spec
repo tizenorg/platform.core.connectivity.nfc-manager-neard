@@ -6,7 +6,7 @@ Summary:    NFC framework manager
 Version:    0.1.6
 Release:    0
 Group:      Network & Connectivity/NFC
-License:    Flora
+License:    Apache License, Version 2.0
 Source0:    %{name}-%{version}.tar.gz
 Source1:    %{name}.service
 Source1001: %{name}.manifest
@@ -163,14 +163,14 @@ systemctl daemon-reload
 %{_datadir}/dbus-1/system-services/org.tizen.NetNfcService.service
 %{_datadir}/packages/nfc-manager.xml
 %{_datadir}/nfc-manager-daemon/sounds/*
-%license LICENSE.Flora
+%license LICENSE.APLv2
 
 
 %files -n nfc-client-lib-neard
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libnfc.so.*
-%license LICENSE.Flora
+%license LICENSE.APLv2
 
 
 %files -n nfc-client-lib-neard-devel
@@ -190,4 +190,4 @@ systemctl daemon-reload
 #%%manifest nfc-client-test.manifest
 #%%defattr(-,root,root,-)
 #%%{_bindir}/nfc_client
-#%%license LICENSE.Flora
+#%%license LICENSE.APLv2
