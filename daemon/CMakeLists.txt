@@ -5,6 +5,8 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/common/include)
 SET(NFC_DAEMON "nfc-manager-daemon")
 
 FILE(GLOB DAEMON_SRCS *.c)
+#LIST(REMOVE_ITEM DAEMON_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/net_nfc_server_process_handover.c)
+LIST(REMOVE_ITEM DAEMON_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/net_nfc_server_handover_bt.c)
 
 IF(X11_SUPPORT)
        SET(WIN_PKG "ecore-x")
@@ -15,12 +17,12 @@ ENDIF(WAYLAND_SUPPORT)
 INCLUDE(FindPkgConfig)
 IF(ARM_TARGET)
 	pkg_check_modules(daemon_pkgs REQUIRED aul glib-2.0 gio-unix-2.0 security-server
-		vconf dlog tapi appsvc libcurl bluetooth-api libssl svi capi-media-wav-player
+		vconf dlog tapi appsvc libcurl libssl svi capi-media-wav-player
 		pkgmgr pkgmgr-info capi-network-wifi pmapi wifi-direct
 		libtzplatform-config neardal ${WIN_PKG})
 ELSE(ARM_TARGET)
 	pkg_check_modules(daemon_pkgs REQUIRED aul glib-2.0 gio-unix-2.0 security-server
-		vconf dlog tapi appsvc libcurl bluetooth-api libssl svi capi-media-wav-player
+		vconf dlog tapi appsvc libcurl libssl svi capi-media-wav-player
 		pkgmgr pkgmgr-info capi-network-wifi pmapi libtzplatform-config neardal
 		${WIN_PKG})
 ENDIF(ARM_TARGET)
