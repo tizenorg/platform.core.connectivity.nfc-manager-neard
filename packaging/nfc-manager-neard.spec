@@ -6,7 +6,7 @@ Summary:    NFC framework manager
 Version:    0.1.6
 Release:    0
 Group:      Network & Connectivity/NFC
-License:    Apache License, Version 2.0
+License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
 Source1:    %{name}.service
 Source1001: %{name}.manifest
@@ -57,11 +57,6 @@ Requires:         nfc-client-lib-neard = %{version}
 Tizen NFC framework manager.
 
 
-%prep
-%setup -q
-cp %{SOURCE1001} .
-
-
 %package -n nfc-common-neard-devel
 Summary:    NFC common library (devel)
 Group:      Network & Connectivity/Development
@@ -89,8 +84,6 @@ Requires:   nfc-client-lib-neard = %{version}
 %description -n nfc-client-lib-neard-devel
 NFC manager Client library for developing NFC client applications.
 
-
-
 #%%package -n nfc-client-test
 #Summary:    NFC client test
 #Group:      Network & Connectivity/NFC
@@ -100,6 +93,9 @@ NFC manager Client library for developing NFC client applications.
 #%%description -n nfc-client-test
 #NFC client test (devel)
 
+%prep
+%setup -q
+cp %{SOURCE1001} .
 
 %build
 MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
@@ -132,7 +128,6 @@ if [ $1 == 1 ]; then
     systemctl restart %{name}.service
 fi
 
-
 %post -n nfc-client-lib-neard
 /sbin/ldconfig
 USER_GROUP_ID=$(getent group %{TZ_SYS_USER_GROUP} | cut -d: -f3)
@@ -149,9 +144,7 @@ if [ $1 == 0 ]; then
 fi
 systemctl daemon-reload
 
-
 %postun -n nfc-client-lib-neard -p /sbin/ldconfig
-
 
 %files
 %manifest %{name}.manifest
@@ -184,7 +177,6 @@ systemctl daemon-reload
 %defattr(-,root,root,-)
 %{_libdir}/pkgconfig/nfc-common.pc
 %{_includedir}/nfc-common/*.h
-
 
 #%%files -n nfc-client-test
 #%%manifest nfc-client-test.manifest
