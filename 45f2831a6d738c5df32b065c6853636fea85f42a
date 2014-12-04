@@ -1,0 +1,7 @@
+Code-Review+2: Arron Wang <arron.wang@intel.com>
+Verified+1: ronan(Eurogiciel) Le Martret <ronan.lemartret@open.eurogiciel.org>
+Submitted-by: Arron Wang <arron.wang@intel.com>
+Submitted-at: Thu, 04 Dec 2014 01:03:24 -0800
+Reviewed-on: https://review.tizen.org/gerrit/31161
+Project: platform/core/connectivity/nfc-manager-neard
+Branch: refs/heads/tizen
