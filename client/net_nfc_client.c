@@ -16,10 +16,6 @@
 
 #include <glib.h>
 
-#ifdef SECURITY_SERVER
-#include "security-server.h"
-#endif
-
 #include "net_nfc_typedef.h"
 #include "net_nfc_util_gdbus_internal.h"
 #include "net_nfc_client_se.h"
@@ -35,49 +31,13 @@
 #include "net_nfc_client_system_handler.h"
 #include "net_nfc_client_handover.h"
 
-#ifdef SECURITY_SERVER
-static uint8_t *cookie;
-static size_t cookie_len;
-
-static void _init_smack()
-{
-	if (cookie == NULL) {
-		cookie_len = security_server_get_cookie_size();
-		if (cookie_len > 0) {
-			cookie = g_new0(uint8_t, cookie_len);
-			if (cookie != NULL) {
-				if (security_server_request_cookie((char*)cookie, cookie_len) < 0) {
-					g_free(cookie);
-					cookie = NULL;
-				}
-			}
-		}
-	}
-}
-
-static void _deinit_smack()
-{
-	if (cookie != NULL) {
-		g_free(cookie);
-		cookie = NULL;
-	}
-}
-#endif
-
 GVariant *net_nfc_client_gdbus_get_privilege()
 {
-#ifdef SECURITY_SERVER
-	return net_nfc_util_gdbus_buffer_to_variant(cookie, cookie_len);
-#else
 	return net_nfc_util_gdbus_buffer_to_variant(NULL, 0);
-#endif
 }
 
 void net_nfc_client_gdbus_init(void)
 {
-#ifdef SECURITY_SERVER
-	_init_smack();
-#endif
 	if (net_nfc_client_manager_init() != NET_NFC_OK)
 		return;
 	if (net_nfc_client_tag_init() != NET_NFC_OK)
@@ -115,7 +75,4 @@ void net_nfc_client_gdbus_deinit(void)
 	net_nfc_client_tag_deinit();
 	net_nfc_client_phdc_deinit();
 	net_nfc_client_manager_deinit();
-#ifdef SECURITY_SERVER
-	_deinit_smack();
-#endif
 }

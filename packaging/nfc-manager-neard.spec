@@ -16,7 +16,6 @@ BuildRequires:  cmake
 BuildRequires:  pkgconfig(aul)
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(gobject-2.0)
-BuildRequires:  pkgconfig(security-server)
 BuildRequires:  pkgconfig(vconf)
 BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(tapi)

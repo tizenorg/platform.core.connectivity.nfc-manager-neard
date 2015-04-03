@@ -29,7 +29,6 @@
 #include <errno.h>
 
 #include "vconf.h"
-#include "security-server.h"
 
 #include "net_nfc_typedef_private.h"
 #include "net_nfc_debug_private.h"
@@ -45,11 +44,6 @@
 /////////////////////////////
 
 /* static variable */
-#ifdef SECURITY_SERVER
-static char *cookies = NULL;
-static int cookies_size = 0;
-static gid_t gid = 0;
-#endif
 
 static pthread_mutex_t g_server_socket_lock = PTHREAD_MUTEX_INITIALIZER;
 static net_nfc_server_info_t g_server_info = { 0, };
@@ -193,30 +187,6 @@ bool net_nfc_server_ipc_initialize()
 		goto ERROR;
 	}
 
-#ifdef SECURITY_SERVER
-	gid = security_server_get_gid(NET_NFC_MANAGER_OBJECT);
-	if (gid == 0)
-	{
-		DEBUG_ERR_MSG("get gid from security server is failed. this object is not allowed by security server");
-		goto ERROR;
-	}
-
-	if ((cookies_size = security_server_get_cookie_size()) > 0)
-	{
-		_net_nfc_util_alloc_mem(cookies, cookies_size);
-		if (cookies == NULL)
-		{
-			DEBUG_ERR_MSG("alloc failed");
-			goto ERROR;
-		}
-	}
-	else
-	{
-		DEBUG_ERR_MSG("security_server_get_cookie_size failed");
-		goto ERROR;
-	}
-#endif
-
 	net_nfc_dispatcher_start_thread();
 	DEBUG_SERVER_MSG("server ipc is initialized");
 
@@ -227,13 +197,6 @@ bool net_nfc_server_ipc_initialize()
 	return true;
 
 ERROR :
-#ifdef SECURITY_SERVER
-	if (cookies == NULL)
-	{
-		_net_nfc_util_free_mem(cookies);
-	}
-#endif
-
 	if (g_server_info.server_src_id > 0)
 	{
 		g_source_remove(g_server_info.server_src_id);
@@ -261,13 +224,6 @@ void net_nfc_server_ipc_finalize()
 {
 	/* cleanup client */
 	net_nfc_server_deinit_client_context();
-
-#ifdef SECURITY_SERVER
-	if (cookies == NULL)
-	{
-		_net_nfc_util_free_mem(cookies);
-	}
-#endif
 
 	if (g_server_info.server_src_id > 0)
 	{
@@ -511,42 +467,6 @@ bool net_nfc_server_read_client_request(int client_sock_fd, net_nfc_error_e *res
 		return false;
 	}
 
-#ifdef SECURITY_SERVER
-	uint32_t cookie_len = *(uint32_t *)(buffer + offset);
-	offset += sizeof(cookie_len);
-
-	if (cookie_len == cookies_size && (length - offset) > cookies_size)
-	{
-		int error = 0;
-
-		/* copy cookie */
-		memcpy(cookies, buffer + offset, cookies_size);
-		offset += cookies_size;
-
-		/* for debug */
-#if 0
-		DEBUG_SERVER_MSG("recevied cookies");
-		DEBUG_MSG_PRINT_BUFFER(cookies, cookie_len);
-#endif
-
-		/* check cookie */
-		if ((error = security_server_check_privilege(cookies, gid)) < 0)
-		{
-			DEBUG_ERR_MSG("failed to authentificate client [%d]", error);
-			_net_nfc_util_free_mem(buffer);
-			*result = NET_NFC_SECURITY_FAIL;
-			return false;
-		}
-	}
-	else
-	{
-		DEBUG_ERR_MSG("there is no cookie or invalid in message");
-		_net_nfc_util_free_mem(buffer);
-		*result = NET_NFC_SECURITY_FAIL;
-		return false;
-	}
-#endif
-
 	if (length > offset)
 	{
 		_net_nfc_util_alloc_mem(req_msg, length - offset);
@@ -604,15 +524,6 @@ bool net_nfc_server_read_client_request(int client_sock_fd, net_nfc_error_e *res
 	case NET_NFC_MESSAGE_SERVICE_SET_LAUNCH_STATE :
 		{
 			DEBUG_SERVER_MSG("checking NET_NFC_MESSAGE_SERVICE_SET_LAUNCH_STATE...");
-#if 1
-			int ret = security_server_check_privilege_by_sockfd(req_msg->client_fd,"nfc-manager::common","w");
-
-			if (ret == SECURITY_SERVER_API_ERROR_ACCESS_DENIED)
-			{
-				DEBUG_SERVER_MSG("checking faile and return...");
-//				return false;
-			}
-#endif
 
 			net_nfc_request_set_launch_state_t *detail = (net_nfc_request_set_launch_state_t *)req_msg;
 

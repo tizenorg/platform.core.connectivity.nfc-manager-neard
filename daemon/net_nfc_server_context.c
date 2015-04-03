@@ -19,9 +19,6 @@
 #include <glib.h>
 
 #include "vconf.h"
-#ifdef SECURITY_SERVER
-#include "security-server.h"
-#endif
 
 #include "net_nfc_server.h"
 #include "net_nfc_debug_internal.h"
@@ -71,30 +68,6 @@ void net_nfc_server_gdbus_deinit_client_context()
 bool net_nfc_server_gdbus_check_privilege(GDBusMethodInvocation *invocation,
 		GVariant *privilege, const char *object, const char *right)
 {
-#ifdef SECURITY_SERVER
-	int result;
-	data_s priv = { NULL, 0 };
-
-	RETV_IF(NULL == right, false);
-	RETV_IF(NULL == object, false);
-	RETV_IF(NULL == privilege, false);
-
-	net_nfc_util_gdbus_variant_to_data_s(privilege, &priv);
-
-	result = security_server_check_privilege_by_cookie((char *)priv.buffer, object, right);
-
-	net_nfc_util_free_data(&priv);
-
-	if (result < 0)
-	{
-		NFC_ERR("permission denied : \"%s\", \"%s\"", object, right);
-		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.Privilege",
-				"Permission denied");
-
-		return false;
-	}
-#endif
 	const char *id = g_dbus_method_invocation_get_sender(invocation);
 
 	net_nfc_server_gdbus_add_client_context(id, NET_NFC_CLIENT_ACTIVE_STATE);

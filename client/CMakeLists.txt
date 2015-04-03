@@ -15,7 +15,7 @@ IF(WAYLAND_SUPPORT)
        SET(WIN_PKG "${WIN_PKG} ecore-wayland")
 ENDIF(WAYLAND_SUPPORT)
 INCLUDE(FindPkgConfig)
-pkg_check_modules(client_pkgs REQUIRED security-server dlog vconf libtzplatform-config neardal
+pkg_check_modules(client_pkgs REQUIRED dlog vconf libtzplatform-config neardal
 			libssl appsvc svi capi-media-wav-player ${WIN_PKG})
 
 IF(WAYLAND_SUPPORT)

@@ -1647,9 +1647,6 @@ static net_nfc_error_e _send_request(net_nfc_request_msg_t *msg, va_list list)
 	int written_size = 0;
 
 	/* calc message length */
-#ifdef SECURITY_SERVER
-	total_size += (sizeof(cookies_size) + cookies_size);
-#endif
 	total_size += msg->length;
 	total_size += net_nfc_util_get_va_list_length(list);
 
@@ -1663,15 +1660,6 @@ static net_nfc_error_e _send_request(net_nfc_request_msg_t *msg, va_list list)
 	/*  - total length */
 	memcpy(send_buffer + written_size, &total_size, sizeof(total_size));
 	written_size += sizeof(total_size);
-
-#ifdef SECURITY_SERVER
-	/*  -- security server cookie */
-	memcpy(send_buffer + written_size, &cookies_size, sizeof(cookies_size));
-	written_size += sizeof(cookies_size);
-
-	memcpy(send_buffer + written_size, cookies, cookies_size);
-	written_size += cookies_size;
-#endif
 
 	/*  -- request message struct */
 	memcpy(send_buffer + written_size, msg, msg->length);
