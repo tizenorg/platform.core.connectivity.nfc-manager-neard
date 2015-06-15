@@ -16,7 +16,7 @@ IF(WAYLAND_SUPPORT)
 ENDIF(WAYLAND_SUPPORT)
 INCLUDE(FindPkgConfig)
 pkg_check_modules(client_pkgs REQUIRED dlog vconf libtzplatform-config neardal
-			libssl appsvc svi capi-media-wav-player ${WIN_PKG})
+			libssl appsvc feedback capi-media-wav-player ${WIN_PKG})
 
 IF(WAYLAND_SUPPORT)
 	ADD_DEFINITIONS("-DHAVE_WAYLAND")

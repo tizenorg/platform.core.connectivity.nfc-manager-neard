@@ -31,7 +31,7 @@
 #include <openssl/buffer.h>
 
 #include <vconf.h>
-#include <svi.h>
+#include <feedback.h>
 #include <wav_player.h>
 #include <appsvc.h>
 #include <aul.h>
@@ -984,6 +984,7 @@ void net_nfc_manager_util_play_sound(net_nfc_sound_type_e sound_type)
 {
 	int bSoundOn = 0;
 	int bVibrationOn = 0;
+	int ret;
 
 	if (vconf_get_bool(VCONFKEY_SETAPPL_SOUND_STATUS_BOOL, &bSoundOn) != 0)
 	{
@@ -1005,16 +1006,19 @@ void net_nfc_manager_util_play_sound(net_nfc_sound_type_e sound_type)
 
 	if (bVibrationOn)
 	{
-		int svi_handle = -1;
-
 		NFC_DBG("Play Vibration");
 
-		if (SVI_SUCCESS == svi_init(&svi_handle))
+		ret = feedback_initialize();
+		if (ret == FEEDBACK_ERROR_NONE)
 		{
-			if (SVI_SUCCESS == svi_play_vib(svi_handle, SVI_VIB_TOUCH_SIP))
-				NFC_DBG("svi_play_vib success");
-
-			svi_fini(svi_handle);
+			ret = feedback_play_type(FEEDBACK_TYPE_VIBRATION, FEEDBACK_PATTERN_SIP);
+			if (ret != FEEDBACK_ERROR_NONE)
+				NFC_ERR("Failed to play vibration(%d)", ret);
+			feedback_deinitialize();
+		}
+		else
+		{
+			NFC_ERR("Failed to init vibration(%d)", ret);
 		}
 	}
 
