@@ -3,7 +3,7 @@
 
 Name:       nfc-manager-neard
 Summary:    NFC framework manager
-Version:    0.1.6
+Version:    0.1.7
 Release:    0
 Group:      Network & Connectivity/NFC
 License:    Apache-2.0
@@ -42,7 +42,7 @@ BuildRequires:  python
 BuildRequires:  python-xml
 BuildRequires:  gettext-tools
 %ifarch %arm
-BuildRequires:  pkgconfig(wifi-direct)
+BuildRequires:  pkgconfig(capi-network-wifi-direct)
 %global ARM_DEF "-DARM_TARGET=Y"
 %endif
 
