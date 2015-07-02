@@ -552,11 +552,11 @@ API net_nfc_error_e net_nfc_get_card_emulation_mode(net_nfc_se_type_e *type)
 	{
 		switch(se_type)
 		{
-			case VCONFKEY_NFC_SE_TYPE_UICC:
+			case VCONFKEY_NFC_SE_POLICY_UICC_ON:
 				*type = NET_NFC_SE_TYPE_UICC;
 				break;
 
-			case VCONFKEY_NFC_SE_TYPE_ESE:
+			case VCONFKEY_NFC_SE_POLICY_ESE_ON:
 				*type = NET_NFC_SE_TYPE_ESE;
 				break;
 

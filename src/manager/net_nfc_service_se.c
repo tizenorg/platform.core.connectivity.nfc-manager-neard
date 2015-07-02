@@ -132,7 +132,7 @@ net_nfc_error_e net_nfc_service_se_change_se(uint8_t type)
 			net_nfc_service_se_set_se_type(SECURE_ELEMENT_TYPE_UICC);
 			net_nfc_service_se_set_se_mode(SECURE_ELEMENT_VIRTUAL_MODE);
 
-			if (vconf_set_int(VCONFKEY_NFC_SE_TYPE, VCONFKEY_NFC_SE_TYPE_UICC) != 0)
+			if (vconf_set_int(VCONFKEY_NFC_SE_TYPE, VCONFKEY_NFC_SE_POLICY_UICC_ON) != 0)
 			{
 				DEBUG_ERR_MSG("vconf_set_int failed");
 			}
@@ -156,7 +156,7 @@ net_nfc_error_e net_nfc_service_se_change_se(uint8_t type)
 			net_nfc_service_se_set_se_type(SECURE_ELEMENT_TYPE_ESE);
 			net_nfc_service_se_set_se_mode(SECURE_ELEMENT_VIRTUAL_MODE);
 
-			if (vconf_set_int(VCONFKEY_NFC_SE_TYPE, VCONFKEY_NFC_SE_TYPE_ESE) != 0)
+			if (vconf_set_int(VCONFKEY_NFC_SE_TYPE, VCONFKEY_NFC_SE_POLICY_ESE_ON) != 0)
 			{
 				DEBUG_ERR_MSG("vconf_set_int failed");
 			}
@@ -182,7 +182,7 @@ net_nfc_error_e net_nfc_service_se_change_se(uint8_t type)
 			if (result_ese != NET_NFC_INVALID_HANDLE && result_uicc != NET_NFC_INVALID_HANDLE)
 			{
 				DEBUG_SERVER_MSG("SE off all");
-				if (vconf_set_int(VCONFKEY_NFC_SE_TYPE, VCONFKEY_NFC_SE_TYPE_NONE) != 0)
+				if (vconf_set_int(VCONFKEY_NFC_SE_TYPE, VCONFKEY_NFC_SE_POLICY_NONE) != 0)
 				{
 					DEBUG_ERR_MSG("vconf_set_int failed");
 				}

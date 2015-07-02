@@ -216,7 +216,7 @@ static void _se_uicc_enable_card_emulation()
 		net_nfc_server_se_set_se_type(SECURE_ELEMENT_TYPE_UICC);
 		net_nfc_server_se_set_se_mode(SECURE_ELEMENT_VIRTUAL_MODE);
 
-		if (vconf_set_int(VCONFKEY_NFC_SE_TYPE, VCONFKEY_NFC_SE_TYPE_UICC) < 0)
+		if (vconf_set_int(VCONFKEY_NFC_SE_TYPE, VCONFKEY_NFC_SE_POLICY_UICC_ON) < 0)
 			NFC_ERR("vconf_set_int failed");
 	}
 	else
@@ -397,7 +397,7 @@ net_nfc_error_e net_nfc_server_se_change_se(uint8_t type)
 			net_nfc_server_se_set_se_type(SECURE_ELEMENT_TYPE_ESE);
 			net_nfc_server_se_set_se_mode(SECURE_ELEMENT_VIRTUAL_MODE);
 
-			if (vconf_set_int(VCONFKEY_NFC_SE_TYPE, VCONFKEY_NFC_SE_TYPE_ESE) != 0)
+			if (vconf_set_int(VCONFKEY_NFC_SE_TYPE, VCONFKEY_NFC_SE_POLICY_ESE_ON) != 0)
 				NFC_ERR("vconf_set_int failed");
 		}
 		else
@@ -412,7 +412,7 @@ net_nfc_error_e net_nfc_server_se_change_se(uint8_t type)
 		{
 			NFC_INFO("card emulation turned off");
 
-			if (vconf_set_int(VCONFKEY_NFC_SE_TYPE, VCONFKEY_NFC_SE_TYPE_NONE) != 0)
+			if (vconf_set_int(VCONFKEY_NFC_SE_TYPE, VCONFKEY_NFC_SE_POLICY_NONE) != 0)
 				NFC_ERR("vconf_set_int failed");
 		}
 		break;
