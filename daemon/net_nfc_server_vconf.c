@@ -39,12 +39,14 @@ static void net_nfc_server_vconf_flight_mode_changed(keynode_t *key,
 
 static void vconf_set_flight_mode(int boolval)
 {
+#if 0
 	gint result;
 
 	/* set predefined item */
 	result = vconf_set_bool(VCONFKEY_NFC_PREDEFINED_ITEM_STATE, boolval);
 	if (result != 0)
 		NFC_ERR("can not set to %d: %s", boolval, "VCONKEY_NFC_PREDEFINED_ITEM_STATE");
+#endif
 }
 
 static void net_nfc_server_vconf_pm_state_changed(keynode_t *key,
