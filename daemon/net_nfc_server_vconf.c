@@ -39,6 +39,7 @@ static void net_nfc_server_vconf_flight_mode_changed(keynode_t *key,
 
 static void vconf_set_flight_mode(int boolval)
 {
+/* Need to handle in later */
 #if 0
 	gint result;
 
