@@ -17,12 +17,12 @@ ENDIF(WAYLAND_SUPPORT)
 INCLUDE(FindPkgConfig)
 IF(ARM_TARGET)
 	pkg_check_modules(daemon_pkgs REQUIRED aul glib-2.0 gio-unix-2.0
-		vconf dlog tapi appsvc libcurl libssl feedback capi-media-wav-player
+		vconf dlog tapi appsvc libcurl libssl libcrypto feedback capi-media-wav-player
 		pkgmgr pkgmgr-info capi-network-wifi pmapi capi-network-wifi-direct
 		libtzplatform-config neardal ${WIN_PKG})
 ELSE(ARM_TARGET)
 	pkg_check_modules(daemon_pkgs REQUIRED aul glib-2.0 gio-unix-2.0
-		vconf dlog tapi appsvc libcurl libssl feedback capi-media-wav-player
+		vconf dlog tapi appsvc libcurl libssl libcrypto feedback capi-media-wav-player
 		pkgmgr pkgmgr-info capi-network-wifi pmapi libtzplatform-config neardal
 		${WIN_PKG})
 ENDIF(ARM_TARGET)

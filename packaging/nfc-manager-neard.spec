@@ -26,6 +26,7 @@ BuildRequires:  pkgconfig(appsvc)
 BuildRequires:  pkgconfig(feedback)
 BuildRequires:  pkgconfig(capi-media-wav-player)
 BuildRequires:  pkgconfig(libssl)
+BuildRequires:  pkgconfig(libcrypto)
 BuildRequires:  pkgconfig(libcurl)
 BuildRequires:  pkgconfig(pkgmgr)
 BuildRequires:  pkgconfig(pkgmgr-info)
@@ -110,6 +111,7 @@ MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 -DX11_SUPPORT=Off
 %endif
 
+make %{?_smp_mflags}
 
 %install
 %make_install
