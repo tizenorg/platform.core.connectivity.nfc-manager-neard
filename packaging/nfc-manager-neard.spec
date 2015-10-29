@@ -131,12 +131,6 @@ fi
 
 %post -n nfc-client-lib-neard
 /sbin/ldconfig
-USER_GROUP_ID=$(getent group %{TZ_SYS_USER_GROUP} | cut -d: -f3)
-vconftool set -t bool db/nfc/feature 0 -g $USER_GROUP_ID -f
-vconftool set -t bool db/nfc/predefined_item_state 0 -g $USER_GROUP_ID -f
-vconftool set -t string db/nfc/predefined_item "None" -g $USER_GROUP_ID -f
-vconftool set -t bool db/nfc/enable 0 -g $USER_GROUP_ID -f
-vconftool set -t int db/nfc/se_type 0 -g $USER_GROUP_ID -f
 
 %postun
 /sbin/ldconfig
