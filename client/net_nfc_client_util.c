@@ -35,6 +35,7 @@
 #include <wav_player.h>
 #include <appsvc.h>
 #include <aul.h>
+#include <bundle_internal.h>
 
 #ifdef USE_X11
 #include <Ecore_X.h>
