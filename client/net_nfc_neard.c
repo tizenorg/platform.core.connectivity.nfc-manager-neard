@@ -734,7 +734,7 @@ net_nfc_error_e net_nfc_neard_read_tag(net_nfc_target_handle_s *handle,
 	if (handle != target_handle || rawNDEF == NULL)
 		return NET_NFC_TARGET_IS_MOVED_AWAY;
 
-	if (tag == NULL && tag->records == NULL)
+	if (tag == NULL || tag->records == NULL)
 		return NET_NFC_TARGET_IS_MOVED_AWAY;
 
 	if (neardal_tag_get_rawNDEF(tag->name)
