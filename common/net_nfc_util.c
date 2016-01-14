@@ -22,6 +22,7 @@
 
 // platform header
 #include <vconf.h>
+#include <bluetooth_internal.h>
 #include <bluetooth.h>
 
 // nfc-manager header
