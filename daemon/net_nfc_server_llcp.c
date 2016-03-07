@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <pmapi.h>/*for pm lock*/
+#include <dd-display.h>/*for pm lock*/
 
 #include "net_nfc_debug_internal.h"
 #include "net_nfc_util_internal.h"
@@ -864,8 +864,8 @@ static void llcp_handle_disconnect_thread_func(gpointer user_data)
 		int ret_val;
 
 		net_nfc_server_free_target_info();
-		ret_val = pm_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
-		NFC_DBG("net_nfc_controller_disconnect pm_unlock_state[%d]!!", ret_val);
+		ret_val = display_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
+		NFC_DBG("net_nfc_controller_disconnect display_unlock_state[%d]!!", ret_val);
 	}
 
 	ret = net_nfc_controller_llcp_disconnect(GUINT_TO_POINTER(data->handle),

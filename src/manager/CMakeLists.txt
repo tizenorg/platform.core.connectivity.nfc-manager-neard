@@ -20,7 +20,7 @@ IF(WAYLAND_SUPPORT)
        SET(WIN_PKG "${WIN_PKG} ecore-wayland")
 ENDIF(WAYLAND_SUPPORT)
 INCLUDE(FindPkgConfig)
-pkg_check_modules(manager_pkges REQUIRED aul glib-2.0 gobject-2.0 dbus-glib-1 vconf dlog tapi appsvc libcurl bluetooth-api heynoti smartcard-service smartcard-service-common libssl pmapi feedback capi-media-wav-player pkgmgr pkgmgr-info ${WIN_PKG})
+pkg_check_modules(manager_pkges REQUIRED aul glib-2.0 gobject-2.0 dbus-glib-1 vconf dlog tapi appsvc libcurl bluetooth-api heynoti smartcard-service smartcard-service-common libssl deviced feedback capi-media-wav-player pkgmgr pkgmgr-info ${WIN_PKG})
 
 IF(WAYLAND_SUPPORT)
  ADD_DEFINITIONS("-DHAVE_WAYLAND")

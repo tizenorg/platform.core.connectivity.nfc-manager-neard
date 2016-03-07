@@ -24,7 +24,7 @@
 #include <string.h>
 #include <errno.h>
 
-#include <pmapi.h>/*for pm lock*/
+#include <dd-display.h>/*for pm lock*/
 
 #include "net_nfc_oem_controller.h"
 #include "net_nfc_server_controller.h"
@@ -337,9 +337,9 @@ bool net_nfc_controller_secure_element_open(
 {
 	int ret_val = 0;
 
-	ret_val = pm_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
+	ret_val = display_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
 
-	NFC_DBG("pm_lock_state [%d]!!", ret_val);
+	NFC_DBG("display_lock_state [%d]!!", ret_val);
 
 	if (g_interface.secure_element_open != NULL)
 	{
@@ -391,8 +391,8 @@ bool net_nfc_controller_secure_element_close(net_nfc_target_handle_s *handle,
 {
 	int ret_val = 0;
 
-	ret_val = pm_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
-	NFC_DBG("pm_unlock_state [%d]!!", ret_val);
+	ret_val = display_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
+	NFC_DBG("display_unlock_state [%d]!!", ret_val);
 
 	if (g_interface.secure_element_close != NULL)
 	{
@@ -426,9 +426,9 @@ bool net_nfc_controller_connect(net_nfc_target_handle_s *handle,
 {
 	int ret_val = 0;
 
-	ret_val = pm_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
+	ret_val = display_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
 
-	NFC_DBG("net_nfc_controller_connect pm_lock_state [%d]!!", ret_val);
+	NFC_DBG("net_nfc_controller_connect display_lock_state [%d]!!", ret_val);
 
 	if (g_interface.connect != NULL)
 	{
@@ -447,9 +447,9 @@ bool net_nfc_controller_disconnect(net_nfc_target_handle_s *handle,
 {
 	int ret_val = 0;
 
-	ret_val = pm_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
+	ret_val = display_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
 
-	NFC_ERR("net_nfc_controller_disconnect pm_lock_state [%d]!!", ret_val);
+	NFC_ERR("net_nfc_controller_disconnect display_unlock_state [%d]!!", ret_val);
 
 	if (g_interface.disconnect != NULL)
 	{
@@ -870,9 +870,9 @@ bool net_nfc_controller_llcp_connect_by_url(net_nfc_target_handle_s *handle,
 {
 	int ret_val = 0;
 
-	ret_val = pm_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
+	ret_val = display_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
 
-	NFC_DBG("pm_lock_state[%d]!!", ret_val);
+	NFC_DBG("display_lock_state[%d]!!", ret_val);
 
 	if (g_interface.connect_llcp_by_url != NULL)
 	{
@@ -910,9 +910,9 @@ bool net_nfc_controller_llcp_connect(net_nfc_target_handle_s *handle,
 {
 	int ret_val = 0;
 
-	ret_val = pm_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
+	ret_val = display_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
 
-	NFC_DBG("net_nfc_controller_llcp_connect pm_lock_state [%d]!!", ret_val);
+	NFC_DBG("net_nfc_controller_llcp_connect display_lock_state [%d]!!", ret_val);
 
 	if (g_interface.connect_llcp != NULL)
 	{
@@ -960,9 +960,9 @@ bool net_nfc_controller_llcp_disconnect(net_nfc_target_handle_s *handle,
 {
 	int ret_val = 0;
 
-	ret_val = pm_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
+	ret_val = display_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
 
-	NFC_DBG("net_nfc_controller_llcp_disconnect pm_unlock_state [%d]!!", ret_val);
+	NFC_DBG("net_nfc_controller_llcp_disconnect display_unlock_state [%d]!!", ret_val);
 
 	if (g_interface.disconnect_llcp != NULL)
 	{

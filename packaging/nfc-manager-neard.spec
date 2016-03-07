@@ -36,7 +36,7 @@ BuildRequires: pkgconfig(ecore-x)
 %if %{with wayland}
 BuildRequires: pkgconfig(ecore-wayland)
 %endif
-BuildRequires:  pkgconfig(pmapi)
+BuildRequires:  pkgconfig(deviced)
 BuildRequires:  pkgconfig(libtzplatform-config)
 BuildRequires:  pkgconfig(neardal)
 BuildRequires:  python
