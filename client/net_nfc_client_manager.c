@@ -34,66 +34,9 @@ struct _ManagerFuncData
 };
 
 static NetNfcGDbusManager *manager_proxy = NULL;
-static gboolean activation_is_running = FALSE;
 static ManagerFuncData activated_func_data;
 static int is_activated = -1;
 static guint timeout_id[2];
-
-static gboolean _set_activate_time_elapsed_callback(gpointer user_data)
-{
-	net_nfc_client_manager_set_active_completed callback;
-	ManagerFuncData *func_data = user_data;
-
-	g_assert(func_data != NULL);
-
-	timeout_id[0] = 0;
-
-	callback = (net_nfc_client_manager_set_active_completed)func_data->callback;
-
-	callback(func_data->result, func_data->user_data);
-
-	g_free(func_data);
-
-	return false;
-}
-
-static void manager_call_set_active_callback(GObject *source_object,
-		GAsyncResult *res, gpointer user_data)
-{
-	gboolean ret;
-	GError *error = NULL;
-	net_nfc_error_e result;
-	ManagerFuncData *func_data = user_data;
-
-	g_assert(user_data != NULL);
-
-	activation_is_running = FALSE;
-
-	ret = net_nfc_gdbus_manager_call_set_active_finish(
-			NET_NFC_GDBUS_MANAGER(source_object), &result, res, &error);
-
-	if (FALSE == ret)
-	{
-		NFC_ERR("Can not finish call_set_active: %s", error->message);
-		g_error_free(error);
-
-		result = NET_NFC_IPC_FAIL;
-	}
-
-	func_data->result = result;
-	net_nfc_client_get_nfc_state(&is_activated);
-
-	if (is_activated == false)
-	{
-		//TODO : wait several times
-		timeout_id[0] = g_timeout_add(DEACTIVATE_DELAY, _set_activate_time_elapsed_callback,
-				func_data);
-	}
-	else
-	{
-		g_main_context_invoke(NULL, _set_activate_time_elapsed_callback, func_data);
-	}
-}
 
 static void manager_call_get_server_state_callback(GObject *source_object,
 		GAsyncResult *res, gpointer user_data)

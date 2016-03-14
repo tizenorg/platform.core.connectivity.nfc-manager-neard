@@ -2247,7 +2247,6 @@ net_nfc_error_e net_nfc_server_llcp_start_registered_services(
 
 static void net_nfc_server_llcp_process(gpointer user_data)
 {
-	bool ret;
 	net_nfc_target_handle_s *handle;
 	net_nfc_current_target_info_s *target;
 #if 0

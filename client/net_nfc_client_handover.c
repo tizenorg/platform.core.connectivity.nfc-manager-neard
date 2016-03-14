@@ -29,46 +29,6 @@
 
 static NetNfcGDbusHandover *handover_proxy = NULL;
 
-static void p2p_connection_handover(GObject *source_object,
-		GAsyncResult *res, gpointer user_data)
-{
-	gboolean ret;
-	data_s arg_data;
-	GError *error = NULL;
-	GVariant *data = NULL;
-	net_nfc_error_e result;
-	NetNfcCallback *func_data = user_data;
-	net_nfc_p2p_connection_handover_completed_cb callback;
-	net_nfc_conn_handover_carrier_type_e type = NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN;
-
-	g_assert(user_data != NULL);
-
-	ret = net_nfc_gdbus_handover_call_request_finish(handover_proxy,
-			(gint *)&result, (gint *)&type, &data, res, &error);
-
-	if (FALSE == ret)
-	{
-		NFC_ERR("Can not finish connection handover: %s", error->message);
-		g_error_free(error);
-
-		result = NET_NFC_IPC_FAIL;
-	}
-
-	if (func_data->callback != NULL)
-	{
-		callback = (net_nfc_p2p_connection_handover_completed_cb)func_data->callback;
-
-		net_nfc_util_gdbus_variant_to_data_s(data, &arg_data);
-
-		callback(result, type, &arg_data, func_data->user_data);
-
-		net_nfc_util_free_data(&arg_data);
-	}
-
-	g_free(func_data);
-}
-
-
 API net_nfc_error_e net_nfc_client_handover_free_alternative_carrier_data(
 		net_nfc_connection_handover_info_s *info)
 {

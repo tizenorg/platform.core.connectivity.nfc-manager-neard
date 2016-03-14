@@ -554,7 +554,7 @@ net_nfc_error_e net_nfc_app_util_process_ndef(data_s *data)
 
 	RETV_IF(NULL == data, NET_NFC_NULL_PARAMETER);
 	RETV_IF(NULL == data->buffer, NET_NFC_NULL_PARAMETER);
-	RETV_IF(NULL == data->length, NET_NFC_NULL_PARAMETER);
+	RETV_IF(0 == data->length, NET_NFC_NULL_PARAMETER);
 
 	/* create file */
 	if ((result = net_nfc_app_util_store_ndef_message(data)) != NET_NFC_OK)
@@ -647,7 +647,7 @@ static bool net_nfc_app_util_is_dir(const char* path_name)
 		return false;
 }
 
-void net_nfc_app_util_clean_storage(char* src_path)
+void net_nfc_app_util_clean_storage(const char* src_path)
 {
 	DIR* dir = NULL;
 	char path[1024] = { 0 };
@@ -946,7 +946,6 @@ int net_nfc_app_util_decode_base64(const char *buffer, uint32_t buf_len, uint8_t
 
 pid_t net_nfc_app_util_get_focus_app_pid()
 {
-	pid_t pid;
 #ifdef USE_X11
 	Ecore_X_Window focus;
 
@@ -964,10 +963,8 @@ pid_t net_nfc_app_util_get_focus_app_pid()
 
 bool net_nfc_app_util_check_launch_state()
 {
-	pid_t focus_app_pid;
 	int state;
 
-	focus_app_pid = net_nfc_app_util_get_focus_app_pid();
 	net_nfc_client_sys_handler_get_launch_popup_state(&state);
 
 	return state;

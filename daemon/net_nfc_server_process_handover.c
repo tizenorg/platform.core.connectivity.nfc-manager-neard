@@ -216,44 +216,6 @@ static net_nfc_error_e _net_nfc_server_handover_convert_ndef_message_to_data(
 	return result;
 }
 
-static void _net_nfc_server_handover_bt_get_carrier_record_cb(
-		net_nfc_error_e result,
-		net_nfc_conn_handover_carrier_state_e cps,
-		ndef_record_s *carrier,
-		uint32_t aux_data_count,
-		ndef_record_s *aux_data,
-		void *user_param)
-{
-	net_nfc_server_handover_create_config_context_t *context = user_param;
-
-	/* append record to ndef message */
-	if (NET_NFC_OK == result)
-	{
-		ndef_record_s *record;
-
-		/* FIXME : copy record and append */
-		net_nfc_util_create_record(carrier->TNF, &carrier->type_s, &carrier->id_s,
-				&carrier->payload_s, &record);
-
-		result = net_nfc_util_append_carrier_config_record(context->ndef_message,
-						record, cps);
-
-		if (NET_NFC_OK == result)
-		{
-			NFC_DBG("net_nfc_util_append_carrier_config_record success");
-		}
-		else
-		{
-			NFC_ERR("net_nfc_util_append_carrier_config_record failed [%d]", result);
-			net_nfc_util_free_record(record);
-		}
-
-		g_idle_add((GSourceFunc)_net_nfc_server_handover_iterate_carrier_configs_to_next,
-				(gpointer)context);
-	}
-
-	/* don't free context */
-}
 static void _net_nfc_server_handover_bss_get_carrier_record_cb(
 		net_nfc_error_e result,
 		net_nfc_conn_handover_carrier_state_e cps,
@@ -289,27 +251,6 @@ static void _net_nfc_server_handover_bss_get_carrier_record_cb(
 	}
 
 	/* don't free context */
-}
-
-static void _net_nfc_server_handover_bt_process_carrier_record_cb(
-		net_nfc_error_e result,
-		net_nfc_conn_handover_carrier_type_e type,
-		data_s *data,
-		void *user_param)
-{
-	net_nfc_server_handover_process_config_context_t *context = user_param;
-
-	if (NET_NFC_OK == result)
-	{
-		if (context->cb != NULL)
-			context->cb(result, type, data, context->user_param);
-	}
-	else
-	{
-		NFC_ERR("_handover_bt_process_carrier_record failed [%d]", result);
-	}
-
-	_net_nfc_util_free_mem(context);
 }
 
 static void _net_nfc_server_handover_bss_process_carrier_record_cb(
@@ -1376,21 +1317,6 @@ net_nfc_error_e net_nfc_server_handover_default_server_unregister()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
-static void _net_nfc_server_handover_client_post_process_cb(
-		net_nfc_error_e result,
-		net_nfc_conn_handover_carrier_type_e type,
-		data_s *data,
-		void *user_param)
-{
-	net_nfc_handover_context_t *context = user_param;
-
-	RET_IF(NULL == context);
-
-	context->state = NET_NFC_LLCP_STEP_RETURN;
-
-	_net_nfc_server_handover_client_process(context);
-}
 
 static void _net_nfc_server_handover_client_process_carrier_record_cb(
 		net_nfc_error_e result,

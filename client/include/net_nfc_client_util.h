@@ -38,7 +38,7 @@ void net_nfc_manager_util_play_sound(net_nfc_sound_type_e sound_type);
 
 net_nfc_error_e net_nfc_app_util_process_ndef(data_s *data);
 void net_nfc_app_util_aul_launch_app(char* package_name, bundle* kb);
-void net_nfc_app_util_clean_storage(char* src_path);
+void net_nfc_app_util_clean_storage(const char* src_path);
 int net_nfc_app_util_appsvc_launch(const char *operation, const char *uri, const char *mime, const char *data);
 int net_nfc_app_util_launch_se_transaction_app(net_nfc_secure_element_type_e se_type,
 		uint8_t *aid, uint32_t aid_len, uint8_t *param, uint32_t param_len);

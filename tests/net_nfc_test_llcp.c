@@ -27,10 +27,6 @@ static net_nfc_llcp_socket_t server_test_socket;
 static net_nfc_llcp_socket_t client_test_socket;
 
 static net_nfc_llcp_config_info_s *llcp_config = NULL;
-static net_nfc_llcp_config_info_s *llcp_config_sync = NULL;
-static net_nfc_llcp_config_info_s *llcp_config_default = NULL;
-static net_nfc_llcp_config_info_s *llcp_config_default_sync = NULL;
-
 
 /*********************************** utility Calls *************************************/
 
@@ -46,20 +42,6 @@ static void run_next_callback(gpointer user_data)
 }
 
 /*********************************** Callbacks *************************************/
-
-static void llcp_default_config_cb(net_nfc_error_e result, void *user_data)
-{
-	g_print(" llcp_default_config_cb Completed %d\n", result);
-
-	run_next_callback(user_data);
-}
-
-static void llcp_custom_config_cb(net_nfc_error_e result, void *user_data)
-{
-	g_print("llcp_custom_config_cb Completed %d\n", result);
-
-	run_next_callback(user_data);
-}
 
 static void llcp_listen_socket_cb(net_nfc_error_e result,
 		net_nfc_llcp_socket_t client_socket, void *user_data)

@@ -44,7 +44,7 @@ static void se_set_event_cb(net_nfc_message_e event, void *user_data);
 static void se_ese_detection_cb(net_nfc_target_handle_s *handle, int dev_type,
 		data_s *data, void *user_data);
 
-static void se_set_transaction_cb(data_s *aid, data_s *param, void *user_data);
+static void se_set_transaction_cb(net_nfc_se_type_e se_type, data_s *aid, data_s *param, void *user_data);
 
 /*This handle would be intialized by open secure element callback function*/
 static net_nfc_target_handle_s *global_handle = NULL;
@@ -113,7 +113,7 @@ static void se_ese_detection_cb(net_nfc_target_handle_s *handle, int dev_type,
 	print_received_data(data);
 }
 
-static void se_set_transaction_cb(data_s *aid, data_s *param, void *user_data)
+static void se_set_transaction_cb(net_nfc_se_type_e se_type, data_s *aid, data_s *param, void *user_data)
 {
 	g_print("Set transaction callback successfully\n");
 	g_print("*****displaying Aid data****\n");

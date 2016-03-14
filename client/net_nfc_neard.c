@@ -136,6 +136,8 @@ static const char *carrier2string(net_nfc_conn_handover_carrier_type_e type)
 		return "bluetooth";
 	case NET_NFC_CONN_HANDOVER_CARRIER_WIFI_BSS:
 		return "wifi";
+	default:
+		return "unknown";
 	}
 
 	return NULL;
@@ -354,7 +356,7 @@ static void _tag_lost_cb(const char *tagName, void *user_data)
 static void _create_target_info(data_s *data)
 {
 	uint8_t ndefCardstate;
-	int actualDataSize, maxDataSize;
+	int actualDataSize, maxDataSize = 0;
 	bool ndef_support;
 
 	if (target_info == NULL)
@@ -536,7 +538,6 @@ static void _p2p_received_cb(GVariant *ret, void *user_data)
 {
 	gconstpointer value;
 	gsize length;
-	ndef_message_s *ndef = NULL;
 
 	NFC_DBG("p2p received cb adapter path %s", nfc_adapter_path);
 	if (nfc_adapter_path == NULL)

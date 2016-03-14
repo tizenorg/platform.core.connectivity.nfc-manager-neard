@@ -91,39 +91,6 @@ static void p2p_device_data_received(GObject *source_object, GVariant *arg_data,
 	net_nfc_util_free_data(&p2p_data);
 }
 
-static void p2p_call_send(GObject *source_object, GAsyncResult *res,
-		gpointer user_data)
-{
-	gboolean ret;
-	GError *error = NULL;
-	net_nfc_error_e out_result;
-	NetNfcCallback *func_data = user_data;
-	net_nfc_client_p2p_send_completed callback;
-
-	g_assert(user_data != NULL);
-
-	ret = net_nfc_gdbus_p2p_call_send_finish(NET_NFC_GDBUS_P2P(source_object),
-			(gint *)&out_result, res, &error);
-
-	if (FALSE == ret)
-	{
-		out_result = NET_NFC_IPC_FAIL;
-
-		NFC_ERR("Can not finish p2p send: %s", error->message);
-		g_error_free(error);
-	}
-
-	if (func_data->callback != NULL)
-	{
-		callback = (net_nfc_client_p2p_send_completed)func_data->callback;
-
-		callback(out_result, func_data->user_data);
-	}
-
-	g_free(func_data);
-}
-
-
 API net_nfc_error_e net_nfc_client_p2p_send(net_nfc_target_handle_s *handle,
 		data_s *data, net_nfc_client_p2p_send_completed callback, void *user_data)
 {

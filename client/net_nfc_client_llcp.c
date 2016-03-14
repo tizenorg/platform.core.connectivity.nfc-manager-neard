@@ -95,37 +95,6 @@ net_nfc_llcp_internal_socket_s *llcp_socket_data_find(net_nfc_llcp_socket_t sock
 	return pos->data;
 }
 
-/* aysnc callback */
-static void llcp_call_config(GObject *source_object, GAsyncResult *res,
-		gpointer user_data)
-{
-	gboolean ret;
-	GError *error = NULL;
-	net_nfc_error_e result;
-	LlcpFuncData *func_data = user_data;
-
-	g_assert(func_data != NULL);
-
-	ret = net_nfc_gdbus_llcp_call_config_finish(NET_NFC_GDBUS_LLCP(source_object),
-			&result, res, &error);
-	if (FALSE == ret)
-	{
-		NFC_ERR("Can not finish config: %s", error->message);
-		g_error_free(error);
-		result = NET_NFC_IPC_FAIL;
-	}
-
-	if (func_data->callback != NULL)
-	{
-		net_nfc_client_llcp_config_completed callback =
-			(net_nfc_client_llcp_config_completed)func_data->callback;
-
-		callback(result, func_data->user_data);
-	}
-
-	g_free(func_data);
-}
-
 static void llcp_call_listen(GObject *source_object, GAsyncResult *res,
 		gpointer user_data)
 {

@@ -84,10 +84,8 @@ static void transceive_data_call(GObject *source_object,
 {
 	gboolean ret;
 	GError *error = NULL;
-	data_s resp = { NULL, };
 	GVariant *out_data = NULL;
 	net_nfc_error_e out_result;
-	nfc_transceive_data_callback callback;
 	NetNfcCallback *func_data = user_data;
 
 	g_assert(user_data != NULL);

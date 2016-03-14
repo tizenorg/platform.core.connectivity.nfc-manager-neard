@@ -1182,7 +1182,7 @@ static gboolean se_handle_change_card_emulation_mode(
 		return FALSE;
 	}
 
-	data = g_try_new0(ChangeCardEmulMode, 1);
+	data = g_try_new0(SeSetCardEmul, 1);
 	if (NULL == data)
 	{
 		NFC_ERR("Memory allocation failed");

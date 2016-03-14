@@ -110,10 +110,8 @@ static void se_transaction_event(GObject *source_object,
 		gint fg_dispatch,
 		gint focus_app_pid)
 {
-	void *user_data = NULL;
 	data_s aid = { NULL, 0 };
 	data_s param = { NULL, 0 };
-	net_nfc_client_se_transaction_event callback;
 
 	NFC_INFO(">>> SIGNAL arrived");
 
@@ -128,19 +126,6 @@ static void se_transaction_event(GObject *source_object,
 		{
 			net_nfc_util_gdbus_variant_to_data_s(arg_aid, &aid);
 			net_nfc_util_gdbus_variant_to_data_s(arg_param, &param);
-
-			if(arg_se_type == NET_NFC_SE_TYPE_ESE)
-			{
-				callback = se_transeventhandler.eSE_transaction_event_cb;
-				user_data = se_transeventhandler.eSE_transaction_event_data;
-			}
-			else if(arg_se_type == NET_NFC_SE_TYPE_UICC)
-			{
-				callback = se_transeventhandler.UICC_transaction_event_cb;
-				user_data = se_transeventhandler.UICC_transaction_event_data;
-			}
-
-			callback(arg_se_type, &aid, &param, user_data);
 
 			net_nfc_util_free_data(&param);
 			net_nfc_util_free_data(&aid);
